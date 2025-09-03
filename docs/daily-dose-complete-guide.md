@@ -383,12 +383,12 @@ Add these Bot Token Scopes:
 
 ### Step 3.4: Create Slash Commands
 
-- `/team-create` - Create a new team
-- `/team-join` - Join a team
-- `/team-list` - List all teams
-- `/leave-set` - Set leave dates
-- `/leave-cancel` - Cancel leave
-- `/standup-manual` - Submit standup manually
+- `/dd-team-create` - Create a new team
+- `/dd-team-join` - Join a team
+- `/dd-team-list` - List all teams
+- `/dd-leave-set` - Set leave dates
+- `/dd-leave-cancel` - Cancel leave
+- `/dd-standup` - Submit standup manually
 
 ## Phase 4: Core Implementation
 
@@ -1275,16 +1275,16 @@ const standupCommands = require("./standup");
 
 function setupCommands(app) {
   // Team commands
-  app.command("/team-create", teamCommands.createTeam);
-  app.command("/team-join", teamCommands.joinTeam);
-  app.command("/team-list", teamCommands.listTeams);
+  app.command("/dd-team-create", teamCommands.createTeam);
+  app.command("/dd-team-join", teamCommands.joinTeam);
+  app.command("/dd-team-list", teamCommands.listTeams);
 
   // Leave commands
-  app.command("/leave-set", leaveCommands.setLeave);
-  app.command("/leave-cancel", leaveCommands.cancelLeave);
+  app.command("/dd-leave-set", leaveCommands.setLeave);
+  app.command("/dd-leave-cancel", leaveCommands.cancelLeave);
 
   // Standup commands
-  app.command("/standup-manual", standupCommands.submitManual);
+  app.command("/dd-standup", standupCommands.submitManual);
 
   // Button actions
   app.action(/open_standup_.*/, standupCommands.openStandupModal);
@@ -1304,12 +1304,12 @@ async function createTeam({ command, ack, respond }) {
   await ack();
 
   try {
-    // Parse command text: /team-create TeamName 09:30 10:00
+    // Parse command text: /dd-team-create TeamName 09:30 10:00
     const [name, standupTime, postingTime] = command.text.split(" ");
 
     if (!name || !standupTime || !postingTime) {
       await respond({
-        text: "❌ Usage: `/team-create TeamName HH:MM HH:MM`\nExample: `/team-create Engineering 09:30 10:00`",
+        text: "❌ Usage: `/dd-team-create TeamName HH:MM HH:MM`\nExample: `/dd-team-create Engineering 09:30 10:00`",
       });
       return;
     }
@@ -1342,7 +1342,7 @@ async function joinTeam({ command, ack, respond }) {
 
     if (!teamName) {
       await respond({
-        text: "❌ Usage: `/team-join TeamName`",
+        text: "❌ Usage: `/dd-team-join TeamName`",
       });
       return;
     }

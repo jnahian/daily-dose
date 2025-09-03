@@ -5,12 +5,12 @@ async function createTeam({ command, ack, respond }) {
   await ack();
 
   try {
-    // Parse command text: /team-create TeamName 09:30 10:00
+    // Parse command text: /dd-team-create TeamName 09:30 10:00
     const [name, standupTime, postingTime] = command.text.split(" ");
 
     if (!name || !standupTime || !postingTime) {
       await respond({
-        text: "❌ Usage: `/team-create TeamName HH:MM HH:MM`\nExample: `/team-create Engineering 09:30 10:00`",
+        text: "❌ Usage: `/dd-team-create TeamName HH:MM HH:MM`\nExample: `/dd-team-create Engineering 09:30 10:00`",
       });
       return;
     }
@@ -43,7 +43,7 @@ async function joinTeam({ command, ack, respond }) {
 
     if (!teamName) {
       await respond({
-        text: "❌ Usage: `/team-join TeamName`",
+        text: "❌ Usage: `/dd-team-join TeamName`",
       });
       return;
     }
