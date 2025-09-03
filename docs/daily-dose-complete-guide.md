@@ -1,6 +1,7 @@
 # Daily Dose Slack Bot - Complete Implementation Guide with Prisma
 
 ## Architecture Overview
+
 - **Framework**: Slack Bolt JS
 - **Database**: Supabase (PostgreSQL)
 - **ORM**: Prisma
@@ -9,14 +10,16 @@
 
 ## Phase 1: Project Setup and Prerequisites
 
-### Step 1.1: Initialize Project
+### Step 1.1: Initialize Project ✅
+
 ```bash
 mkdir daily-dose-bot
 cd daily-dose-bot
 npm init -y
 ```
 
-### Step 1.2: Install Required Dependencies
+### Step 1.2: Install Required Dependencies ✅
+
 ```bash
 # Core dependencies
 npm install @slack/bolt @supabase/supabase-js dotenv node-cron luxon
@@ -26,12 +29,14 @@ npm install @prisma/client
 npm install -D prisma nodemon eslint typescript @types/node
 ```
 
-### Step 1.3: Initialize Prisma
+### Step 1.3: Initialize Prisma ✅
+
 ```bash
 npx prisma init
 ```
 
-### Step 1.4: Project Structure
+### Step 1.4: Project Structure ✅
+
 ```
 daily-dose-bot/
 ├── prisma/
@@ -65,11 +70,14 @@ daily-dose-bot/
 ## Phase 2: Database Setup with Prisma & Supabase
 
 ### Step 2.1: Create Supabase Project
+
 1. Go to https://supabase.com and create a new project
 2. Get your database URLs from Settings > Database
 
 ### Step 2.2: Configure Environment Variables
+
 Create `.env` file:
+
 ```env
 # Supabase Database URLs
 DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?schema=public"
@@ -88,6 +96,7 @@ NODE_ENV=development
 ```
 
 ### Step 2.3: Prisma Schema (`prisma/schema.prisma`)
+
 ```prisma
 generator client {
   provider = "prisma-client-js"
@@ -110,10 +119,10 @@ model Organization {
   isActive          Boolean               @default(true) @map("is_active")
   createdAt         DateTime              @default(now()) @map("created_at")
   updatedAt         DateTime              @updatedAt @map("updated_at")
-  
+
   teams             Team[]
   members           OrganizationMember[]
-  
+
   @@map("organizations")
 }
 
@@ -129,12 +138,12 @@ model Team {
   isActive        Boolean             @default(true) @map("is_active")
   createdAt       DateTime            @default(now()) @map("created_at")
   updatedAt       DateTime            @updatedAt @map("updated_at")
-  
+
   organization    Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   members         TeamMember[]
   standupResponses StandupResponse[]
   standupPosts    StandupPost[]
-  
+
   @@unique([organizationId, name])
   @@index([organizationId])
   @@map("teams")
@@ -148,12 +157,12 @@ model User {
   name            String?
   timezone        String                @default("America/New_York")
   createdAt       DateTime              @default(now()) @map("created_at")
-  
+
   organizations   OrganizationMember[]
   teams           TeamMember[]
   leaves          Leave[]
   standupResponses StandupResponse[]
-  
+
   @@map("users")
 }
 
@@ -165,10 +174,10 @@ model OrganizationMember {
   role            OrgRole       @default(MEMBER)
   isActive        Boolean       @default(true) @map("is_active")
   joinedAt        DateTime      @default(now()) @map("joined_at")
-  
+
   organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@unique([organizationId, userId])
   @@index([organizationId])
   @@index([userId])
@@ -183,10 +192,10 @@ model TeamMember {
   role      TeamRole    @default(MEMBER)
   isActive  Boolean     @default(true) @map("is_active")
   joinedAt  DateTime    @default(now()) @map("joined_at")
-  
+
   team      Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@unique([teamId, userId])
   @@index([teamId])
   @@index([userId])
@@ -201,9 +210,9 @@ model Leave {
   endDate   DateTime  @db.Date @map("end_date")
   reason    String?   @db.VarChar(500)
   createdAt DateTime  @default(now()) @map("created_at")
-  
+
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId, startDate, endDate])
   @@map("leaves")
 }
@@ -220,10 +229,10 @@ model StandupResponse {
   hasBlockers     Boolean   @default(false) @map("has_blockers")
   submittedAt     DateTime  @default(now()) @map("submitted_at")
   isLate          Boolean   @default(false) @map("is_late")
-  
+
   team            Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@unique([teamId, userId, standupDate])
   @@index([standupDate])
   @@map("standup_responses")
@@ -237,9 +246,9 @@ model StandupPost {
   slackMessageTs  String?   @map("slack_message_ts")
   channelId       String?   @map("channel_id")
   postedAt        DateTime  @default(now()) @map("posted_at")
-  
+
   team            Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  
+
   @@unique([teamId, standupDate])
   @@map("standup_posts")
 }
@@ -251,7 +260,7 @@ model Holiday {
   name      String?   @db.VarChar(255)
   country   String    @default("US") @db.VarChar(100)
   createdAt DateTime  @default(now()) @map("created_at")
-  
+
   @@unique([date, country])
   @@map("holidays")
 }
@@ -270,6 +279,7 @@ enum TeamRole {
 ```
 
 ### Step 2.4: Run Migrations
+
 ```bash
 # Generate Prisma Client and create database tables
 npx prisma migrate dev --name init
@@ -282,8 +292,9 @@ npx prisma studio
 ```
 
 ### Step 2.5: Manual Organization Setup Script (`src/scripts/seedOrg.js`)
+
 ```javascript
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 async function seedOrganization() {
@@ -291,46 +302,46 @@ async function seedOrganization() {
     // Create organization
     const org = await prisma.organization.create({
       data: {
-        name: 'Your Company Name',
-        slackWorkspaceId: 'T0123ABCD', // Get from Slack
-        slackWorkspaceName: 'your-workspace',
-        defaultTimezone: 'America/New_York',
+        name: "Your Company Name",
+        slackWorkspaceId: "T0123ABCD", // Get from Slack
+        slackWorkspaceName: "your-workspace",
+        defaultTimezone: "America/New_York",
         settings: {
           workDays: [1, 2, 3, 4, 5], // Mon-Fri
-          holidayCountry: 'US',
+          holidayCountry: "US",
           standupWindowMinutes: 30,
         },
       },
     });
-    
-    console.log('✅ Organization created:', org.name);
-    console.log('Organization ID:', org.id);
-    
+
+    console.log("✅ Organization created:", org.name);
+    console.log("Organization ID:", org.id);
+
     // Optionally create initial admin user
-    const adminSlackId = 'U0123ADMIN'; // Your Slack user ID
+    const adminSlackId = "U0123ADMIN"; // Your Slack user ID
     if (adminSlackId) {
       const user = await prisma.user.upsert({
         where: { slackUserId: adminSlackId },
         update: {},
         create: {
           slackUserId: adminSlackId,
-          name: 'Admin Name',
-          email: 'admin@company.com',
+          name: "Admin Name",
+          email: "admin@company.com",
         },
       });
-      
+
       await prisma.organizationMember.create({
         data: {
           organizationId: org.id,
           userId: user.id,
-          role: 'OWNER',
+          role: "OWNER",
         },
       });
-      
-      console.log('✅ Admin user added');
+
+      console.log("✅ Admin user added");
     }
   } catch (error) {
-    console.error('Error seeding organization:', error);
+    console.error("Error seeding organization:", error);
   } finally {
     await prisma.$disconnect();
   }
@@ -344,13 +355,16 @@ Run with: `node src/scripts/seedOrg.js`
 ## Phase 3: Slack App Configuration
 
 ### Step 3.1: Create Slack App
+
 1. Go to https://api.slack.com/apps
 2. Click "Create New App" → "From scratch"
 3. Name: "Daily Dose"
 4. Choose workspace
 
 ### Step 3.2: Configure OAuth & Permissions
+
 Add these Bot Token Scopes:
+
 - `channels:read`
 - `chat:write`
 - `chat:write.public`
@@ -363,11 +377,13 @@ Add these Bot Token Scopes:
 - `groups:read`
 
 ### Step 3.3: Enable Interactive Components
+
 1. Go to "Interactivity & Shortcuts"
 2. Turn on "Interactivity"
 3. Add Request URL: `https://your-domain.com/slack/events`
 
 ### Step 3.4: Create Slash Commands
+
 - `/team-create` - Create a new team
 - `/team-join` - Join a team
 - `/team-list` - List all teams
@@ -378,27 +394,30 @@ Add these Bot Token Scopes:
 ## Phase 4: Core Implementation
 
 ### Step 4.1: Prisma Client Setup (`src/config/prisma.js`)
+
 ```javascript
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient({
-  log: process.env.NODE_ENV === 'development' 
-    ? ['query', 'error', 'warn'] 
-    : ['error'],
+  log:
+    process.env.NODE_ENV === "development"
+      ? ["query", "error", "warn"]
+      : ["error"],
 });
 
 module.exports = prisma;
 ```
 
 ### Step 4.2: Main App (`src/app.js`)
+
 ```javascript
-require('dotenv').config();
-const { App } = require('@slack/bolt');
-const cron = require('node-cron');
-const prisma = require('./config/prisma');
-const { setupCommands } = require('./commands');
-const { setupWorkflows } = require('./workflows');
-const { initializeScheduler } = require('./services/schedulerService');
+require("dotenv").config();
+const { App } = require("@slack/bolt");
+const cron = require("node-cron");
+const prisma = require("./config/prisma");
+const { setupCommands } = require("./commands");
+const { setupWorkflows } = require("./workflows");
+const { initializeScheduler } = require("./services/schedulerService");
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
@@ -416,19 +435,20 @@ initializeScheduler(app);
 // Start app
 (async () => {
   await app.start(process.env.PORT || 3000);
-  console.log('⚡️ Daily Dose bot is running!');
+  console.log("⚡️ Daily Dose bot is running!");
 })();
 
 // Graceful shutdown
-process.on('SIGTERM', async () => {
+process.on("SIGTERM", async () => {
   await prisma.$disconnect();
   process.exit(0);
 });
 ```
 
 ### Step 4.3: User Service (`src/services/userService.js`)
+
 ```javascript
-const prisma = require('../config/prisma');
+const prisma = require("../config/prisma");
 
 class UserService {
   async findOrCreateUser(slackUserId, userData = {}) {
@@ -477,12 +497,12 @@ class UserService {
       },
     });
 
-    return membership && ['OWNER', 'ADMIN'].includes(membership.role);
+    return membership && ["OWNER", "ADMIN"].includes(membership.role);
   }
 
   async setLeave(slackUserId, startDate, endDate, reason) {
     const user = await this.findOrCreateUser(slackUserId);
-    
+
     return await prisma.leave.create({
       data: {
         userId: user.id,
@@ -523,24 +543,25 @@ module.exports = new UserService();
 ```
 
 ### Step 4.4: Team Service (`src/services/teamService.js`)
+
 ```javascript
-const prisma = require('../config/prisma');
-const userService = require('./userService');
+const prisma = require("../config/prisma");
+const userService = require("./userService");
 
 class TeamService {
   async createTeam(slackUserId, channelId, teamData) {
     // Get user and their organization
     const user = await userService.findOrCreateUser(slackUserId);
     const org = await userService.getUserOrganization(slackUserId);
-    
+
     if (!org) {
-      throw new Error('You must belong to an organization to create teams');
+      throw new Error("You must belong to an organization to create teams");
     }
 
     // Check permissions
     const canCreate = await userService.canCreateTeam(user.id, org.id);
     if (!canCreate) {
-      throw new Error('You need admin permissions to create teams');
+      throw new Error("You need admin permissions to create teams");
     }
 
     // Check if channel already has a team
@@ -549,7 +570,7 @@ class TeamService {
     });
 
     if (existingTeam) {
-      throw new Error('This channel already has a team');
+      throw new Error("This channel already has a team");
     }
 
     // Create team with transaction
@@ -570,7 +591,7 @@ class TeamService {
         data: {
           teamId: team.id,
           userId: user.id,
-          role: 'ADMIN',
+          role: "ADMIN",
         },
       });
 
@@ -580,7 +601,7 @@ class TeamService {
 
   async joinTeam(slackUserId, teamId) {
     const user = await userService.findOrCreateUser(slackUserId);
-    
+
     // Check if team exists and user's org matches
     const team = await prisma.team.findUnique({
       where: { id: teamId },
@@ -588,13 +609,13 @@ class TeamService {
     });
 
     if (!team) {
-      throw new Error('Team not found');
+      throw new Error("Team not found");
     }
 
     // Verify user belongs to same organization
     const userOrg = await userService.getUserOrganization(slackUserId);
     if (!userOrg || userOrg.id !== team.organizationId) {
-      throw new Error('You can only join teams in your organization');
+      throw new Error("You can only join teams in your organization");
     }
 
     // Check if already a member
@@ -608,7 +629,7 @@ class TeamService {
     });
 
     if (existingMember) {
-      throw new Error('You are already a member of this team');
+      throw new Error("You are already a member of this team");
     }
 
     // Add as member
@@ -616,14 +637,14 @@ class TeamService {
       data: {
         teamId: team.id,
         userId: user.id,
-        role: 'MEMBER',
+        role: "MEMBER",
       },
     });
   }
 
   async listTeams(slackUserId) {
     const userOrg = await userService.getUserOrganization(slackUserId);
-    
+
     if (!userOrg) {
       return [];
     }
@@ -672,15 +693,16 @@ module.exports = new TeamService();
 ```
 
 ### Step 4.5: Standup Service (`src/services/standupService.js`)
+
 ```javascript
-const prisma = require('../config/prisma');
-const { DateTime } = require('luxon');
-const { isWorkingDay } = require('../utils/dateHelper');
+const prisma = require("../config/prisma");
+const { DateTime } = require("luxon");
+const { isWorkingDay } = require("../utils/dateHelper");
 
 class StandupService {
   async getActiveMembers(teamId, date) {
-    const startOfDay = DateTime.fromJSDate(date).startOf('day').toJSDate();
-    const endOfDay = DateTime.fromJSDate(date).endOf('day').toJSDate();
+    const startOfDay = DateTime.fromJSDate(date).startOf("day").toJSDate();
+    const endOfDay = DateTime.fromJSDate(date).endOf("day").toJSDate();
 
     const members = await prisma.teamMember.findMany({
       where: {
@@ -711,11 +733,11 @@ class StandupService {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new Error("User not found");
     }
 
     const standupDate = DateTime.fromJSDate(responseData.date)
-      .startOf('day')
+      .startOf("day")
       .toJSDate();
 
     return await prisma.standupResponse.upsert({
@@ -748,8 +770,8 @@ class StandupService {
   }
 
   async getTeamResponses(teamId, date) {
-    const startOfDay = DateTime.fromJSDate(date).startOf('day').toJSDate();
-    const endOfDay = DateTime.fromJSDate(date).endOf('day').toJSDate();
+    const startOfDay = DateTime.fromJSDate(date).startOf("day").toJSDate();
+    const endOfDay = DateTime.fromJSDate(date).endOf("day").toJSDate();
 
     return await prisma.standupResponse.findMany({
       where: {
@@ -764,14 +786,14 @@ class StandupService {
         user: true,
       },
       orderBy: {
-        submittedAt: 'asc',
+        submittedAt: "asc",
       },
     });
   }
 
   async getLateResponses(teamId, date) {
-    const startOfDay = DateTime.fromJSDate(date).startOf('day').toJSDate();
-    const endOfDay = DateTime.fromJSDate(date).endOf('day').toJSDate();
+    const startOfDay = DateTime.fromJSDate(date).startOf("day").toJSDate();
+    const endOfDay = DateTime.fromJSDate(date).endOf("day").toJSDate();
 
     return await prisma.standupResponse.findMany({
       where: {
@@ -786,15 +808,13 @@ class StandupService {
         user: true,
       },
       orderBy: {
-        submittedAt: 'asc',
+        submittedAt: "asc",
       },
     });
   }
 
   async saveStandupPost(teamId, date, messageTs, channelId) {
-    const standupDate = DateTime.fromJSDate(date)
-      .startOf('day')
-      .toJSDate();
+    const standupDate = DateTime.fromJSDate(date).startOf("day").toJSDate();
 
     return await prisma.standupPost.upsert({
       where: {
@@ -819,9 +839,7 @@ class StandupService {
   }
 
   async getStandupPost(teamId, date) {
-    const standupDate = DateTime.fromJSDate(date)
-      .startOf('day')
-      .toJSDate();
+    const standupDate = DateTime.fromJSDate(date).startOf("day").toJSDate();
 
     return await prisma.standupPost.findUnique({
       where: {
@@ -836,46 +854,46 @@ class StandupService {
   async formatStandupMessage(responses, notSubmitted) {
     const blocks = [
       {
-        type: 'header',
+        type: "header",
         text: {
-          type: 'plain_text',
-          text: `📊 Daily Standup - ${DateTime.now().toFormat('MMM dd, yyyy')}`,
+          type: "plain_text",
+          text: `📊 Daily Standup - ${DateTime.now().toFormat("MMM dd, yyyy")}`,
         },
       },
       {
-        type: 'divider',
+        type: "divider",
       },
     ];
 
     // Add responses
     if (responses.length > 0) {
       blocks.push({
-        type: 'section',
+        type: "section",
         text: {
-          type: 'mrkdwn',
+          type: "mrkdwn",
           text: `*✅ Submitted (${responses.length}):*`,
         },
       });
 
       for (const response of responses) {
         blocks.push({
-          type: 'section',
+          type: "section",
           text: {
-            type: 'mrkdwn',
+            type: "mrkdwn",
             text: `*👤 ${response.user.name || response.user.slackUserId}*`,
           },
         });
 
-        let responseText = '';
-        
+        let responseText = "";
+
         if (response.yesterdayTasks) {
           responseText += `*Yesterday:*\n${response.yesterdayTasks}\n\n`;
         }
-        
+
         if (response.todayTasks) {
           responseText += `*Today:*\n${response.todayTasks}\n\n`;
         }
-        
+
         if (response.blockers) {
           responseText += `*Blockers:* ${response.blockers}`;
         } else {
@@ -883,15 +901,15 @@ class StandupService {
         }
 
         blocks.push({
-          type: 'section',
+          type: "section",
           text: {
-            type: 'mrkdwn',
+            type: "mrkdwn",
             text: responseText,
           },
         });
 
         blocks.push({
-          type: 'divider',
+          type: "divider",
         });
       }
     }
@@ -899,18 +917,18 @@ class StandupService {
     // Add not submitted section
     if (notSubmitted.length > 0) {
       const notSubmittedText = notSubmitted
-        .map(m => {
+        .map((m) => {
           if (m.onLeave) {
             return `• <@${m.slackUserId}> (On leave)`;
           }
           return `• <@${m.slackUserId}> (No response)`;
         })
-        .join('\n');
+        .join("\n");
 
       blocks.push({
-        type: 'section',
+        type: "section",
         text: {
-          type: 'mrkdwn',
+          type: "mrkdwn",
           text: `*📝 Not Submitted:*\n${notSubmittedText}`,
         },
       });
@@ -924,13 +942,14 @@ module.exports = new StandupService();
 ```
 
 ### Step 4.6: Scheduler Service (`src/services/schedulerService.js`)
+
 ```javascript
-const cron = require('node-cron');
-const { DateTime } = require('luxon');
-const prisma = require('../config/prisma');
-const teamService = require('./teamService');
-const standupService = require('./standupService');
-const { isWorkingDay } = require('../utils/dateHelper');
+const cron = require("node-cron");
+const { DateTime } = require("luxon");
+const prisma = require("../config/prisma");
+const teamService = require("./teamService");
+const standupService = require("./standupService");
+const { isWorkingDay } = require("../utils/dateHelper");
 
 class SchedulerService {
   constructor() {
@@ -941,18 +960,18 @@ class SchedulerService {
   async initialize(app) {
     this.app = app;
     await this.scheduleAllTeams();
-    
+
     // Refresh schedules daily at midnight
-    cron.schedule('0 0 * * *', async () => {
+    cron.schedule("0 0 * * *", async () => {
       await this.scheduleAllTeams();
     });
   }
 
   async scheduleAllTeams() {
-    console.log('📅 Scheduling standup reminders for all teams...');
-    
+    console.log("📅 Scheduling standup reminders for all teams...");
+
     const teams = await teamService.getActiveTeamsForScheduling();
-    
+
     for (const team of teams) {
       await this.scheduleTeam(team);
     }
@@ -960,114 +979,129 @@ class SchedulerService {
 
   async scheduleTeam(team) {
     const { standupTime, postingTime, timezone } = team;
-    
+
     // Parse times
-    const standupHour = parseInt(standupTime.split(':')[0]);
-    const standupMinute = parseInt(standupTime.split(':')[1]);
-    const postingHour = parseInt(postingTime.split(':')[0]);
-    const postingMinute = parseInt(postingTime.split(':')[1]);
-    
+    const standupHour = parseInt(standupTime.split(":")[0]);
+    const standupMinute = parseInt(standupTime.split(":")[1]);
+    const postingHour = parseInt(postingTime.split(":")[0]);
+    const postingMinute = parseInt(postingTime.split(":")[1]);
+
     // Schedule standup reminder
     const standupCron = `${standupMinute} ${standupHour} * * 1-5`; // Mon-Fri
     const standupJobId = `standup-${team.id}`;
-    
+
     // Cancel existing job if any
     if (this.scheduledJobs.has(standupJobId)) {
       this.scheduledJobs.get(standupJobId).stop();
     }
-    
-    const standupJob = cron.schedule(standupCron, async () => {
-      await this.sendStandupReminders(team);
-    }, {
-      timezone,
-      scheduled: true,
-    });
-    
+
+    const standupJob = cron.schedule(
+      standupCron,
+      async () => {
+        await this.sendStandupReminders(team);
+      },
+      {
+        timezone,
+        scheduled: true,
+      }
+    );
+
     this.scheduledJobs.set(standupJobId, standupJob);
-    
+
     // Schedule follow-up reminder (15 minutes later)
     const followupTime = DateTime.fromObject({
       hour: standupHour,
       minute: standupMinute,
     }).plus({ minutes: 15 });
-    
+
     const followupCron = `${followupTime.minute} ${followupTime.hour} * * 1-5`;
     const followupJobId = `followup-${team.id}`;
-    
+
     if (this.scheduledJobs.has(followupJobId)) {
       this.scheduledJobs.get(followupJobId).stop();
     }
-    
-    const followupJob = cron.schedule(followupCron, async () => {
-      await this.sendFollowupReminders(team);
-    }, {
-      timezone,
-      scheduled: true,
-    });
-    
+
+    const followupJob = cron.schedule(
+      followupCron,
+      async () => {
+        await this.sendFollowupReminders(team);
+      },
+      {
+        timezone,
+        scheduled: true,
+      }
+    );
+
     this.scheduledJobs.set(followupJobId, followupJob);
-    
+
     // Schedule posting time
     const postingCron = `${postingMinute} ${postingHour} * * 1-5`;
     const postingJobId = `posting-${team.id}`;
-    
+
     if (this.scheduledJobs.has(postingJobId)) {
       this.scheduledJobs.get(postingJobId).stop();
     }
-    
-    const postingJob = cron.schedule(postingCron, async () => {
-      await this.postTeamStandup(team);
-    }, {
-      timezone,
-      scheduled: true,
-    });
-    
+
+    const postingJob = cron.schedule(
+      postingCron,
+      async () => {
+        await this.postTeamStandup(team);
+      },
+      {
+        timezone,
+        scheduled: true,
+      }
+    );
+
     this.scheduledJobs.set(postingJobId, postingJob);
-    
+
     console.log(`✅ Scheduled team: ${team.name} (${timezone})`);
   }
 
   async sendStandupReminders(team) {
     const now = DateTime.now().setZone(team.timezone);
-    
+
     // Check if working day
     const isWorking = await isWorkingDay(now.toJSDate(), team.organizationId);
     if (!isWorking) return;
-    
+
     // Get active members
-    const members = await standupService.getActiveMembers(team.id, now.toJSDate());
-    
+    const members = await standupService.getActiveMembers(
+      team.id,
+      now.toJSDate()
+    );
+
     for (const member of members) {
       try {
         await this.app.client.chat.postMessage({
           channel: member.user.slackUserId,
           blocks: [
             {
-              type: 'section',
+              type: "section",
               text: {
-                type: 'mrkdwn',
+                type: "mrkdwn",
                 text: `🌅 Good morning! Time for your daily standup for *${team.name}*`,
               },
             },
             {
-              type: 'actions',
+              type: "actions",
               elements: [
                 {
-                  type: 'button',
+                  type: "button",
                   text: {
-                    type: 'plain_text',
-                    text: '📝 Submit Standup',
+                    type: "plain_text",
+                    text: "📝 Submit Standup",
                   },
                   action_id: `open_standup_${team.id}`,
-                  style: 'primary',
+                  style: "primary",
                 },
               ],
             },
             {
-              type: 'context',
+              type: "context",
               elements: [
                 {
-                  type: 'mrkdwn',
+                  type: "mrkdwn",
                   text: `⏰ Deadline: ${team.postingTime}`,
                 },
               ],
@@ -1075,25 +1109,36 @@ class SchedulerService {
           ],
         });
       } catch (error) {
-        console.error(`Failed to send reminder to ${member.user.slackUserId}:`, error);
+        console.error(
+          `Failed to send reminder to ${member.user.slackUserId}:`,
+          error
+        );
       }
     }
   }
 
   async sendFollowupReminders(team) {
     const now = DateTime.now().setZone(team.timezone);
-    
+
     // Check if working day
     const isWorking = await isWorkingDay(now.toJSDate(), team.organizationId);
     if (!isWorking) return;
-    
+
     // Get members who haven't responded
-    const members = await standupService.getActiveMembers(team.id, now.toJSDate());
-    const responses = await standupService.getTeamResponses(team.id, now.toJSDate());
-    
-    const respondedUserIds = new Set(responses.map(r => r.userId));
-    const pendingMembers = members.filter(m => !respondedUserIds.has(m.userId));
-    
+    const members = await standupService.getActiveMembers(
+      team.id,
+      now.toJSDate()
+    );
+    const responses = await standupService.getTeamResponses(
+      team.id,
+      now.toJSDate()
+    );
+
+    const respondedUserIds = new Set(responses.map((r) => r.userId));
+    const pendingMembers = members.filter(
+      (m) => !respondedUserIds.has(m.userId)
+    );
+
     for (const member of pendingMembers) {
       try {
         await this.app.client.chat.postMessage({
@@ -1101,22 +1146,31 @@ class SchedulerService {
           text: `⏰ Reminder: Please submit your standup for ${team.name} before ${team.postingTime}`,
         });
       } catch (error) {
-        console.error(`Failed to send follow-up to ${member.user.slackUserId}:`, error);
+        console.error(
+          `Failed to send follow-up to ${member.user.slackUserId}:`,
+          error
+        );
       }
     }
   }
 
   async postTeamStandup(team) {
     const now = DateTime.now().setZone(team.timezone);
-    
+
     // Check if working day
     const isWorking = await isWorkingDay(now.toJSDate(), team.organizationId);
     if (!isWorking) return;
-    
+
     // Get all responses
-    const responses = await standupService.getTeamResponses(team.id, now.toJSDate());
-    const allMembers = await standupService.getActiveMembers(team.id, now.toJSDate());
-    
+    const responses = await standupService.getTeamResponses(
+      team.id,
+      now.toJSDate()
+    );
+    const allMembers = await standupService.getActiveMembers(
+      team.id,
+      now.toJSDate()
+    );
+
     // Get members on leave
     const membersOnLeave = await prisma.teamMember.findMany({
       where: {
@@ -1135,27 +1189,30 @@ class SchedulerService {
         user: true,
       },
     });
-    
+
     // Calculate not submitted
-    const respondedUserIds = new Set(responses.map(r => r.userId));
-    const leaveUserIds = new Set(membersOnLeave.map(m => m.userId));
-    
+    const respondedUserIds = new Set(responses.map((r) => r.userId));
+    const leaveUserIds = new Set(membersOnLeave.map((m) => m.userId));
+
     const notSubmitted = allMembers
-      .filter(m => !respondedUserIds.has(m.userId))
-      .map(m => ({
+      .filter((m) => !respondedUserIds.has(m.userId))
+      .map((m) => ({
         slackUserId: m.user.slackUserId,
         onLeave: leaveUserIds.has(m.userId),
       }));
-    
+
     // Format and post message
-    const message = await standupService.formatStandupMessage(responses, notSubmitted);
-    
+    const message = await standupService.formatStandupMessage(
+      responses,
+      notSubmitted
+    );
+
     try {
       const result = await this.app.client.chat.postMessage({
         channel: team.slackChannelId,
         ...message,
       });
-      
+
       // Save message timestamp for threading late responses
       await standupService.saveStandupPost(
         team.id,
@@ -1173,32 +1230,33 @@ module.exports = new SchedulerService();
 ```
 
 ### Step 4.7: Date Helper (`src/utils/dateHelper.js`)
+
 ```javascript
-const prisma = require('../config/prisma');
-const { DateTime } = require('luxon');
+const prisma = require("../config/prisma");
+const { DateTime } = require("luxon");
 
 async function isWorkingDay(date, organizationId) {
   const dt = DateTime.fromJSDate(date);
-  
+
   // Check weekend
   if (dt.weekday === 6 || dt.weekday === 7) {
     return false;
   }
-  
+
   // Check holidays
   const holiday = await prisma.holiday.findFirst({
     where: {
       date: {
-        gte: dt.startOf('day').toJSDate(),
-        lte: dt.endOf('day').toJSDate(),
+        gte: dt.startOf("day").toJSDate(),
+        lte: dt.endOf("day").toJSDate(),
       },
     },
   });
-  
+
   if (holiday) {
     return false;
   }
-  
+
   return true;
 }
 
@@ -1210,51 +1268,53 @@ module.exports = {
 ## Phase 5: Commands Implementation
 
 ### Step 5.1: Setup Commands (`src/commands/index.js`)
+
 ```javascript
-const teamCommands = require('./team');
-const leaveCommands = require('./leave');
-const standupCommands = require('./standup');
+const teamCommands = require("./team");
+const leaveCommands = require("./leave");
+const standupCommands = require("./standup");
 
 function setupCommands(app) {
   // Team commands
-  app.command('/team-create', teamCommands.createTeam);
-  app.command('/team-join', teamCommands.joinTeam);
-  app.command('/team-list', teamCommands.listTeams);
-  
+  app.command("/team-create", teamCommands.createTeam);
+  app.command("/team-join", teamCommands.joinTeam);
+  app.command("/team-list", teamCommands.listTeams);
+
   // Leave commands
-  app.command('/leave-set', leaveCommands.setLeave);
-  app.command('/leave-cancel', leaveCommands.cancelLeave);
-  
+  app.command("/leave-set", leaveCommands.setLeave);
+  app.command("/leave-cancel", leaveCommands.cancelLeave);
+
   // Standup commands
-  app.command('/standup-manual', standupCommands.submitManual);
-  
+  app.command("/standup-manual", standupCommands.submitManual);
+
   // Button actions
   app.action(/open_standup_.*/, standupCommands.openStandupModal);
-  app.view('standup_modal', standupCommands.handleStandupSubmission);
+  app.view("standup_modal", standupCommands.handleStandupSubmission);
 }
 
 module.exports = { setupCommands };
 ```
 
 ### Step 5.2: Team Commands (`src/commands/team.js`)
+
 ```javascript
-const teamService = require('../services/teamService');
-const { DateTime } = require('luxon');
+const teamService = require("../services/teamService");
+const { DateTime } = require("luxon");
 
 async function createTeam({ command, ack, respond }) {
   await ack();
-  
+
   try {
     // Parse command text: /team-create TeamName 09:30 10:00
-    const [name, standupTime, postingTime] = command.text.split(' ');
-    
+    const [name, standupTime, postingTime] = command.text.split(" ");
+
     if (!name || !standupTime || !postingTime) {
       await respond({
-        text: '❌ Usage: `/team-create TeamName HH:MM HH:MM`\nExample: `/team-create Engineering 09:30 10:00`',
+        text: "❌ Usage: `/team-create TeamName HH:MM HH:MM`\nExample: `/team-create Engineering 09:30 10:00`",
       });
       return;
     }
-    
+
     const team = await teamService.createTeam(
       command.user_id,
       command.channel_id,
@@ -1264,7 +1324,7 @@ async function createTeam({ command, ack, respond }) {
         postingTime,
       }
     );
-    
+
     await respond({
       text: `✅ Team "${name}" created successfully!\n• Standup reminder: ${standupTime}\n• Posting time: ${postingTime}`,
     });
@@ -1277,30 +1337,32 @@ async function createTeam({ command, ack, respond }) {
 
 async function joinTeam({ command, ack, respond }) {
   await ack();
-  
+
   try {
     const teamName = command.text.trim();
-    
+
     if (!teamName) {
       await respond({
-        text: '❌ Usage: `/team-join TeamName`',
+        text: "❌ Usage: `/team-join TeamName`",
       });
       return;
     }
-    
+
     // Find team by name
     const teams = await teamService.listTeams(command.user_id);
-    const team = teams.find(t => t.name.toLowerCase() === teamName.toLowerCase());
-    
+    const team = teams.find(
+      (t) => t.name.toLowerCase() === teamName.toLowerCase()
+    );
+
     if (!team) {
       await respond({
         text: `❌ Team "${teamName}" not found`,
       });
       return;
     }
-    
+
     await teamService.joinTeam(command.user_id, team.id);
-    
+
     await respond({
       text: `✅ You've joined team "${team.name}"!`,
     });
@@ -1313,27 +1375,30 @@ async function joinTeam({ command, ack, respond }) {
 
 async function listTeams({ command, ack, respond }) {
   await ack();
-  
+
   try {
     const teams = await teamService.listTeams(command.user_id);
-    
+
     if (teams.length === 0) {
       await respond({
-        text: '📋 No teams found in your organization',
+        text: "📋 No teams found in your organization",
       });
       return;
     }
-    
+
     const teamList = teams
-      .map(t => `• *${t.name}* (${t._count.members} members) - Standup: ${t.standupTime}`)
-      .join('\n');
-    
+      .map(
+        (t) =>
+          `• *${t.name}* (${t._count.members} members) - Standup: ${t.standupTime}`
+      )
+      .join("\n");
+
     await respond({
       blocks: [
         {
-          type: 'section',
+          type: "section",
           text: {
-            type: 'mrkdwn',
+            type: "mrkdwn",
             text: `*📋 Teams in your organization:*\n${teamList}`,
           },
         },
@@ -1356,6 +1421,7 @@ module.exports = {
 ## Phase 6: Testing & Deployment
 
 ### Step 6.1: Local Testing
+
 ```bash
 # Start with nodemon for development
 npx nodemon src/app.js
@@ -1365,6 +1431,7 @@ ngrok http 3000
 ```
 
 ### Step 6.2: Test Scenarios
+
 1. **Organization Setup**: Run seed script
 2. **Team Creation**: Create teams with different times
 3. **Member Management**: Join teams, verify permissions
@@ -1373,6 +1440,7 @@ ngrok http 3000
 6. **Posting**: Check message formatting
 
 ### Step 6.3: Production Deployment
+
 ```bash
 # Build for production
 npm run build
@@ -1387,12 +1455,14 @@ pm2 start src/app.js --name daily-dose
 ## Phase 7: Monitoring & Maintenance
 
 ### Database Queries with Prisma Studio
+
 ```bash
 # Open visual database browser
 npx prisma studio
 ```
 
 ### Common Prisma Commands
+
 ```bash
 # Reset database (careful!)
 npx prisma migrate reset
@@ -1410,11 +1480,13 @@ npx prisma validate
 ## Future Enhancements
 
 1. **Analytics Dashboard**
+
    - Participation rates by team/org
    - Response time patterns
    - Blocker trends
 
 2. **Advanced Features**
+
    - Custom questions per team
    - Weekly summaries
    - Integration with Jira/Trello
@@ -1434,6 +1506,7 @@ npx prisma validate
 5. **Developer Experience**: Excellent tooling and debugging
 
 ## Resources
+
 - [Slack Bolt Documentation](https://slack.dev/bolt-js)
 - [Prisma Documentation](https://www.prisma.io/docs)
 - [Supabase Documentation](https://supabase.com/docs)

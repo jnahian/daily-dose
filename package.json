@@ -11,5 +11,20 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "@prisma/client": "^6.15.0",
+    "@slack/bolt": "^4.4.0",
+    "@supabase/supabase-js": "^2.57.0",
+    "dotenv": "^17.2.2",
+    "luxon": "^3.7.1",
+    "node-cron": "^4.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "eslint": "^9.34.0",
+    "nodemon": "^3.1.10",
+    "prisma": "^6.15.0",
+    "typescript": "^5.9.2"
+  }
 }
