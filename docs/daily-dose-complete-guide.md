@@ -69,19 +69,18 @@ daily-dose-bot/
 
 ## Phase 2: Database Setup with Prisma & Supabase
 
-### Step 2.1: Create Supabase Project
+### Step 2.1: Create Supabase Project ✅
 
 1. Go to https://supabase.com and create a new project
 2. Get your database URLs from Settings > Database
 
-### Step 2.2: Configure Environment Variables
+### Step 2.2: Configure Environment Variables ✅
 
 Create `.env` file:
 
 ```env
 # Supabase Database URLs
 DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?schema=public"
-DATABASE_URL_POOLED="postgresql://postgres.[PROJECT-REF]:[YOUR-PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true"
 DIRECT_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?schema=public"
 
 # Slack Credentials
@@ -95,7 +94,7 @@ DEFAULT_TIMEZONE=America/New_York
 NODE_ENV=development
 ```
 
-### Step 2.3: Prisma Schema (`prisma/schema.prisma`)
+### Step 2.3: Prisma Schema (`prisma/schema.prisma`) ✅
 
 ```prisma
 generator client {
@@ -104,7 +103,7 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL_POOLED")
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
