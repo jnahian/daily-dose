@@ -5,10 +5,10 @@ async function seedOrganization() {
     // Create organization
     const org = await prisma.organization.create({
       data: {
-        name: "Your Company Name",
+        name: "Startise",
         slackWorkspaceId: "T0123ABCD", // Get from Slack
-        slackWorkspaceName: "your-workspace",
-        defaultTimezone: "America/New_York",
+        slackWorkspaceName: "Startise",
+        defaultTimezone: "Asia/Dhaka",
         settings: {
           workDays: [1, 2, 3, 4, 5], // Mon-Fri
           holidayCountry: "US",
