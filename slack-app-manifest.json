@@ -13,42 +13,62 @@
         "slash_commands": [
             {
                 "command": "/dd-team-create",
-                "url": "https://e8bc9a3c6be3.ngrok-free.app/slack/events",
+                "url": "https://7bf03e5177a5.ngrok-free.app/slack/events",
                 "description": "Create a new team with standup schedule",
                 "usage_hint": "TeamName 09:30 10:00",
                 "should_escape": false
             },
             {
                 "command": "/dd-team-join",
-                "url": "https://e8bc9a3c6be3.ngrok-free.app/slack/events",
+                "url": "https://7bf03e5177a5.ngrok-free.app/slack/events",
                 "description": "Join an existing team",
                 "usage_hint": "TeamName",
                 "should_escape": false
             },
             {
                 "command": "/dd-team-list",
-                "url": "https://e8bc9a3c6be3.ngrok-free.app/slack/events",
+                "url": "https://7bf03e5177a5.ngrok-free.app/slack/events",
                 "description": "List all teams in your organization",
                 "should_escape": false
             },
             {
                 "command": "/dd-leave-set",
-                "url": "https://e8bc9a3c6be3.ngrok-free.app/slack/events",
+                "url": "https://7bf03e5177a5.ngrok-free.app/slack/events",
                 "description": "Set leave dates to skip standup reminders",
                 "usage_hint": "YYYY-MM-DD YYYY-MM-DD [reason]",
                 "should_escape": false
             },
             {
                 "command": "/dd-leave-cancel",
-                "url": "https://e8bc9a3c6be3.ngrok-free.app/slack/events",
+                "url": "https://7bf03e5177a5.ngrok-free.app/slack/events",
                 "description": "Cancel previously set leave",
                 "usage_hint": "leave-id",
                 "should_escape": false
             },
             {
+                "command": "/dd-leave-list",
+                "url": "https://7bf03e5177a5.ngrok-free.app/slack/events",
+                "description": "List your upcoming leaves",
+                "should_escape": false
+            },
+            {
+                "command": "/dd-workdays-set",
+                "url": "https://7bf03e5177a5.ngrok-free.app/slack/events",
+                "description": "Set your personal work days",
+                "usage_hint": "1,2,3,4,7 (1=Mon, 7=Sun)",
+                "should_escape": false
+            },
+            {
+                "command": "/dd-workdays-show",
+                "url": "https://7bf03e5177a5.ngrok-free.app/slack/events",
+                "description": "Show your current work day settings",
+                "should_escape": false
+            },
+            {
                 "command": "/dd-standup",
-                "url": "https://e8bc9a3c6be3.ngrok-free.app/slack/events",
+                "url": "https://7bf03e5177a5.ngrok-free.app/slack/events",
                 "description": "Submit standup manually outside scheduled time",
+                "usage_hint": "[TeamName]",
                 "should_escape": false
             }
         ]
@@ -75,7 +95,7 @@
     },
     "settings": {
         "event_subscriptions": {
-            "request_url": "https://e8bc9a3c6be3.ngrok-free.app/slack/events",
+            "request_url": "https://7bf03e5177a5.ngrok-free.app/slack/events",
             "bot_events": [
                 "app_mention",
                 "message.channels",
@@ -86,7 +106,7 @@
         },
         "interactivity": {
             "is_enabled": true,
-            "request_url": "https://e8bc9a3c6be3.ngrok-free.app/slack/events"
+            "request_url": "https://7bf03e5177a5.ngrok-free.app/slack/events"
         },
         "org_deploy_enabled": false,
         "socket_mode_enabled": false,
