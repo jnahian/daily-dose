@@ -1,8 +1,8 @@
 require("dotenv").config();
 const { App } = require("@slack/bolt");
-const cron = require("node-cron");
 const prisma = require("./config/prisma");
 const { setupCommands } = require("./commands");
+const schedulerService = require("./services/schedulerService");
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
@@ -12,6 +12,9 @@ const app = new App({
 
 // Setup commands
 setupCommands(app);
+
+// Initialize scheduler
+schedulerService.initialize(app);
 
 // Basic health check
 app.message("hello", async ({ message, say }) => {

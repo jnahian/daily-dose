@@ -42,6 +42,7 @@ CREATE TABLE "public"."users" (
     "email" TEXT,
     "name" TEXT,
     "timezone" TEXT NOT NULL DEFAULT 'America/New_York',
+    "work_days" JSONB,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")

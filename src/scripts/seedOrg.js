@@ -10,7 +10,7 @@ async function seedOrganization() {
         slackWorkspaceName: "Startise",
         defaultTimezone: "Asia/Dhaka",
         settings: {
-          workDays: [1, 2, 3, 4, 5], // Mon-Fri
+          defaultWorkDays: [1, 2, 3, 4, 7], // Mon-Thu, Sun (organization default)
           holidayCountry: "US",
           standupWindowMinutes: 30,
         },

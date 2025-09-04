@@ -155,6 +155,7 @@ model User {
   email           String?
   name            String?
   timezone        String                @default("America/New_York")
+  workDays        Json?                 @map("work_days") // [1,2,3,4,5] for Mon-Fri, null uses org default
   createdAt       DateTime              @default(now()) @map("created_at")
 
   organizations   OrganizationMember[]
@@ -306,7 +307,7 @@ async function seedOrganization() {
         slackWorkspaceName: "your-workspace",
         defaultTimezone: "America/New_York",
         settings: {
-          workDays: [1, 2, 3, 4, 5], // Mon-Fri
+          defaultWorkDays: [1, 2, 3, 4, 7], // Mon-Thu, Sun (organization default)
           holidayCountry: "US",
           standupWindowMinutes: 30,
         },
@@ -388,6 +389,8 @@ Add these Bot Token Scopes:
 - `/dd-team-list` - List all teams
 - `/dd-leave-set` - Set leave dates
 - `/dd-leave-cancel` - Cancel leave
+- `/dd-workdays-set` - Set personal work days
+- `/dd-workdays-show` - Show current work days
 - `/dd-standup` - Submit standup manually
 
 ## Phase 4: Core Implementation
@@ -510,6 +513,42 @@ class UserService {
         reason,
       },
     });
+  }
+
+  async setWorkDays(slackUserId, workDays) {
+    const user = await this.findOrCreateUser(slackUserId);
+
+    return await prisma.user.update({
+      where: { id: user.id },
+      data: { workDays },
+    });
+  }
+
+  async getWorkDays(slackUserId) {
+    const user = await prisma.user.findUnique({
+      where: { slackUserId },
+      select: { workDays: true },
+      include: {
+        organizations: {
+          where: { isActive: true },
+          include: {
+            organization: {
+              select: { settings: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) return null;
+
+    // Return user-specific work days or organization default
+    if (user.workDays) {
+      return user.workDays;
+    }
+
+    const org = user.organizations[0]?.organization;
+    return org?.settings?.defaultWorkDays || [1, 2, 3, 4, 7];
   }
 
   async cancelLeave(slackUserId, leaveId) {
@@ -720,10 +759,28 @@ class StandupService {
       },
       include: {
         user: true,
+        team: {
+          include: {
+            organization: true,
+          },
+        },
       },
     });
 
-    return members;
+    // Filter by user's work days
+    const activeMembers = [];
+    for (const member of members) {
+      const isWorking = await isWorkingDay(
+        date,
+        member.team.organizationId,
+        member.userId
+      );
+      if (isWorking) {
+        activeMembers.push(member);
+      }
+    }
+
+    return activeMembers;
   }
 
   async saveResponse(teamId, slackUserId, responseData, isLate = false) {
@@ -1234,11 +1291,30 @@ module.exports = new SchedulerService();
 const prisma = require("../config/prisma");
 const { DateTime } = require("luxon");
 
-async function isWorkingDay(date, organizationId) {
+async function isWorkingDay(date, organizationId, userId = null) {
   const dt = DateTime.fromJSDate(date);
 
-  // Check weekend
-  if (dt.weekday === 6 || dt.weekday === 7) {
+  // Get work days - user-specific or organization default
+  let workDays;
+  if (userId) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { workDays: true },
+    });
+    workDays = user?.workDays || null;
+  }
+
+  if (!workDays) {
+    // Use organization default
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { settings: true },
+    });
+    workDays = org?.settings?.defaultWorkDays || [1, 2, 3, 4, 7];
+  }
+
+  // Check if current day is a work day
+  if (!workDays.includes(dt.weekday)) {
     return false;
   }
 
@@ -1282,6 +1358,10 @@ function setupCommands(app) {
   // Leave commands
   app.command("/dd-leave-set", leaveCommands.setLeave);
   app.command("/dd-leave-cancel", leaveCommands.cancelLeave);
+
+  // Work days commands
+  app.command("/dd-workdays-set", leaveCommands.setWorkDays);
+  app.command("/dd-workdays-show", leaveCommands.showWorkDays);
 
   // Standup commands
   app.command("/dd-standup", standupCommands.submitManual);
@@ -1476,6 +1556,49 @@ npx prisma format
 npx prisma validate
 ```
 
+## Phase 8: Work Days Management
+
+### User-Specific Work Days
+
+The system supports individual work day preferences while maintaining organization defaults:
+
+#### Organization Level
+
+- Default work days are set in organization settings: `defaultWorkDays: [1,2,3,4,5]`
+- Used as fallback when users haven't set personal preferences
+
+#### User Level
+
+- Users can override organization defaults with personal work days
+- Set via `/dd-workdays-set 1,2,3,4,5` command
+- View current settings with `/dd-workdays-show`
+
+#### Implementation Benefits
+
+- **Flexible Scheduling**: Accommodates part-time workers, different schedules
+- **Automatic Filtering**: Only sends reminders on user's work days
+- **Smart Posting**: Considers individual schedules for team summaries
+- **Leave Integration**: Works seamlessly with leave management
+
+#### Usage Examples
+
+```bash
+# Set work days (Monday-Thursday, Sunday - default)
+/dd-workdays-set 1,2,3,4,7
+
+# Set work days (Monday-Friday, traditional)
+/dd-workdays-set 1,2,3,4,5
+
+# Set work days (Monday-Thursday, part-time)
+/dd-workdays-set 1,2,3,4
+
+# Set work days (Tuesday-Saturday)
+/dd-workdays-set 2,3,4,5,6
+
+# View current work days
+/dd-workdays-show
+```
+
 ## Future Enhancements
 
 1. **Analytics Dashboard**
@@ -1483,6 +1606,7 @@ npx prisma validate
    - Participation rates by team/org
    - Response time patterns
    - Blocker trends
+   - Work day compliance metrics
 
 2. **Advanced Features**
 
@@ -1490,11 +1614,13 @@ npx prisma validate
    - Weekly summaries
    - Integration with Jira/Trello
    - AI-powered insights
+   - Flexible work schedules (different days per week)
 
 3. **Admin Panel**
    - Web interface for org management
    - Bulk user operations
    - Report generation
+   - Work day analytics
 
 ## Benefits of This Architecture
 

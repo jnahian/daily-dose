@@ -87,6 +87,42 @@ class UserService {
       },
     });
   }
+
+  async setWorkDays(slackUserId, workDays) {
+    const user = await this.findOrCreateUser(slackUserId);
+
+    return await prisma.user.update({
+      where: { id: user.id },
+      data: { workDays },
+    });
+  }
+
+  async getWorkDays(slackUserId) {
+    const user = await prisma.user.findUnique({
+      where: { slackUserId },
+      select: { workDays: true },
+      include: {
+        organizations: {
+          where: { isActive: true },
+          include: {
+            organization: {
+              select: { settings: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) return null;
+
+    // Return user-specific work days or organization default
+    if (user.workDays) {
+      return user.workDays;
+    }
+
+    const org = user.organizations[0]?.organization;
+    return org?.settings?.defaultWorkDays || [1, 2, 3, 4, 7];
+  }
 }
 
 module.exports = new UserService();
