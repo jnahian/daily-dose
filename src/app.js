@@ -25,8 +25,10 @@ app.message("hello", async ({ message, say }) => {
 
 // Start app
 (async () => {
-  await app.start(process.env.PORT || 3000);
-  console.log("⚡️ Daily Dose bot is running!");
+  const port = process.env.PORT || 3000;
+  const host = process.env.HOST || "localhost";
+  await app.start(port);
+  console.log(`⚡️ Daily Dose bot is running on ${host}:${port}`);
 })();
 
 // Graceful shutdown

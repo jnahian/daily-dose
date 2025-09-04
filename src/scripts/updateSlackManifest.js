@@ -30,6 +30,8 @@ class SlackManifestManager {
     this.refreshToken = process.env.SLACK_USER_REFRESH_TOKEN;
     this.clientId = process.env.SLACK_CLIENT_ID;
     this.clientSecret = process.env.SLACK_CLIENT_SECRET;
+    this.appId = process.env.SLACK_APP_ID;
+    this.appUrl = process.env.APP_URL;
 
     if (!this.token && !this.refreshToken) {
       console.error(
@@ -54,7 +56,8 @@ class SlackManifestManager {
    */
   loadManifest() {
     try {
-      const manifestContent = fs.readFileSync(this.manifestPath, "utf8");
+      let manifestContent = fs.readFileSync(this.manifestPath, "utf8");
+      manifestContent = manifestContent.replaceAll("{{APP_URL}}", this.appUrl);
       return JSON.parse(manifestContent);
     } catch (error) {
       console.error(
@@ -253,7 +256,7 @@ class SlackManifestManager {
       "oauth_config",
       "settings",
     ];
-    const missing = required.filter((field) => !manifest[field]);
+    const missing = required.filter(field => !manifest[field]);
 
     if (missing.length > 0) {
       throw new Error(
