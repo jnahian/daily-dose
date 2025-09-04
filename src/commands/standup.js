@@ -1,6 +1,11 @@
 const standupService = require("../services/standupService");
 const teamService = require("../services/teamService");
 const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 async function submitManual({ command, ack, respond }) {
   await ack();
@@ -234,18 +239,15 @@ async function handleStandupSubmission({ ack, body, view, client }) {
     }
 
     // Determine if submission is late
-    const now = DateTime.now();
+    const now = dayjs();
     const teams = await teamService.listTeams(body.user.id);
     const team = teams.find(t => t.id === teamId);
     
     let isLate = false;
     if (team) {
       const [postingHour, postingMinute] = team.postingTime.split(":").map(Number);
-      const postingTime = now.startOf("day").plus({ 
-        hours: postingHour, 
-        minutes: postingMinute 
-      });
-      isLate = now > postingTime;
+      const postingTime = now.startOf("day").hour(postingHour).minute(postingMinute);
+      isLate = now.isAfter(postingTime);
     }
 
     // Save response
@@ -253,7 +255,7 @@ async function handleStandupSubmission({ ack, body, view, client }) {
       teamId,
       body.user.id,
       {
-        date: now.toJSDate(),
+        date: now.toDate(),
         yesterdayTasks,
         todayTasks,
         blockers,
@@ -269,7 +271,7 @@ async function handleStandupSubmission({ ack, body, view, client }) {
 
     // If late, add to existing standup post as thread
     if (isLate && team) {
-      const standupPost = await standupService.getStandupPost(teamId, now.toJSDate());
+      const standupPost = await standupService.getStandupPost(teamId, now.toDate());
       
       if (standupPost?.slackMessageTs) {
         let responseText = `*👤 ${body.user.name || body.user.id}* (late submission):\n`;

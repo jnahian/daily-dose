@@ -22,7 +22,7 @@ npm init -y
 
 ```bash
 # Core dependencies
-npm install @slack/bolt @supabase/supabase-js dotenv node-cron luxon
+npm install @slack/bolt @supabase/supabase-js dotenv node-cron dayjs
 npm install @prisma/client
 
 # Development dependencies
@@ -734,13 +734,18 @@ module.exports = new TeamService();
 
 ```javascript
 const prisma = require("../config/prisma");
-const { DateTime } = require("luxon");
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
 const { isWorkingDay } = require("../utils/dateHelper");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 class StandupService {
   async getActiveMembers(teamId, date) {
-    const startOfDay = DateTime.fromJSDate(date).startOf("day").toJSDate();
-    const endOfDay = DateTime.fromJSDate(date).endOf("day").toJSDate();
+    const startOfDay = dayjs(date).startOf("day").toDate();
+    const endOfDay = dayjs(date).endOf("day").toDate();
 
     const members = await prisma.teamMember.findMany({
       where: {
@@ -792,9 +797,7 @@ class StandupService {
       throw new Error("User not found");
     }
 
-    const standupDate = DateTime.fromJSDate(responseData.date)
-      .startOf("day")
-      .toJSDate();
+    const standupDate = dayjs(responseData.date).startOf("day").toDate();
 
     return await prisma.standupResponse.upsert({
       where: {
@@ -826,8 +829,8 @@ class StandupService {
   }
 
   async getTeamResponses(teamId, date) {
-    const startOfDay = DateTime.fromJSDate(date).startOf("day").toJSDate();
-    const endOfDay = DateTime.fromJSDate(date).endOf("day").toJSDate();
+    const startOfDay = dayjs(date).startOf("day").toDate();
+    const endOfDay = dayjs(date).endOf("day").toDate();
 
     return await prisma.standupResponse.findMany({
       where: {
@@ -848,8 +851,8 @@ class StandupService {
   }
 
   async getLateResponses(teamId, date) {
-    const startOfDay = DateTime.fromJSDate(date).startOf("day").toJSDate();
-    const endOfDay = DateTime.fromJSDate(date).endOf("day").toJSDate();
+    const startOfDay = dayjs(date).startOf("day").toDate();
+    const endOfDay = dayjs(date).endOf("day").toDate();
 
     return await prisma.standupResponse.findMany({
       where: {
@@ -870,7 +873,7 @@ class StandupService {
   }
 
   async saveStandupPost(teamId, date, messageTs, channelId) {
-    const standupDate = DateTime.fromJSDate(date).startOf("day").toJSDate();
+    const standupDate = dayjs(date).startOf("day").toDate();
 
     return await prisma.standupPost.upsert({
       where: {
@@ -895,7 +898,7 @@ class StandupService {
   }
 
   async getStandupPost(teamId, date) {
-    const standupDate = DateTime.fromJSDate(date).startOf("day").toJSDate();
+    const standupDate = dayjs(date).startOf("day").toDate();
 
     return await prisma.standupPost.findUnique({
       where: {
@@ -913,7 +916,7 @@ class StandupService {
         type: "header",
         text: {
           type: "plain_text",
-          text: `📊 Daily Standup - ${DateTime.now().format("MMM dd, yyyy")}`,
+          text: `📊 Daily Standup - ${dayjs().format("MMM DD, YYYY")}`,
         },
       },
       {
@@ -1001,11 +1004,16 @@ module.exports = new StandupService();
 
 ```javascript
 const cron = require("node-cron");
-const { DateTime } = require("luxon");
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
 const prisma = require("../config/prisma");
 const teamService = require("./teamService");
 const standupService = require("./standupService");
 const { isWorkingDay } = require("../utils/dateHelper");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 class SchedulerService {
   constructor() {
@@ -1065,12 +1073,12 @@ class SchedulerService {
     this.scheduledJobs.set(standupJobId, standupJob);
 
     // Schedule follow-up reminder (15 minutes later)
-    const followupTime = DateTime.fromObject({
-      hour: standupHour,
-      minute: standupMinute,
-    }).plus({ minutes: 15 });
+    const followupTime = dayjs()
+      .hour(standupHour)
+      .minute(standupMinute)
+      .add(15, "minute");
 
-    const followupCron = `${followupTime.minute} ${followupTime.hour} * * 1-5`;
+    const followupCron = `${followupTime.minute()} ${followupTime.hour()} * * 1-5`;
     const followupJobId = `followup-${team.id}`;
 
     if (this.scheduledJobs.has(followupJobId)) {
@@ -1115,16 +1123,16 @@ class SchedulerService {
   }
 
   async sendStandupReminders(team) {
-    const now = DateTime.now().setZone(team.timezone);
+    const now = dayjs().tz(team.timezone);
 
     // Check if working day
-    const isWorking = await isWorkingDay(now.toJSDate(), team.organizationId);
+    const isWorking = await isWorkingDay(now.toDate(), team.organizationId);
     if (!isWorking) return;
 
     // Get active members
     const members = await standupService.getActiveMembers(
       team.id,
-      now.toJSDate()
+      now.toDate()
     );
 
     for (const member of members) {
@@ -1174,20 +1182,20 @@ class SchedulerService {
   }
 
   async sendFollowupReminders(team) {
-    const now = DateTime.now().setZone(team.timezone);
+    const now = dayjs().tz(team.timezone);
 
     // Check if working day
-    const isWorking = await isWorkingDay(now.toJSDate(), team.organizationId);
+    const isWorking = await isWorkingDay(now.toDate(), team.organizationId);
     if (!isWorking) return;
 
     // Get members who haven't responded
     const members = await standupService.getActiveMembers(
       team.id,
-      now.toJSDate()
+      now.toDate()
     );
     const responses = await standupService.getTeamResponses(
       team.id,
-      now.toJSDate()
+      now.toDate()
     );
 
     const respondedUserIds = new Set(responses.map((r) => r.userId));
@@ -1211,20 +1219,20 @@ class SchedulerService {
   }
 
   async postTeamStandup(team) {
-    const now = DateTime.now().setZone(team.timezone);
+    const now = dayjs().tz(team.timezone);
 
     // Check if working day
-    const isWorking = await isWorkingDay(now.toJSDate(), team.organizationId);
+    const isWorking = await isWorkingDay(now.toDate(), team.organizationId);
     if (!isWorking) return;
 
     // Get all responses
     const responses = await standupService.getTeamResponses(
       team.id,
-      now.toJSDate()
+      now.toDate()
     );
     const allMembers = await standupService.getActiveMembers(
       team.id,
-      now.toJSDate()
+      now.toDate()
     );
 
     // Get members on leave
@@ -1235,8 +1243,8 @@ class SchedulerService {
         user: {
           leaves: {
             some: {
-              startDate: { lte: now.toJSDate() },
-              endDate: { gte: now.toJSDate() },
+              startDate: { lte: now.toDate() },
+              endDate: { gte: now.toDate() },
             },
           },
         },
@@ -1272,7 +1280,7 @@ class SchedulerService {
       // Save message timestamp for threading late responses
       await standupService.saveStandupPost(
         team.id,
-        now.toJSDate(),
+        now.toDate(),
         result.ts,
         team.slackChannelId
       );
@@ -1289,10 +1297,13 @@ module.exports = new SchedulerService();
 
 ```javascript
 const prisma = require("../config/prisma");
-const { DateTime } = require("luxon");
+const dayjs = require("dayjs");
+const weekday = require("dayjs/plugin/weekday");
+
+dayjs.extend(weekday);
 
 async function isWorkingDay(date, organizationId, userId = null) {
-  const dt = DateTime.fromJSDate(date);
+  const dt = dayjs(date);
 
   // Get work days - user-specific or organization default
   let workDays;
@@ -1313,8 +1324,10 @@ async function isWorkingDay(date, organizationId, userId = null) {
     workDays = org?.settings?.defaultWorkDays || [1, 2, 3, 4, 7];
   }
 
-  // Check if current day is a work day
-  if (!workDays.includes(dt.weekday)) {
+  // Check if current day is a work day (Day.js weekday: 0=Sunday, 1=Monday, etc.)
+  // Convert to match Luxon format (1=Monday, 7=Sunday)
+  const dayOfWeek = dt.day() === 0 ? 7 : dt.day();
+  if (!workDays.includes(dayOfWeek)) {
     return false;
   }
 
@@ -1322,8 +1335,8 @@ async function isWorkingDay(date, organizationId, userId = null) {
   const holiday = await prisma.holiday.findFirst({
     where: {
       date: {
-        gte: dt.startOf("day").toJSDate(),
-        lte: dt.endOf("day").toJSDate(),
+        gte: dt.startOf("day").toDate(),
+        lte: dt.endOf("day").toDate(),
       },
     },
   });
@@ -1378,7 +1391,6 @@ module.exports = { setupCommands };
 
 ```javascript
 const teamService = require("../services/teamService");
-const { DateTime } = require("luxon");
 
 async function createTeam({ command, ack, respond }) {
   await ack();
@@ -1494,6 +1506,484 @@ module.exports = {
   createTeam,
   joinTeam,
   listTeams,
+};
+```
+
+### Step 5.3: Leave Commands (`src/commands/leave.js`) ✅
+
+```javascript
+const userService = require("../services/userService");
+const prisma = require("../config/prisma");
+const dayjs = require("dayjs");
+
+async function setLeave({ command, ack, respond }) {
+  await ack();
+
+  try {
+    // Parse command: /dd-leave-set 2024-12-25 2024-12-26 Holiday break
+    const parts = command.text.trim().split(" ");
+
+    if (parts.length < 2) {
+      await respond({
+        text: "❌ Usage: `/dd-leave-set YYYY-MM-DD YYYY-MM-DD [reason]`\nExample: `/dd-leave-set 2024-12-25 2024-12-26 Holiday break`",
+      });
+      return;
+    }
+
+    const startDate = dayjs(parts[0]);
+    const endDate = dayjs(parts[1]);
+
+    const reason = parts.slice(2).join(" ") || "Personal leave";
+
+    if (!startDate.isValid() || !endDate.isValid()) {
+      await respond({
+        text: "❌ Invalid date format. Use YYYY-MM-DD",
+      });
+      return;
+    }
+
+    if (endDate.isBefore(startDate)) {
+      await respond({
+        text: "❌ End date cannot be before start date",
+      });
+      return;
+    }
+
+    await userService.setLeave(
+      command.user_id,
+      startDate.toDate(),
+      endDate.toDate(),
+      reason
+    );
+
+    const dateRange = startDate.isSame(endDate, "day")
+      ? startDate.format("MMM DD, YYYY")
+      : `${startDate.format("MMM DD, YYYY")} - ${endDate.format(
+          "MMM DD, YYYY"
+        )}`;
+
+    await respond({
+      text: `✅ Leave set for ${dateRange}\nReason: ${reason}`,
+    });
+  } catch (error) {
+    await respond({
+      text: `❌ Error: ${error.message}`,
+    });
+  }
+}
+
+async function cancelLeave({ command, ack, respond }) {
+  await ack();
+
+  try {
+    const user = await userService.findOrCreateUser(command.user_id);
+
+    // Get user's upcoming leaves
+    const leaves = await prisma.leave.findMany({
+      where: {
+        userId: user.id,
+        endDate: {
+          gte: new Date(),
+        },
+      },
+      orderBy: {
+        startDate: "asc",
+      },
+    });
+
+    if (leaves.length === 0) {
+      await respond({
+        text: "📅 You have no upcoming leaves to cancel",
+      });
+      return;
+    }
+
+    const leaveList = leaves
+      .map((leave, index) => {
+        const startDate = dayjs(leave.startDate).format("MMM DD, YYYY");
+        const endDate = dayjs(leave.endDate).format("MMM DD, YYYY");
+
+        const dateRange =
+          startDate === endDate ? startDate : `${startDate} - ${endDate}`;
+
+        return `${index + 1}. ${dateRange} - ${leave.reason}`;
+      })
+      .join("\n");
+
+    await respond({
+      text: `📅 Your upcoming leaves:\n${leaveList}\n\nTo cancel a leave, reply with the number (e.g., "1")`,
+    });
+
+    // Note: In a full implementation, you'd handle the follow-up response
+    // This would require storing state or using interactive components
+  } catch (error) {
+    await respond({
+      text: `❌ Error: ${error.message}`,
+    });
+  }
+}
+
+async function setWorkDays({ command, ack, respond }) {
+  await ack();
+
+  try {
+    const workDaysText = command.text.trim();
+
+    if (!workDaysText) {
+      await respond({
+        text: "❌ Usage: `/dd-workdays-set 1,2,3,4,5`\nNumbers: 1=Monday, 2=Tuesday, ..., 7=Sunday",
+      });
+      return;
+    }
+
+    const workDays = workDaysText
+      .split(",")
+      .map((day) => parseInt(day.trim()))
+      .filter((day) => day >= 1 && day <= 7);
+
+    if (workDays.length === 0) {
+      await respond({
+        text: "❌ Invalid work days. Use numbers 1-7 (1=Monday, 7=Sunday)",
+      });
+      return;
+    }
+
+    await userService.setWorkDays(command.user_id, workDays);
+
+    const dayNames = {
+      1: "Monday",
+      2: "Tuesday",
+      3: "Wednesday",
+      4: "Thursday",
+      5: "Friday",
+      6: "Saturday",
+      7: "Sunday",
+    };
+
+    const workDayNames = workDays
+      .sort()
+      .map((day) => dayNames[day])
+      .join(", ");
+
+    await respond({
+      text: `✅ Work days updated: ${workDayNames}`,
+    });
+  } catch (error) {
+    await respond({
+      text: `❌ Error: ${error.message}`,
+    });
+  }
+}
+
+async function showWorkDays({ command, ack, respond }) {
+  await ack();
+
+  try {
+    const workDays = await userService.getWorkDays(command.user_id);
+
+    if (!workDays) {
+      await respond({
+        text: "❌ Unable to retrieve work days",
+      });
+      return;
+    }
+
+    const dayNames = {
+      1: "Monday",
+      2: "Tuesday",
+      3: "Wednesday",
+      4: "Thursday",
+      5: "Friday",
+      6: "Saturday",
+      7: "Sunday",
+    };
+
+    const workDayNames = workDays
+      .sort()
+      .map((day) => dayNames[day])
+      .join(", ");
+
+    await respond({
+      text: `📅 Your work days: ${workDayNames}`,
+    });
+  } catch (error) {
+    await respond({
+      text: `❌ Error: ${error.message}`,
+    });
+  }
+}
+
+module.exports = {
+  setLeave,
+  cancelLeave,
+  setWorkDays,
+  showWorkDays,
+};
+```
+
+### Step 5.4: Standup Commands (`src/commands/standup.js`) ✅
+
+```javascript
+const standupService = require("../services/standupService");
+const teamService = require("../services/teamService");
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+async function submitManual({ command, ack, respond }) {
+  await ack();
+
+  try {
+    // Get user's teams
+    const teams = await teamService.listTeams(command.user_id);
+
+    if (teams.length === 0) {
+      await respond({
+        text: "❌ You're not a member of any teams. Join a team first with `/dd-team-join`",
+      });
+      return;
+    }
+
+    // If user is in multiple teams, show selection
+    if (teams.length > 1) {
+      const teamOptions = teams.map((team) => ({
+        text: {
+          type: "plain_text",
+          text: team.name,
+        },
+        value: team.id,
+      }));
+
+      await respond({
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: "📝 Select a team for your standup:",
+            },
+            accessory: {
+              type: "static_select",
+              placeholder: {
+                type: "plain_text",
+                text: "Choose team...",
+              },
+              options: teamOptions,
+              action_id: "select_team_standup",
+            },
+          },
+        ],
+      });
+      return;
+    }
+
+    // Single team - open modal directly
+    const team = teams[0];
+    await openStandupModal({
+      body: { user: { id: command.user_id } },
+      client: respond.client,
+      action: { value: team.id },
+    });
+  } catch (error) {
+    await respond({
+      text: `❌ Error: ${error.message}`,
+    });
+  }
+}
+
+async function openStandupModal({ body, client, action }) {
+  try {
+    const teamId = action.action_id
+      ? action.action_id.replace("open_standup_", "")
+      : action.value;
+
+    const today = dayjs().format("MMM DD, YYYY");
+
+    await client.views.open({
+      trigger_id: body.trigger_id,
+      view: {
+        type: "modal",
+        callback_id: "standup_modal",
+        private_metadata: JSON.stringify({ teamId }),
+        title: {
+          type: "plain_text",
+          text: "Daily Standup",
+        },
+        submit: {
+          type: "plain_text",
+          text: "Submit",
+        },
+        close: {
+          type: "plain_text",
+          text: "Cancel",
+        },
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: `📅 *${today}*`,
+            },
+          },
+          {
+            type: "divider",
+          },
+          {
+            type: "input",
+            block_id: "yesterday_block",
+            element: {
+              type: "plain_text_input",
+              action_id: "yesterday_input",
+              multiline: true,
+              placeholder: {
+                type: "plain_text",
+                text: "What did you work on yesterday?",
+              },
+            },
+            label: {
+              type: "plain_text",
+              text: "Yesterday's Tasks",
+            },
+            optional: true,
+          },
+          {
+            type: "input",
+            block_id: "today_block",
+            element: {
+              type: "plain_text_input",
+              action_id: "today_input",
+              multiline: true,
+              placeholder: {
+                type: "plain_text",
+                text: "What are you working on today?",
+              },
+            },
+            label: {
+              type: "plain_text",
+              text: "Today's Tasks",
+            },
+            optional: true,
+          },
+          {
+            type: "input",
+            block_id: "blockers_block",
+            element: {
+              type: "plain_text_input",
+              action_id: "blockers_input",
+              multiline: true,
+              placeholder: {
+                type: "plain_text",
+                text: "Any blockers or help needed?",
+              },
+            },
+            label: {
+              type: "plain_text",
+              text: "Blockers",
+            },
+            optional: true,
+          },
+        ],
+      },
+    });
+  } catch (error) {
+    console.error("Error opening standup modal:", error);
+  }
+}
+
+async function handleStandupSubmission({ ack, body, client, view }) {
+  await ack();
+
+  try {
+    const { teamId } = JSON.parse(view.private_metadata);
+
+    const values = view.state.values;
+    const yesterdayTasks = values.yesterday_block?.yesterday_input?.value || "";
+    const todayTasks = values.today_block?.today_input?.value || "";
+    const blockers = values.blockers_block?.blockers_input?.value || "";
+
+    // Determine if submission is late
+    const now = dayjs();
+
+    const teams = await teamService.listTeams(body.user.id);
+    const team = teams.find((t) => t.id === teamId);
+
+    let isLate = false;
+    if (team) {
+      const [hour, minute] = team.postingTime.split(":");
+      const deadline = dayjs().hour(parseInt(hour)).minute(parseInt(minute));
+      isLate = now.isAfter(deadline);
+    }
+
+    await standupService.saveResponse(
+      teamId,
+      body.user.id,
+      {
+        date: now.toDate(),
+        yesterdayTasks,
+        todayTasks,
+        blockers,
+      },
+      isLate
+    );
+
+    // Send confirmation message
+    await client.chat.postMessage({
+      channel: body.user.id,
+      text: `✅ Standup submitted successfully!${
+        isLate ? " (Late submission)" : ""
+      }`,
+    });
+
+    // If late, post to team channel as thread
+    if (isLate && team) {
+      const standupPost = await standupService.getStandupPost(
+        teamId,
+        now.toDate()
+      );
+
+      if (standupPost?.slackMessageTs) {
+        let lateMessage = `*👤 ${
+          body.user.name || body.user.id
+        }* (Late submission)`;
+
+        if (yesterdayTasks) {
+          lateMessage += `\n*Yesterday:*\n${yesterdayTasks}`;
+        }
+
+        if (todayTasks) {
+          lateMessage += `\n*Today:*\n${todayTasks}`;
+        }
+
+        if (blockers) {
+          lateMessage += `\n*Blockers:* ${blockers}`;
+        } else {
+          lateMessage += `\n*Blockers:* None`;
+        }
+
+        await client.chat.postMessage({
+          channel: standupPost.channelId,
+          thread_ts: standupPost.slackMessageTs,
+          text: lateMessage,
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Error handling standup submission:", error);
+
+    await client.chat.postMessage({
+      channel: body.user.id,
+      text: "❌ Error submitting standup. Please try again.",
+    });
+  }
+}
+
+module.exports = {
+  submitManual,
+  openStandupModal,
+  handleStandupSubmission,
 };
 ```
 

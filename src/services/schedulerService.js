@@ -1,6 +1,11 @@
 const cron = require("node-cron");
 const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
 const prisma = require("../config/prisma");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 const teamService = require("./teamService");
 const standupService = require("./standupService");
 const { isWorkingDay } = require("../utils/dateHelper");
@@ -63,12 +68,12 @@ class SchedulerService {
     this.scheduledJobs.set(standupJobId, standupJob);
 
     // Schedule follow-up reminder (15 minutes later)
-    const followupTime = DateTime.fromObject({
-      hour: standupHour,
-      minute: standupMinute,
-    }).plus({ minutes: 15 });
+    const followupTime = dayjs()
+      .hour(standupHour)
+      .minute(standupMinute)
+      .add(15, "minute");
 
-    const followupCron = `${followupTime.minute} ${followupTime.hour} * * 1-7`;
+    const followupCron = `${followupTime.minute()} ${followupTime.hour()} * * 1-7`;
     const followupJobId = `followup-${team.id}`;
 
     if (this.scheduledJobs.has(followupJobId)) {
@@ -113,12 +118,12 @@ class SchedulerService {
   }
 
   async sendStandupReminders(team) {
-    const now = DateTime.now().setZone(team.timezone);
+    const now = dayjs().tz(team.timezone);
 
     // Get active members (this now includes work day filtering)
     const members = await standupService.getActiveMembers(
       team.id,
-      now.toJSDate()
+      now.toDate()
     );
 
     for (const member of members) {
@@ -168,16 +173,16 @@ class SchedulerService {
   }
 
   async sendFollowupReminders(team) {
-    const now = DateTime.now().setZone(team.timezone);
+    const now = dayjs().tz(team.timezone);
 
     // Get members who haven't responded (filtered by work days)
     const members = await standupService.getActiveMembers(
       team.id,
-      now.toJSDate()
+      now.toDate()
     );
     const responses = await standupService.getTeamResponses(
       team.id,
-      now.toJSDate()
+      now.toDate()
     );
 
     const respondedUserIds = new Set(responses.map((r) => r.userId));
@@ -201,20 +206,20 @@ class SchedulerService {
   }
 
   async postTeamStandup(team) {
-    const now = DateTime.now().setZone(team.timezone);
+    const now = dayjs().tz(team.timezone);
 
     // Check if it's a working day for the organization (general check)
-    const isOrgWorkingDay = await isWorkingDay(now.toJSDate(), team.organizationId);
+    const isOrgWorkingDay = await isWorkingDay(now.toDate(), team.organizationId);
     if (!isOrgWorkingDay) return;
 
     // Get all responses (filtered by individual work days)
     const responses = await standupService.getTeamResponses(
       team.id,
-      now.toJSDate()
+      now.toDate()
     );
     const allMembers = await standupService.getActiveMembers(
       team.id,
-      now.toJSDate()
+      now.toDate()
     );
 
     // Get members on leave
@@ -225,8 +230,8 @@ class SchedulerService {
         user: {
           leaves: {
             some: {
-              startDate: { lte: now.toJSDate() },
-              endDate: { gte: now.toJSDate() },
+              startDate: { lte: now.toDate() },
+              endDate: { gte: now.toDate() },
             },
           },
         },
@@ -262,7 +267,7 @@ class SchedulerService {
       // Save message timestamp for threading late responses
       await standupService.saveStandupPost(
         team.id,
-        now.toJSDate(),
+        now.toDate(),
         result.ts,
         team.slackChannelId
       );
