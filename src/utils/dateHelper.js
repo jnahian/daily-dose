@@ -1,5 +1,5 @@
 const prisma = require("../config/prisma");
-const { DateTime } = require("luxon");
+const dayjs = require("dayjs");
 
 async function isWorkingDay(date, organizationId, userId = null) {
   const dt = DateTime.fromJSDate(date);

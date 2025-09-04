@@ -1,5 +1,18 @@
 const prisma = require("../config/prisma");
 const userService = require("./userService");
+const dayjs = require("dayjs");
+const customParseFormat = require("dayjs/plugin/customParseFormat");
+
+dayjs.extend(customParseFormat);
+
+// Helper function to validate time string format (HH:MM)
+function validateTimeString(timeString) {
+  const time = dayjs(timeString, "HH:mm", true);
+  if (!time.isValid()) {
+    throw new Error(`Invalid time format: ${timeString}. Expected HH:MM format (e.g., 09:30)`);
+  }
+  return timeString;
+}
 
 class TeamService {
   async createTeam(slackUserId, channelId, teamData) {
@@ -33,8 +46,8 @@ class TeamService {
           organizationId: org.id,
           name: teamData.name,
           slackChannelId: channelId,
-          standupTime: teamData.standupTime,
-          postingTime: teamData.postingTime,
+          standupTime: validateTimeString(teamData.standupTime),
+          postingTime: validateTimeString(teamData.postingTime),
           timezone: teamData.timezone || org.defaultTimezone,
         },
       });

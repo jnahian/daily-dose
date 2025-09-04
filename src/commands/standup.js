@@ -1,7 +1,6 @@
 const standupService = require("../services/standupService");
 const teamService = require("../services/teamService");
-const userService = require("../services/userService");
-const { DateTime } = require("luxon");
+const dayjs = require("dayjs");
 
 async function submitManual({ command, ack, respond }) {
   await ack();
@@ -108,7 +107,7 @@ async function openStandupModal({ body, client }, teamId = null) {
       return;
     }
 
-    const today = DateTime.now().toFormat("MMM dd, yyyy");
+    const today = dayjs().format("MMM dd, yyyy");
 
     await client.views.open({
       trigger_id: body.trigger_id,

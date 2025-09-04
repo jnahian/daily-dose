@@ -22,8 +22,8 @@
     "@prisma/client": "^6.15.0",
     "@slack/bolt": "^4.4.0",
     "@supabase/supabase-js": "^2.57.0",
+    "dayjs": "^1.11.18",
     "dotenv": "^17.2.2",
-    "luxon": "^3.7.1",
     "node-cron": "^4.2.1"
   },
   "devDependencies": {

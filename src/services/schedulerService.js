@@ -1,5 +1,5 @@
 const cron = require("node-cron");
-const { DateTime } = require("luxon");
+const dayjs = require("dayjs");
 const prisma = require("../config/prisma");
 const teamService = require("./teamService");
 const standupService = require("./standupService");

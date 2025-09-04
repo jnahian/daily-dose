@@ -913,7 +913,7 @@ class StandupService {
         type: "header",
         text: {
           type: "plain_text",
-          text: `📊 Daily Standup - ${DateTime.now().toFormat("MMM dd, yyyy")}`,
+          text: `📊 Daily Standup - ${DateTime.now().format("MMM dd, yyyy")}`,
         },
       },
       {

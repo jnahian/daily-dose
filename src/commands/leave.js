@@ -1,6 +1,6 @@
 const userService = require("../services/userService");
 const prisma = require("../config/prisma");
-const { DateTime } = require("luxon");
+const dayjs = require("dayjs");
 
 async function setLeave({ command, ack, respond }) {
   await ack();
@@ -8,7 +8,7 @@ async function setLeave({ command, ack, respond }) {
   try {
     // Parse command text: /dd-leave-set 2024-12-25 2024-12-26 Holiday break
     const parts = command.text.split(" ");
-    
+
     if (parts.length < 2) {
       await respond({
         text: "❌ Usage: `/dd-leave-set YYYY-MM-DD YYYY-MM-DD [reason]`\nExample: `/dd-leave-set 2024-12-25 2024-12-26 Holiday break`",
@@ -16,11 +16,11 @@ async function setLeave({ command, ack, respond }) {
       return;
     }
 
-    const startDate = DateTime.fromISO(parts[0]);
-    const endDate = DateTime.fromISO(parts[1]);
+    const startDate = dayjs(parts[0]);
+    const endDate = dayjs(parts[1]);
     const reason = parts.slice(2).join(" ") || "Personal leave";
 
-    if (!startDate.isValid || !endDate.isValid) {
+    if (!startDate.isValid() || !endDate.isValid()) {
       await respond({
         text: "❌ Invalid date format. Use YYYY-MM-DD",
       });
@@ -42,7 +42,9 @@ async function setLeave({ command, ack, respond }) {
     );
 
     await respond({
-      text: `✅ Leave set from ${startDate.toFormat("MMM dd, yyyy")} to ${endDate.toFormat("MMM dd, yyyy")}\nReason: ${reason}`,
+      text: `✅ Leave set from ${startDate.format(
+        "MMM dd, yyyy"
+      )} to ${endDate.format("MMM dd, yyyy")}\nReason: ${reason}`,
     });
   } catch (error) {
     await respond({
@@ -81,7 +83,7 @@ async function listLeaves({ command, ack, respond }) {
 
   try {
     const user = await userService.findOrCreateUser(command.user_id);
-    
+
     const leaves = await prisma.leave.findMany({
       where: {
         userId: user.id,
@@ -99,12 +101,17 @@ async function listLeaves({ command, ack, respond }) {
       return;
     }
 
-    const leaveList = leaves.map(leave => {
-      const startDate = DateTime.fromJSDate(leave.startDate).toFormat("MMM dd, yyyy");
-      const endDate = DateTime.fromJSDate(leave.endDate).toFormat("MMM dd, yyyy");
-      const dateRange = startDate === endDate ? startDate : `${startDate} - ${endDate}`;
-      return `• ${dateRange}: ${leave.reason || "No reason"} (ID: ${leave.id.slice(0, 8)})`;
-    }).join("\n");
+    const leaveList = leaves
+      .map((leave) => {
+        const startDate = dayjs(leave.startDate).format("MMM DD, YYYY");
+        const endDate = dayjs(leave.endDate).format("MMM DD, YYYY");
+        const dateRange =
+          startDate === endDate ? startDate : `${startDate} - ${endDate}`;
+        return `• ${dateRange}: ${
+          leave.reason || "No reason"
+        } (ID: ${leave.id.slice(0, 8)})`;
+      })
+      .join("\n");
 
     await respond({
       blocks: [
@@ -139,7 +146,7 @@ async function setWorkDays({ command, ack, respond }) {
   try {
     // Parse command text: /dd-workdays-set 1,2,3,4,5 (Mon-Fri)
     const workDaysText = command.text.trim();
-    
+
     if (!workDaysText) {
       await respond({
         text: "❌ Usage: `/dd-workdays-set 1,2,3,4,7`\nNumbers: 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday, 7=Sunday\nExample: `/dd-workdays-set 1,2,3,4,7` for Monday-Thursday, Sunday",
@@ -148,7 +155,7 @@ async function setWorkDays({ command, ack, respond }) {
     }
 
     // Parse work days
-    const workDays = workDaysText.split(",").map(day => {
+    const workDays = workDaysText.split(",").map((day) => {
       const num = parseInt(day.trim());
       if (isNaN(num) || num < 1 || num > 7) {
         throw new Error(`Invalid day: ${day}. Use numbers 1-7`);
@@ -163,11 +170,16 @@ async function setWorkDays({ command, ack, respond }) {
     await userService.setWorkDays(command.user_id, workDays);
 
     const dayNames = {
-      1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday",
-      5: "Friday", 6: "Saturday", 7: "Sunday"
+      1: "Monday",
+      2: "Tuesday",
+      3: "Wednesday",
+      4: "Thursday",
+      5: "Friday",
+      6: "Saturday",
+      7: "Sunday",
     };
 
-    const workDayNames = workDays.map(day => dayNames[day]).join(", ");
+    const workDayNames = workDays.map((day) => dayNames[day]).join(", ");
 
     await respond({
       text: `✅ Your work days have been set to: ${workDayNames}`,
@@ -193,11 +205,16 @@ async function showWorkDays({ command, ack, respond }) {
     }
 
     const dayNames = {
-      1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday",
-      5: "Friday", 6: "Saturday", 7: "Sunday"
+      1: "Monday",
+      2: "Tuesday",
+      3: "Wednesday",
+      4: "Thursday",
+      5: "Friday",
+      6: "Saturday",
+      7: "Sunday",
     };
 
-    const workDayNames = workDays.map(day => dayNames[day]).join(", ");
+    const workDayNames = workDays.map((day) => dayNames[day]).join(", ");
 
     // Check if using personal or organization default
     const user = await userService.findOrCreateUser(command.user_id);
@@ -222,7 +239,9 @@ async function showWorkDays({ command, ack, respond }) {
           elements: [
             {
               type: "mrkdwn",
-              text: isPersonal ? "Using personal settings" : "Using organization default",
+              text: isPersonal
+                ? "Using personal settings"
+                : "Using organization default",
             },
           ],
         },

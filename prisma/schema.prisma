@@ -32,8 +32,8 @@ model Team {
   organizationId  String              @map("organization_id")
   name            String
   slackChannelId  String              @unique @map("slack_channel_id")
-  standupTime     DateTime            @db.Time() @map("standup_time")
-  postingTime     DateTime            @db.Time() @map("posting_time")
+  standupTime     String              @map("standup_time")
+  postingTime     String              @map("posting_time")
   timezone        String              @default("America/New_York")
   isActive        Boolean             @default(true) @map("is_active")
   createdAt       DateTime            @default(now()) @map("created_at")

@@ -1,11 +1,16 @@
 const prisma = require("../config/prisma");
-const { DateTime } = require("luxon");
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
 const { isWorkingDay } = require("../utils/dateHelper");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 class StandupService {
   async getActiveMembers(teamId, date) {
-    const startOfDay = DateTime.fromJSDate(date).startOf("day").toJSDate();
-    const endOfDay = DateTime.fromJSDate(date).endOf("day").toJSDate();
+    const startOfDay = dayjs(date).startOf("day").toDate();
+    const endOfDay = dayjs(date).endOf("day").toDate();
 
     const members = await prisma.teamMember.findMany({
       where: {
@@ -57,9 +62,9 @@ class StandupService {
       throw new Error("User not found");
     }
 
-    const standupDate = DateTime.fromJSDate(responseData.date)
+    const standupDate = dayjs(responseData.date)
       .startOf("day")
-      .toJSDate();
+      .toDate();
 
     return await prisma.standupResponse.upsert({
       where: {
@@ -91,8 +96,8 @@ class StandupService {
   }
 
   async getTeamResponses(teamId, date) {
-    const startOfDay = DateTime.fromJSDate(date).startOf("day").toJSDate();
-    const endOfDay = DateTime.fromJSDate(date).endOf("day").toJSDate();
+    const startOfDay = dayjs(date).startOf("day").toDate();
+    const endOfDay = dayjs(date).endOf("day").toDate();
 
     return await prisma.standupResponse.findMany({
       where: {
@@ -113,8 +118,8 @@ class StandupService {
   }
 
   async getLateResponses(teamId, date) {
-    const startOfDay = DateTime.fromJSDate(date).startOf("day").toJSDate();
-    const endOfDay = DateTime.fromJSDate(date).endOf("day").toJSDate();
+    const startOfDay = dayjs(date).startOf("day").toDate();
+    const endOfDay = dayjs(date).endOf("day").toDate();
 
     return await prisma.standupResponse.findMany({
       where: {
@@ -135,7 +140,7 @@ class StandupService {
   }
 
   async saveStandupPost(teamId, date, messageTs, channelId) {
-    const standupDate = DateTime.fromJSDate(date).startOf("day").toJSDate();
+    const standupDate = dayjs(date).startOf("day").toDate();
 
     return await prisma.standupPost.upsert({
       where: {
@@ -160,7 +165,7 @@ class StandupService {
   }
 
   async getStandupPost(teamId, date) {
-    const standupDate = DateTime.fromJSDate(date).startOf("day").toJSDate();
+    const standupDate = dayjs(date).startOf("day").toDate();
 
     return await prisma.standupPost.findUnique({
       where: {
@@ -178,7 +183,7 @@ class StandupService {
         type: "header",
         text: {
           type: "plain_text",
-          text: `📊 Daily Standup - ${DateTime.now().toFormat("MMM dd, yyyy")}`,
+          text: `📊 Daily Standup - ${dayjs().format("MMM DD, YYYY")}`,
         },
       },
       {

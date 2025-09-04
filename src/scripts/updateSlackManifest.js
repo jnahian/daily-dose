@@ -75,18 +75,18 @@ class SlackManifestManager {
 
     console.log("🔄 Refreshing access token...");
 
-    const response = await fetch("https://slack.com/api/tooling.tokens.rotate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        // client_id: this.clientId,
-        // client_secret: this.clientSecret,
-        // grant_type: "refresh_token",
-        refresh_token: this.refreshToken,
-      }),
-    });
+    const response = await fetch(
+      "https://slack.com/api/tooling.tokens.rotate",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          refresh_token: this.refreshToken,
+        }),
+      }
+    );
 
     const data = await response.json();
 
