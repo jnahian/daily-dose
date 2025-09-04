@@ -5,7 +5,7 @@ const customParseFormat = require("dayjs/plugin/customParseFormat");
 
 dayjs.extend(customParseFormat);
 
-// Helper function to validate time string format (HH:MM)
+// Helper function to validate and convert time string to Date object
 function validateTimeString(timeString) {
   const time = dayjs(timeString, "HH:mm", true);
   if (!time.isValid()) {
