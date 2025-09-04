@@ -1,5 +1,6 @@
 const teamCommands = require("./team");
 const leaveCommands = require("./leave");
+const standupCommands = require("./standup");
 
 function setupCommands(app) {
   // Team commands
@@ -10,10 +11,18 @@ function setupCommands(app) {
   // Leave commands
   app.command("/dd-leave-set", leaveCommands.setLeave);
   app.command("/dd-leave-cancel", leaveCommands.cancelLeave);
+  app.command("/dd-leave-list", leaveCommands.listLeaves);
 
   // Work days commands
   app.command("/dd-workdays-set", leaveCommands.setWorkDays);
   app.command("/dd-workdays-show", leaveCommands.showWorkDays);
+
+  // Standup commands
+  app.command("/dd-standup", standupCommands.submitManual);
+
+  // Button actions
+  app.action(/open_standup_.*/, standupCommands.openStandupModal);
+  app.view("standup_modal", standupCommands.handleStandupSubmission);
 
   console.log("✅ Commands registered");
 }

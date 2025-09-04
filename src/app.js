@@ -2,6 +2,7 @@ require("dotenv").config();
 const { App } = require("@slack/bolt");
 const prisma = require("./config/prisma");
 const { setupCommands } = require("./commands");
+const { setupWorkflows } = require("./workflows");
 const schedulerService = require("./services/schedulerService");
 
 const app = new App({
@@ -10,8 +11,9 @@ const app = new App({
   socketMode: false,
 });
 
-// Setup commands
+// Setup commands and workflows
 setupCommands(app);
+setupWorkflows(app);
 
 // Initialize scheduler
 schedulerService.initialize(app);
