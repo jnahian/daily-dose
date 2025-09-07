@@ -35,7 +35,7 @@
                 "command": "/dd-leave-set",
                 "url": "{{APP_URL}}/slack/events",
                 "description": "Set leave dates to skip standup reminders",
-                "usage_hint": "YYYY-MM-DD YYYY-MM-DD [reason]",
+                "usage_hint": "YYYY-MM-DD [YYYY-MM-DD] [reason]",
                 "should_escape": false
             },
             {

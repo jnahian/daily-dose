@@ -46,8 +46,9 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
 
 ### Leave Management
 
-- `/dd-leave-set <start-date> <end-date> [reason]` - Set leave dates
-  - Example: `/dd-leave-set 2024-12-25 2024-12-26 Holiday break`
+- `/dd-leave-set <start-date> [end-date] [reason]` - Set leave dates
+  - Single day: `/dd-leave-set 2024-12-25 Holiday`
+  - Date range: `/dd-leave-set 2024-12-25 2024-12-26 Holiday break`
 - `/dd-leave-list` - View your upcoming leaves
 - `/dd-leave-cancel <leave-id>` - Cancel a leave (use ID from list command)
 
@@ -60,7 +61,7 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
 
 ### Standup Submission
 
-- `/dd-standup [team-name]` - Submit standup manually
+- `/dd-standup [team-name]` - Submit standup manually outside scheduled time
 - The bot also sends automatic DM reminders with interactive buttons
 
 ## How It Works
@@ -120,7 +121,7 @@ The bot posts a formatted summary showing:
 
 ```bash
 # Single day
-/dd-leave-set 2024-12-25 2024-12-25 Christmas Day
+/dd-leave-set 2024-12-25 Christmas Day
 
 # Multiple days
 /dd-leave-set 2024-12-23 2024-12-27 Holiday break
