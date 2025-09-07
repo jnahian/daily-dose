@@ -196,8 +196,14 @@ async function sendManualStandup(teamName, options = {}) {
       ? dayjs(options.date)
       : dayjs().tz(team.timezone);
 
-    // Get all responses for the target date
+    // Get all responses for the target date (regular responses only)
     const responses = await standupService.getTeamResponses(
+      team.id,
+      targetDate.toDate()
+    );
+
+    // Get late responses for the target date
+    const lateResponses = await standupService.getLateResponses(
       team.id,
       targetDate.toDate()
     );
@@ -227,22 +233,27 @@ async function sendManualStandup(teamName, options = {}) {
     });
 
     // Calculate not submitted
-    const respondedUserIds = new Set(responses.map(r => r.userId));
-    const leaveUserIds = new Set(membersOnLeave.map(m => m.userId));
+    const respondedUserIds = new Set(responses.map((r) => r.userId));
+    const leaveUserIds = new Set(membersOnLeave.map((m) => m.userId));
 
     const notSubmitted = allMembers
-      .filter(m => !respondedUserIds.has(m.userId))
-      .map(m => ({
+      .filter((m) => !respondedUserIds.has(m.userId))
+      .map((m) => ({
         slackUserId: m.user.slackUserId,
         onLeave: leaveUserIds.has(m.userId),
       }));
 
     console.log(`📈 Standup Summary:`);
     console.log(`   - Responses: ${responses.length}`);
+    console.log(`   - Late responses: ${lateResponses.length}`);
     console.log(`   - Not submitted: ${notSubmitted.length}`);
     console.log(`   - On leave: ${membersOnLeave.length}`);
 
-    if (responses.length === 0 && notSubmitted.length === 0) {
+    if (
+      responses.length === 0 &&
+      lateResponses.length === 0 &&
+      notSubmitted.length === 0
+    ) {
       console.log("⚠️  No standup data found for this date. Skipping post.");
       return;
     }
@@ -263,6 +274,23 @@ async function sendManualStandup(teamName, options = {}) {
     if (options.dryRun) {
       console.log("\n🔍 DRY RUN - Message that would be sent:");
       console.log(JSON.stringify(message, null, 2));
+
+      if (lateResponses.length > 0) {
+        console.log(
+          `\n🕐 Late responses that would be posted as threaded replies (${lateResponses.length}):`
+        );
+        for (const lateResponse of lateResponses) {
+          const lateMessage = await standupService.formatLateResponseMessage(
+            lateResponse
+          );
+          console.log(
+            `\n--- Late Response from ${
+              lateResponse.user.name || lateResponse.user.slackUserId
+            } ---`
+          );
+          console.log(JSON.stringify(lateMessage, null, 2));
+        }
+      }
       return;
     }
 
@@ -281,6 +309,42 @@ async function sendManualStandup(teamName, options = {}) {
 
     console.log(`✅ Standup posted successfully to ${team.slackChannelId}`);
     console.log(`📝 Message timestamp: ${result.ts}`);
+
+    // Post late responses as threaded replies if any exist
+    if (lateResponses.length > 0) {
+      console.log(
+        `🕐 Posting ${lateResponses.length} late responses as threaded replies...`
+      );
+
+      for (const lateResponse of lateResponses) {
+        try {
+          const lateMessage = await standupService.formatLateResponseMessage(
+            lateResponse
+          );
+
+          await app.client.chat.postMessage({
+            channel: team.slackChannelId,
+            thread_ts: result.ts,
+            ...lateMessage,
+          });
+
+          console.log(
+            `   ✅ Posted late response from ${
+              lateResponse.user.name || lateResponse.user.slackUserId
+            }`
+          );
+        } catch (lateError) {
+          console.error(
+            `   ❌ Failed to post late response from ${
+              lateResponse.user.name || lateResponse.user.slackUserId
+            }:`,
+            lateError.message
+          );
+        }
+      }
+
+      console.log(`✅ All late responses posted as threaded replies`);
+    }
   } catch (error) {
     console.error("❌ Error sending manual standup:", error.message);
     throw error;
@@ -485,9 +549,9 @@ Usage:
 
 Commands:
   list                                    - List all active teams with channel status
-  post "<teamName>"                       - Post standup summary for team
-  post "<teamName>" --date YYYY-MM-DD    - Post standup for specific date
-  post "<teamName>" --dry-run             - Preview message without sending
+  post "<teamName>"                       - Post standup summary for team (includes late responses)
+  post "<teamName>" --date YYYY-MM-DD    - Post standup for specific date (includes late responses)
+  post "<teamName>" --dry-run             - Preview message without sending (shows late responses)
   remind "<teamName>"                     - Send standup reminders to team members
   troubleshoot "<teamName>"               - Send troubleshooting steps to team members
 
@@ -579,7 +643,7 @@ process.on("SIGINT", async () => {
   process.exit(0);
 });
 
-main().catch(async error => {
+main().catch(async (error) => {
   console.error("❌ Unexpected error:", error);
   await prisma.$disconnect();
   process.exit(1);
