@@ -6,45 +6,63 @@ async function setLeave({ command, ack, respond }) {
   await ack();
 
   try {
-    // Parse command text: /dd-leave-set 2024-12-25 2024-12-26 Holiday break
+    // Parse command text: /dd-leave-set 2024-12-25 [2024-12-26] [Holiday break]
     const parts = command.text.split(" ");
 
-    if (parts.length < 2) {
+    if (parts.length < 1 || !parts[0]) {
       await respond({
-        text: "❌ Usage: `/dd-leave-set YYYY-MM-DD YYYY-MM-DD [reason]`\nExample: `/dd-leave-set 2024-12-25 2024-12-26 Holiday break`",
+        text: "❌ Usage: `/dd-leave-set YYYY-MM-DD [YYYY-MM-DD] [reason]`\nExamples:\n• Single day: `/dd-leave-set 2024-12-25 Holiday`\n• Date range: `/dd-leave-set 2024-12-25 2024-12-26 Holiday break`",
       });
       return;
     }
 
     const startDate = dayjs(parts[0]);
-    const endDate = dayjs(parts[1]);
-    const reason = parts.slice(2).join(" ") || "Personal leave";
 
-    if (!startDate.isValid() || !endDate.isValid()) {
+    if (!startDate.isValid()) {
       await respond({
-        text: "❌ Invalid date format. Use YYYY-MM-DD",
+        text: "❌ Invalid start date format. Use YYYY-MM-DD",
       });
       return;
     }
 
-    if (startDate > endDate) {
-      await respond({
-        text: "❌ Start date must be before or equal to end date",
-      });
-      return;
+    // Check if second parameter is a date or part of the reason
+    let endDate = startDate; // Default to same day for single date
+    let reasonStartIndex = 1;
+
+    if (parts.length > 1) {
+      const potentialEndDate = dayjs(parts[1]);
+      if (potentialEndDate.isValid()) {
+        // Second parameter is a valid date, use it as end date
+        endDate = potentialEndDate;
+        reasonStartIndex = 2;
+
+        if (startDate > endDate) {
+          await respond({
+            text: "❌ Start date must be before or equal to end date",
+          });
+          return;
+        }
+      }
+      // If second parameter is not a valid date, treat it as part of reason
     }
+
+    const reason = parts.slice(reasonStartIndex).join(" ") || "Personal leave";
 
     await userService.setLeave(
       command.user_id,
-      startDate.toJSDate(),
-      endDate.toJSDate(),
+      startDate.toDate(),
+      endDate.toDate(),
       reason
     );
 
+    const dateText = startDate.isSame(endDate, "day")
+      ? `on ${startDate.format("MMM DD, YYYY")}`
+      : `from ${startDate.format("MMM DD, YYYY")} to ${endDate.format(
+          "MMM DD, YYYY"
+        )}`;
+
     await respond({
-      text: `✅ Leave set from ${startDate.format(
-        "MMM dd, yyyy"
-      )} to ${endDate.format("MMM dd, yyyy")}\nReason: ${reason}`,
+      text: `✅ Leave set ${dateText}\nReason: ${reason}`,
     });
   } catch (error) {
     await respond({

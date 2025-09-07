@@ -68,12 +68,35 @@ class UserService {
       where: { slackUserId },
     });
 
-    if (!user) return null;
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Handle partial IDs - find leaves that start with the provided ID
+    const matchingLeaves = await prisma.leave.findMany({
+      where: {
+        userId: user.id,
+        id: {
+          startsWith: leaveId,
+        },
+      },
+    });
+
+    if (matchingLeaves.length === 0) {
+      throw new Error("Leave record not found or doesn't belong to you");
+    }
+
+    if (matchingLeaves.length > 1) {
+      throw new Error(
+        "Multiple leaves match this ID. Please provide a more specific ID"
+      );
+    }
+
+    const leaveToDelete = matchingLeaves[0];
 
     return await prisma.leave.delete({
       where: {
-        id: leaveId,
-        userId: user.id,
+        id: leaveToDelete.id,
       },
     });
   }
