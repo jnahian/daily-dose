@@ -3,19 +3,24 @@ const teamService = require("../services/teamService");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
+const { ackWithProcessing } = require("../utils/commandHelper");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 async function submitManual({ command, ack, respond, client }) {
-  await ack();
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "⏳ Loading standup form..."
+  );
 
   try {
     // Get user's teams
     const teams = await teamService.listTeams(command.user_id);
 
     if (teams.length === 0) {
-      await respond({
+      await updateResponse({
         text: "❌ You're not a member of any teams. Join a team first with `/dd-team-join TeamName`",
       });
       return;
@@ -30,7 +35,7 @@ async function submitManual({ command, ack, respond, client }) {
       );
 
       if (!team) {
-        await respond({
+        await updateResponse({
           text: `❌ Team "${teamName}" not found. Available teams: ${teams
             .map((t) => t.name)
             .join(", ")}`,
@@ -129,7 +134,7 @@ async function submitManual({ command, ack, respond, client }) {
         console.error("Error opening modal directly:", modalError);
 
         // Fallback to button approach if modal fails
-        await respond({
+        await updateResponse({
           blocks: [
             {
               type: "section",
@@ -159,7 +164,7 @@ async function submitManual({ command, ack, respond, client }) {
       // Show team selection
       const teamList = teams.map((t) => `• ${t.name}`).join("\n");
 
-      await respond({
+      await updateResponse({
         blocks: [
           {
             type: "section",
@@ -179,7 +184,7 @@ async function submitManual({ command, ack, respond, client }) {
       });
     }
   } catch (error) {
-    await respond({
+    await updateResponse({
       text: `❌ Error: ${error.message}`,
     });
   }

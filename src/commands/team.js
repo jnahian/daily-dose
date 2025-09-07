@@ -1,14 +1,15 @@
 const teamService = require("../services/teamService");
+const { ackWithProcessing } = require("../utils/commandHelper");
 
 async function createTeam({ command, ack, respond }) {
-  await ack();
+  const updateResponse = ackWithProcessing(ack, respond, "⏳ Creating team...");
 
   try {
     // Parse command text: /dd-team-create TeamName 09:30 10:00
     const [name, standupTime, postingTime] = command.text.split(" ");
 
     if (!name || !standupTime || !postingTime) {
-      await respond({
+      await updateResponse({
         text: "❌ Usage: `/dd-team-create TeamName HH:MM HH:MM`\nExample: `/dd-team-create Engineering 09:30 10:00`",
       });
       return;
@@ -24,24 +25,24 @@ async function createTeam({ command, ack, respond }) {
       }
     );
 
-    await respond({
+    await updateResponse({
       text: `✅ Team "${name}" created successfully!\n• Standup reminder: ${standupTime}\n• Posting time: ${postingTime}`,
     });
   } catch (error) {
-    await respond({
+    await updateResponse({
       text: `❌ Error: ${error.message}`,
     });
   }
 }
 
 async function joinTeam({ command, ack, respond }) {
-  await ack();
+  const updateResponse = ackWithProcessing(ack, respond, "⏳ Joining team...");
 
   try {
     const teamName = command.text.trim();
 
     if (!teamName) {
-      await respond({
+      await updateResponse({
         text: "❌ Usage: `/dd-team-join TeamName`",
       });
       return;
@@ -54,7 +55,7 @@ async function joinTeam({ command, ack, respond }) {
     );
 
     if (!team) {
-      await respond({
+      await updateResponse({
         text: `❌ Team "${teamName}" not found`,
       });
       return;
@@ -62,24 +63,24 @@ async function joinTeam({ command, ack, respond }) {
 
     await teamService.joinTeam(command.user_id, team.id);
 
-    await respond({
+    await updateResponse({
       text: `✅ You've joined team "${team.name}"!`,
     });
   } catch (error) {
-    await respond({
+    await updateResponse({
       text: `❌ Error: ${error.message}`,
     });
   }
 }
 
 async function leaveTeam({ command, ack, respond }) {
-  await ack();
+  const updateResponse = ackWithProcessing(ack, respond, "⏳ Leaving team...");
 
   try {
     const teamName = command.text.trim();
 
     if (!teamName) {
-      await respond({
+      await updateResponse({
         text: "❌ Usage: `/dd-team-leave TeamName`",
       });
       return;
@@ -92,7 +93,7 @@ async function leaveTeam({ command, ack, respond }) {
     );
 
     if (!team) {
-      await respond({
+      await updateResponse({
         text: `❌ Team "${teamName}" not found`,
       });
       return;
@@ -100,24 +101,24 @@ async function leaveTeam({ command, ack, respond }) {
 
     await teamService.leaveTeam(command.user_id, team.id);
 
-    await respond({
+    await updateResponse({
       text: `✅ You've left team "${team.name}"`,
     });
   } catch (error) {
-    await respond({
+    await updateResponse({
       text: `❌ Error: ${error.message}`,
     });
   }
 }
 
 async function listTeams({ command, ack, respond }) {
-  await ack();
+  const updateResponse = ackWithProcessing(ack, respond, "⏳ Loading teams...");
 
   try {
     const teams = await teamService.listTeams(command.user_id);
 
     if (teams.length === 0) {
-      await respond({
+      await updateResponse({
         text: "📋 No teams found in your organization",
       });
       return;
@@ -130,7 +131,7 @@ async function listTeams({ command, ack, respond }) {
       )
       .join("\n");
 
-    await respond({
+    await updateResponse({
       blocks: [
         {
           type: "section",
@@ -142,7 +143,7 @@ async function listTeams({ command, ack, respond }) {
       ],
     });
   } catch (error) {
-    await respond({
+    await updateResponse({
       text: `❌ Error: ${error.message}`,
     });
   }

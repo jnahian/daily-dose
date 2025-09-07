@@ -1,16 +1,17 @@
 const userService = require("../services/userService");
 const prisma = require("../config/prisma");
 const dayjs = require("dayjs");
+const { ackWithProcessing } = require("../utils/commandHelper");
 
 async function setLeave({ command, ack, respond }) {
-  await ack();
+  const updateResponse = ackWithProcessing(ack, respond, "⏳ Setting leave...");
 
   try {
     // Parse command text: /dd-leave-set 2024-12-25 [2024-12-26] [Holiday break]
     const parts = command.text.split(" ");
 
     if (parts.length < 1 || !parts[0]) {
-      await respond({
+      await updateResponse({
         text: "❌ Usage: `/dd-leave-set YYYY-MM-DD [YYYY-MM-DD] [reason]`\nExamples:\n• Single day: `/dd-leave-set 2024-12-25 Holiday`\n• Date range: `/dd-leave-set 2024-12-25 2024-12-26 Holiday break`",
       });
       return;
@@ -19,7 +20,7 @@ async function setLeave({ command, ack, respond }) {
     const startDate = dayjs(parts[0]);
 
     if (!startDate.isValid()) {
-      await respond({
+      await updateResponse({
         text: "❌ Invalid start date format. Use YYYY-MM-DD",
       });
       return;
@@ -37,7 +38,7 @@ async function setLeave({ command, ack, respond }) {
         reasonStartIndex = 2;
 
         if (startDate > endDate) {
-          await respond({
+          await updateResponse({
             text: "❌ Start date must be before or equal to end date",
           });
           return;
@@ -61,24 +62,28 @@ async function setLeave({ command, ack, respond }) {
           "MMM DD, YYYY"
         )}`;
 
-    await respond({
+    await updateResponse({
       text: `✅ Leave set ${dateText}\nReason: ${reason}`,
     });
   } catch (error) {
-    await respond({
+    await updateResponse({
       text: `❌ Error: ${error.message}`,
     });
   }
 }
 
 async function cancelLeave({ command, ack, respond }) {
-  await ack();
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "⏳ Cancelling leave..."
+  );
 
   try {
     const leaveId = command.text.trim();
 
     if (!leaveId) {
-      await respond({
+      await updateResponse({
         text: "❌ Usage: `/dd-leave-cancel [leave-id]`\nUse `/dd-leave-list` to see your leaves",
       });
       return;
@@ -86,18 +91,22 @@ async function cancelLeave({ command, ack, respond }) {
 
     await userService.cancelLeave(command.user_id, leaveId);
 
-    await respond({
+    await updateResponse({
       text: "✅ Leave cancelled successfully",
     });
   } catch (error) {
-    await respond({
+    await updateResponse({
       text: `❌ Error: ${error.message}`,
     });
   }
 }
 
 async function listLeaves({ command, ack, respond }) {
-  await ack();
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "⏳ Loading leaves..."
+  );
 
   try {
     const user = await userService.findOrCreateUser(command.user_id);
@@ -113,7 +122,7 @@ async function listLeaves({ command, ack, respond }) {
     });
 
     if (leaves.length === 0) {
-      await respond({
+      await updateResponse({
         text: "📅 You have no upcoming leaves scheduled",
       });
       return;
@@ -131,7 +140,7 @@ async function listLeaves({ command, ack, respond }) {
       })
       .join("\n");
 
-    await respond({
+    await updateResponse({
       blocks: [
         {
           type: "section",
@@ -152,21 +161,25 @@ async function listLeaves({ command, ack, respond }) {
       ],
     });
   } catch (error) {
-    await respond({
+    await updateResponse({
       text: `❌ Error: ${error.message}`,
     });
   }
 }
 
 async function setWorkDays({ command, ack, respond }) {
-  await ack();
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "⏳ Setting work days..."
+  );
 
   try {
     // Parse command text: /dd-workdays-set 1,2,3,4,5 (Mon-Fri)
     const workDaysText = command.text.trim();
 
     if (!workDaysText) {
-      await respond({
+      await updateResponse({
         text: "❌ Usage: `/dd-workdays-set 1,2,3,4,7`\nNumbers: 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday, 7=Sunday\nExample: `/dd-workdays-set 1,2,3,4,7` for Monday-Thursday, Sunday",
       });
       return;
@@ -199,24 +212,28 @@ async function setWorkDays({ command, ack, respond }) {
 
     const workDayNames = workDays.map((day) => dayNames[day]).join(", ");
 
-    await respond({
+    await updateResponse({
       text: `✅ Your work days have been set to: ${workDayNames}`,
     });
   } catch (error) {
-    await respond({
+    await updateResponse({
       text: `❌ Error: ${error.message}`,
     });
   }
 }
 
 async function showWorkDays({ command, ack, respond }) {
-  await ack();
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "⏳ Loading work days..."
+  );
 
   try {
     const workDays = await userService.getWorkDays(command.user_id);
 
     if (!workDays) {
-      await respond({
+      await updateResponse({
         text: "❌ Unable to retrieve work days",
       });
       return;
@@ -243,7 +260,7 @@ async function showWorkDays({ command, ack, respond }) {
 
     const isPersonal = userData?.workDays !== null;
 
-    await respond({
+    await updateResponse({
       blocks: [
         {
           type: "section",
@@ -273,7 +290,7 @@ async function showWorkDays({ command, ack, respond }) {
       ],
     });
   } catch (error) {
-    await respond({
+    await updateResponse({
       text: `❌ Error: ${error.message}`,
     });
   }
