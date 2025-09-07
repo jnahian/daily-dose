@@ -18,6 +18,134 @@ const app = new App({
   socketMode: false,
 });
 
+async function sendTroubleshootingMessage(team, channelError) {
+  const troubleshootingBlocks = [
+    {
+      type: "header",
+      text: {
+        type: "plain_text",
+        text: "🔧 Channel Access Issue",
+      },
+    },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `❌ Cannot access channel for team *${team.name}*\nChannel ID: \`${team.slackChannelId}\``,
+      },
+    },
+    {
+      type: "divider",
+    },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: "*🔍 Troubleshooting Steps:*",
+      },
+    },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: "*1. Check if the channel exists:*\n• Search for the channel in Slack\n• Verify the channel ID is correct",
+      },
+    },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: "*2. Add the bot to the channel:*\n• Go to the channel in Slack\n• Type: `/invite @your-bot-name`\n• Or use channel settings → Integrations → Add apps",
+      },
+    },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: "*3. Update the channel ID:*\n• Right-click the channel → Copy link\n• Channel IDs start with 'C' (e.g., C1234567890)\n• Update the team record in your database",
+      },
+    },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: "*4. Verify bot permissions:*\n• Ensure bot has `chat:write` and `channels:read` scopes\n• Check if bot is properly installed in workspace",
+      },
+    },
+    {
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: `Error: ${channelError.data?.error || channelError.message}`,
+        },
+      ],
+    },
+  ];
+
+  // Try to send to team members as DM since we can't access the main channel
+  try {
+    const members = await prisma.teamMember.findMany({
+      where: {
+        teamId: team.id,
+        isActive: true,
+        role: "ADMIN", // Send to admins first
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    if (members.length === 0) {
+      // If no admins, send to all members
+      const allMembers = await prisma.teamMember.findMany({
+        where: {
+          teamId: team.id,
+          isActive: true,
+        },
+        include: {
+          user: true,
+        },
+      });
+      members.push(...allMembers);
+    }
+
+    let sentCount = 0;
+    for (const member of members.slice(0, 3)) {
+      // Limit to first 3 to avoid spam
+      try {
+        await app.client.chat.postMessage({
+          channel: member.user.slackUserId,
+          blocks: troubleshootingBlocks,
+        });
+        sentCount++;
+        console.log(
+          `📤 Sent troubleshooting steps to ${
+            member.user.name || member.user.slackUserId
+          }`
+        );
+      } catch (dmError) {
+        console.error(
+          `Failed to send DM to ${member.user.slackUserId}:`,
+          dmError.message
+        );
+      }
+    }
+
+    if (sentCount > 0) {
+      console.log(
+        `✅ Troubleshooting steps sent to ${sentCount} team member(s)`
+      );
+    } else {
+      console.log(
+        "⚠️ Could not send troubleshooting steps to any team members"
+      );
+    }
+  } catch (error) {
+    console.error("Failed to send troubleshooting messages:", error.message);
+  }
+}
+
 async function sendManualStandup(teamName, options = {}) {
   try {
     console.log(`📊 Sending manual standup for team: ${teamName}`);
@@ -51,8 +179,14 @@ async function sendManualStandup(teamName, options = {}) {
       console.log(`✅ Channel validated: #${channelInfo.channel.name}`);
     } catch (channelError) {
       if (channelError.data?.error === "channel_not_found") {
+        console.error(`\n❌ Channel ${team.slackChannelId} not found!`);
+        console.log(`� Sendiung troubleshooting steps to team members...`);
+
+        // Send troubleshooting steps to team members via DM
+        await sendTroubleshootingMessage(team, channelError);
+
         throw new Error(
-          `Channel ${team.slackChannelId} not found. The bot may not have access to this channel or it may have been deleted.`
+          `Cannot access channel ${team.slackChannelId}. Troubleshooting steps sent to team members.`
         );
       }
       throw new Error(`Channel validation failed: ${channelError.message}`);
@@ -303,26 +437,10 @@ async function listTeams() {
   }
 }
 
-async function updateTeamChannel(teamName, newChannelId) {
+async function sendTroubleshootingSteps(teamName) {
   try {
-    console.log(`🔧 Updating channel for team: ${teamName}`);
+    console.log(`🔧 Sending troubleshooting steps for team: ${teamName}`);
 
-    // Validate new channel first
-    try {
-      const channelInfo = await app.client.conversations.info({
-        channel: newChannelId,
-      });
-      console.log(`✅ New channel validated: #${channelInfo.channel.name}`);
-    } catch (channelError) {
-      if (channelError.data?.error === "channel_not_found") {
-        throw new Error(
-          `Channel ${newChannelId} not found. Make sure the bot has access to this channel.`
-        );
-      }
-      throw new Error(`Channel validation failed: ${channelError.message}`);
-    }
-
-    // Find and update team
     const team = await prisma.team.findFirst({
       where: {
         name: {
@@ -331,21 +449,25 @@ async function updateTeamChannel(teamName, newChannelId) {
         },
         isActive: true,
       },
+      include: {
+        organization: true,
+      },
     });
 
     if (!team) {
       throw new Error(`Team "${teamName}" not found`);
     }
 
-    const updatedTeam = await prisma.team.update({
-      where: { id: team.id },
-      data: { slackChannelId: newChannelId },
-    });
+    // Create a mock channel error for the troubleshooting message
+    const mockError = {
+      data: { error: "channel_not_found" },
+      message: "Manual troubleshooting request",
+    };
 
-    console.log(`✅ Team "${teamName}" channel updated to: ${newChannelId}`);
-    return updatedTeam;
+    await sendTroubleshootingMessage(team, mockError);
+    console.log(`✅ Troubleshooting steps sent for team: ${team.name}`);
   } catch (error) {
-    console.error("❌ Error updating team channel:", error.message);
+    console.error("❌ Error sending troubleshooting steps:", error.message);
     throw error;
   }
 }
@@ -367,7 +489,7 @@ Commands:
   post "<teamName>" --date YYYY-MM-DD    - Post standup for specific date
   post "<teamName>" --dry-run             - Preview message without sending
   remind "<teamName>"                     - Send standup reminders to team members
-  fix-channel "<teamName>" <channelId>    - Update team's Slack channel ID
+  troubleshoot "<teamName>"               - Send troubleshooting steps to team members
 
 Examples:
   node src/scripts/sendManualStandup.js list
@@ -375,10 +497,9 @@ Examples:
   node src/scripts/sendManualStandup.js post "Marketing Team" --date 2025-01-15
   node src/scripts/sendManualStandup.js post "Product Team" --dry-run
   node src/scripts/sendManualStandup.js remind "Engineering Team"
-  node src/scripts/sendManualStandup.js fix-channel "Engineering Team" C1234567890
+  node src/scripts/sendManualStandup.js troubleshoot "Engineering Team"
 
 Note: Use quotes around team names that contain spaces
-      Channel IDs start with 'C' (e.g., C1234567890)
     `);
     process.exit(0);
   }
@@ -422,17 +543,13 @@ Note: Use quotes around team names that contain spaces
         break;
       }
 
-      case "fix-channel": {
+      case "troubleshoot": {
         const teamName = args[1];
-        const channelId = args[2];
-        if (!teamName || !channelId) {
-          console.error(
-            "❌ Both team name and channel ID are required for fix-channel command"
-          );
-          console.log('Usage: fix-channel "Team Name" C1234567890');
+        if (!teamName) {
+          console.error("❌ Team name is required for troubleshoot command");
           process.exit(1);
         }
-        await updateTeamChannel(teamName, channelId);
+        await sendTroubleshootingSteps(teamName);
         break;
       }
 
