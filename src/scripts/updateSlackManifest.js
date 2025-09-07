@@ -105,12 +105,71 @@ class SlackManifestManager {
     // Update the refresh token if a new one was provided
     if (data.refresh_token) {
       this.refreshToken = data.refresh_token;
-      console.log(
-        "ℹ️  New refresh token received (consider updating your .env file)"
-      );
+      console.log("🔄 Updating .env file with new tokens...");
+      await this.updateEnvFile(data.token, data.refresh_token);
+    } else {
+      // Update just the access token
+      console.log("🔄 Updating .env file with new access token...");
+      await this.updateEnvFile(data.token);
     }
 
     return data.token;
+  }
+
+  /**
+   * Update .env file with new tokens
+   */
+  async updateEnvFile(newAccessToken, newRefreshToken = null) {
+    const envPath = path.join(process.cwd(), ".env");
+
+    try {
+      let envContent = "";
+
+      // Read existing .env file if it exists
+      if (fs.existsSync(envPath)) {
+        envContent = fs.readFileSync(envPath, "utf8");
+      }
+
+      // Update or add SLACK_USER_TOKEN
+      if (envContent.includes("SLACK_USER_TOKEN=")) {
+        envContent = envContent.replace(
+          /SLACK_USER_TOKEN=.*/,
+          `SLACK_USER_TOKEN=${newAccessToken}`
+        );
+      } else {
+        envContent += `\nSLACK_USER_TOKEN=${newAccessToken}`;
+      }
+
+      // Update or add SLACK_USER_REFRESH_TOKEN if provided
+      if (newRefreshToken) {
+        if (envContent.includes("SLACK_USER_REFRESH_TOKEN=")) {
+          envContent = envContent.replace(
+            /SLACK_USER_REFRESH_TOKEN=.*/,
+            `SLACK_USER_REFRESH_TOKEN=${newRefreshToken}`
+          );
+        } else {
+          envContent += `\nSLACK_USER_REFRESH_TOKEN=${newRefreshToken}`;
+        }
+      }
+
+      // Write back to .env file
+      fs.writeFileSync(envPath, envContent.trim() + "\n");
+
+      console.log("✅ .env file updated successfully");
+      if (newRefreshToken) {
+        console.log("   - Updated SLACK_USER_TOKEN");
+        console.log("   - Updated SLACK_USER_REFRESH_TOKEN");
+      } else {
+        console.log("   - Updated SLACK_USER_TOKEN");
+      }
+    } catch (error) {
+      console.warn("⚠️  Failed to update .env file:", error.message);
+      console.warn("   Please manually update your environment variables:");
+      console.warn(`   SLACK_USER_TOKEN=${newAccessToken}`);
+      if (newRefreshToken) {
+        console.warn(`   SLACK_USER_REFRESH_TOKEN=${newRefreshToken}`);
+      }
+    }
   }
 
   /**
@@ -256,7 +315,7 @@ class SlackManifestManager {
       "oauth_config",
       "settings",
     ];
-    const missing = required.filter(field => !manifest[field]);
+    const missing = required.filter((field) => !manifest[field]);
 
     if (missing.length > 0) {
       throw new Error(
