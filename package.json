@@ -13,7 +13,8 @@
     "manifest:update": "node src/scripts/updateSlackManifest.js",
     "manifest:dry-run": "node src/scripts/updateSlackManifest.js --dry-run",
     "standup:trigger": "node src/scripts/triggerStandup.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest --run",
+    "test:watch": "vitest"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +22,7 @@
   "description": "",
   "dependencies": {
     "@prisma/client": "^6.15.0",
+    "@sentry/node": "^10.10.0",
     "@slack/bolt": "^4.4.0",
     "@supabase/supabase-js": "^2.57.0",
     "dayjs": "^1.11.18",
@@ -32,6 +34,7 @@
     "eslint": "^9.34.0",
     "nodemon": "^3.1.10",
     "prisma": "^6.15.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
   }
 }
