@@ -100,7 +100,6 @@ class UserService {
   async getWorkDays(slackUserId) {
     const user = await prisma.user.findUnique({
       where: { slackUserId },
-      select: { workDays: true },
       include: {
         organizations: {
           where: { isActive: true },
