@@ -42,7 +42,7 @@ class TeamService {
     }
 
     // Create team with transaction
-    return await prisma.$transaction(async tx => {
+    return await prisma.$transaction(async (tx) => {
       const team = await tx.team.create({
         data: {
           organizationId: org.id,
@@ -152,6 +152,59 @@ class TeamService {
       },
       include: {
         organization: true,
+      },
+    });
+  }
+
+  async leaveTeam(slackUserId, teamId) {
+    const user = await userService.findOrCreateUser(slackUserId);
+
+    // Check if team exists
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      include: {
+        organization: true,
+        members: {
+          where: { role: "ADMIN", isActive: true },
+        },
+      },
+    });
+
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    // Check if user is a member
+    const membership = await prisma.teamMember.findUnique({
+      where: {
+        teamId_userId: {
+          teamId: team.id,
+          userId: user.id,
+        },
+      },
+    });
+
+    if (!membership || !membership.isActive) {
+      throw new Error("You are not a member of this team");
+    }
+
+    // Check if user is the only admin
+    if (membership.role === "ADMIN" && team.members.length === 1) {
+      throw new Error(
+        "You cannot leave the team as you are the only admin. Transfer admin rights first or delete the team."
+      );
+    }
+
+    // Remove user from team
+    return await prisma.teamMember.update({
+      where: {
+        teamId_userId: {
+          teamId: team.id,
+          userId: user.id,
+        },
+      },
+      data: {
+        isActive: false,
       },
     });
   }

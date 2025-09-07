@@ -6,6 +6,7 @@ function setupCommands(app) {
   // Team commands
   app.command("/dd-team-create", teamCommands.createTeam);
   app.command("/dd-team-join", teamCommands.joinTeam);
+  app.command("/dd-team-leave", teamCommands.leaveTeam);
   app.command("/dd-team-list", teamCommands.listTeams);
 
   // Leave commands

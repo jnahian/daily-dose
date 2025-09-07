@@ -26,6 +26,13 @@
                 "should_escape": false
             },
             {
+                "command": "/dd-team-leave",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "Leave a team you're currently a member of",
+                "usage_hint": "TeamName",
+                "should_escape": false
+            },
+            {
                 "command": "/dd-team-list",
                 "url": "{{APP_URL}}/slack/events",
                 "description": "List all teams in your organization",
