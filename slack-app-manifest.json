@@ -129,7 +129,7 @@
             "is_enabled": true,
             "request_url": "{{APP_URL}}/slack/events"
         },
-        "org_deploy_enabled": false,
+        "org_deploy_enabled": true,
         "socket_mode_enabled": false,
         "token_rotation_enabled": false
     }
