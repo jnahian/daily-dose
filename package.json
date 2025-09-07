@@ -21,6 +21,7 @@
   "description": "",
   "dependencies": {
     "@prisma/client": "^6.15.0",
+    "@sentry/node": "^10.10.0",
     "@slack/bolt": "^4.4.0",
     "@supabase/supabase-js": "^2.57.0",
     "dayjs": "^1.11.18",
