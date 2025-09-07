@@ -24,6 +24,7 @@ When you first interact with the bot, you'll be automatically added to your orga
 /dd-team-list                    # See available teams
 /dd-team-join Engineering        # Join an existing team
 /dd-team-leave Engineering       # Leave a team
+/dd-team-members Engineering     # View team members
 /dd-team-create MyTeam 09:30 10:00  # Create new team (admin only)
 ```
 
@@ -45,6 +46,7 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
 - `/dd-team-join <team-name>` - Join an existing team
 - `/dd-team-leave <team-name>` - Leave a team you're currently a member of
 - `/dd-team-list` - List all teams in your organization
+- `/dd-team-members <team-name>` - View all members of a specific team
 
 ### Leave Management
 

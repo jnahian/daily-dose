@@ -149,9 +149,77 @@ async function listTeams({ command, ack, respond }) {
   }
 }
 
+async function listMembers({ command, ack, respond }) {
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "⏳ Loading team members..."
+  );
+
+  try {
+    const teamName = command.text.trim();
+
+    if (!teamName) {
+      await updateResponse({
+        text: "❌ Usage: `/dd-team-members TeamName`",
+      });
+      return;
+    }
+
+    // Find team by name
+    const teams = await teamService.listTeams(command.user_id);
+    const team = teams.find(
+      (t) => t.name.toLowerCase() === teamName.toLowerCase()
+    );
+
+    if (!team) {
+      await updateResponse({
+        text: `❌ Team "${teamName}" not found`,
+      });
+      return;
+    }
+
+    // Get team members
+    const members = await teamService.getTeamMembers(team.id);
+
+    if (members.length === 0) {
+      await updateResponse({
+        text: `📋 No members found in team "${team.name}"`,
+      });
+      return;
+    }
+
+    const memberList = members
+      .map((member) => {
+        const roleIcon = member.role === "ADMIN" ? "👑" : "👤";
+        return `${roleIcon} <@${
+          member.user.slackUserId
+        }> (${member.role.toLowerCase()})`;
+      })
+      .join("\n");
+
+    await updateResponse({
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `*👥 Members of team "${team.name}":*\n${memberList}`,
+          },
+        },
+      ],
+    });
+  } catch (error) {
+    await updateResponse({
+      text: `❌ Error: ${error.message}`,
+    });
+  }
+}
+
 module.exports = {
   createTeam,
   joinTeam,
   leaveTeam,
   listTeams,
+  listMembers,
 };

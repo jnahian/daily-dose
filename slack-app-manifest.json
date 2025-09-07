@@ -39,6 +39,13 @@
                 "should_escape": false
             },
             {
+                "command": "/dd-team-members",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "View all members of a specific team",
+                "usage_hint": "TeamName",
+                "should_escape": false
+            },
+            {
                 "command": "/dd-leave-set",
                 "url": "{{APP_URL}}/slack/events",
                 "description": "Set leave dates to skip standup reminders",
