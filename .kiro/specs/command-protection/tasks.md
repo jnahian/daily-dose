@@ -23,7 +23,7 @@
   - Write unit tests for authentication scenarios including invalid tokens and expired sessions
   - _Requirements: 1.1, 1.4, 6.1_
 
-- [ ] 4. Build authorization service with role-based access control
+- [x] 4. Build authorization service with role-based access control
 
   - Implement AuthorizationService class with permission checking methods
   - Create permission matrix for different command types and user roles
