@@ -185,10 +185,8 @@ class SchedulerService {
       now.toDate()
     );
 
-    const respondedUserIds = new Set(responses.map((r) => r.userId));
-    const pendingMembers = members.filter(
-      (m) => !respondedUserIds.has(m.userId)
-    );
+    const respondedUserIds = new Set(responses.map(r => r.userId));
+    const pendingMembers = members.filter(m => !respondedUserIds.has(m.userId));
 
     for (const member of pendingMembers) {
       try {
@@ -209,7 +207,10 @@ class SchedulerService {
     const now = dayjs().tz(team.timezone);
 
     // Check if it's a working day for the organization (general check)
-    const isOrgWorkingDay = await isWorkingDay(now.toDate(), team.organizationId);
+    const isOrgWorkingDay = await isWorkingDay(
+      now.toDate(),
+      team.organizationId
+    );
     if (!isOrgWorkingDay) return;
 
     // Get all responses (filtered by individual work days)
@@ -242,12 +243,12 @@ class SchedulerService {
     });
 
     // Calculate not submitted
-    const respondedUserIds = new Set(responses.map((r) => r.userId));
-    const leaveUserIds = new Set(membersOnLeave.map((m) => m.userId));
+    const respondedUserIds = new Set(responses.map(r => r.userId));
+    const leaveUserIds = new Set(membersOnLeave.map(m => m.userId));
 
     const notSubmitted = allMembers
-      .filter((m) => !respondedUserIds.has(m.userId))
-      .map((m) => ({
+      .filter(m => !respondedUserIds.has(m.userId))
+      .map(m => ({
         slackUserId: m.user.slackUserId,
         onLeave: leaveUserIds.has(m.userId),
       }));
@@ -271,8 +272,118 @@ class SchedulerService {
         result.ts,
         team.slackChannelId
       );
+
+      // Post any existing late responses as threaded replies
+      await this.postLateResponses(team, now.toDate());
     } catch (error) {
       console.error(`Failed to post standup for team ${team.name}:`, error);
+    }
+  }
+
+  async postLateResponses(team, date) {
+    try {
+      // Get the standup post for threading
+      const standupPost = await standupService.getStandupPost(team.id, date);
+      if (!standupPost || !standupPost.slackMessageTs) {
+        console.log(
+          `No standup post found for team ${team.name} on ${dayjs(date).format(
+            "YYYY-MM-DD"
+          )}`
+        );
+        return;
+      }
+
+      // Get late responses
+      const lateResponses = await standupService.getLateResponses(
+        team.id,
+        date
+      );
+
+      for (const response of lateResponses) {
+        const message = await standupService.formatLateResponseMessage(
+          response
+        );
+
+        await this.app.client.chat.postMessage({
+          channel: standupPost.channelId,
+          thread_ts: standupPost.slackMessageTs,
+          ...message,
+        });
+      }
+
+      if (lateResponses.length > 0) {
+        console.log(
+          `✅ Posted ${lateResponses.length} late responses for team ${team.name}`
+        );
+      }
+    } catch (error) {
+      console.error(
+        `Failed to post late responses for team ${team.name}:`,
+        error
+      );
+    }
+  }
+
+  async handleLateResponse(teamId, responseData) {
+    try {
+      const team = await teamService.getTeamById(teamId);
+      if (!team) {
+        throw new Error("Team not found");
+      }
+
+      const responseDate = dayjs(responseData.date).startOf("day").toDate();
+
+      // Post the late response as a threaded reply
+      await this.postLateResponses(team, responseDate);
+    } catch (error) {
+      console.error(
+        `Failed to handle late response for team ${teamId}:`,
+        error
+      );
+    }
+  }
+
+  async postSingleLateResponse(teamId, lateResponse) {
+    try {
+      const team = await teamService.getTeamById(teamId);
+      if (!team) {
+        throw new Error("Team not found");
+      }
+
+      const responseDate = dayjs(lateResponse.standupDate)
+        .startOf("day")
+        .toDate();
+      const standupPost = await standupService.getStandupPost(
+        teamId,
+        responseDate
+      );
+
+      if (!standupPost || !standupPost.slackMessageTs) {
+        console.log(
+          `No standup post found for team ${team.name} on ${dayjs(
+            responseDate
+          ).format("YYYY-MM-DD")}`
+        );
+        return;
+      }
+
+      const message = await standupService.formatLateResponseMessage(
+        lateResponse
+      );
+
+      await this.app.client.chat.postMessage({
+        channel: standupPost.channelId,
+        thread_ts: standupPost.slackMessageTs,
+        ...message,
+      });
+
+      console.log(
+        `✅ Posted late response for ${
+          lateResponse.user.name || lateResponse.user.slackUserId
+        } in team ${team.name}`
+      );
+    } catch (error) {
+      console.error("Failed to post single late response:", error);
     }
   }
 }

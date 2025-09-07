@@ -62,9 +62,7 @@ class StandupService {
       throw new Error("User not found");
     }
 
-    const standupDate = dayjs(responseData.date)
-      .startOf("day")
-      .toDate();
+    const standupDate = dayjs(responseData.date).startOf("day").toDate();
 
     return await prisma.standupResponse.upsert({
       where: {
@@ -243,7 +241,7 @@ class StandupService {
     // Add not submitted section
     if (notSubmitted.length > 0) {
       const notSubmittedText = notSubmitted
-        .map((m) => {
+        .map(m => {
           if (m.onLeave) {
             return `• <@${m.slackUserId}> (On leave)`;
           }
@@ -259,6 +257,46 @@ class StandupService {
         },
       });
     }
+
+    return { blocks };
+  }
+
+  async formatLateResponseMessage(response) {
+    const blocks = [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `🕐 *Late Submission from ${
+            response.user.name || response.user.slackUserId
+          }*`,
+        },
+      },
+    ];
+
+    let responseText = "";
+
+    if (response.yesterdayTasks) {
+      responseText += `*Yesterday:*\n${response.yesterdayTasks}\n\n`;
+    }
+
+    if (response.todayTasks) {
+      responseText += `*Today:*\n${response.todayTasks}\n\n`;
+    }
+
+    if (response.blockers) {
+      responseText += `*Blockers:* ${response.blockers}`;
+    } else {
+      responseText += `*Blockers:* None`;
+    }
+
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: responseText,
+      },
+    });
 
     return { blocks };
   }

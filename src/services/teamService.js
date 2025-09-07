@@ -9,7 +9,9 @@ dayjs.extend(customParseFormat);
 function validateTimeString(timeString) {
   const time = dayjs(timeString, "HH:mm", true);
   if (!time.isValid()) {
-    throw new Error(`Invalid time format: ${timeString}. Expected HH:MM format (e.g., 09:30)`);
+    throw new Error(
+      `Invalid time format: ${timeString}. Expected HH:MM format (e.g., 09:30)`
+    );
   }
   return timeString;
 }
@@ -40,7 +42,7 @@ class TeamService {
     }
 
     // Create team with transaction
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async tx => {
       const team = await tx.team.create({
         data: {
           organizationId: org.id,
@@ -148,6 +150,15 @@ class TeamService {
           isActive: true,
         },
       },
+      include: {
+        organization: true,
+      },
+    });
+  }
+
+  async getTeamById(teamId) {
+    return await prisma.team.findUnique({
+      where: { id: teamId },
       include: {
         organization: true,
       },

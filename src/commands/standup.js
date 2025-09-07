@@ -26,13 +26,13 @@ async function submitManual({ command, ack, respond, client }) {
 
     if (teamName) {
       const team = teams.find(
-        t => t.name.toLowerCase() === teamName.toLowerCase()
+        (t) => t.name.toLowerCase() === teamName.toLowerCase()
       );
 
       if (!team) {
         await respond({
           text: `❌ Team "${teamName}" not found. Available teams: ${teams
-            .map(t => t.name)
+            .map((t) => t.name)
             .join(", ")}`,
         });
         return;
@@ -157,7 +157,7 @@ async function submitManual({ command, ack, respond, client }) {
       }
     } else {
       // Show team selection
-      const teamList = teams.map(t => `• ${t.name}`).join("\n");
+      const teamList = teams.map((t) => `• ${t.name}`).join("\n");
 
       await respond({
         blocks: [
@@ -202,7 +202,7 @@ async function openStandupModal({ body, ack, client }, teamId = null) {
 
     // Get team info
     const teams = await teamService.listTeams(body.user.id);
-    const team = teams.find(t => t.id === teamId);
+    const team = teams.find((t) => t.id === teamId);
 
     if (!team) {
       console.error(`Team ${teamId} not found for user ${body.user.id}`);
@@ -342,14 +342,14 @@ async function handleStandupSubmission({ ack, body, view, client }) {
     const values = view.state.values;
 
     // Extract rich text values and convert to plain text
-    const extractRichTextValue = richTextValue => {
+    const extractRichTextValue = (richTextValue) => {
       if (!richTextValue?.rich_text_value?.elements) return "";
 
       return richTextValue.rich_text_value.elements
-        .map(element => {
+        .map((element) => {
           if (element.type === "rich_text_section") {
             return element.elements
-              .map(el => {
+              .map((el) => {
                 if (el.type === "text") return el.text;
                 if (el.type === "link") return el.url;
                 if (el.type === "user") return `<@${el.user_id}>`;
@@ -360,12 +360,12 @@ async function handleStandupSubmission({ ack, body, view, client }) {
           }
           if (element.type === "rich_text_list") {
             return element.elements
-              .map(item => {
+              .map((item) => {
                 if (item.type === "rich_text_section") {
                   return (
                     "• " +
                     item.elements
-                      .map(el => (el.type === "text" ? el.text : ""))
+                      .map((el) => (el.type === "text" ? el.text : ""))
                       .join("")
                   );
                 }
@@ -410,7 +410,7 @@ async function handleStandupSubmission({ ack, body, view, client }) {
     // Determine if submission is late
     const now = dayjs();
     const teams = await teamService.listTeams(body.user.id);
-    const team = teams.find(t => t.id === teamId);
+    const team = teams.find((t) => t.id === teamId);
 
     let isLate = false;
     if (team) {
@@ -453,26 +453,25 @@ async function handleStandupSubmission({ ack, body, view, client }) {
       );
 
       if (standupPost?.slackMessageTs) {
-        let responseText = `*👤 ${
-          body.user.name || body.user.id
-        }* (late submission):\n`;
+        // Create a response object that matches the expected format
+        const lateResponse = {
+          user: {
+            name: body.user.name || body.user.id,
+            slackUserId: body.user.id,
+          },
+          yesterdayTasks,
+          todayTasks,
+          blockers,
+        };
 
-        if (yesterdayTasks) {
-          responseText += `*Yesterday:* ${yesterdayTasks}\n`;
-        }
-        if (todayTasks) {
-          responseText += `*Today:* ${todayTasks}\n`;
-        }
-        if (blockers) {
-          responseText += `*Blockers:* ${blockers}`;
-        } else {
-          responseText += `*Blockers:* None`;
-        }
+        const message = await standupService.formatLateResponseMessage(
+          lateResponse
+        );
 
         await client.chat.postMessage({
           channel: standupPost.channelId,
           thread_ts: standupPost.slackMessageTs,
-          text: responseText,
+          ...message,
         });
       }
     }
