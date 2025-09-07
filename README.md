@@ -1,0 +1,247 @@
+# Daily Dose Slack Bot - User Guide
+
+Daily Dose is a Slack bot that automates daily standup meetings for teams. It sends reminders, collects responses, and posts formatted standup summaries to team channels.
+
+## Features
+
+- **Automated Standup Reminders**: Sends DM reminders at configured times
+- **Team Management**: Create and join teams with custom schedules
+- **Leave Management**: Set vacation/leave dates to skip standup reminders
+- **Work Day Configuration**: Customize your working days
+- **Multi-Organization Support**: Supports multiple organizations and workspaces
+- **Timezone Support**: Each team can have its own timezone
+- **Late Submission Tracking**: Tracks and handles late standup submissions
+
+## Quick Start
+
+### 1. Join Your Organization
+
+When you first interact with the bot, you'll be automatically added to your organization based on your Slack workspace.
+
+### 2. Join or Create a Team
+
+```
+/dd-team-list                    # See available teams
+/dd-team-join Engineering        # Join an existing team
+/dd-team-create MyTeam 09:30 10:00  # Create new team (admin only)
+```
+
+### 3. Submit Your Daily Standup
+
+The bot will send you a DM reminder at your team's configured time. Click the "Submit Standup" button or use:
+
+```
+/dd-standup MyTeam              # Manual standup submission
+```
+
+## Slash Commands
+
+### Team Management
+
+- `/dd-team-create <name> <standup-time> <posting-time>` - Create a new team
+  - Example: `/dd-team-create Engineering 09:30 10:00`
+  - Requires admin permissions
+- `/dd-team-join <team-name>` - Join an existing team
+- `/dd-team-list` - List all teams in your organization
+
+### Leave Management
+
+- `/dd-leave-set <start-date> <end-date> [reason]` - Set leave dates
+  - Example: `/dd-leave-set 2024-12-25 2024-12-26 Holiday break`
+- `/dd-leave-list` - View your upcoming leaves
+- `/dd-leave-cancel <leave-id>` - Cancel a leave (use ID from list command)
+
+### Work Days Configuration
+
+- `/dd-workdays-set <days>` - Set your working days
+  - Example: `/dd-workdays-set 1,2,3,4,5` (Monday-Friday)
+  - Numbers: 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday, 7=Sunday
+- `/dd-workdays-show` - View your current work days
+
+### Standup Submission
+
+- `/dd-standup [team-name]` - Submit standup manually
+- The bot also sends automatic DM reminders with interactive buttons
+
+## How It Works
+
+### Daily Flow
+
+1. **Morning Reminder**: Bot sends DM at your team's standup time
+2. **Submission Window**: You have until the posting time to submit
+3. **Team Summary**: Bot posts formatted summary to team channel
+4. **Late Submissions**: Added as thread replies if submitted after posting time
+
+### Standup Format
+
+Each standup includes:
+
+- **Yesterday's Tasks**: What you worked on yesterday
+- **Today's Tasks**: What you plan to work on today
+- **Blockers**: Any obstacles or help needed
+
+### Team Summary
+
+The bot posts a formatted summary showing:
+
+- All submitted standups with responses
+- List of team members who haven't submitted
+- Members on leave (automatically excluded)
+
+## Team Setup (Admin Guide)
+
+### Creating a Team
+
+1. Use `/dd-team-create <name> <standup-time> <posting-time>` in the channel where you want standups posted
+2. Set appropriate times:
+   - **Standup Time**: When reminders are sent (e.g., 09:30)
+   - **Posting Time**: When summary is posted (e.g., 10:00)
+3. Team members can join using `/dd-team-join <team-name>`
+
+### Time Configuration
+
+- Times are in 24-hour format (HH:MM)
+- Each team can have its own timezone
+- Default timezone is America/New_York
+
+### Example Team Setup
+
+```bash
+# Create a team that sends reminders at 9:30 AM and posts summary at 10:00 AM
+/dd-team-create Engineering 09:30 10:00
+
+# Team members join
+/dd-team-join Engineering
+```
+
+## Leave Management
+
+### Setting Leave
+
+```bash
+# Single day
+/dd-leave-set 2024-12-25 2024-12-25 Christmas Day
+
+# Multiple days
+/dd-leave-set 2024-12-23 2024-12-27 Holiday break
+```
+
+### Managing Leaves
+
+```bash
+# View upcoming leaves
+/dd-leave-list
+
+# Cancel a leave (use ID from list)
+/dd-leave-cancel abc12345
+```
+
+When you're on leave:
+
+- No standup reminders are sent
+- You're marked as "On leave" in team summaries
+- Automatic exclusion from standup expectations
+
+## Work Days Configuration
+
+### Default Work Days
+
+- Organization default is typically Monday-Friday (1,2,3,4,5)
+- You can set personal work days that override the default
+
+### Setting Personal Work Days
+
+```bash
+# Standard Monday-Friday
+/dd-workdays-set 1,2,3,4,5
+
+# Monday-Thursday + Sunday (4-day week with Sunday)
+/dd-workdays-set 1,2,3,4,7
+
+# Tuesday-Saturday
+/dd-workdays-set 2,3,4,5,6
+```
+
+### Viewing Work Days
+
+```bash
+/dd-workdays-show
+```
+
+## Tips and Best Practices
+
+### For Team Members
+
+- **Be Consistent**: Submit standups regularly to help team coordination
+- **Be Specific**: Provide clear, actionable updates
+- **Mention Blockers**: Don't hesitate to ask for help
+- **Set Leave Early**: Update your leave dates in advance
+
+### For Team Admins
+
+- **Choose Appropriate Times**: Consider team schedules and timezones
+- **Set Clear Expectations**: Communicate standup format and timing
+- **Monitor Participation**: Follow up with team members who miss standups regularly
+- **Adjust as Needed**: Update times or format based on team feedback
+
+### Standup Writing Tips
+
+- **Yesterday**: Focus on completed work and outcomes
+- **Today**: Be specific about planned tasks and goals
+- **Blockers**: Clearly state what you need help with and from whom
+
+## Troubleshooting
+
+### Common Issues
+
+**Not receiving reminders?**
+
+- Check if you're a team member: `/dd-team-list`
+- Verify your work days: `/dd-workdays-show`
+- Check if you have active leave: `/dd-leave-list`
+
+**Can't create a team?**
+
+- You need admin permissions in your organization
+- Contact your organization admin
+
+**Standup not posting to channel?**
+
+- Ensure the bot has permissions to post in the channel
+- Check if the team was created in the correct channel
+
+**Wrong timezone?**
+
+- Team timezones are set during team creation
+- Contact your team admin to update timezone settings
+
+### Getting Help
+
+- Use `/dd-team-list` to see your teams and their settings
+- Check the bot's response messages for specific error details
+- Contact your organization admin for permission issues
+
+## Technical Details
+
+### Supported Timezones
+
+The bot supports all standard timezone identifiers (e.g., "America/New_York", "Europe/London", "Asia/Tokyo").
+
+### Data Privacy
+
+- Only standup responses and basic user info are stored
+- Leave reasons are optional and can be generic
+- All data is associated with your Slack user ID
+
+### Permissions Required
+
+The bot needs these Slack permissions:
+
+- Send direct messages
+- Post in channels where teams are created
+- Read user information
+- Access slash commands
+
+---
+
+For technical setup and administration, see the [Complete Implementation Guide](docs/daily-dose-complete-guide.md).
