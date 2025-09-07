@@ -46,6 +46,13 @@
                 "should_escape": false
             },
             {
+                "command": "/dd-team-update",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "Update team settings (admin only)",
+                "usage_hint": "TeamName name=NewName standup=09:00",
+                "should_escape": false
+            },
+            {
                 "command": "/dd-leave-set",
                 "url": "{{APP_URL}}/slack/events",
                 "description": "Set leave dates to skip standup reminders",

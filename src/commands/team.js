@@ -216,10 +216,94 @@ async function listMembers({ command, ack, respond }) {
   }
 }
 
+async function updateTeam({ command, ack, respond }) {
+  const updateResponse = ackWithProcessing(ack, respond, "⏳ Updating team...");
+
+  try {
+    // Parse command text: /dd-team-update TeamName [name=NewName] [standup=09:30] [posting=10:00]
+    const args = command.text.split(" ");
+    const teamName = args[0];
+
+    if (!teamName || args.length < 2) {
+      await updateResponse({
+        text: "❌ Usage: `/dd-team-update TeamName [name=NewName] [standup=HH:MM] [posting=HH:MM]`\nExample: `/dd-team-update Engineering standup=09:00 posting=10:30`",
+      });
+      return;
+    }
+
+    // Find team by name
+    const teams = await teamService.listTeams(command.user_id);
+    const team = teams.find(
+      (t) => t.name.toLowerCase() === teamName.toLowerCase()
+    );
+
+    if (!team) {
+      await updateResponse({
+        text: `❌ Team "${teamName}" not found`,
+      });
+      return;
+    }
+
+    // Parse update parameters
+    const updateData = {};
+    const updates = [];
+
+    for (let i = 1; i < args.length; i++) {
+      const [key, value] = args[i].split("=");
+      if (!key || !value) {
+        await updateResponse({
+          text: `❌ Invalid parameter format: ${args[i]}. Use key=value format.`,
+        });
+        return;
+      }
+
+      switch (key.toLowerCase()) {
+        case "name":
+          updateData.name = value;
+          updates.push(`Name: ${value}`);
+          break;
+        case "standup":
+          updateData.standupTime = value;
+          updates.push(`Standup time: ${value}`);
+          break;
+        case "posting":
+          updateData.postingTime = value;
+          updates.push(`Posting time: ${value}`);
+          break;
+        default:
+          await updateResponse({
+            text: `❌ Unknown parameter: ${key}. Valid parameters: name, standup, posting`,
+          });
+          return;
+      }
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      await updateResponse({
+        text: "❌ No valid updates provided",
+      });
+      return;
+    }
+
+    await teamService.updateTeam(command.user_id, team.id, updateData);
+
+    await updateResponse({
+      text: `✅ Team "${teamName}" updated successfully!\n• ${updates.join(
+        "\n• "
+      )}`,
+    });
+  } catch (error) {
+    await updateResponse({
+      text: `❌ Error: ${error.message}`,
+    });
+  }
+}
+
 module.exports = {
   createTeam,
   joinTeam,
   leaveTeam,
   listTeams,
   listMembers,
+  updateTeam,
 };

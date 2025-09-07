@@ -9,6 +9,7 @@ function setupCommands(app) {
   app.command("/dd-team-leave", teamCommands.leaveTeam);
   app.command("/dd-team-list", teamCommands.listTeams);
   app.command("/dd-team-members", teamCommands.listMembers);
+  app.command("/dd-team-update", teamCommands.updateTeam);
 
   // Leave commands
   app.command("/dd-leave-set", leaveCommands.setLeave);

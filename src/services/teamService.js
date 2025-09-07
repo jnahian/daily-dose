@@ -217,6 +217,52 @@ class TeamService {
       },
     });
   }
+
+  async updateTeam(slackUserId, teamId, updateData) {
+    const user = await userService.findOrCreateUser(slackUserId);
+
+    // Check if team exists and get current data
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      include: {
+        organization: true,
+        members: {
+          where: { userId: user.id, isActive: true },
+        },
+      },
+    });
+
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    // Check if user is an admin of this team
+    const membership = team.members[0];
+    if (!membership || membership.role !== "ADMIN") {
+      throw new Error("You need admin permissions to update this team");
+    }
+
+    // Validate times if provided
+    const updateFields = {};
+    if (updateData.standupTime) {
+      updateFields.standupTime = validateTimeString(updateData.standupTime);
+    }
+    if (updateData.postingTime) {
+      updateFields.postingTime = validateTimeString(updateData.postingTime);
+    }
+    if (updateData.name) {
+      updateFields.name = updateData.name;
+    }
+    if (updateData.timezone) {
+      updateFields.timezone = updateData.timezone;
+    }
+
+    // Update team
+    return await prisma.team.update({
+      where: { id: teamId },
+      data: updateFields,
+    });
+  }
 }
 
 module.exports = new TeamService();
