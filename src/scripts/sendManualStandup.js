@@ -7,7 +7,7 @@ const standupService = require("../services/standupService");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
-const { getUserLogIdentifier } = require("../utils/userHelper");
+const { getUserLogIdentifier, getUserMention } = require("../utils/userHelper");
 const { formatTime12Hour } = require("../utils/dateHelper");
 
 dayjs.extend(utc);
@@ -119,6 +119,7 @@ async function sendTroubleshootingMessage(team, channelError) {
         await app.client.chat.postMessage({
           channel: member.user.slackUserId,
           blocks: troubleshootingBlocks,
+          text: "Troubleshooting steps for channel access issue",
         });
         sentCount++;
         console.log(
@@ -310,6 +311,7 @@ async function sendManualStandup(teamName, options = {}) {
 
     const result = await app.client.chat.postMessage({
       channel: team.slackChannelId,
+      text: "Daily Standup",
       ...message,
     });
 
@@ -339,6 +341,7 @@ async function sendManualStandup(teamName, options = {}) {
           await app.client.chat.postMessage({
             channel: team.slackChannelId,
             thread_ts: result.ts,
+            text: `Late response for ${getUserMention(lateResponse.user)}`,
             ...lateMessage,
           });
 

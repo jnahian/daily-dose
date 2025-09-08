@@ -4,6 +4,7 @@ const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
 const { ackWithProcessing } = require("../utils/commandHelper");
+const { getUserMention } = require("../utils/userHelper");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -479,6 +480,7 @@ async function handleStandupSubmission({ ack, body, view, client }) {
           channel: standupPost.channelId,
           thread_ts: standupPost.slackMessageTs,
           reply_broadcast: true, // Send to channel flag - makes the threaded reply visible in the channel
+          text: `🕐 *Late Submission* of ${getUserMention(lateResponse.user)}`,
           ...message,
         });
       }

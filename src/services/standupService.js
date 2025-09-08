@@ -5,7 +5,7 @@ const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
 const advancedFormat = require("dayjs/plugin/advancedFormat");
 const { isWorkingDay } = require("../utils/dateHelper");
-const { getUserMention } = require("../utils/userHelper");
+const { getUserMention, getDisplayName } = require("../utils/userHelper");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -305,7 +305,10 @@ class StandupService {
       });
     }
 
-    return { blocks };
+    return {
+      text: `Daily Standup — ${date}`,
+      blocks,
+    };
   }
 
   async formatLateResponseMessage(response) {
@@ -378,7 +381,10 @@ class StandupService {
       });
     }
 
-    return { blocks };
+    return {
+      text: `Late Submission from ${getDisplayName(response.user)}`,
+      blocks,
+    };
   }
 }
 
