@@ -208,7 +208,7 @@ class StandupService {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*👤 ${response.user.name || response.user.slackUserId}*`,
+          text: `*👤 <@${response.user.slackUserId}>*`,
         },
       });
 
@@ -320,7 +320,7 @@ class StandupService {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*👤 ${response.user.name || response.user.slackUserId}*`,
+          text: `*👤 <@${response.user.slackUserId}>*`,
         },
       },
     ];
