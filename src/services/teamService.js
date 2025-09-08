@@ -106,6 +106,7 @@ class TeamService {
           teamId: team.id,
           userId: user.id,
         },
+        isActive: true,
       },
     });
 
@@ -114,11 +115,19 @@ class TeamService {
     }
 
     // Add as member
-    return await prisma.teamMember.create({
-      data: {
+    return await prisma.teamMember.upsert({
+      where: {
+        teamId: team.id,
+        userId: user.id,
+      },
+      update: {
+        isActive: true,
+      },
+      create: {
         teamId: team.id,
         userId: user.id,
         role: "MEMBER",
+        isActive: true,
       },
     });
   }
