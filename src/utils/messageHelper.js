@@ -3,19 +3,22 @@
  */
 
 const STANDUP_REMINDER_MESSAGES = [
-  "Hey <@USER_ID>! 👋 Daily Dose here – time to post your daily standup updates. Please share:\n• Yesterday's tasks\n• Today's tasks\n• Any blockers",
-  "Hey <@USER_ID>! 👋 Daily Dose reminding you to post your standup for today! Don't forget:\n• Yesterday's tasks\n• Today's tasks\n• Any blockers",
-  "Hello <@USER_ID>! 👋 Daily Dose here – time to share your daily standup updates. Please update:\n• Yesterday's tasks\n• Today's tasks\n• Any blockers",
-  "Hi <@USER_ID>! 👋 Daily Dose here – don't forget to post your standup updates. Your checklist:\n• Yesterday's tasks\n• Today's tasks\n• Any blockers",
-  "Hey <@USER_ID>! 👋 Daily Dose here – time for your daily standup! Make sure to share:\n• Yesterday's tasks\n• Today's tasks\n• Any blockers",
+  "Hey <@USER_ID>! 👋 Time to post your daily standup updates. Please share:\n• Yesterday's tasks\n• Today's tasks\n• Any blockers",
+  "Hello <@USER_ID>! 👋 Time to share your daily standup updates. Please update:\n• Yesterday's tasks\n• Today's tasks\n• Any blockers",
+  "Hi <@USER_ID>! ⏰ Just a reminder to post your standup updates. Your checklist:\n• Yesterday's tasks\n• Today's tasks\n• Any blockers",
+  "Hey <@USER_ID>! 🔔 Standup time! Make sure to share:\n• Yesterday's tasks\n• Today's tasks\n• Any blockers",
+  "What’s up <@USER_ID>? 🚀 Time to get today rolling with your standup:\n• Yesterday's tasks\n• Today's tasks\n• Any blockers",
+  "Heads up <@USER_ID>! 📣 Your standup update is due. Remember to include:\n• Yesterday's tasks\n• Today's tasks\n• Any blockers",
 ];
 
 const FOLLOWUP_REMINDER_MESSAGES = [
-  "⏰ Hey <@USER_ID>! Just a friendly reminder from Daily Dose – your standup is still pending. Don't forget to submit it!",
-  "🔔 Hi <@USER_ID>! Daily Dose here with a gentle nudge – we're still waiting for your standup update.",
-  "⏰ <@USER_ID>, this is Daily Dose checking in – looks like your standup hasn't been submitted yet. Quick reminder!",
-  "🕐 Hey <@USER_ID>! Daily Dose here – just making sure you didn't miss submitting your standup today.",
-  "⏰ Hi <@USER_ID>! Daily Dose with a friendly follow-up – your standup is still needed before the deadline.",
+  "Reminder <@USER_ID> 👋 Your standup is still pending. Please update:\n• Yesterday's tasks\n• Today's tasks\n• Any blockers",
+  "Hey <@USER_ID>! 🚀 Still waiting for your standup update. Please share:\n• Yesterday's tasks\n• Today's tasks\n• Any blockers",
+  "Hi <@USER_ID>! 🙌 Quick follow-up — your standup isn’t in yet. Share:\n• Yesterday's tasks\n• Today's tasks\n• Any blockers",
+  "Heads up <@USER_ID> 📣 We’re missing your standup update. Please post:\n• Yesterday's tasks\n• Today's tasks\n• Any blockers",
+  "Hey <@USER_ID> 👀 Don’t forget your standup today! Please update:\n• Yesterday's tasks\n• Today's tasks\n• Any blockers",
+  "Hi <@USER_ID>! ⚡ Just a reminder, your standup is still due. Please include:\n• Yesterday's tasks\n• Today's tasks\n• Any blockers",
+  "Hello <@USER_ID>! 📝 Following up — can you share your standup update?\n• Yesterday's tasks\n• Today's tasks\n• Any blockers",
 ];
 
 /**
