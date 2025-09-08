@@ -249,16 +249,27 @@ class SchedulerService {
     const leaveUserIds = new Set(membersOnLeave.map((m) => m.userId));
 
     const notSubmitted = allMembers
-      .filter((m) => !respondedUserIds.has(m.userId))
+      .filter(
+        (m) => !respondedUserIds.has(m.userId) && !leaveUserIds.has(m.userId)
+      )
       .map((m) => ({
         slackUserId: m.user.slackUserId,
-        onLeave: leaveUserIds.has(m.userId),
+        user: m.user,
+        onLeave: false,
       }));
+
+    // Format on-leave members
+    const onLeave = membersOnLeave.map((m) => ({
+      slackUserId: m.user.slackUserId,
+      user: m.user,
+      onLeave: true,
+    }));
 
     // Format and post message
     const message = await standupService.formatStandupMessage(
       responses,
-      notSubmitted
+      notSubmitted,
+      onLeave
     );
 
     try {

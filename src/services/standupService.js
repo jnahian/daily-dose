@@ -3,10 +3,12 @@ const userService = require("./userService");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
+const advancedFormat = require("dayjs/plugin/advancedFormat");
 const { isWorkingDay } = require("../utils/dateHelper");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+dayjs.extend(advancedFormat);
 
 class StandupService {
   async getActiveMembers(teamId, date) {
@@ -180,85 +182,124 @@ class StandupService {
     });
   }
 
-  async formatStandupMessage(responses, notSubmitted) {
+  async formatStandupMessage(
+    responses,
+    notSubmitted,
+    onLeave = [],
+    targetDate = null
+  ) {
+    const date = dayjs(targetDate).format("Do MMM (ddd), YYYY");
+
     const blocks = [
       {
         type: "header",
         text: {
           type: "plain_text",
-          text: `📊 Daily Standup - ${dayjs().format("MMM DD, YYYY")}`,
+          text: `💬 Daily Standup — ${date}`,
+          emoji: true,
         },
-      },
-      {
-        type: "divider",
       },
     ];
 
-    // Add responses
-    if (responses.length > 0) {
+    // Add each response
+    for (const response of responses) {
+      // User name section
       blocks.push({
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*✅ Submitted (${responses.length}):*`,
+          text: `*👤 ${response.user.name || response.user.slackUserId}*`,
         },
       });
 
-      for (const response of responses) {
-        blocks.push({
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `*👤 ${response.user.name || response.user.slackUserId}*`,
-          },
-        });
+      // Format tasks into bullet points
+      const formatTasks = (tasks) => {
+        if (!tasks) return "";
+        return tasks
+          .split("\n")
+          .filter((line) => line.trim())
+          .map((line) =>
+            line.startsWith("-") || line.startsWith("•") ? line : `- ${line}`
+          )
+          .join("\n");
+      };
 
-        let responseText = "";
+      const yesterdayFormatted = formatTasks(response.yesterdayTasks);
+      const todayFormatted = formatTasks(response.todayTasks);
 
-        if (response.yesterdayTasks) {
-          responseText += `*Yesterday:*\n${response.yesterdayTasks}\n\n`;
-        }
+      // Tasks section with two columns
+      const fields = [];
 
-        if (response.todayTasks) {
-          responseText += `*Today:*\n${response.todayTasks}\n\n`;
-        }
-
-        if (response.blockers) {
-          responseText += `*Blockers:* ${response.blockers}`;
-        } else {
-          responseText += `*Blockers:* None`;
-        }
-
-        blocks.push({
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: responseText,
-          },
-        });
-
-        blocks.push({
-          type: "divider",
+      if (yesterdayFormatted) {
+        fields.push({
+          type: "mrkdwn",
+          text: `*📄 Yesterday*\n${yesterdayFormatted}`,
         });
       }
+
+      if (todayFormatted) {
+        fields.push({
+          type: "mrkdwn",
+          text: `*🎯 Today*\n${todayFormatted}`,
+        });
+      }
+
+      if (fields.length > 0) {
+        blocks.push({
+          type: "section",
+          fields,
+        });
+      }
+
+      // Blockers section
+      if (response.blockers && response.blockers.trim()) {
+        blocks.push({
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: `⚠️ *Blocker:* _${response.blockers}_`,
+            },
+          ],
+        });
+      }
+
+      // Add divider after each person
+      blocks.push({
+        type: "divider",
+      });
     }
 
-    // Add not submitted section
-    if (notSubmitted.length > 0) {
-      const notSubmittedText = notSubmitted
-        .map((m) => {
-          if (m.onLeave) {
-            return `• <@${m.slackUserId}> (On leave)`;
-          }
-          return `• <@${m.slackUserId}> (No response)`;
-        })
+    // Not responded section
+    const notResponded = notSubmitted.filter((m) => !m.onLeave);
+    if (notResponded.length > 0) {
+      const notRespondedText = notResponded
+        .map((m) => `- <@${m.slackUserId}>`)
         .join("\n");
 
       blocks.push({
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*📝 Not Submitted:*\n${notSubmittedText}`,
+          text: `*📝 Not Responded*\n${notRespondedText}`,
+        },
+      });
+    }
+
+    // On leave section
+    const onLeaveMembers = notSubmitted
+      .filter((m) => m.onLeave)
+      .concat(onLeave);
+    if (onLeaveMembers.length > 0) {
+      const onLeaveText = onLeaveMembers
+        .map((m) => `- <@${m.slackUserId}>`)
+        .join("\n");
+
+      blocks.push({
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*🌴 On Leave*\n${onLeaveText}`,
         },
       });
     }
@@ -272,36 +313,69 @@ class StandupService {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `🕐 *Late Submission from ${
-            response.user.name || response.user.slackUserId
-          }*`,
+          text: `🕐 *Late Submission*`,
+        },
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*👤 ${response.user.name || response.user.slackUserId}*`,
         },
       },
     ];
 
-    let responseText = "";
+    // Format tasks into bullet points
+    const formatTasks = (tasks) => {
+      if (!tasks) return "";
+      return tasks
+        .split("\n")
+        .filter((line) => line.trim())
+        .map((line) =>
+          line.startsWith("-") || line.startsWith("•") ? line : `- ${line}`
+        )
+        .join("\n");
+    };
 
-    if (response.yesterdayTasks) {
-      responseText += `*Yesterday:*\n${response.yesterdayTasks}\n\n`;
-    }
+    const yesterdayFormatted = formatTasks(response.yesterdayTasks);
+    const todayFormatted = formatTasks(response.todayTasks);
 
-    if (response.todayTasks) {
-      responseText += `*Today:*\n${response.todayTasks}\n\n`;
-    }
+    // Tasks section with two columns
+    const fields = [];
 
-    if (response.blockers) {
-      responseText += `*Blockers:* ${response.blockers}`;
-    } else {
-      responseText += `*Blockers:* None`;
-    }
-
-    blocks.push({
-      type: "section",
-      text: {
+    if (yesterdayFormatted) {
+      fields.push({
         type: "mrkdwn",
-        text: responseText,
-      },
-    });
+        text: `*📄 Yesterday*\n${yesterdayFormatted}`,
+      });
+    }
+
+    if (todayFormatted) {
+      fields.push({
+        type: "mrkdwn",
+        text: `*🎯 Today*\n${todayFormatted}`,
+      });
+    }
+
+    if (fields.length > 0) {
+      blocks.push({
+        type: "section",
+        fields,
+      });
+    }
+
+    // Blockers section
+    if (response.blockers && response.blockers.trim()) {
+      blocks.push({
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `⚠️ *Blocker:* _${response.blockers}_`,
+          },
+        ],
+      });
+    }
 
     return { blocks };
   }
