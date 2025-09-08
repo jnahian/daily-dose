@@ -185,8 +185,10 @@ class SchedulerService {
       now.toDate()
     );
 
-    const respondedUserIds = new Set(responses.map(r => r.userId));
-    const pendingMembers = members.filter(m => !respondedUserIds.has(m.userId));
+    const respondedUserIds = new Set(responses.map((r) => r.userId));
+    const pendingMembers = members.filter(
+      (m) => !respondedUserIds.has(m.userId)
+    );
 
     for (const member of pendingMembers) {
       try {
@@ -243,12 +245,12 @@ class SchedulerService {
     });
 
     // Calculate not submitted
-    const respondedUserIds = new Set(responses.map(r => r.userId));
-    const leaveUserIds = new Set(membersOnLeave.map(m => m.userId));
+    const respondedUserIds = new Set(responses.map((r) => r.userId));
+    const leaveUserIds = new Set(membersOnLeave.map((m) => m.userId));
 
     const notSubmitted = allMembers
-      .filter(m => !respondedUserIds.has(m.userId))
-      .map(m => ({
+      .filter((m) => !respondedUserIds.has(m.userId))
+      .map((m) => ({
         slackUserId: m.user.slackUserId,
         onLeave: leaveUserIds.has(m.userId),
       }));
@@ -307,6 +309,7 @@ class SchedulerService {
         await this.app.client.chat.postMessage({
           channel: standupPost.channelId,
           thread_ts: standupPost.slackMessageTs,
+          reply_broadcast: true, // Send to channel flag - makes the threaded reply visible in the channel
           ...message,
         });
       }
@@ -374,6 +377,7 @@ class SchedulerService {
       await this.app.client.chat.postMessage({
         channel: standupPost.channelId,
         thread_ts: standupPost.slackMessageTs,
+        reply_broadcast: true, // Send to channel flag - makes the threaded reply visible in the channel
         ...message,
       });
 

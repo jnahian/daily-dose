@@ -477,6 +477,7 @@ async function handleStandupSubmission({ ack, body, view, client }) {
         await client.chat.postMessage({
           channel: standupPost.channelId,
           thread_ts: standupPost.slackMessageTs,
+          reply_broadcast: true, // Send to channel flag - makes the threaded reply visible in the channel
           ...message,
         });
       }
