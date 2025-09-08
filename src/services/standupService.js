@@ -1,4 +1,5 @@
 const prisma = require("../config/prisma");
+const userService = require("./userService");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
@@ -53,14 +54,18 @@ class StandupService {
     return activeMembers;
   }
 
-  async saveResponse(teamId, slackUserId, responseData, isLate = false) {
-    const user = await prisma.user.findUnique({
-      where: { slackUserId },
-    });
-
-    if (!user) {
-      throw new Error("User not found");
-    }
+  async saveResponse(
+    teamId,
+    slackUserId,
+    responseData,
+    isLate = false,
+    slackClient = null
+  ) {
+    const userData = await userService.fetchSlackUserData(
+      slackUserId,
+      slackClient
+    );
+    const user = await userService.findOrCreateUser(slackUserId, userData);
 
     const standupDate = dayjs(responseData.date).startOf("day").toDate();
 
@@ -241,7 +246,7 @@ class StandupService {
     // Add not submitted section
     if (notSubmitted.length > 0) {
       const notSubmittedText = notSubmitted
-        .map(m => {
+        .map((m) => {
           if (m.onLeave) {
             return `• <@${m.slackUserId}> (On leave)`;
           }

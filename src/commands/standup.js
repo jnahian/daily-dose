@@ -439,7 +439,8 @@ async function handleStandupSubmission({ ack, body, view, client }) {
         todayTasks,
         blockers,
       },
-      isLate
+      isLate,
+      client
     );
 
     // Send confirmation DM

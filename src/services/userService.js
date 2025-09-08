@@ -1,19 +1,56 @@
 const prisma = require("../config/prisma");
 
 class UserService {
+  async fetchSlackUserData(slackUserId, slackClient) {
+    if (!slackClient) return {};
+
+    try {
+      const slackUserInfo = await slackClient.users.info({
+        user: slackUserId,
+      });
+
+      if (slackUserInfo.ok && slackUserInfo.user) {
+        const slackUser = slackUserInfo.user;
+        return {
+          name: slackUser.real_name || slackUser.name,
+          email: slackUser.profile?.email,
+          timezone: slackUser.tz || slackUser.profile?.timezone,
+        };
+      }
+    } catch (error) {
+      console.warn(
+        `Failed to fetch user info from Slack for ${slackUserId}:`,
+        error.message
+      );
+    }
+
+    return {};
+  }
   async findOrCreateUser(slackUserId, userData = {}) {
+    const updateData = {};
+    const createData = { slackUserId };
+
+    // Only update/create fields that have values
+    if (userData.name) {
+      updateData.name = userData.name;
+      createData.name = userData.name;
+    }
+    if (userData.email) {
+      updateData.email = userData.email;
+      createData.email = userData.email;
+    }
+    if (userData.timezone) {
+      updateData.timezone = userData.timezone;
+      createData.timezone = userData.timezone;
+    } else {
+      // Only set default timezone on create, not update
+      createData.timezone = process.env.DEFAULT_TIMEZONE || "America/New_York";
+    }
+
     return await prisma.user.upsert({
       where: { slackUserId },
-      update: {
-        name: userData.name,
-        email: userData.email,
-      },
-      create: {
-        slackUserId,
-        name: userData.name,
-        email: userData.email,
-        timezone: userData.timezone || process.env.DEFAULT_TIMEZONE,
-      },
+      update: updateData,
+      create: createData,
     });
   }
 
@@ -50,8 +87,9 @@ class UserService {
     return membership && ["OWNER", "ADMIN"].includes(membership.role);
   }
 
-  async setLeave(slackUserId, startDate, endDate, reason) {
-    const user = await this.findOrCreateUser(slackUserId);
+  async setLeave(slackUserId, startDate, endDate, reason, slackClient = null) {
+    const userData = await this.fetchSlackUserData(slackUserId, slackClient);
+    const user = await this.findOrCreateUser(slackUserId, userData);
 
     return await prisma.leave.create({
       data: {
@@ -111,8 +149,9 @@ class UserService {
     });
   }
 
-  async setWorkDays(slackUserId, workDays) {
-    const user = await this.findOrCreateUser(slackUserId);
+  async setWorkDays(slackUserId, workDays, slackClient = null) {
+    const userData = await this.fetchSlackUserData(slackUserId, slackClient);
+    const user = await this.findOrCreateUser(slackUserId, userData);
 
     return await prisma.user.update({
       where: { id: user.id },

@@ -17,9 +17,13 @@ function validateTimeString(timeString) {
 }
 
 class TeamService {
-  async createTeam(slackUserId, channelId, teamData) {
+  async createTeam(slackUserId, channelId, teamData, slackClient = null) {
     // Get user and their organization
-    const user = await userService.findOrCreateUser(slackUserId);
+    const userData = await userService.fetchSlackUserData(
+      slackUserId,
+      slackClient
+    );
+    const user = await userService.findOrCreateUser(slackUserId, userData);
     const org = await userService.getUserOrganization(slackUserId);
 
     if (!org) {
@@ -67,8 +71,12 @@ class TeamService {
     });
   }
 
-  async joinTeam(slackUserId, teamId) {
-    const user = await userService.findOrCreateUser(slackUserId);
+  async joinTeam(slackUserId, teamId, slackClient = null) {
+    const userData = await userService.fetchSlackUserData(
+      slackUserId,
+      slackClient
+    );
+    const user = await userService.findOrCreateUser(slackUserId, userData);
 
     // Check if team exists and user's org matches
     const team = await prisma.team.findUnique({
@@ -161,8 +169,12 @@ class TeamService {
     });
   }
 
-  async leaveTeam(slackUserId, teamId) {
-    const user = await userService.findOrCreateUser(slackUserId);
+  async leaveTeam(slackUserId, teamId, slackClient = null) {
+    const userData = await userService.fetchSlackUserData(
+      slackUserId,
+      slackClient
+    );
+    const user = await userService.findOrCreateUser(slackUserId, userData);
 
     // Check if team exists
     const team = await prisma.team.findUnique({
@@ -238,8 +250,12 @@ class TeamService {
     });
   }
 
-  async updateTeam(slackUserId, teamId, updateData) {
-    const user = await userService.findOrCreateUser(slackUserId);
+  async updateTeam(slackUserId, teamId, updateData, slackClient = null) {
+    const userData = await userService.fetchSlackUserData(
+      slackUserId,
+      slackClient
+    );
+    const user = await userService.findOrCreateUser(slackUserId, userData);
 
     // Check if team exists and get current data
     const team = await prisma.team.findUnique({

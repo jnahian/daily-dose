@@ -1,7 +1,7 @@
 const teamService = require("../services/teamService");
 const { ackWithProcessing } = require("../utils/commandHelper");
 
-async function createTeam({ command, ack, respond }) {
+async function createTeam({ command, ack, respond, client }) {
   const updateResponse = ackWithProcessing(ack, respond, "⏳ Creating team...");
 
   try {
@@ -22,7 +22,8 @@ async function createTeam({ command, ack, respond }) {
         name,
         standupTime,
         postingTime,
-      }
+      },
+      client
     );
 
     await updateResponse({
@@ -35,7 +36,7 @@ async function createTeam({ command, ack, respond }) {
   }
 }
 
-async function joinTeam({ command, ack, respond }) {
+async function joinTeam({ command, ack, respond, client }) {
   const updateResponse = ackWithProcessing(ack, respond, "⏳ Joining team...");
 
   try {
@@ -58,7 +59,7 @@ async function joinTeam({ command, ack, respond }) {
       return;
     }
 
-    await teamService.joinTeam(command.user_id, team.id);
+    await teamService.joinTeam(command.user_id, team.id, client);
 
     await updateResponse({
       text: `✅ You've joined team "${team.name}"!`,
@@ -70,7 +71,7 @@ async function joinTeam({ command, ack, respond }) {
   }
 }
 
-async function leaveTeam({ command, ack, respond }) {
+async function leaveTeam({ command, ack, respond, client }) {
   const updateResponse = ackWithProcessing(ack, respond, "⏳ Leaving team...");
 
   try {
@@ -93,7 +94,7 @@ async function leaveTeam({ command, ack, respond }) {
       return;
     }
 
-    await teamService.leaveTeam(command.user_id, team.id);
+    await teamService.leaveTeam(command.user_id, team.id, client);
 
     await updateResponse({
       text: `✅ You've left team "${team.name}"`,
@@ -207,7 +208,7 @@ async function listMembers({ command, ack, respond }) {
   }
 }
 
-async function updateTeam({ command, ack, respond }) {
+async function updateTeam({ command, ack, respond, client }) {
   const updateResponse = ackWithProcessing(ack, respond, "⏳ Updating team...");
 
   try {
@@ -273,7 +274,7 @@ async function updateTeam({ command, ack, respond }) {
       return;
     }
 
-    await teamService.updateTeam(command.user_id, team.id, updateData);
+    await teamService.updateTeam(command.user_id, team.id, updateData, client);
 
     await updateResponse({
       text: `✅ Team "${teamName}" updated successfully!\n• ${updates.join(

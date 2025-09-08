@@ -3,7 +3,7 @@ const prisma = require("../config/prisma");
 const dayjs = require("dayjs");
 const { ackWithProcessing } = require("../utils/commandHelper");
 
-async function setLeave({ command, ack, respond }) {
+async function setLeave({ command, ack, respond, client }) {
   const updateResponse = ackWithProcessing(ack, respond, "⏳ Setting leave...");
 
   try {
@@ -53,7 +53,8 @@ async function setLeave({ command, ack, respond }) {
       command.user_id,
       startDate.toDate(),
       endDate.toDate(),
-      reason
+      reason,
+      client
     );
 
     const dateText = startDate.isSame(endDate, "day")
@@ -101,7 +102,7 @@ async function cancelLeave({ command, ack, respond }) {
   }
 }
 
-async function listLeaves({ command, ack, respond }) {
+async function listLeaves({ command, ack, respond, client }) {
   const updateResponse = ackWithProcessing(
     ack,
     respond,
@@ -109,7 +110,11 @@ async function listLeaves({ command, ack, respond }) {
   );
 
   try {
-    const user = await userService.findOrCreateUser(command.user_id);
+    const userData = await userService.fetchSlackUserData(
+      command.user_id,
+      client
+    );
+    const user = await userService.findOrCreateUser(command.user_id, userData);
 
     const leaves = await prisma.leave.findMany({
       where: {
@@ -167,7 +172,7 @@ async function listLeaves({ command, ack, respond }) {
   }
 }
 
-async function setWorkDays({ command, ack, respond }) {
+async function setWorkDays({ command, ack, respond, client }) {
   const updateResponse = ackWithProcessing(
     ack,
     respond,
@@ -198,7 +203,7 @@ async function setWorkDays({ command, ack, respond }) {
       throw new Error("At least one work day must be specified");
     }
 
-    await userService.setWorkDays(command.user_id, workDays);
+    await userService.setWorkDays(command.user_id, workDays, client);
 
     const dayNames = {
       1: "Monday",
@@ -222,7 +227,7 @@ async function setWorkDays({ command, ack, respond }) {
   }
 }
 
-async function showWorkDays({ command, ack, respond }) {
+async function showWorkDays({ command, ack, respond, client }) {
   const updateResponse = ackWithProcessing(
     ack,
     respond,
@@ -251,14 +256,19 @@ async function showWorkDays({ command, ack, respond }) {
 
     const workDayNames = workDays.map((day) => dayNames[day]).join(", ");
 
+    const userData = await userService.fetchSlackUserData(
+      command.user_id,
+      client
+    );
+
     // Check if using personal or organization default
-    const user = await userService.findOrCreateUser(command.user_id);
-    const userData = await prisma.user.findUnique({
+    const user = await userService.findOrCreateUser(command.user_id, userData);
+    const userWorkDays = await prisma.user.findUnique({
       where: { id: user.id },
       select: { workDays: true },
     });
 
-    const isPersonal = userData?.workDays !== null;
+    const isPersonal = userWorkDays?.workDays !== null;
 
     await updateResponse({
       blocks: [
