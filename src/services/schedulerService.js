@@ -121,6 +121,13 @@ class SchedulerService {
   async sendStandupReminders(team) {
     const now = dayjs().tz(team.timezone);
 
+    console.log(
+      `📅 Sending standup reminders for team ${team.name} at ${now.format()}`,
+      `    Standup Time: ${team.standupTime}`,
+      `    Posting Time: ${team.postingTime}`,
+      `    Timezone: ${team.timezone}`
+    );
+
     // Get active members (this now includes work day filtering)
     const members = await standupService.getActiveMembers(
       team.id,
