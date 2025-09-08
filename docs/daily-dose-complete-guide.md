@@ -939,7 +939,11 @@ class StandupService {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `*👤 ${response.user.name || response.user.slackUserId}*`,
+            text: `*👤 ${
+              response.user.name ||
+              response.user.username ||
+              response.user.slackUserId
+            }*`,
           },
         });
 

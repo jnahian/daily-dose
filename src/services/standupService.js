@@ -5,6 +5,7 @@ const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
 const advancedFormat = require("dayjs/plugin/advancedFormat");
 const { isWorkingDay } = require("../utils/dateHelper");
+const { getUserMention } = require("../utils/userHelper");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -203,12 +204,12 @@ class StandupService {
 
     // Add each response
     for (const response of responses) {
-      // User name section
+      // User name section with proper fallback chain
       blocks.push({
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*👤 <@${response.user.slackUserId}>*`,
+          text: `*👤 ${getUserMention(response.user)}*`,
         },
       });
 
@@ -320,7 +321,7 @@ class StandupService {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*👤 <@${response.user.slackUserId}>*`,
+          text: `*👤 ${getUserMention(response.user)}*`,
         },
       },
     ];

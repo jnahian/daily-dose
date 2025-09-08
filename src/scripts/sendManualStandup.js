@@ -7,6 +7,7 @@ const standupService = require("../services/standupService");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
+const { getUserLogIdentifier } = require("../utils/userHelper");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -120,9 +121,9 @@ async function sendTroubleshootingMessage(team, channelError) {
         });
         sentCount++;
         console.log(
-          `📤 Sent troubleshooting steps to ${
-            member.user.name || member.user.slackUserId
-          }`
+          `📤 Sent troubleshooting steps to ${getUserLogIdentifier(
+            member.user
+          )}`
         );
       } catch (dmError) {
         console.error(
@@ -296,9 +297,9 @@ async function sendManualStandup(teamName, options = {}) {
             lateResponse
           );
           console.log(
-            `\n--- Late Response from ${
-              lateResponse.user.name || lateResponse.user.slackUserId
-            } ---`
+            `\n--- Late Response from ${getUserLogIdentifier(
+              lateResponse.user
+            )} ---`
           );
           console.log(JSON.stringify(lateMessage, null, 2));
         }
@@ -341,15 +342,15 @@ async function sendManualStandup(teamName, options = {}) {
           });
 
           console.log(
-            `   ✅ Posted late response from ${
-              lateResponse.user.name || lateResponse.user.slackUserId
-            }`
+            `   ✅ Posted late response from ${getUserLogIdentifier(
+              lateResponse.user
+            )}`
           );
         } catch (lateError) {
           console.error(
-            `   ❌ Failed to post late response from ${
-              lateResponse.user.name || lateResponse.user.slackUserId
-            }:`,
+            `   ❌ Failed to post late response from ${getUserLogIdentifier(
+              lateResponse.user
+            )}:`,
             lateError.message
           );
         }
@@ -433,9 +434,7 @@ async function sendStandupReminders(teamName) {
           ],
         });
         successCount++;
-        console.log(
-          `   ✅ Sent to ${member.user.name || member.user.slackUserId}`
-        );
+        console.log(`   ✅ Sent to ${getUserLogIdentifier(member.user)}`);
       } catch (error) {
         errorCount++;
         console.error(

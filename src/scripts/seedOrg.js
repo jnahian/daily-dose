@@ -30,6 +30,7 @@ async function seedOrganization() {
         create: {
           slackUserId: adminSlackId,
           name: "Sh Julkar Naen Nahian",
+          username: "nahian.wpdev", // Add username field
           email: "nahian@wpdeveloper.com",
         },
       });

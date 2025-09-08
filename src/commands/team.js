@@ -1,5 +1,6 @@
 const teamService = require("../services/teamService");
 const { ackWithProcessing } = require("../utils/commandHelper");
+const { getDisplayName } = require("../utils/userHelper");
 
 async function createTeam({ command, ack, respond, client }) {
   const updateResponse = ackWithProcessing(ack, respond, "⏳ Creating team...");
@@ -184,9 +185,10 @@ async function listMembers({ command, ack, respond }) {
     const memberList = members
       .map((member) => {
         const roleIcon = member.role === "ADMIN" ? "👑" : "👤";
+        const displayName = getDisplayName(member.user);
         return `${roleIcon} <@${
           member.user.slackUserId
-        }> (${member.role.toLowerCase()})`;
+        }> (${displayName}) - ${member.role.toLowerCase()}`;
       })
       .join("\n");
 

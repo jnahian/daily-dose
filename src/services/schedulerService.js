@@ -3,6 +3,7 @@ const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
 const prisma = require("../config/prisma");
+const { getUserLogIdentifier } = require("../utils/userHelper");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -393,9 +394,9 @@ class SchedulerService {
       });
 
       console.log(
-        `✅ Posted late response for ${
-          lateResponse.user.name || lateResponse.user.slackUserId
-        } in team ${team.name}`
+        `✅ Posted late response for ${getUserLogIdentifier(
+          lateResponse.user
+        )} in team ${team.name}`
       );
     } catch (error) {
       console.error("Failed to post single late response:", error);
