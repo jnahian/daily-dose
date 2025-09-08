@@ -8,6 +8,7 @@ const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
 const { getUserLogIdentifier } = require("../utils/userHelper");
+const { formatTime12Hour } = require("../utils/dateHelper");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -49,28 +50,28 @@ async function sendTroubleshootingMessage(team, channelError) {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: "*1. Check if the channel exists:*\n• Search for the channel in Slack\n• Verify the channel ID is correct",
+        text: "*1. Check if the channel exists:*\n- Search for the channel in Slack\n- Verify the channel ID is correct",
       },
     },
     {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: "*2. Add the bot to the channel:*\n• Go to the channel in Slack\n• Type: `/invite @your-bot-name`\n• Or use channel settings → Integrations → Add apps",
+        text: "*2. Add the bot to the channel:*\n- Go to the channel in Slack\n- Type: `/invite @your-bot-name`\n- Or use channel settings → Integrations → Add apps",
       },
     },
     {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: "*3. Update the channel ID:*\n• Right-click the channel → Copy link\n• Channel IDs start with 'C' (e.g., C1234567890)\n• Update the team record in your database",
+        text: "*3. Update the channel ID:*\n- Right-click the channel → Copy link\n- Channel IDs start with 'C' (e.g., C1234567890)\n- Update the team record in your database",
       },
     },
     {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: "*4. Verify bot permissions:*\n• Ensure bot has `chat:write` and `channels:read` scopes\n• Check if bot is properly installed in workspace",
+        text: "*4. Verify bot permissions:*\n- Ensure bot has `chat:write` and `channels:read` scopes\n- Check if bot is properly installed in workspace",
       },
     },
     {
@@ -427,7 +428,7 @@ async function sendStandupReminders(teamName) {
               elements: [
                 {
                   type: "mrkdwn",
-                  text: `⏰ Deadline: ${team.postingTime}`,
+                  text: `⏰ Deadline: ${formatTime12Hour(team.postingTime)}`,
                 },
               ],
             },
@@ -499,8 +500,8 @@ async function listTeams() {
         "Team Name": team.name,
         Members: team._count.members,
         Channel: channelStatus,
-        "Standup Time": team.standupTime,
-        "Posting Time": team.postingTime,
+        "Standup Time": formatTime12Hour(team.standupTime),
+        "Posting Time": formatTime12Hour(team.postingTime),
         Timezone: team.timezone,
       });
     }

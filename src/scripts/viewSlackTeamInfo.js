@@ -13,11 +13,11 @@ async function getSlackTeamInfo() {
     const team = teamInfo.team;
 
     console.log("🏢 Workspace Information:");
-    console.log(`   • Name: ${team.name}`);
-    console.log(`   • ID: ${team.id}`);
-    console.log(`   • Domain: ${team.domain}`);
-    console.log(`   • Email Domain: ${team.email_domain || "Not set"}`);
-    console.log(`   • Icon: ${team.icon?.image_68 || "No icon"}`);
+    console.log(`   - Name: ${team.name}`);
+    console.log(`   - ID: ${team.id}`);
+    console.log(`   - Domain: ${team.domain}`);
+    console.log(`   - Email Domain: ${team.email_domain || "Not set"}`);
+    console.log(`   - Icon: ${team.icon?.image_68 || "No icon"}`);
     console.log("");
 
     // Get all users in the workspace
@@ -35,10 +35,10 @@ async function getSlackTeamInfo() {
       (user) => user.is_admin || user.is_owner
     );
 
-    console.log(`   • Total Members: ${users.length}`);
-    console.log(`   • Active Users: ${activeUsers.length}`);
-    console.log(`   • Bot Users: ${botUsers.length}`);
-    console.log(`   • Admins/Owners: ${adminUsers.length}`);
+    console.log(`   - Total Members: ${users.length}`);
+    console.log(`   - Active Users: ${activeUsers.length}`);
+    console.log(`   - Bot Users: ${botUsers.length}`);
+    console.log(`   - Admins/Owners: ${adminUsers.length}`);
     console.log("");
 
     // Get all channels
@@ -52,9 +52,9 @@ async function getSlackTeamInfo() {
     const publicChannels = channels.filter((ch) => !ch.is_private);
     const privateChannels = channels.filter((ch) => ch.is_private);
 
-    console.log(`   • Total Channels: ${channels.length}`);
-    console.log(`   • Public Channels: ${publicChannels.length}`);
-    console.log(`   • Private Channels: ${privateChannels.length}`);
+    console.log(`   - Total Channels: ${channels.length}`);
+    console.log(`   - Public Channels: ${publicChannels.length}`);
+    console.log(`   - Private Channels: ${privateChannels.length}`);
     console.log("");
 
     // Show detailed user information if requested
@@ -72,9 +72,9 @@ async function getSlackTeamInfo() {
         const timezone = user.tz_label || "Unknown timezone";
 
         console.log(`   ${index + 1}. ${status} - ${realName} (@${user.name})`);
-        console.log(`      • Email: ${email}`);
-        console.log(`      • Timezone: ${timezone}`);
-        console.log(`      • ID: ${user.id}`);
+        console.log(`      - Email: ${email}`);
+        console.log(`      - Timezone: ${timezone}`);
+        console.log(`      - ID: ${user.id}`);
         console.log("");
       });
     }
@@ -93,14 +93,14 @@ async function getSlackTeamInfo() {
             });
             const memberCount = channelInfo.channel.num_members || 0;
             console.log(
-              `      • #${channel.name} (${memberCount} members) - ${channel.id}`
+              `      - #${channel.name} (${memberCount} members) - ${channel.id}`
             );
             if (channel.topic?.value) {
               console.log(`        Topic: ${channel.topic.value}`);
             }
           } catch (error) {
             console.log(
-              `      • #${channel.name} - ${channel.id} (Error getting details)`
+              `      - #${channel.name} - ${channel.id} (Error getting details)`
             );
           }
         }
@@ -115,7 +115,7 @@ async function getSlackTeamInfo() {
       if (privateChannels.length > 0) {
         console.log("   🔒 Private Channels:");
         privateChannels.slice(0, 10).forEach((channel) => {
-          console.log(`      • ${channel.name} - ${channel.id}`);
+          console.log(`      - ${channel.name} - ${channel.id}`);
         });
         if (privateChannels.length > 10) {
           console.log(
@@ -133,8 +133,8 @@ async function getSlackTeamInfo() {
         console.log(
           `   ${index + 1}. ${bot.real_name || bot.name} (@${bot.name})`
         );
-        console.log(`      • ID: ${bot.id}`);
-        console.log(`      • App ID: ${bot.profile?.app_id || "Unknown"}`);
+        console.log(`      - ID: ${bot.id}`);
+        console.log(`      - App ID: ${bot.profile?.app_id || "Unknown"}`);
         console.log("");
       });
     }
@@ -142,16 +142,16 @@ async function getSlackTeamInfo() {
     // Get workspace stats
     console.log("📊 Workspace Statistics:");
     console.log(
-      `   • Created: ${new Date(team.date_create * 1000).toLocaleDateString()}`
+      `   - Created: ${new Date(team.date_create * 1000).toLocaleDateString()}`
     );
-    console.log(`   • Plan: ${team.plan || "Unknown"}`);
+    console.log(`   - Plan: ${team.plan || "Unknown"}`);
 
     // Try to get additional stats
     try {
       const statsResponse = await slack.team.billableInfo();
       if (statsResponse.billable_info) {
         const billableUsers = Object.keys(statsResponse.billable_info).length;
-        console.log(`   • Billable Users: ${billableUsers}`);
+        console.log(`   - Billable Users: ${billableUsers}`);
       }
     } catch (error) {
       // Billable info might not be available for all plans

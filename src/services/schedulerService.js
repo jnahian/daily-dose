@@ -9,7 +9,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 const teamService = require("./teamService");
 const standupService = require("./standupService");
-const { isWorkingDay } = require("../utils/dateHelper");
+const { isWorkingDay, formatTime12Hour } = require("../utils/dateHelper");
 
 class SchedulerService {
   constructor() {
@@ -158,7 +158,7 @@ class SchedulerService {
               elements: [
                 {
                   type: "mrkdwn",
-                  text: `⏰ Deadline: ${team.postingTime}`,
+                  text: `⏰ Deadline: ${formatTime12Hour(team.postingTime)}`,
                 },
               ],
             },
@@ -195,7 +195,9 @@ class SchedulerService {
       try {
         await this.app.client.chat.postMessage({
           channel: member.user.slackUserId,
-          text: `⏰ Reminder: Please submit your standup for ${team.name} before ${team.postingTime}`,
+          text: `⏰ Reminder: Please submit your standup for ${
+            team.name
+          } before ${formatTime12Hour(team.postingTime)}`,
         });
       } catch (error) {
         console.error(

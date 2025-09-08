@@ -17,7 +17,7 @@ async function setLeave({ command, ack, respond, client }) {
 
     if (parts.length < 1 || !parts[0]) {
       await updateResponse({
-        text: "❌ Usage: `/dd-leave-set YYYY-MM-DD [YYYY-MM-DD] [reason]`\nExamples:\n• Single day: `/dd-leave-set 2024-12-25 Holiday`\n• Date range: `/dd-leave-set 2024-12-25 2024-12-26 Holiday break`",
+        text: "❌ Usage: `/dd-leave-set YYYY-MM-DD [YYYY-MM-DD] [reason]`\nExamples:\n- Single day: `/dd-leave-set 2024-12-25 Holiday`\n- Date range: `/dd-leave-set 2024-12-25 2024-12-26 Holiday break`",
       });
       return;
     }
@@ -146,7 +146,7 @@ async function listLeaves({ command, ack, respond, client }) {
         const endDate = dayjs(leave.endDate).format("MMM DD, YYYY");
         const dateRange =
           startDate === endDate ? startDate : `${startDate} - ${endDate}`;
-        return `• ${dateRange}: ${
+        return `- ${dateRange}: ${
           leave.reason || "No reason"
         } (ID: ${leave.id.slice(0, 8)})`;
       })

@@ -163,7 +163,7 @@ async function submitManual({ command, ack, respond, client }) {
       }
     } else {
       // Show team selection
-      const teamList = teams.map((t) => `• ${t.name}`).join("\n");
+      const teamList = teams.map((t) => `- ${t.name}`).join("\n");
 
       await updateResponse({
         blocks: [
@@ -369,7 +369,7 @@ async function handleStandupSubmission({ ack, body, view, client }) {
               .map((item) => {
                 if (item.type === "rich_text_section") {
                   return (
-                    "• " +
+                    "- " +
                     item.elements
                       .map((el) => (el.type === "text" ? el.text : ""))
                       .join("")

@@ -220,7 +220,7 @@ class StandupService {
           .split("\n")
           .filter((line) => line.trim())
           .map((line) =>
-            line.startsWith("-") ? line : `- ${line.replace("•", "")}`
+            line.startsWith("-") ? line : `- ${line.replace("-", "")}`
           )
           .join("\n");
       };
@@ -333,7 +333,7 @@ class StandupService {
         .split("\n")
         .filter((line) => line.trim())
         .map((line) =>
-          line.startsWith("-") || line.startsWith("•") ? line : `- ${line}`
+          line.startsWith("-") || line.startsWith("-") ? line : `- ${line}`
         )
         .join("\n");
     };

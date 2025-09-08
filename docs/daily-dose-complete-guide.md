@@ -1170,7 +1170,7 @@ class SchedulerService {
               elements: [
                 {
                   type: "mrkdwn",
-                  text: `⏰ Deadline: ${team.postingTime}`,
+                  text: `⏰ Deadline: ${formatTime12Hour(team.postingTime)}`,
                 },
               ],
             },
@@ -1211,7 +1211,9 @@ class SchedulerService {
       try {
         await this.app.client.chat.postMessage({
           channel: member.user.slackUserId,
-          text: `⏰ Reminder: Please submit your standup for ${team.name} before ${team.postingTime}`,
+          text: `⏰ Reminder: Please submit your standup for ${
+            team.name
+          } before ${formatTime12Hour(team.postingTime)}`,
         });
       } catch (error) {
         console.error(
@@ -1421,7 +1423,9 @@ async function createTeam({ command, ack, respond }) {
     );
 
     await respond({
-      text: `✅ Team "${name}" created successfully!\n• Standup reminder: ${standupTime}\n• Posting time: ${postingTime}`,
+      text: `✅ Team "${name}" created successfully!\n• Standup reminder: ${formatTime12Hour(
+        standupTime
+      )}\n• Posting time: ${formatTime12Hour(postingTime)}`,
     });
   } catch (error) {
     await respond({
@@ -1484,7 +1488,9 @@ async function listTeams({ command, ack, respond }) {
     const teamList = teams
       .map(
         (t) =>
-          `• *${t.name}* (${t._count.members} members) - Standup: ${t.standupTime}`
+          `• *${t.name}* (${
+            t._count.members
+          } members) - Standup: ${formatTime12Hour(t.standupTime)}`
       )
       .join("\n");
 

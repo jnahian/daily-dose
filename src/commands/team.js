@@ -1,6 +1,7 @@
 const teamService = require("../services/teamService");
 const { ackWithProcessing } = require("../utils/commandHelper");
 const { getDisplayName } = require("../utils/userHelper");
+const { formatTime12Hour } = require("../utils/dateHelper");
 
 async function createTeam({ command, ack, respond, client }) {
   const updateResponse = ackWithProcessing(
@@ -33,7 +34,11 @@ async function createTeam({ command, ack, respond, client }) {
     );
 
     await updateResponse({
-      text: `✅ Team "${name}" created successfully!\n• Standup reminder: ${standupTime}\n• Posting time: ${postingTime}`,
+      text: `✅ Team "${name}" created successfully!\n- Standup reminder: ${formatTime12Hour(
+        standupTime
+      )}\n- Posting time: ${formatTime12Hour(postingTime)}\n- Timezone: ${
+        team.timezone
+      }`,
     });
   } catch (error) {
     await updateResponse({
@@ -73,7 +78,13 @@ async function joinTeam({ command, ack, respond, client }) {
     await teamService.joinTeam(command.user_id, team.id, client);
 
     await updateResponse({
-      text: `✅ You've joined team "${team.name}"!`,
+      text: `✅ You've joined team "${
+        team.name
+      }"!\n- Standup reminder: ${formatTime12Hour(
+        team.standupTime
+      )}\n- Posting time: ${formatTime12Hour(team.postingTime)}\n-Timezone: ${
+        team.timezone
+      }`,
     });
   } catch (error) {
     await updateResponse({
@@ -143,7 +154,9 @@ async function listTeams({ command, ack, respond }) {
     const teamList = teams
       .map(
         (t) =>
-          `• *${t.name}* (${t._count.members} members) - Standup: ${t.standupTime}`
+          `- *${t.name}* (${
+            t._count.members
+          } members) - Standup: ${formatTime12Hour(t.standupTime)}`
       )
       .join("\n");
 
@@ -281,11 +294,11 @@ async function updateTeam({ command, ack, respond, client }) {
           break;
         case "standup":
           updateData.standupTime = value;
-          updates.push(`Standup time: ${value}`);
+          updates.push(`Standup time: ${formatTime12Hour(value)}`);
           break;
         case "posting":
           updateData.postingTime = value;
-          updates.push(`Posting time: ${value}`);
+          updates.push(`Posting time: ${formatTime12Hour(value)}`);
           break;
         default:
           await updateResponse({
@@ -305,8 +318,8 @@ async function updateTeam({ command, ack, respond, client }) {
     await teamService.updateTeam(command.user_id, team.id, updateData, client);
 
     await updateResponse({
-      text: `✅ Team "${teamName}" updated successfully!\n• ${updates.join(
-        "\n• "
+      text: `✅ Team "${teamName}" updated successfully!\n- ${updates.join(
+        "\n- "
       )}`,
     });
   } catch (error) {
