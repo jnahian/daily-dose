@@ -110,7 +110,8 @@
                 "channels:history",
                 "groups:history",
                 "im:history",
-                "mpim:history"
+                "mpim:history",
+                "team:read"
             ]
         }
     },

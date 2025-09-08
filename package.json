@@ -13,6 +13,7 @@
     "manifest:update": "node src/scripts/updateSlackManifest.js",
     "manifest:dry-run": "node src/scripts/updateSlackManifest.js --dry-run",
     "standup:trigger": "node src/scripts/triggerStandup.js",
+    "slack:info": "node src/scripts/viewSlackTeamInfo.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
