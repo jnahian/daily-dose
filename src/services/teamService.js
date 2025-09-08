@@ -80,9 +80,14 @@ class TeamService {
       throw new Error("Team not found");
     }
 
-    // Verify user belongs to same organization
-    const userOrg = await userService.getUserOrganization(slackUserId);
-    if (!userOrg || userOrg.id !== team.organizationId) {
+    // Check if user belongs to the organization
+    let userOrg = await userService.getUserOrganization(slackUserId);
+
+    if (!userOrg) {
+      // User is not in any organization, add them to the team's organization
+      await userService.addUserToOrganization(user.id, team.organizationId);
+      userOrg = team.organization;
+    } else if (userOrg.id !== team.organizationId) {
       throw new Error("You can only join teams in your organization");
     }
 
@@ -212,6 +217,21 @@ class TeamService {
   async getTeamById(teamId) {
     return await prisma.team.findUnique({
       where: { id: teamId },
+      include: {
+        organization: true,
+      },
+    });
+  }
+
+  async findTeamByName(teamName) {
+    return await prisma.team.findFirst({
+      where: {
+        name: {
+          equals: teamName,
+          mode: "insensitive",
+        },
+        isActive: true,
+      },
       include: {
         organization: true,
       },

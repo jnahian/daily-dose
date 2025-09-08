@@ -48,11 +48,8 @@ async function joinTeam({ command, ack, respond }) {
       return;
     }
 
-    // Find team by name
-    const teams = await teamService.listTeams(command.user_id);
-    const team = teams.find(
-      (t) => t.name.toLowerCase() === teamName.toLowerCase()
-    );
+    // Find team by name across all organizations
+    const team = await teamService.findTeamByName(teamName);
 
     if (!team) {
       await updateResponse({
@@ -86,11 +83,8 @@ async function leaveTeam({ command, ack, respond }) {
       return;
     }
 
-    // Find team by name
-    const teams = await teamService.listTeams(command.user_id);
-    const team = teams.find(
-      (t) => t.name.toLowerCase() === teamName.toLowerCase()
-    );
+    // Find team by name across all organizations
+    const team = await teamService.findTeamByName(teamName);
 
     if (!team) {
       await updateResponse({
@@ -166,11 +160,8 @@ async function listMembers({ command, ack, respond }) {
       return;
     }
 
-    // Find team by name
-    const teams = await teamService.listTeams(command.user_id);
-    const team = teams.find(
-      (t) => t.name.toLowerCase() === teamName.toLowerCase()
-    );
+    // Find team by name across all organizations
+    const team = await teamService.findTeamByName(teamName);
 
     if (!team) {
       await updateResponse({
@@ -231,11 +222,8 @@ async function updateTeam({ command, ack, respond }) {
       return;
     }
 
-    // Find team by name
-    const teams = await teamService.listTeams(command.user_id);
-    const team = teams.find(
-      (t) => t.name.toLowerCase() === teamName.toLowerCase()
-    );
+    // Find team by name across all organizations
+    const team = await teamService.findTeamByName(teamName);
 
     if (!team) {
       await updateResponse({

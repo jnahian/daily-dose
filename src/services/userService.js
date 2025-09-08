@@ -145,6 +145,46 @@ class UserService {
     const org = user.organizations[0]?.organization;
     return org?.settings?.defaultWorkDays || [1, 2, 3, 4, 7];
   }
+
+  async addUserToOrganization(userId, organizationId, role = "MEMBER") {
+    // Check if user is already a member
+    const existingMember = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId,
+          userId,
+        },
+      },
+    });
+
+    if (existingMember) {
+      // If inactive, reactivate them
+      if (!existingMember.isActive) {
+        return await prisma.organizationMember.update({
+          where: {
+            organizationId_userId: {
+              organizationId,
+              userId,
+            },
+          },
+          data: {
+            isActive: true,
+            role,
+          },
+        });
+      }
+      return existingMember;
+    }
+
+    // Add user to organization
+    return await prisma.organizationMember.create({
+      data: {
+        organizationId,
+        userId,
+        role,
+      },
+    });
+  }
 }
 
 module.exports = new UserService();
