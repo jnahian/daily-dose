@@ -117,8 +117,10 @@ class TeamService {
     // Add as member
     return await prisma.teamMember.upsert({
       where: {
-        teamId: team.id,
-        userId: user.id,
+        teamId_userId: {
+          teamId: team.id,
+          userId: user.id,
+        },
       },
       update: {
         isActive: true,
