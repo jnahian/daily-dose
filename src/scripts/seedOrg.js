@@ -8,13 +8,12 @@ async function seedOrganization() {
       update: {},
       create: {
         name: "Startise",
-        slackWorkspaceId: "startise", // Get from Slack
+        slackWorkspaceId: "TD04Y26UB", // Get from Slack
         slackWorkspaceName: "Startise",
         defaultTimezone: "Asia/Dhaka",
         settings: {
-          defaultWorkDays: [1, 2, 3, 4, 7], // Mon-Thu, Sun (organization default)
+          defaultWorkDays: [7, 1, 2, 3, 4], // Mon-Thu, Sun (organization default)
           holidayCountry: "BD",
-          standupWindowMinutes: 30,
         },
       },
     });
@@ -63,8 +62,8 @@ async function seedOrganization() {
             slackChannelId: "C04JPB43NFJ",
             standupTime: "10:00",
             postingTime: "10:30",
-            timezone: "Asia/Dhaka"
-          }
+            timezone: "Asia/Dhaka",
+          },
         });
         console.log("✅ Test team created:", testTeam.name);
       } catch (teamError) {
