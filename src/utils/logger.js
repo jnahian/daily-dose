@@ -8,8 +8,13 @@ function formatTimestamp() {
 }
 
 function logCommand(payload) {
+  if (!payload) {
+    console.log(`[${formatTimestamp()}] COMMAND: null payload`);
+    return;
+  }
+  
   console.log(`[${formatTimestamp()}] COMMAND:`, {
-    command: payload.command,
+    command: payload.command || 'unknown',
     user_id: payload.user_id,
     user_name: payload.user_name,
     channel_id: payload.channel_id,
