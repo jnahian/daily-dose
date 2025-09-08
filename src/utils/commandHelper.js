@@ -33,7 +33,7 @@ function removeFormatting(text) {
       // Remove channel mentions (<#CHANNEL123> -> CHANNEL123)
       .replace(/<#([^>]+)>/g, "$1")
       // Remove special characters, keeping only letters, numbers, spaces, hyphens, colons, periods, commas, and forward slashes
-      .replace(/[^\w\s\-.:,/]/g, "")
+      .replace(/[^\w\s\-.:,=/]/g, "")
       .trim()
   );
 }
