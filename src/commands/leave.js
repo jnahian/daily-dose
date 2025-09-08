@@ -4,7 +4,12 @@ const dayjs = require("dayjs");
 const { ackWithProcessing } = require("../utils/commandHelper");
 
 async function setLeave({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(ack, respond, "⏳ Setting leave...");
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "Setting leave...",
+    command
+  );
 
   try {
     // Parse command text: /dd-leave-set 2024-12-25 [2024-12-26] [Holiday break]
@@ -77,7 +82,8 @@ async function cancelLeave({ command, ack, respond }) {
   const updateResponse = ackWithProcessing(
     ack,
     respond,
-    "⏳ Cancelling leave..."
+    "Cancelling leave...",
+    command
   );
 
   try {
@@ -106,7 +112,8 @@ async function listLeaves({ command, ack, respond, client }) {
   const updateResponse = ackWithProcessing(
     ack,
     respond,
-    "⏳ Loading leaves..."
+    "Loading leaves...",
+    command
   );
 
   try {
@@ -176,7 +183,8 @@ async function setWorkDays({ command, ack, respond, client }) {
   const updateResponse = ackWithProcessing(
     ack,
     respond,
-    "⏳ Setting work days..."
+    "Setting work days...",
+    command
   );
 
   try {
@@ -231,7 +239,8 @@ async function showWorkDays({ command, ack, respond, client }) {
   const updateResponse = ackWithProcessing(
     ack,
     respond,
-    "⏳ Loading work days..."
+    "Loading work days...",
+    command
   );
 
   try {

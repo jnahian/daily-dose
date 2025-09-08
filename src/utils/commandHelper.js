@@ -61,16 +61,26 @@ function withFormattingRemoval(handler) {
  * @param {Object} ack - Slack ack function
  * @param {Object} respond - Slack respond function
  * @param {string} processingMessage - Custom processing message (optional)
+ * @param {Object} command - Slack command object (optional) to show command name
  * @returns {Function} updateResponse - Function to send the final response
  */
 function ackWithProcessing(
   ack,
   respond,
-  processingMessage = "⏳ Processing..."
+  processingMessage = "⏳ Processing...",
+  command = null
 ) {
+  let message = processingMessage;
+
+  // If command is provided, include the command name in the processing message
+  if (command && command.command) {
+    const text = command.text ? ` ${command.text}` : "";
+    message = `\`${command.command}${text}\`\n${processingMessage}`;
+  }
+
   // Acknowledge immediately with processing message
   ack({
-    text: processingMessage,
+    text: message,
     response_type: "ephemeral",
   });
 

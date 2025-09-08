@@ -12,7 +12,8 @@ async function submitManual({ command, ack, respond, client }) {
   const updateResponse = ackWithProcessing(
     ack,
     respond,
-    "⏳ Loading standup form..."
+    "Loading standup form...",
+    command
   );
 
   try {

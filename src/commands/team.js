@@ -3,7 +3,12 @@ const { ackWithProcessing } = require("../utils/commandHelper");
 const { getDisplayName } = require("../utils/userHelper");
 
 async function createTeam({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(ack, respond, "⏳ Creating team...");
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "Creating team...",
+    command
+  );
 
   try {
     // Parse command text: /dd-team-create TeamName 09:30 10:00
@@ -38,7 +43,12 @@ async function createTeam({ command, ack, respond, client }) {
 }
 
 async function joinTeam({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(ack, respond, "⏳ Joining team...");
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "Joining team...",
+    command
+  );
 
   try {
     const teamName = command.text.trim();
@@ -73,7 +83,12 @@ async function joinTeam({ command, ack, respond, client }) {
 }
 
 async function leaveTeam({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(ack, respond, "⏳ Leaving team...");
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "Leaving team...",
+    command
+  );
 
   try {
     const teamName = command.text.trim();
@@ -108,7 +123,12 @@ async function leaveTeam({ command, ack, respond, client }) {
 }
 
 async function listTeams({ command, ack, respond }) {
-  const updateResponse = ackWithProcessing(ack, respond, "⏳ Loading teams...");
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "Loading teams...",
+    command
+  );
 
   try {
     const teams = await teamService.listTeams(command.user_id);
@@ -149,7 +169,8 @@ async function listMembers({ command, ack, respond }) {
   const updateResponse = ackWithProcessing(
     ack,
     respond,
-    "⏳ Loading team members..."
+    "Loading team members...",
+    command
   );
 
   try {
@@ -211,7 +232,12 @@ async function listMembers({ command, ack, respond }) {
 }
 
 async function updateTeam({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(ack, respond, "⏳ Updating team...");
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "Updating team...",
+    command
+  );
 
   try {
     // Parse command text: /dd-team-update TeamName [name=NewName] [standup=09:30] [posting=10:00]
