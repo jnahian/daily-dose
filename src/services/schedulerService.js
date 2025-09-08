@@ -10,6 +10,10 @@ dayjs.extend(timezone);
 const teamService = require("./teamService");
 const standupService = require("./standupService");
 const { isWorkingDay, formatTime12Hour } = require("../utils/dateHelper");
+const {
+  getRandomStandupMessage,
+  getRandomFollowupMessage,
+} = require("../utils/messageHelper");
 
 class SchedulerService {
   constructor() {
@@ -136,6 +140,8 @@ class SchedulerService {
 
     for (const member of members) {
       try {
+        const randomMessage = getRandomStandupMessage(member.user.slackUserId);
+
         await this.app.client.chat.postMessage({
           channel: member.user.slackUserId,
           blocks: [
@@ -143,7 +149,14 @@ class SchedulerService {
               type: "section",
               text: {
                 type: "mrkdwn",
-                text: `🌅 Good morning! Time for your daily standup for *${team.name}*`,
+                text: randomMessage,
+              },
+            },
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: `*Team:* ${team.name}`,
               },
             },
             {
@@ -200,11 +213,51 @@ class SchedulerService {
 
     for (const member of pendingMembers) {
       try {
+        const randomFollowupMessage = getRandomFollowupMessage(
+          member.user.slackUserId
+        );
+
         await this.app.client.chat.postMessage({
           channel: member.user.slackUserId,
-          text: `⏰ Reminder: Please submit your standup for ${
-            team.name
-          } before ${formatTime12Hour(team.postingTime)}`,
+          blocks: [
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: randomFollowupMessage,
+              },
+            },
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: `*Team:* ${team.name}`,
+              },
+            },
+            {
+              type: "actions",
+              elements: [
+                {
+                  type: "button",
+                  text: {
+                    type: "plain_text",
+                    text: "📝 Submit Standup",
+                  },
+                  action_id: `open_standup_${team.id}`,
+                  style: "primary",
+                },
+              ],
+            },
+            {
+              type: "context",
+              elements: [
+                {
+                  type: "mrkdwn",
+                  text: `⏰ Deadline: ${formatTime12Hour(team.postingTime)}`,
+                },
+              ],
+            },
+          ],
         });
       } catch (error) {
         console.error(
