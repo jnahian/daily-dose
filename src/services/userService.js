@@ -13,6 +13,7 @@ class UserService {
         const slackUser = slackUserInfo.user;
         return {
           name: slackUser.real_name || slackUser.name,
+          username: slackUser.name,
           email: slackUser.profile?.email,
           timezone: slackUser.tz || slackUser.profile?.timezone,
         };
@@ -34,6 +35,10 @@ class UserService {
     if (userData.name) {
       updateData.name = userData.name;
       createData.name = userData.name;
+    }
+    if (userData.username) {
+      updateData.username = userData.username;
+      createData.username = userData.username;
     }
     if (userData.email) {
       updateData.email = userData.email;

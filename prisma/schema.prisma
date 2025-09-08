@@ -53,6 +53,7 @@ model Team {
 model User {
   id              String                @id @default(uuid())
   slackUserId     String                @unique @map("slack_user_id")
+  username        String?
   email           String?
   name            String?
   timezone        String                @default("America/New_York")
