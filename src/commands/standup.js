@@ -416,19 +416,20 @@ async function handleStandupSubmission({ ack, body, view, client }) {
 
     // Determine if submission is late
     const now = dayjs();
-    const teams = await teamService.listTeams(body.user.id);
-    const team = teams.find((t) => t.id === teamId);
+    const team = await teamService.getTeamById(teamId);
 
     let isLate = false;
     if (team) {
       const [postingHour, postingMinute] = team.postingTime
         .split(":")
         .map(Number);
-      const postingTime = now
+      const postingTime = dayjs()
+        .tz(team.timezone)
         .startOf("day")
         .hour(postingHour)
         .minute(postingMinute);
-      isLate = now.isAfter(postingTime);
+      const nowInTeamTz = dayjs().tz(team.timezone);
+      isLate = nowInTeamTz.isAfter(postingTime);
     }
 
     // Save response
