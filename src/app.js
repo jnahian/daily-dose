@@ -18,6 +18,15 @@ setupWorkflows(app);
 // Initialize scheduler
 schedulerService.initialize(app);
 
+// Health check endpoint
+app.receiver.app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    service: 'daily-dose-bot'
+  });
+});
+
 // Basic health check
 app.message("hello", async ({ message, say }) => {
   await say(`Hey there <@${message.user}>! Daily Dose bot is running.`);

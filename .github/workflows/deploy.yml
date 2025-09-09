@@ -1,0 +1,81 @@
+name: Deploy to Hetzner VPS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            set -e
+            # Navigate to app directory
+            cd /home/${{ secrets.VPS_USERNAME }}/dd.storeseo.dev
+
+            # Stop the application
+            pm2 stop daily-dose-bot || echo "App not running"
+
+            # Pull latest changes
+            git pull origin main
+
+            # Install dependencies
+            npm ci
+
+            # Generate Prisma client
+            npx prisma generate
+
+            # Run database migrations
+            npx prisma db push
+
+            # Start/restart the application with PM2
+            pm2 start ecosystem.config.js --env production || pm2 restart daily-dose-bot
+
+            # Save PM2 configuration
+            pm2 save
+
+            echo "Deployment completed successfully!"
+
+  health-check:
+    name: Health Check
+    runs-on: ubuntu-latest
+    needs: deploy
+
+    steps:
+      - name: Wait for deployment
+        run: sleep 30
+
+      - name: Check application health
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.VPS_HOST }}:${{ secrets.APP_PORT }}/health || echo "000")
+          if [ "$response" = "200" ]; then
+            echo "✅ Application is healthy"
+          else
+            echo "❌ Health check failed with status: $response"
+            exit 1
+          fi
