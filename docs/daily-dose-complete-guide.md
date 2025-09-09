@@ -22,14 +22,40 @@ npm init -y
 
 ```bash
 # Core dependencies
-npm install @slack/bolt @supabase/supabase-js dotenv node-cron dayjs
-npm install @prisma/client
+npm install @slack/bolt dayjs dotenv node-cron @prisma/client
 
 # Development dependencies
 npm install -D prisma nodemon eslint typescript @types/node
 ```
 
-### Step 1.3: Initialize Prisma ✅
+### Step 1.3: Environment Variables ✅
+
+Create `.env` file:
+
+```env
+# Slack Credentials
+SLACK_BOT_TOKEN=xoxb-your-bot-token
+SLACK_SIGNING_SECRET=your-signing-secret
+SLACK_APP_TOKEN=xapp-your-app-token
+SLACK_USER_TOKEN=xoxp-your-user-token
+
+# Database URLs
+DATABASE_URL="postgresql://user:password@host:5432/database"
+DIRECT_URL="postgresql://user:password@host:5432/database"
+
+# App Settings
+PORT=3000
+HOST=localhost
+DEFAULT_TIMEZONE=America/New_York
+APP_URL=https://your-domain.com
+NODE_ENV=development
+
+# Logging
+LOG_LEVEL=info
+SENTRY_DSN=your-sentry-dsn
+```
+
+### Step 1.4: Initialize Prisma ✅
 
 ```bash
 npx prisma init
@@ -45,24 +71,37 @@ daily-dose/
 ├── src/
 │   ├── app.js                  # Main application entry
 │   ├── config/
-│   │   ├── prisma.js          # Prisma client instance
-│   │   └── slack.js           # Slack app configuration
+│   │   └── prisma.js          # Prisma client instance
 │   ├── commands/
+│   │   ├── index.js           # Command registration with middleware
 │   │   ├── team.js            # Team management commands
 │   │   ├── leave.js           # Leave management commands
-│   │   └── standup.js         # Manual standup commands
+│   │   ├── standup.js         # Standup commands (manual & update)
+│   │   └── holiday.js         # Holiday management commands
 │   ├── workflows/
-│   │   └── standupFlow.js     # Standup workflow definition
+│   │   └── index.js           # Future workflow implementations
 │   ├── services/
 │   │   ├── teamService.js     # Team CRUD operations
 │   │   ├── userService.js     # User management
 │   │   ├── standupService.js  # Standup logic
 │   │   └── schedulerService.js # Cron job management
+│   ├── middleware/
+│   │   ├── command.js         # Command formatting removal
+│   │   └── logging.js         # Request/response logging
 │   ├── utils/
-│   │   ├── timezone.js        # Timezone utilities
-│   │   └── dateHelper.js      # Date/holiday checking
+│   │   ├── dateHelper.js      # Date/holiday checking
+│   │   ├── logger.js          # Logging utilities
+│   │   ├── commandHelper.js   # Command processing helpers
+│   │   ├── messageHelper.js   # Message formatting helpers
+│   │   ├── blockHelper.js     # Slack block UI helpers
+│   │   └── userHelper.js      # User data helpers
 │   └── scripts/
-│       └── seedOrg.js          # Manual organization setup
+│       ├── seedOrg.js         # Manual organization setup
+│       ├── updateSlackManifest.js # Slack manifest management
+│       ├── triggerStandup.js  # Manual standup triggers
+│       ├── sendManualStandup.js # Manual standup posting
+│       ├── viewSlackTeamInfo.js # Slack team information
+│       └── check-team-members.js # Team member validation
 ├── .env
 └── package.json
 ```
@@ -267,13 +306,13 @@ model Holiday {
 
 // Enums
 enum OrgRole {
-  OWNER
-  ADMIN
+  OWNER    // ⚠️ highest admin level
+  ADMIN    // ⚠️ organization admin
   MEMBER
 }
 
 enum TeamRole {
-  ADMIN
+  ADMIN    // ⚠️ team admin
   MEMBER
 }
 ```
@@ -291,7 +330,7 @@ npx prisma migrate deploy
 npx prisma studio
 ```
 
-### Step 2.5: Manual Organization Setup Script (`src/scripts/seedOrg.js`) ✅
+### Step 2.5: Manual Organization Setup Script (`scripts/seedOrg.js`) ✅
 
 ```javascript
 const { PrismaClient } = require("@prisma/client");
@@ -317,7 +356,7 @@ async function seedOrganization() {
     console.log("✅ Organization created:", org.name);
     console.log("Organization ID:", org.id);
 
-    // Optionally create initial admin user
+    // Optionally create initial admin user ⚠️
     const adminSlackId = "U0123ADMIN"; // Your Slack user ID
     if (adminSlackId) {
       const user = await prisma.user.upsert({
@@ -350,7 +389,7 @@ async function seedOrganization() {
 seedOrganization();
 ```
 
-Run with: `node src/scripts/seedOrg.js`
+Run with: `npm run seed` or `node scripts/seedOrg.js`
 
 ## Phase 3: Slack App Configuration
 
@@ -384,14 +423,34 @@ Add these Bot Token Scopes:
 
 ### Step 3.4: Create Slash Commands
 
-- `/dd-team-create` - Create a new team
+**Note**: Commands marked with ⚠️ require admin permissions in your organization.
+
+**Standup Commands:**
+- `/dd-standup` - Submit standup manually
+- `/dd-standup-update` - Update standup for any day
+
+**Team Management Commands:**
+- `/dd-team-create` - Create a new team ⚠️ **(admin only)**
+- `/dd-team-update` - Update team settings ⚠️ **(admin only)**
 - `/dd-team-join` - Join a team
+- `/dd-team-leave` - Leave a team
 - `/dd-team-list` - List all teams
+- `/dd-team-members` - View team members
+
+**Leave Management Commands:**
 - `/dd-leave-set` - Set leave dates
+- `/dd-leave-list` - List your leaves
 - `/dd-leave-cancel` - Cancel leave
+
+**Work Days Commands:**
 - `/dd-workdays-set` - Set personal work days
 - `/dd-workdays-show` - Show current work days
-- `/dd-standup` - Submit standup manually
+
+**Holiday Management Commands ⚠️ (Admin Only):**
+- `/dd-holiday-set` - Set holidays ⚠️ **(admin only)**
+- `/dd-holiday-update` - Update holiday name ⚠️ **(admin only)**
+- `/dd-holiday-delete` - Delete holidays ⚠️ **(admin only)**
+- `/dd-holiday-list` - List holidays
 
 ## Phase 4: Core Implementation
 
@@ -414,17 +473,19 @@ module.exports = prisma;
 
 ```javascript
 require("dotenv").config();
-const { App } = require("@slack/bolt");
-const cron = require("node-cron");
+const { App, ExpressReceiver } = require("@slack/bolt");
 const prisma = require("./config/prisma");
 const { setupCommands } = require("./commands");
 const { setupWorkflows } = require("./workflows");
-const { initializeScheduler } = require("./services/schedulerService");
+const schedulerService = require("./services/schedulerService");
+
+const receiver = new ExpressReceiver({
+  signingSecret: process.env.SLACK_SIGNING_SECRET
+});
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
-  signingSecret: process.env.SLACK_SIGNING_SECRET,
-  socketMode: false,
+  receiver
 });
 
 // Setup commands and workflows
@@ -432,16 +493,37 @@ setupCommands(app);
 setupWorkflows(app);
 
 // Initialize scheduler
-initializeScheduler(app);
+schedulerService.initialize(app);
+
+// Health check endpoint
+receiver.app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+    service: "daily-dose",
+  });
+});
+
+// Basic health check
+app.message("hello", async ({ message, say }) => {
+  await say(`Hey there <@${message.user}>! Daily Dose bot is running.`);
+});
 
 // Start app
 (async () => {
-  await app.start(process.env.PORT || 3000);
-  console.log("⚡️ Daily Dose bot is running!");
+  const port = process.env.PORT || 3000;
+  const host = process.env.HOST || "localhost";
+  await app.start(port);
+  console.log(`⚡️ Daily Dose bot is running on ${host}:${port}`);
 })();
 
 // Graceful shutdown
 process.on("SIGTERM", async () => {
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
+process.on("SIGINT", async () => {
   await prisma.$disconnect();
   process.exit(0);
 });
@@ -596,7 +678,7 @@ class TeamService {
       throw new Error("You must belong to an organization to create teams");
     }
 
-    // Check permissions
+    // Check permissions (⚠️ admin only)
     const canCreate = await userService.canCreateTeam(user.id, org.id);
     if (!canCreate) {
       throw new Error("You need admin permissions to create teams");
@@ -624,12 +706,12 @@ class TeamService {
         },
       });
 
-      // Add creator as team admin
+      // Add creator as team admin ⚠️
       await tx.teamMember.create({
         data: {
           teamId: team.id,
           userId: user.id,
-          role: "ADMIN",
+          role: "ADMIN", // ⚠️ admin role
         },
       });
 
@@ -1004,7 +1086,108 @@ class StandupService {
 module.exports = new StandupService();
 ```
 
-### Step 4.6: Scheduler Service (`src/services/schedulerService.js`)
+### Step 4.6: Holiday Commands (`src/commands/holiday.js`) ✅
+
+```javascript
+const prisma = require("../config/prisma");
+const userService = require("../services/userService");
+const { ackWithProcessing } = require("../utils/commandHelper");
+const { createSectionBlock } = require("../utils/blockHelper");
+const dayjs = require("dayjs");
+
+async function setHoliday({ command, ack, respond, client }) {
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "Setting holiday...",
+    command
+  );
+
+  try {
+    // Check admin permissions ⚠️
+    const userData = await userService.fetchSlackUserData(
+      command.user_id,
+      client
+    );
+    const user = await userService.findOrCreateUser(command.user_id, userData);
+    const org = await userService.getUserOrganization(command.user_id);
+
+    if (!org) {
+      await updateResponse({
+        text: "❌ You must belong to an organization to manage holidays",
+      });
+      return;
+    }
+
+    const canManage = await userService.canCreateTeam(user.id, org.id);
+    if (!canManage) {
+      await updateResponse({
+        text: "❌ You need admin permissions to manage holidays",
+      });
+      return;
+    }
+
+    // Parse command: /dd-holiday-set YYYY-MM-DD [YYYY-MM-DD] [name]
+    const args = command.text.trim().split(" ");
+
+    if (args.length < 1 || !args[0]) {
+      await updateResponse({
+        text: "❌ Usage: `/dd-holiday-set YYYY-MM-DD [YYYY-MM-DD] [name]`\nExamples:\n- `/dd-holiday-set 2024-12-25 Christmas Day`\n- `/dd-holiday-set 2024-12-24 2024-12-26 Christmas Holiday`",
+      });
+      return;
+    }
+
+    // Implementation details for holiday setting...
+    // (Full implementation available in actual codebase)
+  } catch (error) {
+    await updateResponse({
+      text: `❌ Error: ${error.message}`,
+    });
+  }
+}
+
+module.exports = {
+  setHoliday,
+  updateHoliday,
+  deleteHoliday,
+  listHolidays,
+};
+```
+
+### Step 4.7: Middleware (`src/middleware/command.js`) ✅
+
+```javascript
+/**
+ * Middleware to strip Slack's automatic formatting from command text
+ * Slack automatically adds formatting like <@U123456> for mentions
+ * and <#C123456|channel-name> for channels, which we need to clean
+ */
+function stripFormatting() {
+  return async ({ command, next }) => {
+    if (command.text) {
+      // Remove user mentions: <@U123456> -> @username
+      command.text = command.text.replace(/<@([UW][A-Z0-9]+)(\|([^>]+))?>/g, '@$3');
+      
+      // Remove channel mentions: <#C123456|channel-name> -> #channel-name
+      command.text = command.text.replace(/<#([CD][A-Z0-9]+)(\|([^>]+))?>/g, '#$3');
+      
+      // Remove link formatting: <https://example.com|example.com> -> https://example.com
+      command.text = command.text.replace(/<(https?:\/\/[^|>]+)(\|([^>]+))?>/g, '$1');
+      
+      // Remove special characters used by Slack
+      command.text = command.text.replace(/&lt;/g, '<')
+                                 .replace(/&gt;/g, '>')
+                                 .replace(/&amp;/g, '&');
+    }
+    
+    await next();
+  };
+}
+
+module.exports = { stripFormatting };
+```
+
+### Step 4.8: Scheduler Service (`src/services/schedulerService.js`)
 
 ```javascript
 const cron = require("node-cron");
@@ -1367,27 +1550,43 @@ module.exports = {
 const teamCommands = require("./team");
 const leaveCommands = require("./leave");
 const standupCommands = require("./standup");
+const holidayCommands = require("./holiday");
+const { stripFormatting } = require("../middleware/command");
 
 function setupCommands(app) {
-  // Team commands
-  app.command("/dd-team-create", teamCommands.createTeam);
-  app.command("/dd-team-join", teamCommands.joinTeam);
-  app.command("/dd-team-list", teamCommands.listTeams);
+  // Standup commands (primary functionality) - wrapped with formatting removal middleware
+  app.command("/dd-standup", stripFormatting(), standupCommands.submitManual);
+  app.command("/dd-standup-update", stripFormatting(), standupCommands.updateStandup);
 
-  // Leave commands
-  app.command("/dd-leave-set", leaveCommands.setLeave);
-  app.command("/dd-leave-cancel", leaveCommands.cancelLeave);
+  // Team management commands - wrapped with formatting removal middleware
+  app.command("/dd-team-list", stripFormatting(), teamCommands.listTeams);
+  app.command("/dd-team-join", stripFormatting(), teamCommands.joinTeam);
+  app.command("/dd-team-leave", stripFormatting(), teamCommands.leaveTeam);
+  app.command("/dd-team-members", stripFormatting(), teamCommands.listMembers);
+  app.command("/dd-team-create", stripFormatting(), teamCommands.createTeam); // ⚠️ admin only
+  app.command("/dd-team-update", stripFormatting(), teamCommands.updateTeam); // ⚠️ admin only
 
-  // Work days commands
-  app.command("/dd-workdays-set", leaveCommands.setWorkDays);
-  app.command("/dd-workdays-show", leaveCommands.showWorkDays);
+  // Leave management commands - wrapped with formatting removal middleware
+  app.command("/dd-leave-list", stripFormatting(), leaveCommands.listLeaves);
+  app.command("/dd-leave-set", stripFormatting(), leaveCommands.setLeave);
+  app.command("/dd-leave-cancel", stripFormatting(), leaveCommands.cancelLeave);
 
-  // Standup commands
-  app.command("/dd-standup", standupCommands.submitManual);
+  // Work days configuration commands - wrapped with formatting removal middleware
+  app.command("/dd-workdays-show", stripFormatting(), leaveCommands.showWorkDays);
+  app.command("/dd-workdays-set", stripFormatting(), leaveCommands.setWorkDays);
 
-  // Button actions
+  // Holiday management commands - wrapped with formatting removal middleware ⚠️ admin only
+  app.command("/dd-holiday-set", stripFormatting(), holidayCommands.setHoliday);
+  app.command("/dd-holiday-update", stripFormatting(), holidayCommands.updateHoliday);
+  app.command("/dd-holiday-delete", stripFormatting(), holidayCommands.deleteHoliday);
+  app.command("/dd-holiday-list", stripFormatting(), holidayCommands.listHolidays);
+
+  // Interactive components (no formatting removal needed for these)
   app.action(/open_standup_.*/, standupCommands.openStandupModal);
   app.view("standup_modal", standupCommands.handleStandupSubmission);
+  app.view("standup_update_modal", standupCommands.handleStandupUpdateSubmission);
+
+  console.log("✅ Commands registered with formatting removal middleware");
 }
 
 module.exports = { setupCommands };
@@ -1402,7 +1601,7 @@ async function createTeam({ command, ack, respond }) {
   await ack();
 
   try {
-    // Parse command text: /dd-team-create TeamName 09:30 10:00
+    // Parse command text: /dd-team-create TeamName 09:30 10:00 (⚠️ admin only)
     const [name, standupTime, postingTime] = command.text.split(" ");
 
     if (!name || !standupTime || !postingTime) {
@@ -2012,7 +2211,7 @@ ngrok http 3000
 ### Step 6.2: Test Scenarios
 
 1. **Organization Setup**: Run seed script
-2. **Team Creation**: Create teams with different times
+2. **Team Creation** ⚠️ **(Admin Only)**: Create teams with different times
 3. **Member Management**: Join teams, verify permissions
 4. **Standup Flow**: Test reminders and submissions
 5. **Leave Management**: Set leaves, verify exclusion
@@ -2116,7 +2315,7 @@ The system supports individual work day preferences while maintaining organizati
    - AI-powered insights
    - Flexible work schedules (different days per week)
 
-3. **Admin Panel**
+3. **Admin Panel** ⚠️ **(Admin Only)**
    - Web interface for org management
    - Bulk user operations
    - Report generation
