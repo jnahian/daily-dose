@@ -13,7 +13,7 @@ module.exports = {
       },
       env_production: {
         NODE_ENV: "production",
-        PORT: process.env.PORT || 3000,
+        PORT: process.env.PORT || 3090,
       },
       error_file: "./logs/err.log",
       out_file: "./logs/out.log",
