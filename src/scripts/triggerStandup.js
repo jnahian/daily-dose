@@ -82,39 +82,6 @@ async function triggerFollowupReminder(teamName) {
   }
 }
 
-async function postTeamStandup(teamName) {
-  try {
-    console.log(`📊 Posting standup summary for team: ${teamName}`);
-
-    const team = await prisma.team.findFirst({
-      where: {
-        name: {
-          equals: teamName,
-          mode: "insensitive",
-        },
-        isActive: true,
-      },
-      include: {
-        organization: true,
-      },
-    });
-
-    if (!team) {
-      throw new Error(`Team "${teamName}" not found`);
-    }
-
-    console.log(`📋 Found team: ${team.name} (ID: ${team.id})`);
-
-    await schedulerService.initialize(app);
-    await schedulerService.postTeamStandup(team);
-
-    console.log(`✅ Standup summary posted for team: ${team.name}`);
-  } catch (error) {
-    console.error("❌ Error posting standup summary:", error.message);
-    process.exit(1);
-  }
-}
-
 async function listTeams() {
   try {
     console.log("📋 Available teams:\n");
@@ -139,7 +106,7 @@ async function listTeams() {
     }
 
     // Format data for table display
-    const tableData = teams.map(team => ({
+    const tableData = teams.map((team) => ({
       "Team Name": team.name,
       Members: team._count.members,
       Channel: team.slackChannelId,
@@ -171,13 +138,11 @@ Commands:
   list                      - List all active teams
   reminder "<teamName>"     - Send standup reminders to team members
   followup "<teamName>"     - Send follow-up reminders to pending members
-  post "<teamName>"         - Post standup summary to team channel
 
 Examples:
   node src/scripts/triggerStandup.js list
   node src/scripts/triggerStandup.js reminder "Engineering Team"
   node src/scripts/triggerStandup.js followup "Marketing Team"
-  node src/scripts/triggerStandup.js post "Product Team"
 
 Note: Use quotes around team names that contain spaces
     `);
@@ -201,13 +166,6 @@ Note: Use quotes around team names that contain spaces
         process.exit(1);
       }
       await triggerFollowupReminder(teamName);
-      break;
-    case "post":
-      if (!teamName) {
-        console.error("❌ Team name is required for post command");
-        process.exit(1);
-      }
-      await postTeamStandup(teamName);
       break;
     default:
       console.error(`❌ Unknown command: ${command}`);
