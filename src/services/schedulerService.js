@@ -51,7 +51,7 @@ class SchedulerService {
     const postingMinute = parseInt(postingTime.split(":")[1]);
 
     // Schedule standup reminder
-    const standupCron = `${standupMinute} ${standupHour} * * 1-7`; // All days, we'll filter by user work days
+    const standupCron = `${standupMinute} ${standupHour} * * 0-6`; // All days (0=Sunday, 6=Saturday), we'll filter by user work days
     const standupJobId = `dd-${team.name.toLowerCase().replace(/\s+/g, "-")}`;
 
     // Cancel existing job if any
@@ -79,6 +79,7 @@ class SchedulerService {
       {
         timezone,
         scheduled: true,
+        name: standupJobId,
       }
     );
 
@@ -86,11 +87,12 @@ class SchedulerService {
 
     // Schedule follow-up reminder (15 minutes later)
     const followupTime = dayjs()
+      .tz(timezone)
       .hour(standupHour)
       .minute(standupMinute)
       .add(15, "minute");
 
-    const followupCron = `${followupTime.minute()} ${followupTime.hour()} * * 1-7`;
+    const followupCron = `${followupTime.minute()} ${followupTime.hour()} * * 0-6`;
     const followupJobId = `followup-${team.id}`;
 
     if (this.scheduledJobs.has(followupJobId)) {
@@ -105,13 +107,14 @@ class SchedulerService {
       {
         timezone,
         scheduled: true,
+        name: followupJobId,
       }
     );
 
     this.scheduledJobs.set(followupJobId, followupJob);
 
     // Schedule posting time
-    const postingCron = `${postingMinute} ${postingHour} * * 1-7`;
+    const postingCron = `${postingMinute} ${postingHour} * * 0-6`;
     const postingJobId = `posting-${team.id}`;
 
     if (this.scheduledJobs.has(postingJobId)) {
@@ -126,6 +129,7 @@ class SchedulerService {
       {
         timezone,
         scheduled: true,
+        name: postingJobId,
       }
     );
 
