@@ -379,8 +379,8 @@ async function handleStandupSubmission({ ack, body, view, client }) {
     }
 
     // Determine if submission is late
-    const now = dayjs();
     const team = await teamService.getTeamById(teamId);
+    const now = dayjs().tz(team.timezone);
 
     let isLate = false;
     if (team) {
