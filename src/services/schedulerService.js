@@ -52,7 +52,7 @@ class SchedulerService {
 
     // Schedule standup reminder
     const standupCron = `${standupMinute} ${standupHour} * * 1-7`; // All days, we'll filter by user work days
-    const standupJobId = `standup-${team.id}`;
+    const standupJobId = `dd-${team.name.toLowerCase().replace(/\s+/g, "-")}`;
 
     // Cancel existing job if any
     if (this.scheduledJobs.has(standupJobId)) {
@@ -119,7 +119,9 @@ class SchedulerService {
 
     this.scheduledJobs.set(postingJobId, postingJob);
 
-    console.log(`✅ Scheduled team: ${team.name} (${timezone})`);
+    console.log(
+      `✅ Scheduled team: ${team.name} (${timezone}), Standup: ${standupTime}, Posting: ${postingTime}`
+    );
   }
 
   async sendStandupReminders(team) {
