@@ -18,8 +18,13 @@
     "team:members": "node scripts/check-team-members.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "slack",
+    "bot",
+    "standup",
+    "reminder"
+  ],
+  "author": "Sh Julkar Naen Nahian",
   "license": "ISC",
   "description": "",
   "dependencies": {
