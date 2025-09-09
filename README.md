@@ -25,8 +25,8 @@ When you first interact with the bot, you'll be automatically added to your orga
 /dd-team-join Engineering        # Join an existing team
 /dd-team-leave Engineering       # Leave a team
 /dd-team-members Engineering     # View team members
-/dd-team-update Engineering standup=09:00  # Update team settings (admin only)
 /dd-team-create MyTeam 09:30 10:00  # Create new team (admin only)
+/dd-team-update Engineering standup=09:00  # Update team settings (admin only)
 ```
 
 ### 3. Submit Your Daily Standup
@@ -39,38 +39,38 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
 
 ## Slash Commands
 
+### Standup Submission
+
+- `/dd-standup [team-name]` - Submit standup manually outside scheduled time
+- The bot also sends automatic DM reminders with interactive buttons
+
 ### Team Management
 
-- `/dd-team-create <name> <standup-time> <posting-time>` - Create a new team
-  - Example: `/dd-team-create Engineering 09:30 10:00`
-  - Requires admin permissions
+- `/dd-team-list` - List all teams in your organization
 - `/dd-team-join <team-name>` - Join an existing team
 - `/dd-team-leave <team-name>` - Leave a team you're currently a member of
-- `/dd-team-list` - List all teams in your organization
 - `/dd-team-members <team-name>` - View all members of a specific team
+- `/dd-team-create <name> <standup-time> <posting-time>` - Create a new team (admin only)
+  - Example: `/dd-team-create Engineering 09:30 10:00`
+  - Requires admin permissions
 - `/dd-team-update <team-name> [parameters]` - Update team settings (admin only)
   - Example: `/dd-team-update Engineering standup=09:00 posting=10:30`
   - Parameters: `name=NewName`, `standup=HH:MM`, `posting=HH:MM`
 
 ### Leave Management
 
+- `/dd-leave-list` - View your upcoming leaves
 - `/dd-leave-set <start-date> [end-date] [reason]` - Set leave dates
   - Single day: `/dd-leave-set 2024-12-25 Holiday`
   - Date range: `/dd-leave-set 2024-12-25 2024-12-26 Holiday break`
-- `/dd-leave-list` - View your upcoming leaves
 - `/dd-leave-cancel <leave-id>` - Cancel a leave (use ID from list command)
 
 ### Work Days Configuration
 
-- `/dd-workdays-set <days>` - Set your working days
-  - Example: `/dd-workdays-set 1,2,3,4,5` (Monday-Friday)
-  - Numbers: 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday, 7=Sunday
 - `/dd-workdays-show` - View your current work days
-
-### Standup Submission
-
-- `/dd-standup [team-name]` - Submit standup manually outside scheduled time
-- The bot also sends automatic DM reminders with interactive buttons
+- `/dd-workdays-set <days>` - Set your working days
+  - Example: `/dd-workdays-set 1,2,3,4,5` (Monday-Friday)  
+  - Numbers: 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday, 7=Sunday
 
 ## How It Works
 
