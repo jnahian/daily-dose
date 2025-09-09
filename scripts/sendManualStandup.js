@@ -2,14 +2,14 @@
 
 require("dotenv").config();
 const { App } = require("@slack/bolt");
-const prisma = require("../config/prisma");
-const standupService = require("../services/standupService");
+const prisma = require("../src/config/prisma");
+const standupService = require("../src/services/standupService");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
-const { getUserLogIdentifier, getUserMention } = require("../utils/userHelper");
-const { formatTime12Hour } = require("../utils/dateHelper");
-const { createSectionBlock, createButton, createActionsBlock } = require("../utils/blockHelper");
+const { getUserLogIdentifier, getUserMention } = require("../src/utils/userHelper");
+const { formatTime12Hour } = require("../src/utils/dateHelper");
+const { createSectionBlock, createButton, createActionsBlock } = require("../src/utils/blockHelper");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

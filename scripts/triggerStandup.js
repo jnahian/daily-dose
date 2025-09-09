@@ -2,8 +2,8 @@
 
 require("dotenv").config();
 const { App } = require("@slack/bolt");
-const prisma = require("../config/prisma");
-const schedulerService = require("../services/schedulerService");
+const prisma = require("../src/config/prisma");
+const schedulerService = require("../src/services/schedulerService");
 
 // Initialize Slack app
 const app = new App({

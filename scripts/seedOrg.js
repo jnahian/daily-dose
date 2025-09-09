@@ -1,4 +1,4 @@
-const prisma = require("../config/prisma");
+const prisma = require("../src/config/prisma");
 
 async function seedOrganization() {
   try {
