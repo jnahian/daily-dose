@@ -6,6 +6,7 @@ const timezone = require("dayjs/plugin/timezone");
 const advancedFormat = require("dayjs/plugin/advancedFormat");
 const { isWorkingDay } = require("../utils/dateHelper");
 const { getUserMention, getDisplayName } = require("../utils/userHelper");
+const { formatTasks } = require("../utils/messageHelper");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -64,6 +65,9 @@ class StandupService {
     isLate = false,
     slackClient = null
   ) {
+    console.log('🔍 [STANDUP DEBUG] saveResponse called with:');
+    console.log('  Raw responseData:', JSON.stringify(responseData, null, 2));
+    
     const userData = await userService.fetchSlackUserData(
       slackUserId,
       slackClient
@@ -71,6 +75,13 @@ class StandupService {
     const user = await userService.findOrCreateUser(slackUserId, userData);
 
     const standupDate = dayjs(responseData.date).startOf("day").toDate();
+    
+    console.log('🔍 [STANDUP DEBUG] About to save to database:');
+    console.log('  yesterdayTasks length:', responseData.yesterdayTasks?.length || 0);
+    console.log('  todayTasks length:', responseData.todayTasks?.length || 0);
+    console.log('  blockers length:', responseData.blockers?.length || 0);
+    console.log('  yesterdayTasks preview:', responseData.yesterdayTasks?.substring(0, 100) || 'empty');
+    console.log('  todayTasks preview:', responseData.todayTasks?.substring(0, 100) || 'empty');
 
     return await prisma.standupResponse.upsert({
       where: {
@@ -213,18 +224,6 @@ class StandupService {
         },
       });
 
-      // Format tasks into bullet points
-      const formatTasks = (tasks) => {
-        if (!tasks) return "";
-        return tasks
-          .split("\n")
-          .filter((line) => line.trim())
-          .map((line) =>
-            line.startsWith("-") ? line : `- ${line.replace("-", "")}`
-          )
-          .join("\n");
-      };
-
       const yesterdayFormatted = formatTasks(response.yesterdayTasks);
       const todayFormatted = formatTasks(response.todayTasks);
 
@@ -328,18 +327,6 @@ class StandupService {
         },
       },
     ];
-
-    // Format tasks into bullet points
-    const formatTasks = (tasks) => {
-      if (!tasks) return "";
-      return tasks
-        .split("\n")
-        .filter((line) => line.trim())
-        .map((line) =>
-          line.startsWith("-") || line.startsWith("-") ? line : `- ${line}`
-        )
-        .join("\n");
-    };
 
     const yesterdayFormatted = formatTasks(response.yesterdayTasks);
     const todayFormatted = formatTasks(response.todayTasks);

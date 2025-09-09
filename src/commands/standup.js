@@ -347,6 +347,8 @@ async function handleStandupSubmission({ ack, body, view, client }) {
   try {
     const { teamId } = JSON.parse(view.private_metadata);
     const values = view.state.values;
+    
+    console.log('🔍 [STANDUP DEBUG] Raw view.state.values:', JSON.stringify(values, null, 2));
 
     // Extract rich text values and convert to plain text
     const extractRichTextValue = (richTextValue) => {
@@ -391,6 +393,11 @@ async function handleStandupSubmission({ ack, body, view, client }) {
       extractRichTextValue(values.today_tasks?.today_input) || "";
     const blockers =
       extractRichTextValue(values.blockers?.blockers_input) || "";
+    
+    console.log('🔍 [STANDUP DEBUG] Extracted values:');
+    console.log('  Yesterday Tasks:', JSON.stringify(yesterdayTasks));
+    console.log('  Today Tasks:', JSON.stringify(todayTasks));
+    console.log('  Blockers:', JSON.stringify(blockers));
 
     // Check if at least one field is filled
     if (!yesterdayTasks && !todayTasks && !blockers) {
@@ -433,15 +440,23 @@ async function handleStandupSubmission({ ack, body, view, client }) {
     }
 
     // Save response
+    const responseData = {
+      date: now.toDate(),
+      yesterdayTasks,
+      todayTasks,
+      blockers,
+    };
+    
+    console.log('🔍 [STANDUP DEBUG] Data being saved to database:');
+    console.log('  TeamId:', teamId);
+    console.log('  UserId:', body.user.id);
+    console.log('  ResponseData:', JSON.stringify(responseData, null, 2));
+    console.log('  IsLate:', isLate);
+    
     await standupService.saveResponse(
       teamId,
       body.user.id,
-      {
-        date: now.toDate(),
-        yesterdayTasks,
-        todayTasks,
-        blockers,
-      },
+      responseData,
       isLate,
       client
     );
