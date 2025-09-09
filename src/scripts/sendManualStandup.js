@@ -315,16 +315,23 @@ async function sendManualStandup(teamName, options = {}) {
       ...message,
     });
 
-    // Save message timestamp for threading late responses
-    await standupService.saveStandupPost(
-      team.id,
-      targetDate.toDate(),
-      result.ts,
-      team.slackChannelId
-    );
-
     console.log(`✅ Standup posted successfully to ${team.slackChannelId}`);
     console.log(`📝 Message timestamp: ${result.ts}`);
+    
+    // Save message timestamp for threading late responses
+    console.log(`💾 Saving standup post to database...`);
+    try {
+      const savedPost = await standupService.saveStandupPost(
+        team.id,
+        targetDate.toDate(),
+        result.ts,
+        team.slackChannelId
+      );
+      console.log(`✅ Standup post saved successfully with ID: ${savedPost.id}`);
+    } catch (saveError) {
+      console.error(`❌ Failed to save standup post:`, saveError);
+      throw saveError; // Re-throw for manual scripts since this is critical
+    }
 
     // Post late responses as threaded replies if any exist
     if (lateResponses.length > 0) {

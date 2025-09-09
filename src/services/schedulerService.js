@@ -351,23 +351,39 @@ class SchedulerService {
     );
 
     try {
+      console.log(`📤 Posting standup message for team ${team.name}...`);
       const result = await this.app.client.chat.postMessage({
         channel: team.slackChannelId,
         ...message,
       });
 
+      console.log(`✅ Message posted successfully with timestamp: ${result.ts}`);
+      console.log(`💾 Saving standup post to database...`);
+
       // Save message timestamp for threading late responses
-      await standupService.saveStandupPost(
-        team.id,
-        now.toDate(),
-        result.ts,
-        team.slackChannelId
-      );
+      try {
+        const savedPost = await standupService.saveStandupPost(
+          team.id,
+          now.toDate(),
+          result.ts,
+          team.slackChannelId
+        );
+        console.log(`✅ Standup post saved successfully with ID: ${savedPost.id}`);
+      } catch (saveError) {
+        console.error(`❌ Failed to save standup post for team ${team.name}:`, saveError);
+        // Don't throw here - we still want to try posting late responses
+      }
 
       // Post any existing late responses as threaded replies
-      await this.postLateResponses(team, now.toDate());
+      console.log(`📝 Checking for late responses...`);
+      try {
+        await this.postLateResponses(team, now.toDate());
+      } catch (lateResponseError) {
+        console.error(`❌ Failed to post late responses for team ${team.name}:`, lateResponseError);
+        // Don't throw here either - the main post was successful
+      }
     } catch (error) {
-      console.error(`Failed to post standup for team ${team.name}:`, error);
+      console.error(`❌ Failed to post standup for team ${team.name}:`, error);
     }
   }
 
