@@ -513,13 +513,13 @@ async function listHolidays({ command, ack, respond, client }) {
     }
 
     // Format holidays for display
-    let message = `📅 **Holidays${titleSuffix}** (${holidays.length} found)\n\n`;
+    let message = `📅 *Holidays${titleSuffix}* (${holidays.length} found)\n\n`;
 
     holidays.forEach((holiday) => {
       const holidayDate = dayjs(holiday.date);
       const formattedDate = holidayDate.format("ddd, MMM D, YYYY");
       const holidayName = holiday.name || "Holiday";
-      message += `• **${formattedDate}** - ${holidayName}\n`;
+      message += `• *${formattedDate}* - ${holidayName}\n`;
     });
 
     const finalMessage = message.trim();
