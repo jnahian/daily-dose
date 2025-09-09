@@ -93,7 +93,7 @@ async function setHoliday({ command, ack, respond, client }) {
     const holidayRecords = [];
     let currentDate = startDate;
     
-    while (currentDate.isSameOrBefore(endDate)) {
+    while (currentDate.isBefore(endDate) || currentDate.isSame(endDate)) {
       try {
         const holiday = await prisma.holiday.upsert({
           where: {
@@ -310,7 +310,7 @@ async function deleteHoliday({ command, ack, respond, client }) {
     let deletedCount = 0;
     let currentDate = startDate;
     
-    while (currentDate.isSameOrBefore(endDate)) {
+    while (currentDate.isBefore(endDate) || currentDate.isSame(endDate)) {
       try {
         const deleteResult = await prisma.holiday.deleteMany({
           where: {
