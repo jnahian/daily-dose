@@ -7,6 +7,15 @@ const advancedFormat = require("dayjs/plugin/advancedFormat");
 const { isWorkingDay } = require("../utils/dateHelper");
 const { getUserMention, getDisplayName } = require("../utils/userHelper");
 const { formatTasks } = require("../utils/messageHelper");
+const {
+  createSectionBlock,
+  createFieldsBlock,
+  createDividerBlock,
+  createUserResponseBlocks,
+  createLateResponseBlocks,
+  createNotRespondedBlocks,
+  createOnLeaveBlocks,
+} = require("../utils/blockHelper");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -205,94 +214,57 @@ class StandupService {
 
     // Add each response
     for (const response of responses) {
-      // User name section with proper fallback chain
-      blocks.push({
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `*👤 ${getUserMention(response.user)}*`,
-        },
-      });
+      const responseData = {
+        userMention: getUserMention(response.user),
+        yesterdayTasks: formatTasks(response.yesterdayTasks),
+        todayTasks: formatTasks(response.todayTasks),
+        blockers: response.blockers,
+      };
+      
+      // Use modified version of createUserResponseBlocks to match existing format
+      blocks.push(createSectionBlock(`*👤 ${responseData.userMention}*`));
 
-      const yesterdayFormatted = formatTasks(response.yesterdayTasks);
-      const todayFormatted = formatTasks(response.todayTasks);
-
-      // Tasks section with two columns
       const fields = [];
-
-      if (yesterdayFormatted) {
+      if (responseData.yesterdayTasks) {
         fields.push({
           type: "mrkdwn",
-          text: `*📄 Yesterday*\n${yesterdayFormatted}`,
+          text: `*📄 Yesterday*\n${responseData.yesterdayTasks}`,
         });
       }
-
-      if (todayFormatted) {
+      if (responseData.todayTasks) {
         fields.push({
           type: "mrkdwn",
-          text: `*🎯 Today*\n${todayFormatted}`,
+          text: `*🎯 Today*\n${responseData.todayTasks}`,
         });
       }
-
       if (fields.length > 0) {
-        blocks.push({
-          type: "section",
-          fields,
-        });
+        blocks.push(createFieldsBlock(fields));
       }
 
-      // Blockers section
-      if (response.blockers && response.blockers.trim()) {
+      // Blockers section (using existing context format)
+      if (responseData.blockers && responseData.blockers.trim()) {
         blocks.push({
           type: "context",
           elements: [
             {
               type: "mrkdwn",
-              text: `⚠️ *Blocker:* _${response.blockers}_`,
+              text: `⚠️ *Blocker:* _${responseData.blockers}_`,
             },
           ],
         });
       }
 
-      // Add divider after each person
-      blocks.push({
-        type: "divider",
-      });
+      blocks.push(createDividerBlock());
     }
 
-    // Not responded section
+    // Add not responded and on leave sections
     const notResponded = notSubmitted.filter((m) => !m.onLeave);
-    if (notResponded.length > 0) {
-      const notRespondedText = notResponded
-        .map((m) => `- <@${m.slackUserId}>`)
-        .join("\n");
+    blocks.push(...createNotRespondedBlocks(notResponded));
 
-      blocks.push({
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `*📝 Not Responded*\n${notRespondedText}`,
-        },
-      });
-    }
-
-    // On leave section
     const onLeaveMembers = notSubmitted
       .filter((m) => m.onLeave)
       .concat(onLeave);
-    if (onLeaveMembers.length > 0) {
-      const onLeaveText = onLeaveMembers
-        .map((m) => `- <@${m.slackUserId}>`)
-        .join("\n");
-
-      blocks.push({
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `*🌴 On Leave*\n${onLeaveText}`,
-        },
-      });
-    }
+    blocks.push(...createOnLeaveBlocks(onLeaveMembers));
 
     return {
       text: `Daily Standup — ${date}`,
@@ -301,63 +273,15 @@ class StandupService {
   }
 
   async formatLateResponseMessage(response) {
-    const blocks = [
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `🕐 *Late Submission*`,
-        },
-      },
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `*👤 ${getUserMention(response.user)}*`,
-        },
-      },
-    ];
+    const responseData = {
+      userMention: getUserMention(response.user),
+      yesterdayTasks: formatTasks(response.yesterdayTasks),
+      todayTasks: formatTasks(response.todayTasks),
+      blockers: response.blockers,
+    };
 
-    const yesterdayFormatted = formatTasks(response.yesterdayTasks);
-    const todayFormatted = formatTasks(response.todayTasks);
-
-    // Tasks section with two columns
-    const fields = [];
-
-    if (yesterdayFormatted) {
-      fields.push({
-        type: "mrkdwn",
-        text: `*📄 Yesterday*\n${yesterdayFormatted}`,
-      });
-    }
-
-    if (todayFormatted) {
-      fields.push({
-        type: "mrkdwn",
-        text: `*🎯 Today*\n${todayFormatted}`,
-      });
-    }
-
-    if (fields.length > 0) {
-      blocks.push({
-        type: "section",
-        fields,
-      });
-    }
-
-    // Blockers section
-    if (response.blockers && response.blockers.trim()) {
-      blocks.push({
-        type: "context",
-        elements: [
-          {
-            type: "mrkdwn",
-            text: `⚠️ *Blocker:* _${response.blockers}_`,
-          },
-        ],
-      });
-    }
-
+    const blocks = createLateResponseBlocks(responseData);
+    
     return {
       text: `Late Submission from ${getDisplayName(response.user)}`,
       blocks,

@@ -14,6 +14,12 @@ const {
   getRandomStandupMessage,
   getRandomFollowupMessage,
 } = require("../utils/messageHelper");
+const {
+  createStandupReminderBlocks,
+  createSectionBlock,
+  createButton,
+  createActionsBlock,
+} = require("../utils/blockHelper");
 
 class SchedulerService {
   constructor() {
@@ -161,34 +167,11 @@ class SchedulerService {
         await this.app.client.chat.postMessage({
           channel: member.user.slackUserId,
           blocks: [
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: randomMessage,
-              },
-            },
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: `*Team:* ${team.name}`,
-              },
-            },
-            {
-              type: "actions",
-              elements: [
-                {
-                  type: "button",
-                  text: {
-                    type: "plain_text",
-                    text: "📝 Submit Standup",
-                  },
-                  action_id: `open_standup_${team.id}`,
-                  style: "primary",
-                },
-              ],
-            },
+            createSectionBlock(randomMessage),
+            createSectionBlock(`*Team:* ${team.name}`),
+            createActionsBlock([
+              createButton("📝 Submit Standup", `open_standup_${team.id}`, team.id.toString(), "primary")
+            ]),
             {
               type: "context",
               elements: [
@@ -236,34 +219,11 @@ class SchedulerService {
         await this.app.client.chat.postMessage({
           channel: member.user.slackUserId,
           blocks: [
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: randomFollowupMessage,
-              },
-            },
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: `*Team:* ${team.name}`,
-              },
-            },
-            {
-              type: "actions",
-              elements: [
-                {
-                  type: "button",
-                  text: {
-                    type: "plain_text",
-                    text: "📝 Submit Standup",
-                  },
-                  action_id: `open_standup_${team.id}`,
-                  style: "primary",
-                },
-              ],
-            },
+            createSectionBlock(randomFollowupMessage),
+            createSectionBlock(`*Team:* ${team.name}`),
+            createActionsBlock([
+              createButton("📝 Submit Standup", `open_standup_${team.id}`, team.id.toString(), "primary")
+            ]),
             {
               type: "context",
               elements: [

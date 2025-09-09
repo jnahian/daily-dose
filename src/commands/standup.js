@@ -8,6 +8,14 @@ const timezone = require("dayjs/plugin/timezone");
 const { ackWithProcessing } = require("../utils/commandHelper");
 const { getUserMention } = require("../utils/userHelper");
 const { extractRichTextValue } = require("../utils/messageHelper");
+const {
+  createStandupModal,
+  createTeamSelectionBlocks,
+  createErrorBlocks,
+  createButton,
+  createActionsBlock,
+  createSectionBlock,
+} = require("../utils/blockHelper");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -52,88 +60,10 @@ async function submitManual({ command, ack, respond, client }) {
       const today = dayjs().format("MMM DD, YYYY");
 
       try {
+        const modalView = createStandupModal(team.name, team.id, today);
         await client.views.open({
           trigger_id: command.trigger_id,
-          view: {
-            type: "modal",
-            callback_id: "standup_modal",
-            private_metadata: JSON.stringify({ teamId: team.id }),
-            title: {
-              type: "plain_text",
-              text: "Daily Dose",
-            },
-            submit: {
-              type: "plain_text",
-              text: "Submit",
-            },
-            close: {
-              type: "plain_text",
-              text: "Cancel",
-            },
-            blocks: [
-              {
-                type: "section",
-                text: {
-                  type: "mrkdwn",
-                  text: `*📊 ${team.name} - ${today}*`,
-                },
-              },
-              {
-                type: "divider",
-              },
-              {
-                type: "input",
-                block_id: "yesterday_tasks",
-                element: {
-                  type: "rich_text_input",
-                  action_id: "yesterday_input",
-                  placeholder: {
-                    type: "plain_text",
-                    text: "What did you work on yesterday?",
-                  },
-                },
-                label: {
-                  type: "plain_text",
-                  text: "Yesterday's Tasks",
-                },
-                optional: false,
-              },
-              {
-                type: "input",
-                block_id: "today_tasks",
-                element: {
-                  type: "rich_text_input",
-                  action_id: "today_input",
-                  placeholder: {
-                    type: "plain_text",
-                    text: "What will you work on today?",
-                  },
-                },
-                label: {
-                  type: "plain_text",
-                  text: "Today's Tasks",
-                },
-                optional: false,
-              },
-              {
-                type: "input",
-                block_id: "blockers",
-                element: {
-                  type: "rich_text_input",
-                  action_id: "blockers_input",
-                  placeholder: {
-                    type: "plain_text",
-                    text: "Any blockers or help needed?",
-                  },
-                },
-                label: {
-                  type: "plain_text",
-                  text: "Blockers",
-                },
-                optional: true,
-              },
-            ],
-          },
+          view: modalView,
         });
       } catch (modalError) {
         console.error("Error opening modal directly:", modalError);
@@ -141,50 +71,19 @@ async function submitManual({ command, ack, respond, client }) {
         // Fallback to button approach if modal fails
         await updateResponse({
           blocks: [
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: `*📝 Submit standup for ${team.name}*`,
-              },
-            },
-            {
-              type: "actions",
-              elements: [
-                {
-                  type: "button",
-                  text: {
-                    type: "plain_text",
-                    text: "📝 Open Standup Form",
-                  },
-                  action_id: `open_standup_${team.id}`,
-                  style: "primary",
-                },
-              ],
-            },
+            createSectionBlock(`*📝 Submit standup for ${team.name}*`),
+            createActionsBlock([
+              createButton("📝 Open Standup Form", `open_standup_${team.id}`, team.id.toString(), "primary")
+            ])
           ],
         });
       }
     } else {
       // Show team selection
-      const teamList = teams.map((t) => `- ${t.name}`).join("\n");
-
       await updateResponse({
         blocks: [
-          {
-            type: "section",
-            text: {
-              type: "mrkdwn",
-              text: `*📝 Select a team for standup:*\n${teamList}`,
-            },
-          },
-          {
-            type: "section",
-            text: {
-              type: "mrkdwn",
-              text: "Usage: `/dd-standup TeamName`",
-            },
-          },
+          ...createTeamSelectionBlocks(teams, "select_team_standup"),
+          createSectionBlock("Usage: `/dd-standup TeamName`")
         ],
       });
     }
@@ -236,88 +135,10 @@ async function openStandupModal({ body, ack, client }, teamId = null) {
     // Acknowledge the button interaction and open modal in one go
     await ack();
 
+    const modalView = createStandupModal(team.name, teamId, today);
     await client.views.open({
       trigger_id: body.trigger_id,
-      view: {
-        type: "modal",
-        callback_id: "standup_modal",
-        private_metadata: JSON.stringify({ teamId }),
-        title: {
-          type: "plain_text",
-          text: "Daily Dose",
-        },
-        submit: {
-          type: "plain_text",
-          text: "Submit",
-        },
-        close: {
-          type: "plain_text",
-          text: "Cancel",
-        },
-        blocks: [
-          {
-            type: "section",
-            text: {
-              type: "mrkdwn",
-              text: `*📊 ${team.name} - ${today}*`,
-            },
-          },
-          {
-            type: "divider",
-          },
-          {
-            type: "input",
-            block_id: "yesterday_tasks",
-            element: {
-              type: "rich_text_input",
-              action_id: "yesterday_input",
-              placeholder: {
-                type: "plain_text",
-                text: "What did you work on yesterday?",
-              },
-            },
-            label: {
-              type: "plain_text",
-              text: "Yesterday's Tasks",
-            },
-            optional: false,
-          },
-          {
-            type: "input",
-            block_id: "today_tasks",
-            element: {
-              type: "rich_text_input",
-              action_id: "today_input",
-              placeholder: {
-                type: "plain_text",
-                text: "What will you work on today?",
-              },
-            },
-            label: {
-              type: "plain_text",
-              text: "Today's Tasks",
-            },
-            optional: false,
-          },
-          {
-            type: "input",
-            block_id: "blockers",
-            element: {
-              type: "rich_text_input",
-              action_id: "blockers_input",
-              placeholder: {
-                type: "plain_text",
-                text: "Any blockers or help needed?",
-              },
-            },
-            label: {
-              type: "plain_text",
-              text: "Blockers",
-            },
-            optional: true,
-          },
-        ],
-      },
+      view: modalView,
     });
   } catch (error) {
     console.error("Error opening standup modal:", error);

@@ -2,6 +2,7 @@ const teamService = require("../services/teamService");
 const { ackWithProcessing } = require("../utils/commandHelper");
 const { getDisplayName } = require("../utils/userHelper");
 const { formatTime12Hour } = require("../utils/dateHelper");
+const { createSectionBlock } = require("../utils/blockHelper");
 
 async function createTeam({ command, ack, respond, client }) {
   const updateResponse = ackWithProcessing(
@@ -162,13 +163,7 @@ async function listTeams({ command, ack, respond }) {
 
     await updateResponse({
       blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `*📋 Teams in your organization:*\n${teamList}`,
-          },
-        },
+        createSectionBlock(`*📋 Teams in your organization:*\n${teamList}`)
       ],
     });
   } catch (error) {
@@ -228,13 +223,7 @@ async function listMembers({ command, ack, respond }) {
 
     await updateResponse({
       blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `*👥 Members of team "${team.name}":*\n${memberList}`,
-          },
-        },
+        createSectionBlock(`*👥 Members of team "${team.name}":*\n${memberList}`)
       ],
     });
   } catch (error) {

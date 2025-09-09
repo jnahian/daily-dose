@@ -9,6 +9,7 @@ const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
 const { getUserLogIdentifier, getUserMention } = require("../utils/userHelper");
 const { formatTime12Hour } = require("../utils/dateHelper");
+const { createSectionBlock, createButton, createActionsBlock } = require("../utils/blockHelper");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -353,27 +354,10 @@ async function sendStandupReminders(teamName) {
         await app.client.chat.postMessage({
           channel: member.user.slackUserId,
           blocks: [
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: `🌅 Good morning! Time for your daily standup for *${team.name}*`,
-              },
-            },
-            {
-              type: "actions",
-              elements: [
-                {
-                  type: "button",
-                  text: {
-                    type: "plain_text",
-                    text: "📝 Submit Standup",
-                  },
-                  action_id: `open_standup_${team.id}`,
-                  style: "primary",
-                },
-              ],
-            },
+            createSectionBlock(`🌅 Good morning! Time for your daily standup for *${team.name}*`),
+            createActionsBlock([
+              createButton("📝 Submit Standup", `open_standup_${team.id}`, team.id.toString(), "primary")
+            ]),
             {
               type: "context",
               elements: [

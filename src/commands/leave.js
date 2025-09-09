@@ -2,6 +2,7 @@ const userService = require("../services/userService");
 const prisma = require("../config/prisma");
 const dayjs = require("dayjs");
 const { ackWithProcessing } = require("../utils/commandHelper");
+const { createSectionBlock } = require("../utils/blockHelper");
 
 async function setLeave({ command, ack, respond, client }) {
   const updateResponse = ackWithProcessing(
@@ -154,13 +155,7 @@ async function listLeaves({ command, ack, respond, client }) {
 
     await updateResponse({
       blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `*📅 Your Upcoming Leaves:*\n${leaveList}`,
-          },
-        },
+        createSectionBlock(`*📅 Your Upcoming Leaves:*\n${leaveList}`),
         {
           type: "context",
           elements: [
@@ -281,13 +276,7 @@ async function showWorkDays({ command, ack, respond, client }) {
 
     await updateResponse({
       blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `*📅 Your Work Days:* ${workDayNames}`,
-          },
-        },
+        createSectionBlock(`*📅 Your Work Days:* ${workDayNames}`),
         {
           type: "context",
           elements: [
