@@ -75,8 +75,15 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
   - Example: `/dd-workdays-set 1,2,3,4,5` (Monday-Friday)  
   - Numbers: 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday, 7=Sunday
 
-### Holiday Management (Admin Only)
+### Holiday Management
 
+**Viewing Holidays (All Users)**
+- `/dd-holiday-list` - List all upcoming holidays  
+- `/dd-holiday-list <year>` - List holidays for specific year (e.g., 2024)
+- `/dd-holiday-list <year-month>` - List holidays for specific month (e.g., 2024-12)  
+- `/dd-holiday-list <start-date> <end-date>` - List holidays in date range
+
+**Managing Holidays (Admin Only)**
 - `/dd-holiday-set <start-date> [end-date] [name]` - Set holidays for single day or date range
   - Single day: `/dd-holiday-set 2024-12-25 Christmas Day`
   - Date range: `/dd-holiday-set 2024-12-24 2024-12-26 Christmas Holiday`

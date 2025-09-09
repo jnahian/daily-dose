@@ -352,8 +352,161 @@ async function deleteHoliday({ command, ack, respond, client }) {
   }
 }
 
+async function listHolidays({ command, ack, respond, client }) {
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "Fetching holidays...",
+    command
+  );
+
+  try {
+    // Check user is part of an organization
+    const userData = await userService.fetchSlackUserData(command.user_id, client);
+    const user = await userService.findOrCreateUser(command.user_id, userData);
+    const org = await userService.getUserOrganization(command.user_id);
+
+    if (!org) {
+      await updateResponse({
+        text: "❌ You must belong to an organization to view holidays",
+      });
+      return;
+    }
+
+    // Parse command arguments for filtering
+    // Examples:
+    // /dd-holiday-list - all upcoming holidays
+    // /dd-holiday-list 2024 - holidays for 2024
+    // /dd-holiday-list 2024-12 - holidays for December 2024
+    // /dd-holiday-list 2024-12-01 2024-12-31 - holidays in date range
+    const args = command.text.trim().split(" ").filter(arg => arg);
+    
+    let startDate = dayjs().startOf('day');
+    let endDate = null;
+    let titleSuffix = "";
+
+    if (args.length === 0) {
+      // Default: show upcoming holidays for next year
+      endDate = dayjs().add(1, 'year').endOf('year');
+      titleSuffix = " (upcoming)";
+    } else if (args.length === 1) {
+      const arg = args[0];
+      
+      if (/^\d{4}$/.test(arg)) {
+        // Year format: 2024
+        const year = parseInt(arg);
+        startDate = dayjs().year(year).startOf('year');
+        endDate = dayjs().year(year).endOf('year');
+        titleSuffix = ` for ${year}`;
+      } else if (/^\d{4}-\d{2}$/.test(arg)) {
+        // Year-month format: 2024-12
+        const [year, month] = arg.split('-').map(Number);
+        startDate = dayjs().year(year).month(month - 1).startOf('month');
+        endDate = dayjs().year(year).month(month - 1).endOf('month');
+        titleSuffix = ` for ${startDate.format('MMMM YYYY')}`;
+      } else if (/^\d{4}-\d{2}-\d{2}$/.test(arg)) {
+        // Single date format: 2024-12-25
+        const date = dayjs(arg, "YYYY-MM-DD", true);
+        if (!date.isValid()) {
+          await updateResponse({
+            text: `❌ Invalid date format: ${arg}. Use YYYY-MM-DD format.`,
+          });
+          return;
+        }
+        startDate = date.startOf('day');
+        endDate = date.endOf('day');
+        titleSuffix = ` for ${date.format('YYYY-MM-DD')}`;
+      } else {
+        await updateResponse({
+          text: "❌ Usage: `/dd-holiday-list [YYYY|YYYY-MM|YYYY-MM-DD] [YYYY-MM-DD]`\nExamples:\n- `/dd-holiday-list` - upcoming holidays\n- `/dd-holiday-list 2024` - holidays for 2024\n- `/dd-holiday-list 2024-12` - holidays for December 2024\n- `/dd-holiday-list 2024-12-01 2024-12-31` - holidays in date range",
+        });
+        return;
+      }
+    } else if (args.length === 2) {
+      // Date range format: 2024-12-01 2024-12-31
+      const startDateStr = args[0];
+      const endDateStr = args[1];
+      
+      const start = dayjs(startDateStr, "YYYY-MM-DD", true);
+      const end = dayjs(endDateStr, "YYYY-MM-DD", true);
+      
+      if (!start.isValid()) {
+        await updateResponse({
+          text: `❌ Invalid start date format: ${startDateStr}. Use YYYY-MM-DD format.`,
+        });
+        return;
+      }
+      
+      if (!end.isValid()) {
+        await updateResponse({
+          text: `❌ Invalid end date format: ${endDateStr}. Use YYYY-MM-DD format.`,
+        });
+        return;
+      }
+      
+      if (end.isBefore(start)) {
+        await updateResponse({
+          text: "❌ End date cannot be before start date",
+        });
+        return;
+      }
+      
+      startDate = start;
+      endDate = end;
+      titleSuffix = ` from ${startDateStr} to ${endDateStr}`;
+    } else {
+      await updateResponse({
+        text: "❌ Usage: `/dd-holiday-list [YYYY|YYYY-MM|YYYY-MM-DD] [YYYY-MM-DD]`\nExamples:\n- `/dd-holiday-list` - upcoming holidays\n- `/dd-holiday-list 2024` - holidays for 2024\n- `/dd-holiday-list 2024-12` - holidays for December 2024\n- `/dd-holiday-list 2024-12-01 2024-12-31` - holidays in date range",
+      });
+      return;
+    }
+
+    // Query holidays from database
+    const holidays = await prisma.holiday.findMany({
+      where: {
+        date: {
+          gte: startDate.toDate(),
+          lte: endDate.toDate(),
+        },
+        country: "US",
+      },
+      orderBy: {
+        date: 'asc',
+      },
+    });
+
+    if (holidays.length === 0) {
+      await updateResponse({
+        text: `📅 No holidays found${titleSuffix}`,
+      });
+      return;
+    }
+
+    // Format holidays for display
+    let message = `📅 **Holidays${titleSuffix}** (${holidays.length} found)\n\n`;
+    
+    holidays.forEach(holiday => {
+      const holidayDate = dayjs(holiday.date);
+      const formattedDate = holidayDate.format('ddd, MMM D, YYYY');
+      const holidayName = holiday.name || 'Holiday';
+      message += `• **${formattedDate}** - ${holidayName}\n`;
+    });
+
+    await updateResponse({
+      text: message.trim(),
+    });
+
+  } catch (error) {
+    console.error("Error listing holidays:", error);
+    await updateResponse({
+      text: `❌ Error: ${error.message}`,
+    });
+  }
+}
+
 module.exports = {
   setHoliday,
   updateHoliday,
   deleteHoliday,
+  listHolidays,
 };

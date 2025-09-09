@@ -34,6 +34,7 @@ function setupCommands(app) {
   app.command("/dd-holiday-set", stripFormatting(), holidayCommands.setHoliday);
   app.command("/dd-holiday-update", stripFormatting(), holidayCommands.updateHoliday);
   app.command("/dd-holiday-delete", stripFormatting(), holidayCommands.deleteHoliday);
+  app.command("/dd-holiday-list", stripFormatting(), holidayCommands.listHolidays);
 
   // Interactive components (no formatting removal needed for these)
   app.action(/open_standup_.*/, standupCommands.openStandupModal);
