@@ -1,14 +1,17 @@
 require("dotenv").config();
-const { App } = require("@slack/bolt");
+const { App, ExpressReceiver } = require("@slack/bolt");
 const prisma = require("./config/prisma");
 const { setupCommands } = require("./commands");
 const { setupWorkflows } = require("./workflows");
 const schedulerService = require("./services/schedulerService");
 
+const receiver = new ExpressReceiver({
+  signingSecret: process.env.SLACK_SIGNING_SECRET
+});
+
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
-  signingSecret: process.env.SLACK_SIGNING_SECRET,
-  socketMode: false,
+  receiver
 });
 
 // Setup commands and workflows
@@ -19,7 +22,7 @@ setupWorkflows(app);
 schedulerService.initialize(app);
 
 // Health check endpoint
-app.receiver.app.get('/health', (req, res) => {
+receiver.app.get('/health', (req, res) => {
   res.status(200).json({
     status: "healthy",
     timestamp: new Date().toISOString(),
