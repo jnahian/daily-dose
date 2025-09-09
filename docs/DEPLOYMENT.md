@@ -50,8 +50,8 @@ pm2 startup
 ### 5. Clone your repository
 ```bash
 cd /home/your-username
-git clone https://github.com/your-username/daily-dose-bot.git
-cd daily-dose-bot
+git clone https://github.com/your-username/daily-dose.git
+cd daily-dose
 ```
 
 ### 6. Install dependencies
@@ -99,7 +99,7 @@ pm2 save
 
 ### 1. Generate SSH key pair (on your local machine)
 ```bash
-ssh-keygen -t rsa -b 4096 -C "github-actions@daily-dose-bot"
+ssh-keygen -t rsa -b 4096 -C "github-actions@daily-dose"
 ```
 
 ### 2. Copy public key to VPS
@@ -138,12 +138,12 @@ If needed, you can deploy manually:
 
 ```bash
 # On VPS
-cd /home/your-username/daily-dose-bot
+cd /home/your-username/daily-dose
 git pull origin main
 npm ci
 npx prisma generate
 npx prisma db push
-pm2 restart daily-dose-bot
+pm2 restart daily-dose
 ```
 
 ## Monitoring
@@ -151,7 +151,7 @@ pm2 restart daily-dose-bot
 ### Check application status
 ```bash
 pm2 status
-pm2 logs daily-dose-bot
+pm2 logs daily-dose
 ```
 
 ### View health check
@@ -161,7 +161,7 @@ curl http://localhost:3000/health
 
 ### Monitor logs
 ```bash
-pm2 logs daily-dose-bot --lines 100
+pm2 logs daily-dose --lines 100
 ```
 
 ## Troubleshooting
@@ -181,14 +181,14 @@ pm2 logs daily-dose-bot --lines 100
    - Ensure database is accessible from VPS
 
 4. **PM2 app not starting**
-   - Check logs: `pm2 logs daily-dose-bot`
+   - Check logs: `pm2 logs daily-dose`
    - Verify all environment variables are set
    - Ensure Prisma client is generated: `npx prisma generate`
 
 ### Health Check Endpoints
 
 - `GET /health` - Returns application health status
-- Response: `{"status": "healthy", "timestamp": "...", "service": "daily-dose-bot"}`
+- Response: `{"status": "healthy", "timestamp": "...", "service": "daily-dose"}`
 
 ## Security Considerations
 

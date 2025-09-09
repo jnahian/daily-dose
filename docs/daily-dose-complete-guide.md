@@ -13,8 +13,8 @@
 ### Step 1.1: Initialize Project ✅
 
 ```bash
-mkdir daily-dose-bot
-cd daily-dose-bot
+mkdir daily-dose
+cd daily-dose
 npm init -y
 ```
 
@@ -38,7 +38,7 @@ npx prisma init
 ### Step 1.4: Project Structure ✅
 
 ```
-daily-dose-bot/
+daily-dose/
 ├── prisma/
 │   ├── schema.prisma           # Database schema
 │   └── migrations/             # Migration files

@@ -36,10 +36,10 @@ jobs:
           script: |
             set -e
             # Navigate to app directory
-            cd /home/${{ secrets.VPS_USERNAME }}/dd.storeseo.dev
+            cd ~/dd.storeseo.dev
 
             # Stop the application
-            pm2 stop daily-dose-bot || echo "App not running"
+            pm2 stop daily-dose || echo "App not running"
 
             # Pull latest changes
             git pull origin main
@@ -54,7 +54,7 @@ jobs:
             npx prisma db push
 
             # Start/restart the application with PM2
-            pm2 start ecosystem.config.js --env production || pm2 restart daily-dose-bot
+            pm2 start ecosystem.config.js --env production || pm2 restart daily-dose
 
             # Save PM2 configuration
             pm2 save

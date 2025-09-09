@@ -20,10 +20,10 @@ schedulerService.initialize(app);
 
 // Health check endpoint
 app.receiver.app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'healthy', 
+  res.status(200).json({
+    status: "healthy",
     timestamp: new Date().toISOString(),
-    service: 'daily-dose-bot'
+    service: "daily-dose",
   });
 });
 
