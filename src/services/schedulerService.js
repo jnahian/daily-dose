@@ -62,7 +62,19 @@ class SchedulerService {
     const standupJob = cron.schedule(
       standupCron,
       async () => {
-        await this.sendStandupReminders(team);
+        console.log(
+          `🚀 CRON JOB FIRED: Standup reminder for ${team.name} at ${dayjs()
+            .tz(timezone)
+            .format()}`
+        );
+        try {
+          await this.sendStandupReminders(team);
+        } catch (error) {
+          console.error(
+            `❌ Error in standup reminder for ${team.name}:`,
+            error
+          );
+        }
       },
       {
         timezone,
@@ -126,13 +138,6 @@ class SchedulerService {
 
   async sendStandupReminders(team) {
     const now = dayjs().tz(team.timezone);
-
-    console.log(
-      `📅 Sending standup reminders for team ${team.name} at ${now.format()}`,
-      `    Standup Time: ${team.standupTime}`,
-      `    Posting Time: ${team.postingTime}`,
-      `    Timezone: ${team.timezone}`
-    );
 
     // Get active members (this now includes work day filtering)
     const members = await standupService.getActiveMembers(
