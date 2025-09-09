@@ -1,5 +1,7 @@
 const standupService = require("../services/standupService");
 const teamService = require("../services/teamService");
+const userService = require("../services/userService");
+const prisma = require("../config/prisma");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
@@ -464,8 +466,366 @@ async function handleStandupSubmission({ ack, body, view, client }) {
   }
 }
 
+async function updateStandup({ command, ack, respond, client }) {
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "Loading standup update...",
+    command
+  );
+
+  try {
+    // Parse command: /dd-standup-update TeamName [YYYY-MM-DD]
+    const args = command.text.trim().split(" ");
+    
+    // Get user's teams
+    const teams = await teamService.listTeams(command.user_id);
+
+    if (teams.length === 0) {
+      await updateResponse({
+        text: "❌ You're not a member of any teams. Join a team first with `/dd-team-join TeamName`",
+      });
+      return;
+    }
+
+    // Team name is required
+    if (!args[0]) {
+      const teamList = teams.map((t) => t.name).join(", ");
+      await updateResponse({
+        text: `❌ Team name is required.\nUsage: \`/dd-standup-update TeamName [YYYY-MM-DD]\`\nAvailable teams: ${teamList}`,
+      });
+      return;
+    }
+
+    let targetTeam = null;
+    let targetDate = dayjs().format("YYYY-MM-DD"); // Default to today
+
+    // First arg must be team name
+    const teamName = args[0];
+    targetTeam = teams.find(
+      (t) => t.name.toLowerCase() === teamName.toLowerCase()
+    );
+    
+    if (!targetTeam) {
+      await updateResponse({
+        text: `❌ Team "${teamName}" not found. Available teams: ${teams
+          .map((t) => t.name)
+          .join(", ")}`,
+      });
+      return;
+    }
+
+    // Second arg is optional date
+    if (args.length >= 2 && args[1]) {
+      const isDate = /^\d{4}-\d{2}-\d{2}$/.test(args[1]);
+      if (isDate) {
+        targetDate = args[1];
+      } else {
+        await updateResponse({
+          text: `❌ Invalid date format: ${args[1]}. Use YYYY-MM-DD format.\nUsage: \`/dd-standup-update ${teamName} [YYYY-MM-DD]\``,
+        });
+        return;
+      }
+    }
+
+    // Validate date
+    const parsedDate = dayjs(targetDate, "YYYY-MM-DD", true);
+    if (!parsedDate.isValid()) {
+      await updateResponse({
+        text: `❌ Invalid date format: ${targetDate}. Use YYYY-MM-DD format.`,
+      });
+      return;
+    }
+
+    // Get user record first
+    const userData = await userService.fetchSlackUserData(command.user_id, client);
+    const user = await userService.findOrCreateUser(command.user_id, userData);
+
+    // Check if user has existing standup for this date
+    const existingResponse = await prisma.standupResponse.findUnique({
+      where: {
+        teamId_userId_standupDate: {
+          teamId: targetTeam.id,
+          userId: user.id,
+          standupDate: parsedDate.toDate(),
+        },
+      },
+    });
+
+    // Open modal with existing data if available
+    const today = parsedDate.format("MMM DD, YYYY");
+
+    try {
+      await client.views.open({
+        trigger_id: command.trigger_id,
+        view: {
+          type: "modal",
+          callback_id: "standup_update_modal",
+          private_metadata: JSON.stringify({ 
+            teamId: targetTeam.id, 
+            standupDate: targetDate,
+            isUpdate: !!existingResponse
+          }),
+          title: {
+            type: "plain_text",
+            text: existingResponse ? "Update Standup" : "Daily Dose",
+          },
+          submit: {
+            type: "plain_text",
+            text: existingResponse ? "Update" : "Submit",
+          },
+          close: {
+            type: "plain_text",
+            text: "Cancel",
+          },
+          blocks: [
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: `*📊 ${targetTeam.name} - ${today}*${existingResponse ? " (Update)" : ""}`,
+              },
+            },
+            {
+              type: "divider",
+            },
+            {
+              type: "input",
+              block_id: "yesterday_tasks",
+              element: {
+                type: "rich_text_input",
+                action_id: "yesterday_input",
+                initial_value: existingResponse?.yesterdayTasks ? {
+                  type: "rich_text",
+                  elements: [
+                    {
+                      type: "rich_text_section",
+                      elements: [
+                        {
+                          type: "text",
+                          text: existingResponse.yesterdayTasks
+                        }
+                      ]
+                    }
+                  ]
+                } : undefined,
+                placeholder: {
+                  type: "plain_text",
+                  text: "What did you work on yesterday?",
+                },
+              },
+              label: {
+                type: "plain_text",
+                text: "Yesterday's Tasks",
+              },
+              optional: false,
+            },
+            {
+              type: "input",
+              block_id: "today_tasks",
+              element: {
+                type: "rich_text_input",
+                action_id: "today_input",
+                initial_value: existingResponse?.todayTasks ? {
+                  type: "rich_text",
+                  elements: [
+                    {
+                      type: "rich_text_section",
+                      elements: [
+                        {
+                          type: "text",
+                          text: existingResponse.todayTasks
+                        }
+                      ]
+                    }
+                  ]
+                } : undefined,
+                placeholder: {
+                  type: "plain_text",
+                  text: "What will you work on today?",
+                },
+              },
+              label: {
+                type: "plain_text",
+                text: "Today's Tasks",
+              },
+              optional: false,
+            },
+            {
+              type: "input",
+              block_id: "blockers",
+              element: {
+                type: "rich_text_input",
+                action_id: "blockers_input",
+                initial_value: existingResponse?.blockers ? {
+                  type: "rich_text",
+                  elements: [
+                    {
+                      type: "rich_text_section",
+                      elements: [
+                        {
+                          type: "text",
+                          text: existingResponse.blockers
+                        }
+                      ]
+                    }
+                  ]
+                } : undefined,
+                placeholder: {
+                  type: "plain_text",
+                  text: "Any blockers or help needed?",
+                },
+              },
+              label: {
+                type: "plain_text",
+                text: "Blockers",
+              },
+              optional: true,
+            },
+          ],
+        },
+      });
+    } catch (modalError) {
+      console.error("Error opening update modal:", modalError);
+      await updateResponse({
+        text: `❌ Error opening update form: ${modalError.message}`,
+      });
+    }
+
+  } catch (error) {
+    console.error("Error in standup update:", error);
+    await updateResponse({
+      text: `❌ Error: ${error.message}`,
+    });
+  }
+}
+
+async function handleStandupUpdateSubmission({ ack, body, view, client }) {
+  await ack();
+
+  try {
+    const metadata = JSON.parse(view.private_metadata);
+    const { teamId, standupDate, isUpdate } = metadata;
+    const values = view.state.values;
+
+    const yesterdayTasks =
+      extractRichTextValue(values.yesterday_tasks?.yesterday_input) || "";
+    const todayTasks =
+      extractRichTextValue(values.today_tasks?.today_input) || "";
+    const blockers =
+      extractRichTextValue(values.blockers?.blockers_input) || "";
+
+    // Check if at least one field is filled
+    if (!yesterdayTasks && !todayTasks && !blockers) {
+      await client.views.update({
+        view_id: body.view.id,
+        view: {
+          ...view,
+          blocks: [
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: "❌ Please fill in at least one field",
+              },
+            },
+            ...view.blocks,
+          ],
+        },
+      });
+      return;
+    }
+
+    const team = await teamService.getTeamById(teamId);
+    const targetDate = dayjs(standupDate, "YYYY-MM-DD");
+    
+    // Determine if submission is late (only if it's for today or future)
+    let isLate = false;
+    if (targetDate.isSameOrAfter(dayjs().startOf('day')) && team) {
+      const [postingHour, postingMinute] = team.postingTime
+        .split(":")
+        .map(Number);
+      const postingTime = dayjs()
+        .tz(team.timezone)
+        .startOf("day")
+        .hour(postingHour)
+        .minute(postingMinute);
+      const nowInTeamTz = dayjs().tz(team.timezone);
+      isLate = nowInTeamTz.isAfter(postingTime);
+    }
+
+    // Save or update response
+    const responseData = {
+      date: targetDate.toDate(),
+      yesterdayTasks,
+      todayTasks,
+      blockers,
+    };
+
+    await standupService.saveResponse(
+      teamId,
+      body.user.id,
+      responseData,
+      isLate,
+      client
+    );
+
+    const updateText = isUpdate ? "updated" : "submitted";
+    
+    // Send confirmation as ephemeral message to the channel
+    await client.chat.postEphemeral({
+      channel: team.slackChannelId,
+      user: body.user.id,
+      text: `✅ Standup ${updateText} for ${team?.name || "your team"} (${targetDate.format("MMM DD, YYYY")})!${
+        isLate ? " (marked as late)" : ""
+      }`,
+    });
+
+    // If this is an update for today and it's after posting time, post to thread
+    if (isUpdate && isLate && targetDate.isSame(dayjs(), 'day') && team) {
+      const standupPost = await standupService.getStandupPost(
+        teamId,
+        targetDate.toDate()
+      );
+
+      if (standupPost?.slackMessageTs) {
+        const updateResponse = {
+          user: {
+            name: body.user.name || body.user.id,
+            slackUserId: body.user.id,
+          },
+          yesterdayTasks,
+          todayTasks,
+          blockers,
+        };
+
+        const message = await standupService.formatLateResponseMessage(
+          updateResponse
+        );
+
+        await client.chat.postMessage({
+          channel: standupPost.channelId,
+          thread_ts: standupPost.slackMessageTs,
+          reply_broadcast: true,
+          text: `🔄 *Update* from ${getUserMention(updateResponse.user)}`,
+          ...message,
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Error handling standup update submission:", error);
+
+    await client.chat.postMessage({
+      channel: body.user.id,
+      text: `❌ Error ${isUpdate ? "updating" : "submitting"} standup: ${error.message}`,
+    });
+  }
+}
+
 module.exports = {
   submitManual,
   openStandupModal,
   handleStandupSubmission,
+  updateStandup,
+  handleStandupUpdateSubmission,
 };

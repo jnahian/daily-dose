@@ -91,6 +91,34 @@
                 "description": "Submit standup manually outside scheduled time",
                 "usage_hint": "[TeamName]",
                 "should_escape": false
+            },
+            {
+                "command": "/dd-standup-update",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "Update standup for any day (default today)",
+                "usage_hint": "TeamName [YYYY-MM-DD]",
+                "should_escape": false
+            },
+            {
+                "command": "/dd-holiday-set",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "Set holidays for single day or date range (admin only)",
+                "usage_hint": "YYYY-MM-DD [YYYY-MM-DD] [name]",
+                "should_escape": false
+            },
+            {
+                "command": "/dd-holiday-update",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "Update existing holiday name (admin only)",
+                "usage_hint": "YYYY-MM-DD new name",
+                "should_escape": false
+            },
+            {
+                "command": "/dd-holiday-delete",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "Delete holidays for single day or date range (admin only)",
+                "usage_hint": "YYYY-MM-DD [YYYY-MM-DD]",
+                "should_escape": false
             }
         ]
     },

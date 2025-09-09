@@ -35,6 +35,8 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
 
 ```
 /dd-standup MyTeam              # Manual standup submission
+/dd-standup-update MyTeam       # Update today's standup for MyTeam
+/dd-standup-update MyTeam 2024-12-20  # Update standup for specific date
 ```
 
 ## Slash Commands
@@ -42,6 +44,7 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
 ### Standup Submission
 
 - `/dd-standup [team-name]` - Submit standup manually outside scheduled time
+- `/dd-standup-update <team-name> [YYYY-MM-DD]` - Update standup for any day (defaults to today)
 - The bot also sends automatic DM reminders with interactive buttons
 
 ### Team Management
@@ -71,6 +74,17 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
 - `/dd-workdays-set <days>` - Set your working days
   - Example: `/dd-workdays-set 1,2,3,4,5` (Monday-Friday)  
   - Numbers: 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday, 7=Sunday
+
+### Holiday Management (Admin Only)
+
+- `/dd-holiday-set <start-date> [end-date] [name]` - Set holidays for single day or date range
+  - Single day: `/dd-holiday-set 2024-12-25 Christmas Day`
+  - Date range: `/dd-holiday-set 2024-12-24 2024-12-26 Christmas Holiday`
+- `/dd-holiday-update <date> <new-name>` - Update existing holiday name
+  - Example: `/dd-holiday-update 2024-12-25 Christmas Day Updated`
+- `/dd-holiday-delete <start-date> [end-date]` - Delete holidays for single day or date range
+  - Single day: `/dd-holiday-delete 2024-12-25`
+  - Date range: `/dd-holiday-delete 2024-12-24 2024-12-26`
 
 ## How It Works
 
@@ -122,6 +136,62 @@ The bot posts a formatted summary showing:
 # Team members join
 /dd-team-join Engineering
 ```
+
+## Standup Updates
+
+You can update your standup for any day using the update command:
+
+```bash
+# Update today's standup for specific team
+/dd-standup-update Engineering
+
+# Update standup for specific date and team
+/dd-standup-update Engineering 2024-12-20
+```
+
+### Update Behavior
+
+- **Pre-filled Form**: If you already submitted a standup for that date, the form opens with your existing data
+- **New Submission**: If no standup exists for that date, it opens a fresh form
+- **Thread Updates**: When updating today's standup after the posting time, your update will automatically be posted to the team channel thread
+- **Historical Updates**: You can update standups for past or future dates without thread posting
+
+## Holiday Management (Admin Only)
+
+Admins can manage organization-wide holidays that affect standup schedules:
+
+### Setting Holidays
+
+```bash
+# Single day holiday
+/dd-holiday-set 2024-12-25 Christmas Day
+
+# Multi-day holiday range
+/dd-holiday-set 2024-12-24 2024-12-26 Christmas Holiday
+
+# Holiday without custom name (will use default)
+/dd-holiday-set 2024-07-04
+```
+
+### Managing Holidays
+
+```bash
+# Update holiday name
+/dd-holiday-update 2024-12-25 Christmas Day Updated
+
+# Delete single day holiday
+/dd-holiday-delete 2024-12-25
+
+# Delete holiday range
+/dd-holiday-delete 2024-12-24 2024-12-26
+```
+
+### Holiday Effects
+
+When holidays are set:
+- No standup reminders are sent on holiday dates
+- Team members are automatically excluded from standup expectations
+- Holiday status is reflected in team summaries
 
 ## Leave Management
 
