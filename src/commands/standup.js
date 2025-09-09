@@ -412,9 +412,10 @@ async function handleStandupSubmission({ ack, body, view, client }) {
       client
     );
 
-    // Send confirmation DM
-    await client.chat.postMessage({
-      channel: body.user.id,
+    // Send confirmation as ephemeral message to the channel
+    await client.chat.postEphemeral({
+      channel: team.channelId,
+      user: body.user.id,
       text: `✅ Standup submitted for ${team?.name || "your team"}!${
         isLate ? " (marked as late)" : ""
       }`,
