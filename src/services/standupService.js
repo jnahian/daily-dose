@@ -363,6 +363,160 @@ class StandupService {
       blocks,
     };
   }
+
+  async postTeamStandup(team, date, slackApp) {
+    const targetDate = dayjs(date).tz(team.timezone);
+
+    // Check if it's a working day for the organization (general check)
+    const isOrgWorkingDay = await isWorkingDay(
+      targetDate.toDate(),
+      team.organizationId
+    );
+    if (!isOrgWorkingDay) return;
+
+    // Get all responses (filtered by individual work days)
+    const responses = await this.getTeamResponses(
+      team.id,
+      targetDate.toDate()
+    );
+    const allMembers = await this.getActiveMembers(
+      team.id,
+      targetDate.toDate()
+    );
+
+    // Get members on leave
+    const membersOnLeave = await prisma.teamMember.findMany({
+      where: {
+        teamId: team.id,
+        isActive: true,
+        user: {
+          leaves: {
+            some: {
+              startDate: { lte: targetDate.toDate() },
+              endDate: { gte: targetDate.toDate() },
+            },
+          },
+        },
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    // Calculate not submitted
+    const respondedUserIds = new Set(responses.map((r) => r.userId));
+    const leaveUserIds = new Set(membersOnLeave.map((m) => m.userId));
+
+    const notSubmitted = allMembers
+      .filter(
+        (m) => !respondedUserIds.has(m.userId) && !leaveUserIds.has(m.userId)
+      )
+      .map((m) => ({
+        slackUserId: m.user.slackUserId,
+        user: m.user,
+        onLeave: false,
+      }));
+
+    // Format on-leave members
+    const onLeave = membersOnLeave.map((m) => ({
+      slackUserId: m.user.slackUserId,
+      user: m.user,
+      onLeave: true,
+    }));
+
+    // Format and post message
+    const message = await this.formatStandupMessage(
+      responses,
+      notSubmitted,
+      onLeave,
+      targetDate
+    );
+
+    try {
+      console.log(`📤 Posting standup message for team ${team.name}...`);
+      const result = await slackApp.client.chat.postMessage({
+        channel: team.slackChannelId,
+        ...message,
+      });
+
+      console.log(`✅ Message posted successfully with timestamp: ${result.ts}`);
+      console.log(`💾 Saving standup post to database...`);
+
+      // Save message timestamp for threading late responses
+      try {
+        const savedPost = await this.saveStandupPost(
+          team.id,
+          targetDate.toDate(),
+          result.ts,
+          team.slackChannelId
+        );
+        console.log(`✅ Standup post saved successfully with ID: ${savedPost.id}`);
+      } catch (saveError) {
+        console.error(`❌ Failed to save standup post for team ${team.name}:`, saveError);
+        // Don't throw here - we still want to try posting late responses
+      }
+
+      // Post any existing late responses as threaded replies
+      console.log(`📝 Checking for late responses...`);
+      try {
+        await this.postLateResponses(team, targetDate.toDate(), slackApp);
+      } catch (lateResponseError) {
+        console.error(`❌ Failed to post late responses for team ${team.name}:`, lateResponseError);
+        // Don't throw here either - the main post was successful
+      }
+
+      return result;
+    } catch (error) {
+      console.error(`❌ Failed to post standup for team ${team.name}:`, error);
+      throw error;
+    }
+  }
+
+  async postLateResponses(team, date, slackApp) {
+    try {
+      // Get the standup post for threading
+      const standupPost = await this.getStandupPost(team.id, date);
+      if (!standupPost || !standupPost.slackMessageTs) {
+        console.log(
+          `No standup post found for team ${team.name} on ${dayjs(date).format(
+            "YYYY-MM-DD"
+          )}`
+        );
+        return;
+      }
+
+      // Get late responses
+      const lateResponses = await this.getLateResponses(
+        team.id,
+        date
+      );
+
+      for (const response of lateResponses) {
+        const message = await this.formatLateResponseMessage(
+          response
+        );
+
+        await slackApp.client.chat.postMessage({
+          channel: standupPost.channelId,
+          thread_ts: standupPost.slackMessageTs,
+          reply_broadcast: true, // Send to channel flag - makes the threaded reply visible in the channel
+          ...message,
+        });
+      }
+
+      if (lateResponses.length > 0) {
+        console.log(
+          `✅ Posted ${lateResponses.length} late responses for team ${team.name}`
+        );
+      }
+    } catch (error) {
+      console.error(
+        `Failed to post late responses for team ${team.name}:`,
+        error
+      );
+      throw error;
+    }
+  }
 }
 
 module.exports = new StandupService();

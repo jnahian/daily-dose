@@ -199,94 +199,91 @@ async function sendManualStandup(teamName, options = {}) {
       ? dayjs(options.date)
       : dayjs().tz(team.timezone);
 
-    // Get all responses for the target date (regular responses only)
-    const responses = await standupService.getTeamResponses(
-      team.id,
-      targetDate.toDate()
-    );
+    if (options.dryRun) {
+      // For dry run, we need to get the data to show preview
+      const responses = await standupService.getTeamResponses(
+        team.id,
+        targetDate.toDate()
+      );
+      const lateResponses = await standupService.getLateResponses(
+        team.id,
+        targetDate.toDate()
+      );
+      const allMembers = await standupService.getActiveMembers(
+        team.id,
+        targetDate.toDate()
+      );
 
-    // Get late responses for the target date
-    const lateResponses = await standupService.getLateResponses(
-      team.id,
-      targetDate.toDate()
-    );
-
-    const allMembers = await standupService.getActiveMembers(
-      team.id,
-      targetDate.toDate()
-    );
-
-    // Get members on leave for the target date
-    const membersOnLeave = await prisma.teamMember.findMany({
-      where: {
-        teamId: team.id,
-        isActive: true,
-        user: {
-          leaves: {
-            some: {
-              startDate: { lte: targetDate.toDate() },
-              endDate: { gte: targetDate.toDate() },
+      // Get members on leave for the target date
+      const membersOnLeave = await prisma.teamMember.findMany({
+        where: {
+          teamId: team.id,
+          isActive: true,
+          user: {
+            leaves: {
+              some: {
+                startDate: { lte: targetDate.toDate() },
+                endDate: { gte: targetDate.toDate() },
+              },
             },
           },
         },
-      },
-      include: {
-        user: true,
-      },
-    });
+        include: {
+          user: true,
+        },
+      });
 
-    // Calculate not submitted
-    const respondedUserIds = new Set(responses.map((r) => r.userId));
-    const leaveUserIds = new Set(membersOnLeave.map((m) => m.userId));
+      // Calculate not submitted
+      const respondedUserIds = new Set(responses.map((r) => r.userId));
+      const leaveUserIds = new Set(membersOnLeave.map((m) => m.userId));
 
-    const notSubmitted = allMembers
-      .filter(
-        (m) => !respondedUserIds.has(m.userId) && !leaveUserIds.has(m.userId)
-      )
-      .map((m) => ({
+      const notSubmitted = allMembers
+        .filter(
+          (m) => !respondedUserIds.has(m.userId) && !leaveUserIds.has(m.userId)
+        )
+        .map((m) => ({
+          slackUserId: m.user.slackUserId,
+          user: m.user,
+          onLeave: false,
+        }));
+
+      // Format on-leave members
+      const onLeave = membersOnLeave.map((m) => ({
         slackUserId: m.user.slackUserId,
         user: m.user,
-        onLeave: false,
+        onLeave: true,
       }));
 
-    // Format on-leave members
-    const onLeave = membersOnLeave.map((m) => ({
-      slackUserId: m.user.slackUserId,
-      user: m.user,
-      onLeave: true,
-    }));
+      console.log(`📈 Standup Summary:`);
+      console.log(`   - Responses: ${responses.length}`);
+      console.log(`   - Late responses: ${lateResponses.length}`);
+      console.log(`   - Not submitted: ${notSubmitted.length}`);
+      console.log(`   - On leave: ${membersOnLeave.length}`);
 
-    console.log(`📈 Standup Summary:`);
-    console.log(`   - Responses: ${responses.length}`);
-    console.log(`   - Late responses: ${lateResponses.length}`);
-    console.log(`   - Not submitted: ${notSubmitted.length}`);
-    console.log(`   - On leave: ${membersOnLeave.length}`);
+      if (
+        responses.length === 0 &&
+        lateResponses.length === 0 &&
+        notSubmitted.length === 0
+      ) {
+        console.log("⚠️  No standup data found for this date. Skipping post.");
+        return;
+      }
 
-    if (
-      responses.length === 0 &&
-      lateResponses.length === 0 &&
-      notSubmitted.length === 0
-    ) {
-      console.log("⚠️  No standup data found for this date. Skipping post.");
-      return;
-    }
+      // Format message for preview
+      const message = await standupService.formatStandupMessage(
+        responses,
+        notSubmitted,
+        onLeave,
+        targetDate
+      );
 
-    // Format and post message
-    const message = await standupService.formatStandupMessage(
-      responses,
-      notSubmitted,
-      onLeave,
-      targetDate
-    );
+      // Add date to header if not today
+      if (!targetDate.isSame(dayjs(), "day")) {
+        message.blocks[0].text.text = `📊 Daily Standup - ${targetDate.format(
+          "MMM DD, YYYY"
+        )}`;
+      }
 
-    // Add date to header if not today
-    if (!targetDate.isSame(dayjs(), "day")) {
-      message.blocks[0].text.text = `📊 Daily Standup - ${targetDate.format(
-        "MMM DD, YYYY"
-      )}`;
-    }
-
-    if (options.dryRun) {
       console.log("\n🔍 DRY RUN - Message that would be sent:");
       console.log(JSON.stringify(message, null, 2));
 
@@ -309,66 +306,10 @@ async function sendManualStandup(teamName, options = {}) {
       return;
     }
 
-    const result = await app.client.chat.postMessage({
-      channel: team.slackChannelId,
-      text: "Daily Standup",
-      ...message,
-    });
-
+    // Use the new postTeamStandup method from standupService
+    const result = await standupService.postTeamStandup(team, targetDate.toDate(), app);
     console.log(`✅ Standup posted successfully to ${team.slackChannelId}`);
     console.log(`📝 Message timestamp: ${result.ts}`);
-    
-    // Save message timestamp for threading late responses
-    console.log(`💾 Saving standup post to database...`);
-    try {
-      const savedPost = await standupService.saveStandupPost(
-        team.id,
-        targetDate.toDate(),
-        result.ts,
-        team.slackChannelId
-      );
-      console.log(`✅ Standup post saved successfully with ID: ${savedPost.id}`);
-    } catch (saveError) {
-      console.error(`❌ Failed to save standup post:`, saveError);
-      throw saveError; // Re-throw for manual scripts since this is critical
-    }
-
-    // Post late responses as threaded replies if any exist
-    if (lateResponses.length > 0) {
-      console.log(
-        `🕐 Posting ${lateResponses.length} late responses as threaded replies...`
-      );
-
-      for (const lateResponse of lateResponses) {
-        try {
-          const lateMessage = await standupService.formatLateResponseMessage(
-            lateResponse
-          );
-
-          await app.client.chat.postMessage({
-            channel: team.slackChannelId,
-            thread_ts: result.ts,
-            text: `Late response for ${getUserMention(lateResponse.user)}`,
-            ...lateMessage,
-          });
-
-          console.log(
-            `   ✅ Posted late response from ${getUserLogIdentifier(
-              lateResponse.user
-            )}`
-          );
-        } catch (lateError) {
-          console.error(
-            `   ❌ Failed to post late response from ${getUserLogIdentifier(
-              lateResponse.user
-            )}:`,
-            lateError.message
-          );
-        }
-      }
-
-      console.log(`✅ All late responses posted as threaded replies`);
-    }
   } catch (error) {
     console.error("❌ Error sending manual standup:", error.message);
     throw error;
