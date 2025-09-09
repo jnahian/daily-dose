@@ -127,7 +127,7 @@ async function listLeaves({ command, ack, respond, client }) {
     const leaves = await prisma.leave.findMany({
       where: {
         userId: user.id,
-        endDate: { gte: new Date() }, // Only show current and future leaves
+        endDate: { gte: dayjs().toDate() }, // Only show current and future leaves
       },
       orderBy: {
         startDate: "asc",

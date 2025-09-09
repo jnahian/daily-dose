@@ -200,6 +200,10 @@ async function sendManualStandup(teamName, options = {}) {
       ? dayjs(options.date)
       : dayjs().tz(team.timezone);
 
+    console.log(
+      `📅 Target date for standup: ${targetDate.format("YYYY-MM-DD")}`
+    );
+
     if (options.dryRun) {
       // For dry run, we need to get the data to show preview
       const responses = await standupService.getTeamResponses(

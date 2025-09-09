@@ -96,7 +96,7 @@ class StandupService {
         blockers: responseData.blockers,
         hasBlockers: !!responseData.blockers,
         isLate,
-        submittedAt: new Date(),
+        submittedAt: dayjs().toDate(),
       },
       create: {
         teamId,
@@ -156,7 +156,11 @@ class StandupService {
   }
 
   async saveStandupPost(teamId, date, messageTs, channelId) {
-    const standupDate = dayjs(date).startOf("day").toDate();
+    const standupDate = dayjs(date).toDate();
+
+    console.log(
+      `💾 Saving standup post for team ID ${teamId} on ${standupDate}...`
+    );
 
     return await prisma.standupPost.upsert({
       where: {
@@ -168,20 +172,20 @@ class StandupService {
       update: {
         slackMessageTs: messageTs,
         channelId,
-        postedAt: new Date(),
+        postedAt: dayjs().toDate(),
       },
       create: {
         teamId,
         standupDate,
         slackMessageTs: messageTs,
         channelId,
-        postedAt: new Date(),
+        postedAt: dayjs().toDate(),
       },
     });
   }
 
   async getStandupPost(teamId, date) {
-    const standupDate = dayjs(date).startOf("day").toDate();
+    const standupDate = dayjs(date).toDate();
 
     return await prisma.standupPost.findUnique({
       where: {
@@ -220,7 +224,7 @@ class StandupService {
         todayTasks: formatTasks(response.todayTasks),
         blockers: response.blockers,
       };
-      
+
       // Use modified version of createUserResponseBlocks to match existing format
       blocks.push(createSectionBlock(`*👤 ${responseData.userMention}*`));
 
@@ -281,7 +285,7 @@ class StandupService {
     };
 
     const blocks = createLateResponseBlocks(responseData);
-    
+
     return {
       text: `Late Submission from ${getDisplayName(response.user)}`,
       blocks,
@@ -299,10 +303,7 @@ class StandupService {
     if (!isOrgWorkingDay) return;
 
     // Get all responses (filtered by individual work days)
-    const responses = await this.getTeamResponses(
-      team.id,
-      targetDate.toDate()
-    );
+    const responses = await this.getTeamResponses(team.id, targetDate.toDate());
     const allMembers = await this.getActiveMembers(
       team.id,
       targetDate.toDate()
@@ -363,7 +364,9 @@ class StandupService {
         ...message,
       });
 
-      console.log(`✅ Message posted successfully with timestamp: ${result.ts}`);
+      console.log(
+        `✅ Message posted successfully with timestamp: ${result.ts}`
+      );
       console.log(`💾 Saving standup post to database...`);
 
       // Save message timestamp for threading late responses
@@ -374,9 +377,14 @@ class StandupService {
           result.ts,
           team.slackChannelId
         );
-        console.log(`✅ Standup post saved successfully with ID: ${savedPost.id}`);
+        console.log(
+          `✅ Standup post saved successfully with ID: ${savedPost.id}`
+        );
       } catch (saveError) {
-        console.error(`❌ Failed to save standup post for team ${team.name}:`, saveError);
+        console.error(
+          `❌ Failed to save standup post for team ${team.name}:`,
+          saveError
+        );
         // Don't throw here - we still want to try posting late responses
       }
 
@@ -385,7 +393,10 @@ class StandupService {
       try {
         await this.postLateResponses(team, targetDate.toDate(), slackApp);
       } catch (lateResponseError) {
-        console.error(`❌ Failed to post late responses for team ${team.name}:`, lateResponseError);
+        console.error(
+          `❌ Failed to post late responses for team ${team.name}:`,
+          lateResponseError
+        );
         // Don't throw here either - the main post was successful
       }
 
@@ -410,15 +421,10 @@ class StandupService {
       }
 
       // Get late responses
-      const lateResponses = await this.getLateResponses(
-        team.id,
-        date
-      );
+      const lateResponses = await this.getLateResponses(team.id, date);
 
       for (const response of lateResponses) {
-        const message = await this.formatLateResponseMessage(
-          response
-        );
+        const message = await this.formatLateResponseMessage(response);
 
         await slackApp.client.chat.postMessage({
           channel: standupPost.channelId,

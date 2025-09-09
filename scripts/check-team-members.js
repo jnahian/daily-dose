@@ -14,7 +14,7 @@ const prisma = new PrismaClient();
 
 async function checkTeamMembers(teamNameOrId = null, date = null) {
   try {
-    const checkDate = date ? dayjs(date).toDate() : new Date();
+    const checkDate = date ? dayjs(date).toDate() : dayjs().toDate();
 
     console.log(
       `🔍 Checking team members for date: ${dayjs(checkDate).format(

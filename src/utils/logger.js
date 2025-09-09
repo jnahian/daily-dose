@@ -3,8 +3,10 @@
  * Provides structured logging for commands, messages, and events
  */
 
+const dayjs = require("dayjs");
+
 function formatTimestamp() {
-  return new Date().toISOString();
+  return dayjs().toISOString();
 }
 
 function logCommand(payload) {
@@ -12,9 +14,9 @@ function logCommand(payload) {
     console.log(`[${formatTimestamp()}] COMMAND: null payload`);
     return;
   }
-  
+
   console.log(`[${formatTimestamp()}] COMMAND:`, {
-    command: payload.command || 'unknown',
+    command: payload.command || "unknown",
     user_id: payload.user_id,
     user_name: payload.user_name,
     channel_id: payload.channel_id,
