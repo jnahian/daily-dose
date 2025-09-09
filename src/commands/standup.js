@@ -5,6 +5,7 @@ const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
 const { ackWithProcessing } = require("../utils/commandHelper");
 const { getUserMention } = require("../utils/userHelper");
+const { extractRichTextValue } = require("../utils/messageHelper");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -348,114 +349,12 @@ async function handleStandupSubmission({ ack, body, view, client }) {
     const { teamId } = JSON.parse(view.private_metadata);
     const values = view.state.values;
 
-    // Extract rich text values and convert to markdown
-    const extractRichTextValue = (richTextValue) => {
-      if (!richTextValue?.rich_text_value?.elements) return "";
-
-      return richTextValue.rich_text_value.elements
-        .map((element) => {
-          if (element.type === "rich_text_section") {
-            return element.elements
-              .map((el) => {
-                if (el.type === "text") {
-                  let text = el.text;
-                  // Apply text styling as markdown
-                  if (el.style?.bold) text = `**${text}**`;
-                  if (el.style?.italic) text = `*${text}*`;
-                  if (el.style?.strike) text = `~~${text}~~`;
-                  if (el.style?.code) text = `\`${text}\``;
-                  return text;
-                }
-                if (el.type === "link") {
-                  const linkText = el.text || el.url;
-                  return `[${linkText}](${el.url})`;
-                }
-                if (el.type === "user") return `<@${el.user_id}>`;
-                if (el.type === "channel") return `<#${el.channel_id}>`;
-                if (el.type === "emoji") return el.unicode || `:${el.name}:`;
-                return "";
-              })
-              .join("");
-          }
-          if (element.type === "rich_text_list") {
-            const listStyle = element.style === "ordered" ? "1." : "-";
-            return element.elements
-              .map((item, index) => {
-                if (item.type === "rich_text_section") {
-                  const prefix =
-                    element.style === "ordered" ? `${index + 1}. ` : "- ";
-                  const content = item.elements
-                    .map((el) => {
-                      if (el.type === "text") {
-                        let text = el.text;
-                        if (el.style?.bold) text = `**${text}**`;
-                        if (el.style?.italic) text = `*${text}*`;
-                        if (el.style?.strike) text = `~~${text}~~`;
-                        if (el.style?.code) text = `\`${text}\``;
-                        return text;
-                      }
-                      if (el.type === "link") {
-                        const linkText = el.text || el.url;
-                        return `[${linkText}](${el.url})`;
-                      }
-                      if (el.type === "user") return `<@${el.user_id}>`;
-                      if (el.type === "channel") return `<#${el.channel_id}>`;
-                      if (el.type === "emoji")
-                        return el.unicode || `:${el.name}:`;
-                      return "";
-                    })
-                    .join("");
-                  return prefix + content;
-                }
-                return "";
-              })
-              .join("\n");
-          }
-          if (element.type === "rich_text_quote") {
-            return element.elements
-              .map((section) => {
-                if (section.type === "rich_text_section") {
-                  const content = section.elements
-                    .map((el) => {
-                      if (el.type === "text") return el.text;
-                      return "";
-                    })
-                    .join("");
-                  return `> ${content}`;
-                }
-                return "";
-              })
-              .join("\n");
-          }
-          if (element.type === "rich_text_preformatted") {
-            const content = element.elements
-              .map((section) => {
-                if (section.type === "rich_text_section") {
-                  return section.elements
-                    .map((el) => (el.type === "text" ? el.text : ""))
-                    .join("");
-                }
-                return "";
-              })
-              .join("\n");
-            return `\`\`\`\n${content}\n\`\`\``;
-          }
-          return "";
-        })
-        .join("\n");
-    };
-
     const yesterdayTasks =
       extractRichTextValue(values.yesterday_tasks?.yesterday_input) || "";
     const todayTasks =
       extractRichTextValue(values.today_tasks?.today_input) || "";
     const blockers =
       extractRichTextValue(values.blockers?.blockers_input) || "";
-
-    console.log("🔍 [STANDUP DEBUG] Extracted values:");
-    console.log("  Yesterday Tasks:", JSON.stringify(yesterdayTasks));
-    console.log("  Today Tasks:", JSON.stringify(todayTasks));
-    console.log("  Blockers:", JSON.stringify(blockers));
 
     // Check if at least one field is filled
     if (!yesterdayTasks && !todayTasks && !blockers) {
@@ -504,12 +403,6 @@ async function handleStandupSubmission({ ack, body, view, client }) {
       todayTasks,
       blockers,
     };
-
-    console.log("🔍 [STANDUP DEBUG] Data being saved to database:");
-    console.log("  TeamId:", teamId);
-    console.log("  UserId:", body.user.id);
-    console.log("  ResponseData:", JSON.stringify(responseData, null, 2));
-    console.log("  IsLate:", isLate);
 
     await standupService.saveResponse(
       teamId,

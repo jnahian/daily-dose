@@ -124,7 +124,11 @@ class SchedulerService {
     const postingJob = cron.schedule(
       postingCron,
       async () => {
-        await this.postTeamStandup(team);
+        try {
+          await this.postTeamStandup(team);
+        } catch (error) {
+          console.error(`❌ Error posting standup for ${team.name}:`, error);
+        }
       },
       {
         timezone,
