@@ -25,8 +25,8 @@ When you first interact with the bot, you'll be automatically added to your orga
 /dd-team-join Engineering        # Join an existing team
 /dd-team-leave Engineering       # Leave a team
 /dd-team-members Engineering     # View team members
-/dd-team-create MyTeam 09:30 10:00  # Create new team (admin only)
-/dd-team-update Engineering standup=09:00  # Update team settings (admin only)
+/dd-team-create MyTeam 09:30 10:00  # Create new team ⚠️ (admin only)
+/dd-team-update Engineering standup=09:00  # Update team settings ⚠️ (admin only)
 ```
 
 ### 3. Submit Your Daily Standup
@@ -53,10 +53,10 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
 - `/dd-team-join <team-name>` - Join an existing team
 - `/dd-team-leave <team-name>` - Leave a team you're currently a member of
 - `/dd-team-members <team-name>` - View all members of a specific team
-- `/dd-team-create <name> <standup-time> <posting-time>` - Create a new team (admin only)
+- `/dd-team-create <name> <standup-time> <posting-time>` - Create a new team ⚠️ **(admin only)**
   - Example: `/dd-team-create Engineering 09:30 10:00`
   - Requires admin permissions
-- `/dd-team-update <team-name> [parameters]` - Update team settings (admin only)
+- `/dd-team-update <team-name> [parameters]` - Update team settings ⚠️ **(admin only)**
   - Example: `/dd-team-update Engineering standup=09:00 posting=10:30`
   - Parameters: `name=NewName`, `standup=HH:MM`, `posting=HH:MM`
 
@@ -83,13 +83,13 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
 - `/dd-holiday-list <year-month>` - List holidays for specific month (e.g., 2024-12)  
 - `/dd-holiday-list <start-date> <end-date>` - List holidays in date range
 
-**Managing Holidays (Admin Only)**
-- `/dd-holiday-set <start-date> [end-date] [name]` - Set holidays for single day or date range
+**Managing Holidays ⚠️ (Admin Only)**
+- `/dd-holiday-set <start-date> [end-date] [name]` - Set holidays for single day or date range ⚠️ **(admin only)**
   - Single day: `/dd-holiday-set 2024-12-25 Christmas Day`
   - Date range: `/dd-holiday-set 2024-12-24 2024-12-26 Christmas Holiday`
-- `/dd-holiday-update <date> <new-name>` - Update existing holiday name
+- `/dd-holiday-update <date> <new-name>` - Update existing holiday name ⚠️ **(admin only)**
   - Example: `/dd-holiday-update 2024-12-25 Christmas Day Updated`
-- `/dd-holiday-delete <start-date> [end-date]` - Delete holidays for single day or date range
+- `/dd-holiday-delete <start-date> [end-date]` - Delete holidays for single day or date range ⚠️ **(admin only)**
   - Single day: `/dd-holiday-delete 2024-12-25`
   - Date range: `/dd-holiday-delete 2024-12-24 2024-12-26`
 
@@ -163,11 +163,11 @@ You can update your standup for any day using the update command:
 - **Thread Updates**: When updating today's standup after the posting time, your update will automatically be posted to the team channel thread
 - **Historical Updates**: You can update standups for past or future dates without thread posting
 
-## Holiday Management (Admin Only)
+## Holiday Management ⚠️ (Admin Only)
 
 Admins can manage organization-wide holidays that affect standup schedules:
 
-### Setting Holidays
+### Setting Holidays ⚠️ (Admin Only)
 
 ```bash
 # Single day holiday
@@ -180,7 +180,7 @@ Admins can manage organization-wide holidays that affect standup schedules:
 /dd-holiday-set 2024-07-04
 ```
 
-### Managing Holidays
+### Managing Holidays ⚠️ (Admin Only)
 
 ```bash
 # Update holiday name
