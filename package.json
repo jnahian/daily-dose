@@ -7,7 +7,7 @@
   },
   "scripts": {
     "start": "node src/app.js",
-    "dev": "nodemon src/app.js",
+    "dev": "nodemon --ignore 'logs/' --ignore 'temp/' src/app.js",
     "seed": "node src/scripts/seedOrg.js",
     "manifest:create": "node src/scripts/updateSlackManifest.js --create",
     "manifest:update": "node src/scripts/updateSlackManifest.js",
@@ -15,6 +15,7 @@
     "standup:trigger": "node src/scripts/triggerStandup.js",
     "standup:post": "node src/scripts/sendManualStandup.js",
     "slack:info": "node src/scripts/viewSlackTeamInfo.js",
+    "team:members": "node scripts/check-team-members.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

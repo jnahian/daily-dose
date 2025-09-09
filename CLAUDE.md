@@ -23,6 +23,7 @@ Daily Dose is a Slack bot that automates daily standup meetings for teams. Built
 - `npm run standup:trigger` - Manually trigger standup reminders
 - `npm run standup:post` - Send manual standup posts
 - `npm run slack:info` - View Slack team information
+- `npm run team:members [team-name] [date]` - Check active team members and reminder eligibility
 
 ### Slack Manifest Management
 - `npm run manifest:create` - Create new Slack app manifest
