@@ -54,18 +54,7 @@ function getRandomFollowupMessage(userId) {
  */
 function formatTasks(tasks) {
   if (!tasks) return "";
-  
-  console.log('🔍 [STANDUP DEBUG] formatTasks called with:');
-  console.log('  Input length:', tasks.length);
-  console.log('  Input preview:', tasks.substring(0, 100));
-  console.log('  Input (escaped):', JSON.stringify(tasks));
-  
   const result = tasks.trim();
-  console.log('🔍 [STANDUP DEBUG] formatTasks returning:');
-  console.log('  Output length:', result.length);
-  console.log('  Output preview:', result.substring(0, 100));
-  console.log('  Output (escaped):', JSON.stringify(result));
-  
   return result;
 }
 
