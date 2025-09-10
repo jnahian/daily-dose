@@ -17,6 +17,7 @@
     "slack:info": "node scripts/viewSlackTeamInfo.js",
     "team:members": "node scripts/check-team-members.js",
     "team:promote": "node scripts/promoteTeamMember.js",
+    "debug:scheduler": "node scripts/debugScheduler.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

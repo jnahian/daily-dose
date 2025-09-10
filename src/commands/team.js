@@ -1,4 +1,5 @@
 const teamService = require("../services/teamService");
+const schedulerService = require("../services/schedulerService");
 const { ackWithProcessing } = require("../utils/commandHelper");
 const { getDisplayName } = require("../utils/userHelper");
 const { formatTime12Hour } = require("../utils/dateHelper");
@@ -34,12 +35,15 @@ async function createTeam({ command, ack, respond, client }) {
       client
     );
 
+    // Refresh the scheduler to include the new team
+    await schedulerService.refreshTeamSchedule(team.id);
+
     await updateResponse({
       text: `✅ Team "${name}" created successfully!\n- Standup reminder: ${formatTime12Hour(
         standupTime
       )}\n- Posting time: ${formatTime12Hour(postingTime)}\n- Timezone: ${
         team.timezone
-      }`,
+      }\n- Cron jobs scheduled ✓`,
     });
   } catch (error) {
     await updateResponse({
@@ -305,6 +309,12 @@ async function updateTeam({ command, ack, respond, client }) {
     }
 
     await teamService.updateTeam(command.user_id, team.id, updateData, client);
+
+    // If schedule-related updates were made, refresh the scheduler
+    if (updateData.standupTime || updateData.postingTime) {
+      await schedulerService.refreshTeamSchedule(team.id);
+      updates.push("Cron jobs updated ✓");
+    }
 
     await updateResponse({
       text: `✅ Team "${teamName}" updated successfully!\n- ${updates.join(

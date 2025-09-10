@@ -308,6 +308,76 @@ class SchedulerService {
       console.error("Failed to post single late response:", error);
     }
   }
+
+  /**
+   * Refresh schedule for a specific team (useful after team creation/update)
+   * @param {string} teamId - Team ID to refresh
+   */
+  async refreshTeamSchedule(teamId) {
+    try {
+      const team = await teamService.getTeamById(teamId);
+      if (!team) {
+        console.error(`Team with ID ${teamId} not found for schedule refresh`);
+        return;
+      }
+
+      console.log(`🔄 Refreshing schedule for team: ${team.name}`);
+      await this.scheduleTeam(team);
+    } catch (error) {
+      console.error(`Failed to refresh schedule for team ${teamId}:`, error);
+    }
+  }
+
+  /**
+   * Refresh all team schedules (useful for batch updates or after major changes)
+   */
+  async refreshAllSchedules() {
+    try {
+      console.log("🔄 Refreshing all team schedules...");
+      await this.scheduleAllTeams();
+    } catch (error) {
+      console.error("Failed to refresh all schedules:", error);
+    }
+  }
+
+  /**
+   * Get information about currently scheduled jobs
+   * @returns {Array} Array of job information
+   */
+  getScheduledJobs() {
+    const jobs = [];
+    for (const [jobId, job] of this.scheduledJobs) {
+      jobs.push({
+        id: jobId,
+        running: job.running || false,
+        scheduled: job.scheduled || false
+      });
+    }
+    return jobs;
+  }
+
+  /**
+   * Stop a specific job by ID
+   * @param {string} jobId - Job ID to stop
+   */
+  stopJob(jobId) {
+    if (this.scheduledJobs.has(jobId)) {
+      this.scheduledJobs.get(jobId).stop();
+      this.scheduledJobs.delete(jobId);
+      console.log(`🛑 Stopped job: ${jobId}`);
+    }
+  }
+
+  /**
+   * Stop all scheduled jobs (useful for cleanup)
+   */
+  stopAllJobs() {
+    for (const [jobId, job] of this.scheduledJobs) {
+      job.stop();
+    }
+    this.scheduledJobs.clear();
+    console.log("🛑 Stopped all scheduled jobs");
+  }
 }
 
 module.exports = new SchedulerService();
