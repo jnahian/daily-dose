@@ -237,7 +237,7 @@ async function handleStandupSubmission({ ack, body, view, client }) {
 
     // Send confirmation as ephemeral message to the channel
     await client.chat.postEphemeral({
-      channel: team.channelId,
+      channel: team.slackChannelId,
       user: body.user.id,
       text: `✅ Standup submitted for ${team?.name || "your team"}!${
         isLate ? " (marked as late)" : ""
