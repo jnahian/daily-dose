@@ -166,6 +166,19 @@ class TeamService {
     });
   }
 
+  async getTeamAdmins(teamId) {
+    return await prisma.teamMember.findMany({
+      where: {
+        teamId,
+        role: "ADMIN",
+        isActive: true,
+      },
+      include: {
+        user: true,
+      },
+    });
+  }
+
   async getActiveTeamsForScheduling() {
     return await prisma.team.findMany({
       where: {

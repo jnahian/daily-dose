@@ -1,6 +1,7 @@
 const standupService = require("../services/standupService");
 const teamService = require("../services/teamService");
 const userService = require("../services/userService");
+const notificationService = require("../services/notificationService");
 const prisma = require("../config/prisma");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
@@ -242,6 +243,15 @@ async function handleStandupSubmission({ ack, body, view, client }) {
       text: `✅ Standup submitted for ${team?.name || "your team"}!${
         isLate ? " (marked as late)" : ""
       }`,
+    });
+
+    // Notify team admins about the submission
+    await notificationService.notifyAdminsOfStandupSubmission({
+      teamId,
+      user: body.user,
+      team,
+      client,
+      options: { isLate }
     });
 
     // If late, add to existing standup post as thread
@@ -600,6 +610,19 @@ async function handleStandupUpdateSubmission({ ack, body, view, client }) {
       text: `✅ Standup ${updateText} for ${team?.name || "your team"} (${targetDate.format("MMM DD, YYYY")})!${
         isLate ? " (marked as late)" : ""
       }`,
+    });
+
+    // Notify team admins about the submission/update
+    await notificationService.notifyAdminsOfStandupSubmission({
+      teamId,
+      user: body.user,
+      team,
+      client,
+      options: { 
+        isUpdate, 
+        isLate, 
+        date: targetDate.format("MMM DD, YYYY") 
+      }
     });
 
     // If this is an update for today and it's after posting time, post to thread
