@@ -562,7 +562,7 @@ async function handleStandupUpdateSubmission({ ack, body, view, client }) {
     
     // Determine if submission is late (only if it's for today or future)
     let isLate = false;
-    if (targetDate.isSameOrAfter(dayjs().startOf('day')) && team) {
+    if ((targetDate.isSame(dayjs().startOf('day')) || targetDate.isAfter(dayjs().startOf('day'))) && team) {
       const [postingHour, postingMinute] = team.postingTime
         .split(":")
         .map(Number);
