@@ -207,7 +207,7 @@ class SchedulerService {
 
     const respondedUserIds = new Set(responses.map((r) => r.userId));
     const pendingMembers = members.filter(
-      (m) => !respondedUserIds.has(m.userId)
+      (m) => !respondedUserIds.has(m.userId) && m.role !== 'ADMIN'
     );
 
     for (const member of pendingMembers) {
