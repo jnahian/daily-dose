@@ -1,5 +1,6 @@
 require("dotenv").config();
 const { App, ExpressReceiver } = require("@slack/bolt");
+const path = require("path");
 const prisma = require("./config/prisma");
 const { setupCommands } = require("./commands");
 const { setupWorkflows } = require("./workflows");
@@ -20,6 +21,19 @@ setupWorkflows(app);
 
 // Initialize scheduler
 schedulerService.initialize(app);
+
+// Serve static files from public directory
+receiver.app.use(require('express').static(path.join(__dirname, '../public')));
+
+// Landing page route
+receiver.app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+// Documentation page route
+receiver.app.get('/docs', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/docs.html'));
+});
 
 // Health check endpoint
 receiver.app.get('/health', (req, res) => {

@@ -1,0 +1,288 @@
+/* Daily Dose Landing Page - Custom Styles */
+
+/* Base styles and utilities that complement Tailwind */
+:root {
+    --primary: #3B82F6;
+    --secondary: #8B5CF6;
+    --slack-purple: #4A154B;
+    --slack-green: #007A5A;
+    --slack-blue: #1264A3;
+}
+
+/* Smooth loading animation */
+body {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+body.loaded {
+    opacity: 1;
+}
+
+/* Enhanced smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes bounce {
+    0%, 20%, 53%, 80%, 100% {
+        transform: translate3d(0,0,0);
+    }
+    40%, 43% {
+        transform: translate3d(0,-8px,0);
+    }
+    70% {
+        transform: translate3d(0,-4px,0);
+    }
+    90% {
+        transform: translate3d(0,-2px,0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Animation classes */
+.animate-fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+}
+
+.animate-slide-in-left {
+    animation: slideInLeft 0.6s ease-out forwards;
+}
+
+.animate-slide-in-right {
+    animation: slideInRight 0.6s ease-out forwards;
+}
+
+.animate-bounce-subtle {
+    animation: bounce 2s infinite;
+}
+
+.animate-pulse-subtle {
+    animation: pulse 2s infinite;
+}
+
+/* Custom gradient backgrounds */
+.gradient-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+}
+
+.gradient-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Enhanced button styles */
+.btn-primary {
+    @apply bg-primary hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 hover:shadow-lg;
+}
+
+.btn-secondary {
+    @apply border-2 border-primary text-primary hover:bg-primary hover:text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200;
+}
+
+/* Custom card styles */
+.feature-card {
+    @apply bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:scale-105;
+}
+
+/* Enhanced navbar styles */
+.navbar-blur {
+    backdrop-filter: blur(10px);
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+/* Custom loading spinner */
+.spinner {
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid var(--primary);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Notification styles */
+.notification {
+    @apply fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full;
+}
+
+.notification.show {
+    @apply translate-x-0;
+}
+
+.notification.success {
+    @apply bg-green-500 text-white;
+}
+
+.notification.error {
+    @apply bg-red-500 text-white;
+}
+
+.notification.info {
+    @apply bg-blue-500 text-white;
+}
+
+/* Parallax effect removed per user request */
+
+/* Enhanced focus styles for accessibility */
+.focus-visible:focus {
+    @apply outline-none ring-2 ring-primary ring-opacity-50 ring-offset-2;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary);
+}
+
+/* Mobile enhancements */
+@media (max-width: 768px) {
+    .mobile-padding {
+        @apply px-4;
+    }
+    
+    .mobile-text {
+        @apply text-sm;
+    }
+    
+    .mobile-hide {
+        @apply hidden;
+    }
+}
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    body {
+        @apply text-black bg-white;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .feature-card {
+        @apply border-2 border-gray-400;
+    }
+    
+    .btn-primary {
+        @apply border-2 border-blue-800;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Dark mode support (for future enhancement) */
+@media (prefers-color-scheme: dark) {
+    .dark-mode-support {
+        @apply bg-gray-900 text-white;
+    }
+}
+
+/* Custom utility classes */
+.text-gradient {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary;
+}
+
+.shadow-glow {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+.border-gradient {
+    border-image: linear-gradient(135deg, var(--primary), var(--secondary)) 1;
+}
+
+/* Enhanced hover effects */
+.hover-lift {
+    @apply transition-transform duration-200 hover:transform hover:-translate-y-1;
+}
+
+.hover-glow {
+    @apply transition-shadow duration-200 hover:shadow-glow;
+}
+
+/* Stagger animation for lists */
+.stagger-animation > * {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeIn 0.6s ease-out forwards;
+}
+
+.stagger-animation > *:nth-child(1) { animation-delay: 0.1s; }
+.stagger-animation > *:nth-child(2) { animation-delay: 0.2s; }
+.stagger-animation > *:nth-child(3) { animation-delay: 0.3s; }
+.stagger-animation > *:nth-child(4) { animation-delay: 0.4s; }
+.stagger-animation > *:nth-child(5) { animation-delay: 0.5s; }
+.stagger-animation > *:nth-child(6) { animation-delay: 0.6s; }

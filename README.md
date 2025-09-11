@@ -18,7 +18,41 @@ Daily Dose is a Slack bot that automates daily standup meetings for teams. It se
 - **Timezone Support**: Each team can have its own timezone
 - **Late Submission Tracking**: Tracks and handles late standup submissions
 
+## 🌐 Web Landing Page
+
+Daily Dose now includes a professional landing page accessible at the base URL of your deployment. The landing page provides:
+
+### Features
+- **Professional Design**: Clean, responsive interface showcasing the bot's capabilities
+- **Feature Showcase**: Detailed overview of automation features and benefits
+- **How It Works**: Step-by-step guide explaining the standup automation process
+- **Contact Section**: Easy way for teams to request installation and setup
+- **SEO Optimized**: Proper meta tags and social media integration for discovery
+- **Mobile Responsive**: Optimized for all device types and screen sizes
+
+### Technical Implementation
+- **Static File Serving**: All assets served from `/public` directory via Express
+- **Tailwind CSS**: Modern utility-first CSS framework for styling
+- **Interactive JavaScript**: Smooth scrolling, mobile menu, and animations
+- **Accessibility**: ARIA labels and semantic HTML for screen readers
+
+### Accessing the Landing Page
+- **Local Development**: http://localhost:3000/
+- **Production**: Available at your deployment's base URL
+- **Assets**: Logo, CSS, and JavaScript files served from `/public` directory
+
+The landing page serves as both a marketing tool and user onboarding resource, helping new teams understand the bot's value before installation.
+
 ## 🚀 Quick Start
+
+### 0. Explore the Web Interface (Optional)
+
+Before setting up your teams, you can explore the Daily Dose landing page to learn more about features and benefits:
+
+- **Local Development**: Visit http://localhost:3000/
+- **Production**: Access your deployment's base URL
+- **Features Overview**: Learn about automation capabilities
+- **Setup Guide**: Understand the standup process
 
 ### 1. Join Your Organization
 
@@ -336,6 +370,16 @@ When you're on leave:
 
 ## ⚙️ Technical Details
 
+### Web Interface
+
+Daily Dose includes a comprehensive web interface:
+
+- **Landing Page**: Professional marketing page at the base URL (`/`)
+- **Health Check**: System status endpoint at `/health`
+- **Static Assets**: Logo, CSS, and JavaScript served from `/public`
+- **Express Integration**: Built on Express.js with Slack Bolt framework
+- **Responsive Design**: Mobile-first approach using Tailwind CSS
+
 ### Supported Timezones
 
 The bot supports all standard timezone identifiers (e.g., "America/New_York", "Europe/London", "Asia/Tokyo").
@@ -354,6 +398,13 @@ The bot needs these Slack permissions:
 - Post in channels where teams are created
 - Read user information
 - Access slash commands
+
+### Server Requirements
+
+- **Node.js**: Version 14 or higher
+- **Database**: PostgreSQL (via Supabase)
+- **Web Server**: Express.js with static file serving
+- **Environment**: Requires proper environment variables for Slack integration
 
 ---
 
