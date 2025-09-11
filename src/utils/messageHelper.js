@@ -59,6 +59,30 @@ function formatTasks(tasks) {
 }
 
 /**
+ * Format a Slack rich text element for display
+ * @param {*} el - The rich text element to format
+ * @returns {string} The formatted text
+ */
+function formatElement(el) {
+  if (el.type === "text") {
+    let text = el.text;
+    if (el.style?.bold) text = `*${text}*`;
+    if (el.style?.italic) text = `_${text}_`;
+    if (el.style?.strike) text = `~${text}~`;
+    if (el.style?.code) text = `\`${text}\``;
+    return text;
+  }
+  if (el.type === "link") {
+    const linkText = el.text || el.url;
+    return `<${el.url} ${el.text ? `|${linkText}` : ""}>`;
+  }
+  if (el.type === "user") return `<@${el.user_id}>`;
+  if (el.type === "channel") return `<#${el.channel_id}>`;
+  if (el.type === "emoji") return `:${el.name}:`;
+  return "";
+}
+
+/**
  * Extract plain text from Slack rich text input while preserving formatting
  * @param {object} richTextValue - The rich text input object from Slack
  * @returns {string} The extracted plain text with formatting preserved
@@ -69,55 +93,16 @@ function extractRichTextValue(richTextValue) {
   return richTextValue.rich_text_value.elements
     .map((element) => {
       if (element.type === "rich_text_section") {
-        return element.elements
-          .map((el) => {
-            if (el.type === "text") {
-              let text = el.text;
-              // Apply text styling as markdown
-              if (el.style?.bold) text = `**${text}**`;
-              if (el.style?.italic) text = `*${text}*`;
-              if (el.style?.strike) text = `~~${text}~~`;
-              if (el.style?.code) text = `\`${text}\``;
-              return text;
-            }
-            if (el.type === "link") {
-              const linkText = el.text || el.url;
-              return `[${linkText}](${el.url})`;
-            }
-            if (el.type === "user") return `<@${el.user_id}>`;
-            if (el.type === "channel") return `<#${el.channel_id}>`;
-            if (el.type === "emoji") return el.unicode || `:${el.name}:`;
-            return "";
-          })
-          .join("");
+        return element.elements.map((el) => formatElement(el)).join("");
       }
       if (element.type === "rich_text_list") {
-        const listStyle = element.style === "ordered" ? "1." : "-";
         return element.elements
           .map((item, index) => {
             if (item.type === "rich_text_section") {
               const prefix =
                 element.style === "ordered" ? `${index + 1}. ` : "- ";
               const content = item.elements
-                .map((el) => {
-                  if (el.type === "text") {
-                    let text = el.text;
-                    if (el.style?.bold) text = `**${text}**`;
-                    if (el.style?.italic) text = `*${text}*`;
-                    if (el.style?.strike) text = `~~${text}~~`;
-                    if (el.style?.code) text = `\`${text}\``;
-                    return text;
-                  }
-                  if (el.type === "link") {
-                    const linkText = el.text || el.url;
-                    return `[${linkText}](${el.url})`;
-                  }
-                  if (el.type === "user") return `<@${el.user_id}>`;
-                  if (el.type === "channel") return `<#${el.channel_id}>`;
-                  if (el.type === "emoji")
-                    return el.unicode || `:${el.name}:`;
-                  return "";
-                })
+                .map((el) => formatElement(el))
                 .join("");
               return prefix + content;
             }
