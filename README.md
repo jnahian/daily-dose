@@ -90,10 +90,16 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
 
 - `/dd-standup [team-name]` - Submit standup manually outside scheduled time
 - `/dd-standup-update <team-name> [YYYY-MM-DD]` - Update standup for any day (defaults to today)
-- `/dd-standup-reminder <team-name> [on|off]` - Toggle visibility in non-responded list
-  - View current status: `/dd-standup-reminder TeamName`
-  - Opt out from non-responded list: `/dd-standup-reminder TeamName off`
-  - Opt back in to non-responded list: `/dd-standup-reminder TeamName on`
+- `/dd-standup-reminder [team-name] [on|off]` - Toggle visibility in non-responded list
+  - **Channel-based operation** (when no team name provided):
+    - `/dd-standup-reminder` - View status for team in current channel
+    - `/dd-standup-reminder off` - Opt out for team in current channel
+    - `/dd-standup-reminder on` - Opt in for team in current channel
+  - **Cross-channel operation** (when team name provided):
+    - `/dd-standup-reminder Engineering` - View status for specific team
+    - `/dd-standup-reminder Engineering off` - Opt out from specific team non-responded list
+    - `/dd-standup-reminder Engineering on` - Opt back into specific team non-responded list
+  - **Smart parameter parsing**: Command automatically detects if first argument is "on"/"off" or a team name
 - The bot also sends automatic DM reminders with interactive buttons
 
 ### 👥 Team Management
@@ -254,18 +260,45 @@ You can update your standup for any day using the update command:
 
 ## 🔕 Standup Reminder Preferences
 
-You can control your visibility in the "Not Responded" section of team standup summaries while still maintaining the ability to submit standups:
+You can control your visibility in the "Not Responded" section of team standup summaries while still maintaining the ability to submit standups.
+
+### Channel-Based Operation
+
+When used without a team name, the command operates on the team associated with the current Slack channel:
 
 ```bash
-# Check your current reminder preference for a team
+# Check your current reminder preference for team in current channel
+/dd-standup-reminder
+
+# Opt out from appearing in "Not Responded" list for current channel team
+/dd-standup-reminder off
+
+# Opt back in to appear in "Not Responded" list for current channel team (default)
+/dd-standup-reminder on
+```
+
+### Cross-Channel Operation
+
+When a team name is provided, the command works from any channel:
+
+```bash
+# Check your current reminder preference for specific team
 /dd-standup-reminder Engineering
 
-# Opt out from appearing in "Not Responded" list
+# Opt out from appearing in "Not Responded" list for specific team
 /dd-standup-reminder Engineering off
 
-# Opt back in to appear in "Not Responded" list (default behavior)
+# Opt back in to appear in "Not Responded" list for specific team
 /dd-standup-reminder Engineering on
 ```
+
+### Smart Parameter Detection
+
+The command intelligently detects whether your first argument is an action ("on"/"off") or a team name:
+
+- If you type `on` or `off` as the first argument, it applies to the team in the current channel
+- If you type anything else as the first argument, it's treated as a team name
+- This allows for flexible usage patterns depending on your workflow
 
 ### How It Works
 
@@ -273,6 +306,8 @@ You can control your visibility in the "Not Responded" section of team standup s
 - **Opted Out**: You won't appear in the "Not Responded" list, but you can still submit standups normally
 - **Still Get Reminders**: You continue to receive DM reminders regardless of this setting
 - **Per-Team Setting**: This preference is set individually for each team you're part of
+- **Team Membership Required**: You must be a member of the team to modify your reminder preferences
+- **Real-time Updates**: Changes take effect immediately for future standup summaries
 
 ### Use Cases
 
@@ -281,6 +316,53 @@ This feature is useful for:
 - **Consultants or contractors** with irregular schedules
 - **Team leads or managers** who participate optionally in standups
 - **Cross-functional members** who only contribute when relevant
+- **Team members with varying availability** who want to reduce notification pressure
+- **Members transitioning between teams** who need flexible participation levels
+
+### Common Error Scenarios
+
+```bash
+# Error: No team in current channel
+/dd-standup-reminder off
+# Response: "❌ No team found in this channel. Please provide team name: /dd-standup-reminder TeamName [on|off]"
+
+# Error: Team doesn't exist
+/dd-standup-reminder NonexistentTeam off  
+# Response: "❌ Team 'NonexistentTeam' not found"
+
+# Error: Not a team member
+/dd-standup-reminder Engineering off
+# Response: "❌ You are not a member of team 'Engineering'"
+
+# Error: Invalid action
+/dd-standup-reminder Engineering maybe
+# Response: "❌ Invalid action 'maybe'. Use 'on' to opt in or 'off' to opt out."
+```
+
+### Example Workflows
+
+**Scenario 1: Working from team channel**
+```bash
+# You're in the #engineering channel where the Engineering team is configured
+/dd-standup-reminder               # Check current status for Engineering team
+/dd-standup-reminder off           # Opt out of non-responded list for Engineering team
+/dd-standup-reminder on            # Opt back in for Engineering team
+```
+
+**Scenario 2: Working from different channel**
+```bash
+# You're in #general but want to manage Marketing team preferences
+/dd-standup-reminder Marketing     # Check status for Marketing team
+/dd-standup-reminder Marketing off # Opt out of Marketing team non-responded list
+```
+
+**Scenario 3: Managing multiple teams**
+```bash
+# Check and modify preferences for different teams
+/dd-standup-reminder Engineering          # Check Engineering team status
+/dd-standup-reminder Marketing off        # Opt out of Marketing team
+/dd-standup-reminder DevOps on            # Ensure opted in for DevOps team
+```
 
 ## 🎉 Holiday Management ⚠️ (Admin Only)
 
@@ -381,7 +463,10 @@ When you're on leave:
 - **Be Specific**: Provide clear, actionable updates
 - **Mention Blockers**: Don't hesitate to ask for help
 - **Set Leave Early**: Update your leave dates in advance
-- **Configure Reminder Preferences**: Use `/dd-standup-reminder` to opt out of non-responded lists if you have irregular participation
+- **Configure Reminder Preferences**: Use `/dd-standup-reminder` to manage your visibility in non-responded lists
+  - **Channel-based**: Run `/dd-standup-reminder off` from your team's channel for quick access
+  - **Cross-channel**: Use `/dd-standup-reminder TeamName off` from anywhere when managing multiple teams
+  - **Check status first**: Always run `/dd-standup-reminder` or `/dd-standup-reminder TeamName` to see current settings
 
 ### For Team Admins
 

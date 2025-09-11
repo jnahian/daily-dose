@@ -11,26 +11,49 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
   );
 
   try {
-    // Parse command text: /dd-standup-reminder TeamName [on|off]
+    // Parse command text: /dd-standup-reminder [TeamName] [on|off]
     const args = command.text.trim().split(" ");
-    const teamName = args[0];
-    const action = args[1];
+    let team, teamName, action;
 
-    if (!teamName) {
-      await updateResponse({
-        text: "❌ Usage: `/dd-standup-reminder TeamName [on|off]`\nExample: `/dd-standup-reminder Engineering off` - Opt out of non-responded list\nExample: `/dd-standup-reminder Engineering on` - Opt back into non-responded list\nWithout action, shows current status.",
-      });
-      return;
-    }
+    // Determine if first argument is team name or action
+    if (args.length === 0 || args[0] === "") {
+      // No arguments, try to find team in current channel
+      team = await teamService.findTeamByChannel(command.channel_id);
+      action = undefined;
+      
+      if (!team) {
+        await updateResponse({
+          text: "❌ No team found in this channel. Usage: `/dd-standup-reminder [TeamName] [on|off]`\n- Run without team name to manage preferences for team in current channel\n- Or specify team name: `/dd-standup-reminder Engineering off`\n\nExamples:\n- `/dd-standup-reminder` - Show status for team in current channel\n- `/dd-standup-reminder off` - Opt out of non-responded list for current channel team\n- `/dd-standup-reminder Engineering on` - Opt back into non-responded list for Engineering team",
+        });
+        return;
+      }
+      teamName = team.name;
+    } else if (args[0] === "on" || args[0] === "off") {
+      // First argument is action, find team in current channel
+      team = await teamService.findTeamByChannel(command.channel_id);
+      action = args[0];
+      
+      if (!team) {
+        await updateResponse({
+          text: "❌ No team found in this channel. Please provide team name: `/dd-standup-reminder TeamName [on|off]`",
+        });
+        return;
+      }
+      teamName = team.name;
+    } else {
+      // First argument is team name
+      teamName = args[0];
+      action = args[1];
+      
+      // Find team by name
+      team = await teamService.findTeamByName(teamName);
 
-    // Find team by name
-    const team = await teamService.findTeamByName(teamName);
-
-    if (!team) {
-      await updateResponse({
-        text: `❌ Team "${teamName}" not found`,
-      });
-      return;
+      if (!team) {
+        await updateResponse({
+          text: `❌ Team "${teamName}" not found`,
+        });
+        return;
+      }
     }
 
     // Check if user is a member of the team

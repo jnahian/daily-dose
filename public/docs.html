@@ -492,26 +492,26 @@
                     
                     <div class="bg-white rounded-lg border p-6">
                         <h3 class="font-semibold text-gray-900 mb-4">Standup Reminder Preferences</h3>
-                        <p class="text-gray-600 mb-4">Control your visibility in the non-responded list while maintaining ability to submit standups:</p>
+                        <p class="text-gray-600 mb-4">Control your visibility in the non-responded list while maintaining ability to submit standups. Team name is optional - when not provided, the bot looks for a team in the current channel:</p>
                         <div class="space-y-3">
                             <div class="code-block p-4 relative">
-                                <code class="text-purple-400">/dd-standup-reminder &lt;team-name&gt;</code>
+                                <code class="text-purple-400">/dd-standup-reminder [team-name]</code>
                                 <span class="text-gray-400 ml-2"># Check current status</span>
-                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder <team-name>')">
+                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder')">
                                     <i class="fas fa-copy"></i>
                                 </button>
                             </div>
                             <div class="code-block p-4 relative">
-                                <code class="text-purple-400">/dd-standup-reminder &lt;team-name&gt; off</code>
+                                <code class="text-purple-400">/dd-standup-reminder [team-name] off</code>
                                 <span class="text-gray-400 ml-2"># Opt out of non-responded list</span>
-                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder <team-name> off')">
+                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder off')">
                                     <i class="fas fa-copy"></i>
                                 </button>
                             </div>
                             <div class="code-block p-4 relative">
-                                <code class="text-purple-400">/dd-standup-reminder &lt;team-name&gt; on</code>
+                                <code class="text-purple-400">/dd-standup-reminder [team-name] on</code>
                                 <span class="text-gray-400 ml-2"># Opt back into non-responded list</span>
-                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder <team-name> on')">
+                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder on')">
                                     <i class="fas fa-copy"></i>
                                 </button>
                             </div>
@@ -523,20 +523,54 @@
                                 <li><i class="fas fa-check mr-2"></i>Can still submit standups normally at any time</li>
                                 <li><i class="fas fa-check mr-2"></i>Perfect for irregular contributors or project-based members</li>
                                 <li><i class="fas fa-check mr-2"></i>Reduces team noise while maintaining participation flexibility</li>
+                                <li><i class="fas fa-check mr-2"></i>Works from any channel when team name is omitted (uses channel's team)</li>
                             </ul>
                         </div>
                         <div class="bg-blue-50 border border-blue-200 rounded p-4 mt-4">
-                            <h4 class="font-semibold text-blue-900 mb-2">Examples:</h4>
+                            <h4 class="font-semibold text-blue-900 mb-2">Channel-Based Usage:</h4>
+                            <div class="space-y-2 text-sm mb-4">
+                                <div class="code-block p-2">
+                                    <code class="text-purple-400">/dd-standup-reminder</code>
+                                    <span class="text-gray-600 ml-2">→ Check status for team in current channel</span>
+                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <div class="code-block p-2">
+                                    <code class="text-purple-400">/dd-standup-reminder off</code>
+                                    <span class="text-gray-600 ml-2">→ Opt out for team in current channel</span>
+                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder off')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <div class="code-block p-2">
+                                    <code class="text-purple-400">/dd-standup-reminder on</code>
+                                    <span class="text-gray-600 ml-2">→ Opt in for team in current channel</span>
+                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder on')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <h4 class="font-semibold text-blue-900 mb-2">Name-Based Usage:</h4>
                             <div class="space-y-2 text-sm">
                                 <div class="code-block p-2">
                                     <code class="text-purple-400">/dd-standup-reminder Engineering</code>
+                                    <span class="text-gray-600 ml-2">→ Check status for specific team</span>
                                     <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder Engineering')">
                                         <i class="fas fa-copy"></i>
                                     </button>
                                 </div>
                                 <div class="code-block p-2">
                                     <code class="text-purple-400">/dd-standup-reminder "Product Team" off</code>
+                                    <span class="text-gray-600 ml-2">→ Opt out for specific team</span>
                                     <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder &quot;Product Team&quot; off')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <div class="code-block p-2">
+                                    <code class="text-purple-400">/dd-standup-reminder Engineering on</code>
+                                    <span class="text-gray-600 ml-2">→ Opt in for specific team</span>
+                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder Engineering on')">
                                         <i class="fas fa-copy"></i>
                                     </button>
                                 </div>
@@ -1483,7 +1517,10 @@
                                 <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform"></i>
                             </summary>
                             <div class="mt-4 pt-4 border-t text-gray-600">
-                                <p>Yes! Use <code class="bg-gray-100 px-1 rounded">/dd-standup-reminder TeamName off</code> to opt out of appearing in the daily "Not Responded" list. You can still submit standups normally, but won't be listed when you don't respond. This is perfect for irregular contributors, project-based members, or anyone who doesn't want to add noise to daily summaries. Use <code class="bg-gray-100 px-1 rounded">/dd-standup-reminder TeamName on</code> to opt back in.</p>
+                                <p>Yes! Use <code class="bg-gray-100 px-1 rounded">/dd-standup-reminder [team-name] off</code> to opt out of appearing in the daily "Not Responded" list. When no team name is provided, the bot looks for a team associated with the current channel. You can still submit standups normally, but won't be listed when you don't respond. This is perfect for irregular contributors, project-based members, or anyone who doesn't want to add noise to daily summaries. Use <code class="bg-gray-100 px-1 rounded">/dd-standup-reminder [team-name] on</code> to opt back in.</p>
+                                <p class="mt-2"><strong>Examples:</strong><br>
+                                <code class="bg-gray-100 px-1 rounded">/dd-standup-reminder off</code> - Opt out for team in current channel<br>
+                                <code class="bg-gray-100 px-1 rounded">/dd-standup-reminder Engineering off</code> - Opt out for specific team</p>
                             </div>
                         </details>
                     </div>
