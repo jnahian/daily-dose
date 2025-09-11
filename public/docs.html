@@ -33,8 +33,9 @@
                         'slack-purple': '#4A154B',
                         'slack-green': '#007A5A',
                         'slack-blue': '#1264A3',
-                        'primary': '#3B82F6',
-                        'secondary': '#8B5CF6',
+                        'primary': '#00CFFF',
+                        'secondary': '#00AFFF',
+                        'glow': '#007BFF',
                     },
                     fontFamily: {
                         'sans': ['Inter', 'system-ui', 'sans-serif'],
@@ -264,11 +265,11 @@
                     </div>
                 </div>
                 
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-                    <h3 class="text-lg font-semibold text-blue-900 mb-2">
+                <div class="bg-cyan-50 border border-cyan-200 rounded-lg p-6 mb-8">
+                    <h3 class="text-lg font-semibold text-cyan-900 mb-2">
                         <i class="fas fa-info-circle mr-2"></i>What is Daily Dose?
                     </h3>
-                    <p class="text-blue-800 leading-relaxed">
+                    <p class="text-cyan-800 leading-relaxed">
                         Daily Dose is an intelligent Slack bot that streamlines your team's standup meetings. 
                         It automatically sends reminders, collects responses through interactive modals, and posts 
                         beautifully formatted summaries to your team channels. Save time, improve communication, 
@@ -404,7 +405,7 @@
                                 </div>
                             </div>
                             <div class="code-block p-4 relative">
-                                <code class="text-blue-400">/dd-team-create [team-name] 09:30 10:00</code>
+                                <code class="text-cyan-400">/dd-team-create [team-name] 09:30 10:00</code>
                                 <span class="text-yellow-400 ml-2">⚠️ Admin only</span>
                                 <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-team-create 09:30 10:00')">
                                     <i class="fas fa-copy"></i>
@@ -442,8 +443,8 @@
                                 <i class="fas fa-copy"></i>
                             </button>
                         </div>
-                        <div class="bg-blue-50 border border-blue-200 rounded p-4">
-                            <h4 class="font-semibold text-blue-900 mb-2">Examples:</h4>
+                        <div class="bg-cyan-50 border border-cyan-200 rounded p-4">
+                            <h4 class="font-semibold text-cyan-900 mb-2">Examples:</h4>
                             <div class="space-y-2 text-sm">
                                 <div class="code-block p-2">
                                     <code class="text-green-400">/dd-standup Engineering</code>
@@ -466,14 +467,14 @@
                         <p class="text-gray-600 mb-4">Update your standup for today or any specific date:</p>
                         <div class="space-y-3">
                             <div class="code-block p-4 relative">
-                                <code class="text-blue-400">/dd-standup-update &lt;team-name&gt;</code>
+                                <code class="text-cyan-400">/dd-standup-update &lt;team-name&gt;</code>
                                 <span class="text-gray-400 ml-2"># Update today's standup</span>
                                 <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-update <team-name>')">
                                     <i class="fas fa-copy"></i>
                                 </button>
                             </div>
                             <div class="code-block p-4 relative">
-                                <code class="text-blue-400">/dd-standup-update &lt;team-name&gt; [YYYY-MM-DD]</code>
+                                <code class="text-cyan-400">/dd-standup-update &lt;team-name&gt; [YYYY-MM-DD]</code>
                                 <span class="text-gray-400 ml-2"># Update specific date</span>
                                 <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-update <team-name> [YYYY-MM-DD]')">
                                     <i class="fas fa-copy"></i>
@@ -526,8 +527,8 @@
                                 <li><i class="fas fa-check mr-2"></i>Works from any channel when team name is omitted (uses channel's team)</li>
                             </ul>
                         </div>
-                        <div class="bg-blue-50 border border-blue-200 rounded p-4 mt-4">
-                            <h4 class="font-semibold text-blue-900 mb-2">Channel-Based Usage:</h4>
+                        <div class="bg-cyan-50 border border-cyan-200 rounded p-4 mt-4">
+                            <h4 class="font-semibold text-cyan-900 mb-2">Channel-Based Usage:</h4>
                             <div class="space-y-2 text-sm mb-4">
                                 <div class="code-block p-2">
                                     <code class="text-purple-400">/dd-standup-reminder</code>
@@ -551,7 +552,7 @@
                                     </button>
                                 </div>
                             </div>
-                            <h4 class="font-semibold text-blue-900 mb-2">Name-Based Usage:</h4>
+                            <h4 class="font-semibold text-cyan-900 mb-2">Name-Based Usage:</h4>
                             <div class="space-y-2 text-sm">
                                 <div class="code-block p-2">
                                     <code class="text-purple-400">/dd-standup-reminder Engineering</code>
@@ -605,12 +606,12 @@
                     <i class="fas fa-users text-primary mr-2"></i>Team Management
                 </h2>
                 
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div class="bg-cyan-50 border border-cyan-200 rounded-lg p-4 mb-6">
                     <div class="flex items-start">
-                        <i class="fas fa-info-circle text-blue-600 mr-2 mt-1"></i>
+                        <i class="fas fa-info-circle text-primary mr-2 mt-1"></i>
                         <div>
-                            <h4 class="font-semibold text-blue-900 mb-2">Channel-Based Commands</h4>
-                            <p class="text-blue-800 text-sm">
+                            <h4 class="font-semibold text-cyan-900 mb-2">Channel-Based Commands</h4>
+                            <p class="text-cyan-800 text-sm">
                                 Most team commands now support optional team names. When no team name is provided, 
                                 the bot will automatically look for a team associated with the current Slack channel. 
                                 This makes it easier to manage teams directly from their dedicated channels.
@@ -667,8 +668,8 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="bg-blue-50 border border-blue-200 rounded p-4 mt-4">
-                            <h4 class="font-semibold text-blue-900 mb-2">Examples:</h4>
+                        <div class="bg-cyan-50 border border-cyan-200 rounded p-4 mt-4">
+                            <h4 class="font-semibold text-cyan-900 mb-2">Examples:</h4>
                             <div class="space-y-2 text-sm">
                                 <code class="text-green-400">/dd-team-join</code> <span class="text-gray-600">- joins team in current channel</span><br>
                                 <code class="text-green-400">/dd-team-join Engineering</code> <span class="text-gray-600">- joins specific team</span><br>
@@ -689,7 +690,7 @@
                             <div>
                                 <h4 class="font-medium text-gray-900 mb-2">Create Team</h4>
                                 <div class="code-block p-4 relative mb-2">
-                                    <code class="text-blue-400">/dd-team-create [name] &lt;standup-time&gt; &lt;posting-time&gt;</code>
+                                    <code class="text-cyan-400">/dd-team-create [name] &lt;standup-time&gt; &lt;posting-time&gt;</code>
                                     <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-team-create 09:30 10:00')">
                                         <i class="fas fa-copy"></i>
                                     </button>
@@ -710,7 +711,7 @@
                             <div>
                                 <h4 class="font-medium text-gray-900 mb-2">Update Team Settings</h4>
                                 <div class="code-block p-4 relative mb-2">
-                                    <code class="text-blue-400">/dd-team-update [team-name] [parameters]</code>
+                                    <code class="text-cyan-400">/dd-team-update [team-name] [parameters]</code>
                                     <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-team-update [team-name] [parameters]')">
                                         <i class="fas fa-copy"></i>
                                     </button>
@@ -725,10 +726,10 @@
                                 <div class="bg-gray-50 rounded p-3">
                                     <h5 class="font-medium text-gray-900 mb-2">Available Parameters:</h5>
                                     <div class="space-y-1 text-sm">
-                                        <code class="text-blue-600">name=NewName</code> - Change team name<br>
-                                        <code class="text-blue-600">standup=HH:MM</code> - Change reminder time<br>
-                                        <code class="text-blue-600">posting=HH:MM</code> - Change posting time<br>
-                                        <code class="text-blue-600">notifications=true/false</code> - Admin notifications
+                                        <code class="text-primary">name=NewName</code> - Change team name<br>
+                                        <code class="text-primary">standup=HH:MM</code> - Change reminder time<br>
+                                        <code class="text-primary">posting=HH:MM</code> - Change posting time<br>
+                                        <code class="text-primary">notifications=true/false</code> - Admin notifications
                                     </div>
                                 </div>
                                 <div class="mt-2 text-sm text-gray-600">
@@ -768,7 +769,7 @@
                             <div>
                                 <h4 class="font-medium text-gray-900 mb-2">Single Day Leave</h4>
                                 <div class="code-block p-4 relative mb-2">
-                                    <code class="text-blue-400">/dd-leave-set &lt;date&gt; [reason]</code>
+                                    <code class="text-cyan-400">/dd-leave-set &lt;date&gt; [reason]</code>
                                     <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-leave-set <date> [reason]')">
                                         <i class="fas fa-copy"></i>
                                     </button>
@@ -781,7 +782,7 @@
                             <div>
                                 <h4 class="font-medium text-gray-900 mb-2">Date Range Leave</h4>
                                 <div class="code-block p-4 relative mb-2">
-                                    <code class="text-blue-400">/dd-leave-set &lt;start-date&gt; &lt;end-date&gt; [reason]</code>
+                                    <code class="text-cyan-400">/dd-leave-set &lt;start-date&gt; &lt;end-date&gt; [reason]</code>
                                     <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-leave-set <start-date> <end-date> [reason]')">
                                         <i class="fas fa-copy"></i>
                                     </button>
@@ -874,7 +875,7 @@
                             <div>
                                 <h4 class="font-medium text-gray-900 mb-2">Single Day Holiday</h4>
                                 <div class="code-block p-4 relative mb-2">
-                                    <code class="text-blue-400">/dd-holiday-set &lt;date&gt; [name]</code>
+                                    <code class="text-cyan-400">/dd-holiday-set &lt;date&gt; [name]</code>
                                     <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-holiday-set <date> [name]')">
                                         <i class="fas fa-copy"></i>
                                     </button>
@@ -887,7 +888,7 @@
                             <div>
                                 <h4 class="font-medium text-gray-900 mb-2">Multi-Day Holiday</h4>
                                 <div class="code-block p-4 relative mb-2">
-                                    <code class="text-blue-400">/dd-holiday-set &lt;start-date&gt; &lt;end-date&gt; [name]</code>
+                                    <code class="text-cyan-400">/dd-holiday-set &lt;start-date&gt; &lt;end-date&gt; [name]</code>
                                     <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-holiday-set <start-date> <end-date> [name]')">
                                         <i class="fas fa-copy"></i>
                                     </button>
@@ -908,7 +909,7 @@
                             <div>
                                 <h4 class="font-medium text-gray-900 mb-2">Update Holiday Name</h4>
                                 <div class="code-block p-4 relative mb-2">
-                                    <code class="text-blue-400">/dd-holiday-update &lt;date&gt; &lt;new-name&gt;</code>
+                                    <code class="text-cyan-400">/dd-holiday-update &lt;date&gt; &lt;new-name&gt;</code>
                                     <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-holiday-update <date> <new-name>')">
                                         <i class="fas fa-copy"></i>
                                     </button>
@@ -965,42 +966,42 @@
                         <h3 class="font-semibold text-gray-900 mb-4">Set Work Days</h3>
                         <p class="text-gray-600 mb-4">Configure your personal working days:</p>
                         <div class="code-block p-4 relative mb-4">
-                            <code class="text-blue-400">/dd-workdays-set &lt;days&gt;</code>
+                            <code class="text-cyan-400">/dd-workdays-set &lt;days&gt;</code>
                             <span class="text-gray-400 ml-2"># Comma-separated day numbers</span>
                             <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-workdays-set <days>')">
                                 <i class="fas fa-copy"></i>
                             </button>
                         </div>
                         
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                            <h4 class="font-semibold text-blue-900 mb-2">Day Numbers:</h4>
+                        <div class="bg-cyan-50 border border-cyan-200 rounded-lg p-4 mb-4">
+                            <h4 class="font-semibold text-cyan-900 mb-2">Day Numbers:</h4>
                             <div class="grid grid-cols-7 gap-2 text-sm">
                                 <div class="text-center">
-                                    <div class="bg-blue-100 rounded p-2">
+                                    <div class="bg-cyan-100 rounded p-2">
                                         <div class="font-semibold">1</div>
                                         <div>Mon</div>
                                     </div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="bg-blue-100 rounded p-2">
+                                    <div class="bg-cyan-100 rounded p-2">
                                         <div class="font-semibold">2</div>
                                         <div>Tue</div>
                                     </div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="bg-blue-100 rounded p-2">
+                                    <div class="bg-cyan-100 rounded p-2">
                                         <div class="font-semibold">3</div>
                                         <div>Wed</div>
                                     </div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="bg-blue-100 rounded p-2">
+                                    <div class="bg-cyan-100 rounded p-2">
                                         <div class="font-semibold">4</div>
                                         <div>Thu</div>
                                     </div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="bg-blue-100 rounded p-2">
+                                    <div class="bg-cyan-100 rounded p-2">
                                         <div class="font-semibold">5</div>
                                         <div>Fri</div>
                                     </div>
@@ -1025,7 +1026,7 @@
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between bg-gray-50 p-3 rounded">
                                     <div>
-                                        <code class="text-blue-600">/dd-workdays-set 1,2,3,4,5</code>
+                                        <code class="text-primary">/dd-workdays-set 1,2,3,4,5</code>
                                         <span class="text-gray-600 ml-2">Monday-Friday</span>
                                     </div>
                                     <button class="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded" onclick="copyToClipboard('/dd-workdays-set 1,2,3,4,5')">
@@ -1034,7 +1035,7 @@
                                 </div>
                                 <div class="flex items-center justify-between bg-gray-50 p-3 rounded">
                                     <div>
-                                        <code class="text-blue-600">/dd-workdays-set 1,2,3,4,7</code>
+                                        <code class="text-primary">/dd-workdays-set 1,2,3,4,7</code>
                                         <span class="text-gray-600 ml-2">Mon-Thu + Sunday</span>
                                     </div>
                                     <button class="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded" onclick="copyToClipboard('/dd-workdays-set 1,2,3,4,7')">
@@ -1043,7 +1044,7 @@
                                 </div>
                                 <div class="flex items-center justify-between bg-gray-50 p-3 rounded">
                                     <div>
-                                        <code class="text-blue-600">/dd-workdays-set 2,3,4,5,6</code>
+                                        <code class="text-primary">/dd-workdays-set 2,3,4,5,6</code>
                                         <span class="text-gray-600 ml-2">Tuesday-Saturday</span>
                                     </div>
                                     <button class="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded" onclick="copyToClipboard('/dd-workdays-set 2,3,4,5,6')">
@@ -1080,7 +1081,7 @@
                     <div class="bg-white rounded-lg border p-6">
                         <h3 class="font-semibold text-gray-900 mb-4">How Reminders Work</h3>
                         <div class="grid md:grid-cols-3 gap-4 mb-6">
-                            <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-center p-4 bg-cyan-50 rounded-lg">
                                 <i class="fas fa-clock text-primary text-2xl mb-2"></i>
                                 <h4 class="font-semibold text-gray-900 mb-2">Scheduled Time</h4>
                                 <p class="text-sm text-gray-600">Bot sends DM at your team's configured standup time</p>
@@ -1123,9 +1124,9 @@
                         <p class="text-gray-600 mb-4">Daily Dose automatically handles teams spanning multiple timezones:</p>
                         
                         <div class="grid md:grid-cols-2 gap-6">
-                            <div class="bg-blue-50 border border-blue-200 rounded p-4">
-                                <h4 class="font-semibold text-blue-900 mb-2">Team Timezone</h4>
-                                <ul class="text-sm text-blue-800 space-y-1">
+                            <div class="bg-cyan-50 border border-cyan-200 rounded p-4">
+                                <h4 class="font-semibold text-cyan-900 mb-2">Team Timezone</h4>
+                                <ul class="text-sm text-cyan-800 space-y-1">
                                     <li>• Each team has a configured timezone</li>
                                     <li>• Default: America/New_York</li>
                                     <li>• Supports all standard timezone identifiers</li>
@@ -1152,24 +1153,24 @@
                             <div class="grid md:grid-cols-3 gap-4 text-sm">
                                 <div>
                                     <h5 class="font-semibold text-gray-900 mb-2">Americas</h5>
-                                    <code class="text-blue-600">America/New_York</code><br>
-                                    <code class="text-blue-600">America/Chicago</code><br>
-                                    <code class="text-blue-600">America/Los_Angeles</code><br>
-                                    <code class="text-blue-600">America/Toronto</code>
+                                    <code class="text-primary">America/New_York</code><br>
+                                    <code class="text-primary">America/Chicago</code><br>
+                                    <code class="text-primary">America/Los_Angeles</code><br>
+                                    <code class="text-primary">America/Toronto</code>
                                 </div>
                                 <div>
                                     <h5 class="font-semibold text-gray-900 mb-2">Europe</h5>
-                                    <code class="text-blue-600">Europe/London</code><br>
-                                    <code class="text-blue-600">Europe/Berlin</code><br>
-                                    <code class="text-blue-600">Europe/Paris</code><br>
-                                    <code class="text-blue-600">Europe/Amsterdam</code>
+                                    <code class="text-primary">Europe/London</code><br>
+                                    <code class="text-primary">Europe/Berlin</code><br>
+                                    <code class="text-primary">Europe/Paris</code><br>
+                                    <code class="text-primary">Europe/Amsterdam</code>
                                 </div>
                                 <div>
                                     <h5 class="font-semibold text-gray-900 mb-2">Asia-Pacific</h5>
-                                    <code class="text-blue-600">Asia/Tokyo</code><br>
-                                    <code class="text-blue-600">Asia/Singapore</code><br>
-                                    <code class="text-blue-600">Asia/Dhaka</code><br>
-                                    <code class="text-blue-600">Australia/Sydney</code>
+                                    <code class="text-primary">Asia/Tokyo</code><br>
+                                    <code class="text-primary">Asia/Singapore</code><br>
+                                    <code class="text-primary">Asia/Dhaka</code><br>
+                                    <code class="text-primary">Australia/Sydney</code>
                                 </div>
                             </div>
                         </div>
@@ -1212,18 +1213,18 @@
                             </div>
                         </div>
                         
-                        <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded">
-                            <h4 class="font-semibold text-blue-900 mb-2">Managing Notifications</h4>
+                        <div class="mt-4 p-4 bg-cyan-50 border border-cyan-200 rounded">
+                            <h4 class="font-semibold text-cyan-900 mb-2">Managing Notifications</h4>
                             <div class="space-y-2">
                                 <div class="code-block p-2">
-                                    <code class="text-blue-600">/dd-team-update notifications=false</code>
+                                    <code class="text-primary">/dd-team-update notifications=false</code>
                                     <span class="text-gray-600 ml-2"># Disable for current channel team</span>
                                     <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-team-update notifications=false')">
                                         <i class="fas fa-copy"></i>
                                     </button>
                                 </div>
                                 <div class="code-block p-2">
-                                    <code class="text-blue-600">/dd-team-update TeamName notifications=true</code>
+                                    <code class="text-primary">/dd-team-update TeamName notifications=true</code>
                                     <span class="text-gray-600 ml-2"># Enable for specific team</span>
                                     <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-team-update TeamName notifications=true')">
                                         <i class="fas fa-copy"></i>
@@ -1251,8 +1252,8 @@
                                 <div class="flex-1">
                                     <h4 class="font-semibold text-gray-900 mb-2">Choose Your Channel</h4>
                                     <p class="text-gray-600 text-sm mb-2">Navigate to the Slack channel where you want standup summaries posted. This will be your team's home channel.</p>
-                                    <div class="bg-blue-50 border border-blue-200 rounded p-3 text-sm">
-                                        <i class="fas fa-info-circle text-blue-600 mr-1"></i>
+                                    <div class="bg-cyan-50 border border-cyan-200 rounded p-3 text-sm">
+                                        <i class="fas fa-info-circle text-primary mr-1"></i>
                                         <strong>Tip:</strong> Use dedicated team channels like #engineering or #marketing for best results.
                                     </div>
                                 </div>
@@ -1265,14 +1266,14 @@
                                     <p class="text-gray-600 text-sm mb-2">Use the team creation command with appropriate times. The team name is optional:</p>
                                     <div class="space-y-2 mb-3">
                                         <div class="code-block p-3">
-                                            <code class="text-blue-400">/dd-team-create 09:30 10:00</code>
+                                            <code class="text-cyan-400">/dd-team-create 09:30 10:00</code>
                                             <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-team-create 09:30 10:00')">
                                                 <i class="fas fa-copy"></i>
                                             </button>
                                             <div class="text-xs text-gray-500 mt-1">Uses the channel name as team name</div>
                                         </div>
                                         <div class="code-block p-3">
-                                            <code class="text-blue-400">/dd-team-create Engineering 09:30 10:00</code>
+                                            <code class="text-cyan-400">/dd-team-create Engineering 09:30 10:00</code>
                                             <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-team-create Engineering 09:30 10:00')">
                                                 <i class="fas fa-copy"></i>
                                             </button>
@@ -1323,14 +1324,14 @@
                                     <p class="text-gray-600 text-sm mb-2">Run a test standup and adjust settings as needed:</p>
                                     <div class="space-y-2">
                                         <div class="code-block p-2">
-                                            <code class="text-blue-400">/dd-standup Engineering</code>
+                                            <code class="text-cyan-400">/dd-standup Engineering</code>
                                             <span class="text-gray-600 ml-2"># Test submission</span>
                                             <button class="copy-button absolute top-0.5 right-0.5 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup Engineering')">
                                                 <i class="fas fa-copy"></i>
                                             </button>
                                         </div>
                                         <div class="code-block p-2">
-                                            <code class="text-blue-400">/dd-team-update standup=09:00</code>
+                                            <code class="text-cyan-400">/dd-team-update standup=09:00</code>
                                             <span class="text-gray-600 ml-2"># Adjust times for current channel team</span>
                                             <button class="copy-button absolute top-0.5 right-0.5 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-team-update standup=09:00')">
                                                 <i class="fas fa-copy"></i>
@@ -1424,9 +1425,9 @@
                                 </div>
                             </div>
                             
-                            <div class="border-l-4 border-blue-400 pl-4">
+                            <div class="border-l-4 border-primary pl-4">
                                 <h4 class="font-semibold text-gray-900 mb-2">
-                                    <i class="fas fa-comment-slash text-blue-600 mr-2"></i>Standup not posting to channel?
+                                    <i class="fas fa-comment-slash text-primary mr-2"></i>Standup not posting to channel?
                                 </h4>
                                 <div class="text-sm text-gray-600">
                                     <ul class="space-y-1">
@@ -1550,11 +1551,11 @@
                         <h3 class="font-semibold text-gray-900 mb-4">Need Help?</h3>
                         <div class="space-y-4">
                             <div class="flex items-start space-x-3">
-                                <i class="fas fa-envelope text-blue-600 mt-1"></i>
+                                <i class="fas fa-envelope text-primary mt-1"></i>
                                 <div>
                                     <h4 class="font-medium text-gray-900">Email Support</h4>
                                     <p class="text-sm text-gray-600">Get help with setup, configuration, or issues</p>
-                                    <a href="mailto:support@dailydose.bot" class="text-blue-600 hover:text-blue-800 text-sm">support@dailydose.bot</a>
+                                    <a href="mailto:support@dailydose.bot" class="text-primary hover:text-cyan-800 text-sm">support@dailydose.bot</a>
                                 </div>
                             </div>
                             
@@ -1576,12 +1577,12 @@
                                 <i class="fas fa-heartbeat text-green-600"></i>
                                 <div>
                                     <span class="font-medium text-gray-900">Service Status</span>
-                                    <a href="/health" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm ml-2">Check Health</a>
+                                    <a href="/health" target="_blank" class="text-primary hover:text-cyan-800 text-sm ml-2">Check Health</a>
                                 </div>
                             </div>
                             
                             <div class="flex items-center space-x-3">
-                                <i class="fas fa-list-ul text-blue-600"></i>
+                                <i class="fas fa-list-ul text-primary"></i>
                                 <div>
                                     <span class="font-medium text-gray-900">Your Teams</span>
                                     <code class="bg-gray-100 px-2 py-1 rounded text-sm ml-2">/dd-team-list</code>
