@@ -88,12 +88,13 @@ model OrganizationMember {
 
 // Team Member junction table
 model TeamMember {
-  id        String      @id @default(uuid())
-  teamId    String      @map("team_id")
-  userId    String      @map("user_id")
-  role      TeamRole    @default(MEMBER)
-  isActive  Boolean     @default(true) @map("is_active")
-  joinedAt  DateTime    @default(now()) @map("joined_at")
+  id                      String      @id @default(uuid())
+  teamId                  String      @map("team_id")
+  userId                  String      @map("user_id")
+  role                    TeamRole    @default(MEMBER)
+  isActive                Boolean     @default(true) @map("is_active")
+  receiveNotifications    Boolean     @default(true) @map("receive_notifications")
+  joinedAt                DateTime    @default(now()) @map("joined_at")
 
   team      Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)

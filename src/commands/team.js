@@ -252,7 +252,7 @@ async function updateTeam({ command, ack, respond, client }) {
 
     if (!teamName || args.length < 2) {
       await updateResponse({
-        text: "❌ Usage: `/dd-team-update TeamName [name=NewName] [standup=HH:MM] [posting=HH:MM]`\nExample: `/dd-team-update Engineering standup=09:00 posting=10:30`",
+        text: "❌ Usage: `/dd-team-update TeamName [name=NewName] [standup=HH:MM] [posting=HH:MM] [notifications=true/false]`\nExample: `/dd-team-update Engineering standup=09:00 posting=10:30 notifications=false`",
       });
       return;
     }
@@ -293,9 +293,19 @@ async function updateTeam({ command, ack, respond, client }) {
           updateData.postingTime = value;
           updates.push(`Posting time: ${formatTime12Hour(value)}`);
           break;
+        case "notifications":
+          if (value !== "true" && value !== "false") {
+            await updateResponse({
+              text: `❌ Invalid value for notifications: ${value}. Use true or false`,
+            });
+            return;
+          }
+          updateData.receiveNotifications = value === "true";
+          updates.push(`Admin notifications: ${value === "true" ? "enabled" : "disabled"}`);
+          break;
         default:
           await updateResponse({
-            text: `❌ Unknown parameter: ${key}. Valid parameters: name, standup, posting`,
+            text: `❌ Unknown parameter: ${key}. Valid parameters: name, standup, posting, notifications`,
           });
           return;
       }

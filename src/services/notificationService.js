@@ -27,7 +27,8 @@ class NotificationService {
       
       for (const admin of teamAdmins) {
         // Don't notify the admin if they are the one submitting
-        if (admin.user.slackUserId !== user.id) {
+        // Also check if the admin has notifications enabled
+        if (admin.user.slackUserId !== user.id && admin.receiveNotifications) {
           await this.sendAdminNotification({
             admin,
             user,
@@ -116,8 +117,8 @@ class NotificationService {
       const teamAdmins = await teamService.getTeamAdmins(teamId);
       
       for (const admin of teamAdmins) {
-        // Skip if this admin should be excluded
-        if (excludeUserId && admin.user.slackUserId === excludeUserId) {
+        // Skip if this admin should be excluded or has notifications disabled
+        if ((excludeUserId && admin.user.slackUserId === excludeUserId) || !admin.receiveNotifications) {
           continue;
         }
 

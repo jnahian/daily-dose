@@ -317,6 +317,21 @@ class TeamService {
       updateFields.timezone = updateData.timezone;
     }
 
+    // Handle notification preference update for the admin
+    if (updateData.receiveNotifications !== undefined) {
+      await prisma.teamMember.update({
+        where: {
+          teamId_userId: {
+            teamId: teamId,
+            userId: user.id
+          }
+        },
+        data: {
+          receiveNotifications: updateData.receiveNotifications
+        }
+      });
+    }
+
     // Update team
     return await prisma.team.update({
       where: { id: teamId },

@@ -57,8 +57,9 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
   - Example: `/dd-team-create Engineering 09:30 10:00`
   - Requires admin permissions
 - `/dd-team-update <team-name> [parameters]` - Update team settings ⚠️ **(admin only)**
-  - Example: `/dd-team-update Engineering standup=09:00 posting=10:30`
-  - Parameters: `name=NewName`, `standup=HH:MM`, `posting=HH:MM`
+  - Example: `/dd-team-update Engineering standup=09:00 posting=10:30 notifications=false`
+  - Parameters: `name=NewName`, `standup=HH:MM`, `posting=HH:MM`, `notifications=true/false`
+  - The `notifications` parameter controls whether team admins receive standup submission notifications (default: true)
 
 ### Leave Management
 
@@ -134,6 +135,23 @@ The bot posts a formatted summary showing:
 - Each team can have its own timezone
 - Default timezone is America/New_York
 
+### Admin Notification Settings
+
+Team admins can control whether they receive notifications when team members submit their standups:
+
+```bash
+# Disable standup submission notifications for admins
+/dd-team-update Engineering notifications=false
+
+# Re-enable notifications (default behavior)
+/dd-team-update Engineering notifications=true
+```
+
+**Notification Behavior:**
+- **Enabled (default)**: Team admins receive a DM notification each time a team member submits their standup
+- **Disabled**: Admins will not receive these submission notifications, reducing notification volume for large teams
+- This setting only affects admin notifications, not team member reminders or team summary posting
+
 ### Example Team Setup
 
 ```bash
@@ -142,6 +160,9 @@ The bot posts a formatted summary showing:
 
 # Team members join
 /dd-team-join Engineering
+
+# Optionally disable admin notifications for this team
+/dd-team-update Engineering notifications=false
 ```
 
 ## Standup Updates
