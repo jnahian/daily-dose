@@ -12,7 +12,6 @@ const { extractRichTextValue } = require("../utils/messageHelper");
 const {
   createStandupModal,
   createTeamSelectionBlocks,
-  createErrorBlocks,
   createButton,
   createActionsBlock,
   createSectionBlock,
