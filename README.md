@@ -61,12 +61,17 @@ When you first interact with the bot, you'll be automatically added to your orga
 ### 2. Join or Create a Team
 
 ```
-/dd-team-list                    # See available teams
-/dd-team-join Engineering        # Join an existing team
-/dd-team-leave Engineering       # Leave a team
-/dd-team-members Engineering     # View team members
-/dd-team-create MyTeam 09:30 10:00  # Create new team ⚠️ (admin only)
-/dd-team-update Engineering standup=09:00  # Update team settings ⚠️ (admin only)
+/dd-team-list                         # See available teams
+/dd-team-join                         # Join team in current channel
+/dd-team-join Engineering             # Join specific team by name
+/dd-team-leave                        # Leave team in current channel  
+/dd-team-leave Engineering            # Leave specific team by name
+/dd-team-members                      # View members of team in current channel
+/dd-team-members Engineering          # View members of specific team
+/dd-team-create 09:30 10:00           # Create new team (uses channel name) ⚠️ (admin only)
+/dd-team-create MyTeam 09:30 10:00    # Create new team with custom name ⚠️ (admin only)
+/dd-team-update standup=09:00         # Update team in current channel ⚠️ (admin only)
+/dd-team-update Engineering standup=09:00  # Update specific team ⚠️ (admin only)
 ```
 
 ### 3. Submit Your Daily Standup
@@ -94,15 +99,23 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
 ### 👥 Team Management
 
 - `/dd-team-list` - List all teams in your organization
-- `/dd-team-join <team-name>` - Join an existing team
-- `/dd-team-leave <team-name>` - Leave a team you're currently a member of
-- `/dd-team-members <team-name>` - View all members of a specific team
-- `/dd-team-create <name> <standup-time> <posting-time>` - Create a new team ⚠️ **(admin only)**
-  - Example: `/dd-team-create Engineering 09:30 10:00`
+- `/dd-team-join [team-name]` - Join a team
+  - **Channel-based**: `/dd-team-join` (joins the team in current channel)
+  - **Name-based**: `/dd-team-join Engineering` (joins specific team by name from any channel)
+- `/dd-team-leave [team-name]` - Leave a team
+  - **Channel-based**: `/dd-team-leave` (leaves the team in current channel)
+  - **Name-based**: `/dd-team-leave Engineering` (leaves specific team by name from any channel)
+- `/dd-team-members [team-name]` - View team members
+  - **Channel-based**: `/dd-team-members` (shows members of team in current channel)
+  - **Name-based**: `/dd-team-members Engineering` (shows members of specific team from any channel)
+- `/dd-team-create [team-name] <standup-time> <posting-time>` - Create a new team ⚠️ **(admin only)**
+  - **Channel-based**: `/dd-team-create 09:30 10:00` (uses channel name as team name)
+  - **Custom name**: `/dd-team-create Engineering 09:30 10:00` (creates team with custom name)
   - Requires admin permissions
-- `/dd-team-update <team-name> [parameters]` - Update team settings ⚠️ **(admin only)**
-  - Example: `/dd-team-update Engineering standup=09:00 posting=10:30 notifications=false`
-  - Parameters: `name=NewName`, `standup=HH:MM`, `posting=HH:MM`, `notifications=true/false`
+- `/dd-team-update [team-name] [parameters]` - Update team settings ⚠️ **(admin only)**
+  - **Channel-based**: `/dd-team-update standup=09:00 posting=10:30` (updates team in current channel)
+  - **Name-based**: `/dd-team-update Engineering standup=09:00 posting=10:30 notifications=false` (updates specific team from any channel)
+  - **Parameters**: `name=NewName`, `standup=HH:MM`, `posting=HH:MM`, `notifications=true/false`
   - The `notifications` parameter controls whether team admins receive standup submission notifications (default: true)
 
 ### 🌴 Leave Management
@@ -168,11 +181,15 @@ The bot posts a formatted summary showing:
 
 ### Creating a Team
 
-1. Use `/dd-team-create <name> <standup-time> <posting-time>` in the channel where you want standups posted
+1. Use `/dd-team-create [team-name] <standup-time> <posting-time>` in the channel where you want standups posted
+   - **Channel-based**: `/dd-team-create 09:30 10:00` (uses channel name as team name)
+   - **Custom name**: `/dd-team-create Engineering 09:30 10:00` (creates team with custom name)
 2. Set appropriate times:
    - **Standup Time**: When reminders are sent (e.g., 09:30)
    - **Posting Time**: When summary is posted (e.g., 10:00)
-3. Team members can join using `/dd-team-join <team-name>`
+3. Team members can join using:
+   - **Channel-based**: `/dd-team-join` (joins team in current channel)
+   - **Name-based**: `/dd-team-join Engineering` (joins specific team from any channel)
 
 ### Time Configuration
 
@@ -201,13 +218,19 @@ Team admins can control whether they receive notifications when team members sub
 
 ```bash
 # Create a team that sends reminders at 9:30 AM and posts summary at 10:00 AM
+# Channel-based (uses channel name as team name)
+/dd-team-create 09:30 10:00
+
+# Or with custom team name
 /dd-team-create Engineering 09:30 10:00
 
-# Team members join
-/dd-team-join Engineering
+# Team members join (multiple ways)
+/dd-team-join              # Join the team in current channel
+/dd-team-join Engineering  # Join specific team by name from any channel
 
-# Optionally disable admin notifications for this team
-/dd-team-update Engineering notifications=false
+# Update team settings (multiple ways)
+/dd-team-update notifications=false           # Update team in current channel
+/dd-team-update Engineering notifications=false  # Update specific team by name
 ```
 
 ## 📝 Standup Updates

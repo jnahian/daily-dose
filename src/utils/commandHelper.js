@@ -56,6 +56,24 @@ function withFormattingRemoval(handler) {
 }
 
 /**
+ * Get channel name from Slack channel ID
+ * @param {Object} client - Slack client
+ * @param {string} channelId - Slack channel ID
+ * @returns {Promise<string>} Channel name
+ * @throws {Error} If channel info cannot be retrieved
+ */
+async function getChannelName(client, channelId) {
+  try {
+    const channelInfo = await client.conversations.info({
+      channel: channelId
+    });
+    return channelInfo.channel.name;
+  } catch (error) {
+    throw new Error("Failed to get channel information. Please provide a team name explicitly.");
+  }
+}
+
+/**
  * Simple approach: Always acknowledge immediately, then send response
  * This ensures users always see immediate feedback
  * @param {Object} ack - Slack ack function
@@ -97,4 +115,5 @@ module.exports = {
   ackWithProcessing,
   removeFormatting,
   withFormattingRemoval,
+  getChannelName,
 };

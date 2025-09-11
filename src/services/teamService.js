@@ -274,6 +274,18 @@ class TeamService {
     });
   }
 
+  async findTeamByChannel(channelId) {
+    return await prisma.team.findUnique({
+      where: {
+        slackChannelId: channelId,
+        isActive: true,
+      },
+      include: {
+        organization: true,
+      },
+    });
+  }
+
   async updateTeam(slackUserId, teamId, updateData, slackClient = null) {
     const userData = await userService.fetchSlackUserData(
       slackUserId,

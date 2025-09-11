@@ -15,21 +15,21 @@
                 "command": "/dd-team-create",
                 "url": "{{APP_URL}}/slack/events",
                 "description": "Create a new team with standup schedule",
-                "usage_hint": "TeamName 09:30 10:00",
+                "usage_hint": "[TeamName] 09:30 10:00",
                 "should_escape": false
             },
             {
                 "command": "/dd-team-join",
                 "url": "{{APP_URL}}/slack/events",
-                "description": "Join an existing team",
-                "usage_hint": "TeamName",
+                "description": "Join a team",
+                "usage_hint": "[TeamName]",
                 "should_escape": false
             },
             {
                 "command": "/dd-team-leave",
                 "url": "{{APP_URL}}/slack/events",
-                "description": "Leave a team you're currently a member of",
-                "usage_hint": "TeamName",
+                "description": "Leave a team",
+                "usage_hint": "[TeamName]",
                 "should_escape": false
             },
             {
@@ -41,15 +41,15 @@
             {
                 "command": "/dd-team-members",
                 "url": "{{APP_URL}}/slack/events",
-                "description": "View all members of a specific team",
-                "usage_hint": "TeamName",
+                "description": "View team members",
+                "usage_hint": "[TeamName]",
                 "should_escape": false
             },
             {
                 "command": "/dd-team-update",
                 "url": "{{APP_URL}}/slack/events",
                 "description": "Update team settings (admin only)",
-                "usage_hint": "TeamName name=NewName standup=09:00",
+                "usage_hint": "[TeamName] name=NewName standup=09:00",
                 "should_escape": false
             },
             {

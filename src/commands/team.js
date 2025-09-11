@@ -1,6 +1,6 @@
 const teamService = require("../services/teamService");
 const schedulerService = require("../services/schedulerService");
-const { ackWithProcessing } = require("../utils/commandHelper");
+const { ackWithProcessing, getChannelName } = require("../utils/commandHelper");
 const { getDisplayName } = require("../utils/userHelper");
 const { formatTime12Hour } = require("../utils/dateHelper");
 const { createSectionBlock } = require("../utils/blockHelper");
@@ -14,12 +14,37 @@ async function createTeam({ command, ack, respond, client }) {
   );
 
   try {
-    // Parse command text: /dd-team-create TeamName 09:30 10:00
-    const [name, standupTime, postingTime] = command.text.split(" ");
+    // Parse command text: /dd-team-create [TeamName] HH:MM HH:MM
+    const args = command.text.split(" ");
+    let name, standupTime, postingTime;
 
-    if (!name || !standupTime || !postingTime) {
+    // Check if we have 2 or 3 arguments to determine if team name was provided
+    if (args.length === 2) {
+      // No team name provided, use channel name as default
+      [standupTime, postingTime] = args;
+      
+      // Get channel name as team name
+      try {
+        name = await getChannelName(client, command.channel_id);
+      } catch (error) {
+        await updateResponse({
+          text: error.message,
+        });
+        return;
+      }
+    } else if (args.length === 3) {
+      // Team name provided
+      [name, standupTime, postingTime] = args;
+    } else {
       await updateResponse({
-        text: "❌ Usage: `/dd-team-create TeamName HH:MM HH:MM`\nExample: `/dd-team-create Engineering 09:30 10:00`",
+        text: "❌ Usage: `/dd-team-create [TeamName] HH:MM HH:MM`\nExamples:\n- `/dd-team-create 09:30 10:00` (uses channel name)\n- `/dd-team-create Engineering 09:30 10:00`",
+      });
+      return;
+    }
+
+    if (!standupTime || !postingTime) {
+      await updateResponse({
+        text: "❌ Usage: `/dd-team-create [TeamName] HH:MM HH:MM`\nExamples:\n- `/dd-team-create 09:30 10:00` (uses channel name)\n- `/dd-team-create Engineering 09:30 10:00`",
       });
       return;
     }
@@ -62,22 +87,28 @@ async function joinTeam({ command, ack, respond, client }) {
 
   try {
     const teamName = command.text.trim();
+    let team;
 
     if (!teamName) {
-      await updateResponse({
-        text: "❌ Usage: `/dd-team-join TeamName`",
-      });
-      return;
-    }
+      // No team name provided, try to find team in current channel
+      team = await teamService.findTeamByChannel(command.channel_id);
+      
+      if (!team) {
+        await updateResponse({
+          text: "❌ No team found in this channel. Usage: `/dd-team-join [TeamName]`\n- Run without team name to join the team in current channel\n- Or specify team name: `/dd-team-join Engineering`",
+        });
+        return;
+      }
+    } else {
+      // Find team by name across all organizations
+      team = await teamService.findTeamByName(teamName);
 
-    // Find team by name across all organizations
-    const team = await teamService.findTeamByName(teamName);
-
-    if (!team) {
-      await updateResponse({
-        text: `❌ Team "${teamName}" not found`,
-      });
-      return;
+      if (!team) {
+        await updateResponse({
+          text: `❌ Team "${teamName}" not found`,
+        });
+        return;
+      }
     }
 
     await teamService.joinTeam(command.user_id, team.id, client);
@@ -108,22 +139,28 @@ async function leaveTeam({ command, ack, respond, client }) {
 
   try {
     const teamName = command.text.trim();
+    let team;
 
     if (!teamName) {
-      await updateResponse({
-        text: "❌ Usage: `/dd-team-leave TeamName`",
-      });
-      return;
-    }
+      // No team name provided, try to find team in current channel
+      team = await teamService.findTeamByChannel(command.channel_id);
+      
+      if (!team) {
+        await updateResponse({
+          text: "❌ No team found in this channel. Usage: `/dd-team-leave [TeamName]`\n- Run without team name to leave the team in current channel\n- Or specify team name: `/dd-team-leave Engineering`",
+        });
+        return;
+      }
+    } else {
+      // Find team by name across all organizations
+      team = await teamService.findTeamByName(teamName);
 
-    // Find team by name across all organizations
-    const team = await teamService.findTeamByName(teamName);
-
-    if (!team) {
-      await updateResponse({
-        text: `❌ Team "${teamName}" not found`,
-      });
-      return;
+      if (!team) {
+        await updateResponse({
+          text: `❌ Team "${teamName}" not found`,
+        });
+        return;
+      }
     }
 
     await teamService.leaveTeam(command.user_id, team.id, client);
@@ -187,22 +224,28 @@ async function listMembers({ command, ack, respond }) {
 
   try {
     const teamName = command.text.trim();
+    let team;
 
     if (!teamName) {
-      await updateResponse({
-        text: "❌ Usage: `/dd-team-members TeamName`",
-      });
-      return;
-    }
+      // No team name provided, try to find team in current channel
+      team = await teamService.findTeamByChannel(command.channel_id);
+      
+      if (!team) {
+        await updateResponse({
+          text: "❌ No team found in this channel. Usage: `/dd-team-members [TeamName]`\n- Run without team name to show members of the team in current channel\n- Or specify team name: `/dd-team-members Engineering`",
+        });
+        return;
+      }
+    } else {
+      // Find team by name across all organizations
+      team = await teamService.findTeamByName(teamName);
 
-    // Find team by name across all organizations
-    const team = await teamService.findTeamByName(teamName);
-
-    if (!team) {
-      await updateResponse({
-        text: `❌ Team "${teamName}" not found`,
-      });
-      return;
+      if (!team) {
+        await updateResponse({
+          text: `❌ Team "${teamName}" not found`,
+        });
+        return;
+      }
     }
 
     // Get team members
@@ -246,32 +289,61 @@ async function updateTeam({ command, ack, respond, client }) {
   );
 
   try {
-    // Parse command text: /dd-team-update TeamName [name=NewName] [standup=09:30] [posting=10:00]
+    // Parse command text: /dd-team-update [TeamName] [name=NewName] [standup=09:30] [posting=10:00]
     const args = command.text.split(" ");
-    const teamName = args[0];
+    let team, startIndex;
 
-    if (!teamName || args.length < 2) {
-      await updateResponse({
-        text: "❌ Usage: `/dd-team-update TeamName [name=NewName] [standup=HH:MM] [posting=HH:MM] [notifications=true/false]`\nExample: `/dd-team-update Engineering standup=09:00 posting=10:30 notifications=false`",
-      });
-      return;
-    }
+    if (args.length === 0 || args[0] === "") {
+      // No arguments provided, try to find team in current channel
+      team = await teamService.findTeamByChannel(command.channel_id);
+      startIndex = 0;
+      
+      if (!team) {
+        await updateResponse({
+          text: "❌ No team found in this channel. Usage: `/dd-team-update [TeamName] [parameters]`\n- Run without team name to update the team in current channel\n- Or specify team name: `/dd-team-update Engineering standup=09:00`\n\nParameters: `name=NewName`, `standup=HH:MM`, `posting=HH:MM`, `notifications=true/false`",
+        });
+        return;
+      }
+    } else {
+      // Check if first argument contains = (it's a parameter, not team name)
+      if (args[0].includes("=")) {
+        // First argument is a parameter, try to find team in current channel
+        team = await teamService.findTeamByChannel(command.channel_id);
+        startIndex = 0;
+        
+        if (!team) {
+          await updateResponse({
+            text: "❌ No team found in this channel. Please provide team name: `/dd-team-update TeamName [parameters]`",
+          });
+          return;
+        }
+      } else {
+        // First argument is team name
+        const teamName = args[0];
+        team = await teamService.findTeamByName(teamName);
+        startIndex = 1;
 
-    // Find team by name across all organizations
-    const team = await teamService.findTeamByName(teamName);
+        if (!team) {
+          await updateResponse({
+            text: `❌ Team "${teamName}" not found`,
+          });
+          return;
+        }
 
-    if (!team) {
-      await updateResponse({
-        text: `❌ Team "${teamName}" not found`,
-      });
-      return;
+        if (args.length < 2) {
+          await updateResponse({
+            text: "❌ Usage: `/dd-team-update [TeamName] [parameters]`\nParameters: `name=NewName`, `standup=HH:MM`, `posting=HH:MM`, `notifications=true/false`\nExample: `/dd-team-update Engineering standup=09:00 posting=10:30 notifications=false`",
+          });
+          return;
+        }
+      }
     }
 
     // Parse update parameters
     const updateData = {};
     const updates = [];
 
-    for (let i = 1; i < args.length; i++) {
+    for (let i = startIndex; i < args.length; i++) {
       const [key, value] = args[i].split("=");
       if (!key || !value) {
         await updateResponse({
@@ -327,7 +399,7 @@ async function updateTeam({ command, ack, respond, client }) {
     }
 
     await updateResponse({
-      text: `✅ Team "${teamName}" updated successfully!\n- ${updates.join(
+      text: `✅ Team "${team.name}" updated successfully!\n- ${updates.join(
         "\n- "
       )}`,
     });
