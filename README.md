@@ -1,8 +1,14 @@
-# Daily Dose Slack Bot - User Guide
+<p align="center">
+  <img src="public/logo.png" alt="Daily Dose Logo" width="128" height="128">
+</p>
 
+<h1 align="center">Daily Dose Slack Bot - User Guide</h1>
+
+<p align="center">
 Daily Dose is a Slack bot that automates daily standup meetings for teams. It sends reminders, collects responses, and posts formatted standup summaries to team channels.
+</p>
 
-## Features
+## ✨ Features
 
 - **Automated Standup Reminders**: Sends DM reminders at configured times
 - **Team Management**: Create and join teams with custom schedules
@@ -12,7 +18,7 @@ Daily Dose is a Slack bot that automates daily standup meetings for teams. It se
 - **Timezone Support**: Each team can have its own timezone
 - **Late Submission Tracking**: Tracks and handles late standup submissions
 
-## Quick Start
+## 🚀 Quick Start
 
 ### 1. Join Your Organization
 
@@ -39,15 +45,15 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
 /dd-standup-update MyTeam 2024-12-20  # Update standup for specific date
 ```
 
-## Slash Commands
+## ⚡ Slash Commands
 
-### Standup Submission
+### 📝 Standup Submission
 
 - `/dd-standup [team-name]` - Submit standup manually outside scheduled time
 - `/dd-standup-update <team-name> [YYYY-MM-DD]` - Update standup for any day (defaults to today)
 - The bot also sends automatic DM reminders with interactive buttons
 
-### Team Management
+### 👥 Team Management
 
 - `/dd-team-list` - List all teams in your organization
 - `/dd-team-join <team-name>` - Join an existing team
@@ -61,7 +67,7 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
   - Parameters: `name=NewName`, `standup=HH:MM`, `posting=HH:MM`, `notifications=true/false`
   - The `notifications` parameter controls whether team admins receive standup submission notifications (default: true)
 
-### Leave Management
+### 🌴 Leave Management
 
 - `/dd-leave-list` - View your upcoming leaves
 - `/dd-leave-set <start-date> [end-date] [reason]` - Set leave dates
@@ -69,14 +75,14 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
   - Date range: `/dd-leave-set 2024-12-25 2024-12-26 Holiday break`
 - `/dd-leave-cancel <leave-id>` - Cancel a leave (use ID from list command)
 
-### Work Days Configuration
+### 📅 Work Days Configuration
 
 - `/dd-workdays-show` - View your current work days
 - `/dd-workdays-set <days>` - Set your working days
   - Example: `/dd-workdays-set 1,2,3,4,5` (Monday-Friday)  
   - Numbers: 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday, 7=Sunday
 
-### Holiday Management
+### 🎉 Holiday Management
 
 **Viewing Holidays (All Users)**
 - `/dd-holiday-list` - List all upcoming holidays  
@@ -94,7 +100,7 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
   - Single day: `/dd-holiday-delete 2024-12-25`
   - Date range: `/dd-holiday-delete 2024-12-24 2024-12-26`
 
-## How It Works
+## 🔄 How It Works
 
 ### Daily Flow
 
@@ -119,7 +125,7 @@ The bot posts a formatted summary showing:
 - List of team members who haven't submitted
 - Members on leave (automatically excluded)
 
-## Team Setup (Admin Guide)
+## 👥 Team Setup (Admin Guide)
 
 ### Creating a Team
 
@@ -165,7 +171,7 @@ Team admins can control whether they receive notifications when team members sub
 /dd-team-update Engineering notifications=false
 ```
 
-## Standup Updates
+## 📝 Standup Updates
 
 You can update your standup for any day using the update command:
 
@@ -184,7 +190,7 @@ You can update your standup for any day using the update command:
 - **Thread Updates**: When updating today's standup after the posting time, your update will automatically be posted to the team channel thread
 - **Historical Updates**: You can update standups for past or future dates without thread posting
 
-## Holiday Management ⚠️ (Admin Only)
+## 🎉 Holiday Management ⚠️ (Admin Only)
 
 Admins can manage organization-wide holidays that affect standup schedules:
 
@@ -221,7 +227,7 @@ When holidays are set:
 - Team members are automatically excluded from standup expectations
 - Holiday status is reflected in team summaries
 
-## Leave Management
+## 🌴 Leave Management
 
 ### Setting Leave
 
@@ -249,7 +255,7 @@ When you're on leave:
 - You're marked as "On leave" in team summaries
 - Automatic exclusion from standup expectations
 
-## Work Days Configuration
+## 📅 Work Days Configuration
 
 ### Default Work Days
 
@@ -275,7 +281,7 @@ When you're on leave:
 /dd-workdays-show
 ```
 
-## Tips and Best Practices
+## 💡 Tips and Best Practices
 
 ### For Team Members
 
@@ -297,7 +303,7 @@ When you're on leave:
 - **Today**: Be specific about planned tasks and goals
 - **Blockers**: Clearly state what you need help with and from whom
 
-## Troubleshooting
+## 🔧 Troubleshooting
 
 ### Common Issues
 
@@ -328,7 +334,7 @@ When you're on leave:
 - Check the bot's response messages for specific error details
 - Contact your organization admin for permission issues
 
-## Technical Details
+## ⚙️ Technical Details
 
 ### Supported Timezones
 
