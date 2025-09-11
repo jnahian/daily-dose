@@ -360,6 +360,99 @@ function createSuccessBlocks(message) {
   ];
 }
 
+/**
+ * Create standup update modal structure
+ * @param {string} teamName - Team name
+ * @param {string} teamId - Team ID
+ * @param {string} today - Today's date formatted string
+ * @param {string} standupDate - The standup date in YYYY-MM-DD format
+ * @param {object} existingResponse - Existing response data (optional)
+ * @returns {object} Complete modal view structure for updating
+ */
+function createStandupUpdateModal(teamName, teamId, today, standupDate, existingResponse = null) {
+  return {
+    type: "modal",
+    callback_id: "standup_update_modal",
+    private_metadata: JSON.stringify({ 
+      teamId, 
+      standupDate,
+      isUpdate: !!existingResponse
+    }),
+    title: {
+      type: "plain_text",
+      text: existingResponse ? "Update Standup" : "Daily Dose",
+    },
+    submit: {
+      type: "plain_text",
+      text: existingResponse ? "Update" : "Submit",
+    },
+    close: {
+      type: "plain_text",
+      text: "Cancel",
+    },
+    blocks: [
+      createSectionBlock(`*📊 ${teamName} - ${today}*${existingResponse ? " (Update)" : ""}`),
+      createDividerBlock(),
+      createInputBlock(
+        "yesterday_tasks",
+        "Yesterday's Tasks",
+        "yesterday_input",
+        "What did you work on yesterday?",
+        false,
+        "rich_text_input"
+      ),
+      createInputBlock(
+        "today_tasks",
+        "Today's Tasks",
+        "today_input",
+        "What will you work on today?",
+        false,
+        "rich_text_input"
+      ),
+      createInputBlock(
+        "blockers",
+        "Blockers",
+        "blockers_input",
+        "Any blockers or help needed?",
+        true,
+        "rich_text_input"
+      ),
+    ].map(block => {
+      // Add initial values to input blocks if existingResponse exists
+      if (block.type === "input" && existingResponse) {
+        const blockId = block.block_id;
+        let initialText = "";
+        
+        if (blockId === "yesterday_tasks" && existingResponse.yesterdayTasks) {
+          initialText = existingResponse.yesterdayTasks;
+        } else if (blockId === "today_tasks" && existingResponse.todayTasks) {
+          initialText = existingResponse.todayTasks;
+        } else if (blockId === "blockers" && existingResponse.blockers) {
+          initialText = existingResponse.blockers;
+        }
+        
+        if (initialText) {
+          block.element.initial_value = {
+            type: "rich_text",
+            elements: [
+              {
+                type: "rich_text_section",
+                elements: [
+                  {
+                    type: "text",
+                    text: initialText
+                  }
+                ]
+              }
+            ]
+          };
+        }
+      }
+      return block;
+    }),
+  };
+}
+
 module.exports = {
   createSectionBlock,
   createFieldsBlock,
@@ -368,6 +461,7 @@ module.exports = {
   createButton,
   createInputBlock,
   createStandupModal,
+  createStandupUpdateModal,
   createStandupReminderBlocks,
   createStandupSummaryHeader,
   createUserResponseBlocks,

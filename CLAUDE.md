@@ -92,3 +92,4 @@ No automated tests currently configured - manual testing via Slack interactions 
 - all commands should be documented in readme file
 - while adding/updating any command check the slack manifest file for required changes
 - call readme updater agent after adding/updating a feature
+- always write blocks in @src/utils/blockHelper.js

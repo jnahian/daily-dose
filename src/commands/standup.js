@@ -11,6 +11,7 @@ const { getUserMention } = require("../utils/userHelper");
 const { extractRichTextValue } = require("../utils/messageHelper");
 const {
   createStandupModal,
+  createStandupUpdateModal,
   createTeamSelectionBlocks,
   createButton,
   createActionsBlock,
@@ -386,134 +387,17 @@ async function updateStandup({ command, ack, respond, client }) {
     const today = parsedDate.format("MMM DD, YYYY");
 
     try {
+      const modalView = createStandupUpdateModal(
+        targetTeam.name, 
+        targetTeam.id, 
+        today, 
+        targetDate, 
+        existingResponse
+      );
+      
       await client.views.open({
         trigger_id: command.trigger_id,
-        view: {
-          type: "modal",
-          callback_id: "standup_update_modal",
-          private_metadata: JSON.stringify({ 
-            teamId: targetTeam.id, 
-            standupDate: targetDate,
-            isUpdate: !!existingResponse
-          }),
-          title: {
-            type: "plain_text",
-            text: existingResponse ? "Update Standup" : "Daily Dose",
-          },
-          submit: {
-            type: "plain_text",
-            text: existingResponse ? "Update" : "Submit",
-          },
-          close: {
-            type: "plain_text",
-            text: "Cancel",
-          },
-          blocks: [
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: `*📊 ${targetTeam.name} - ${today}*${existingResponse ? " (Update)" : ""}`,
-              },
-            },
-            {
-              type: "divider",
-            },
-            {
-              type: "input",
-              block_id: "yesterday_tasks",
-              element: {
-                type: "rich_text_input",
-                action_id: "yesterday_input",
-                initial_value: existingResponse?.yesterdayTasks ? {
-                  type: "rich_text",
-                  elements: [
-                    {
-                      type: "rich_text_section",
-                      elements: [
-                        {
-                          type: "text",
-                          text: existingResponse.yesterdayTasks
-                        }
-                      ]
-                    }
-                  ]
-                } : undefined,
-                placeholder: {
-                  type: "plain_text",
-                  text: "What did you work on yesterday?",
-                },
-              },
-              label: {
-                type: "plain_text",
-                text: "Yesterday's Tasks",
-              },
-              optional: false,
-            },
-            {
-              type: "input",
-              block_id: "today_tasks",
-              element: {
-                type: "rich_text_input",
-                action_id: "today_input",
-                initial_value: existingResponse?.todayTasks ? {
-                  type: "rich_text",
-                  elements: [
-                    {
-                      type: "rich_text_section",
-                      elements: [
-                        {
-                          type: "text",
-                          text: existingResponse.todayTasks
-                        }
-                      ]
-                    }
-                  ]
-                } : undefined,
-                placeholder: {
-                  type: "plain_text",
-                  text: "What will you work on today?",
-                },
-              },
-              label: {
-                type: "plain_text",
-                text: "Today's Tasks",
-              },
-              optional: false,
-            },
-            {
-              type: "input",
-              block_id: "blockers",
-              element: {
-                type: "rich_text_input",
-                action_id: "blockers_input",
-                initial_value: existingResponse?.blockers ? {
-                  type: "rich_text",
-                  elements: [
-                    {
-                      type: "rich_text_section",
-                      elements: [
-                        {
-                          type: "text",
-                          text: existingResponse.blockers
-                        }
-                      ]
-                    }
-                  ]
-                } : undefined,
-                placeholder: {
-                  type: "plain_text",
-                  text: "Any blockers or help needed?",
-                },
-              },
-              label: {
-                type: "plain_text",
-                text: "Blockers",
-              },
-              optional: true,
-            },
-          ],
-        },
+        view: modalView,
       });
     } catch (modalError) {
       console.error("Error opening update modal:", modalError);
