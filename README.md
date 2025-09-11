@@ -85,6 +85,10 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
 
 - `/dd-standup [team-name]` - Submit standup manually outside scheduled time
 - `/dd-standup-update <team-name> [YYYY-MM-DD]` - Update standup for any day (defaults to today)
+- `/dd-standup-reminder <team-name> [on|off]` - Toggle visibility in non-responded list
+  - View current status: `/dd-standup-reminder TeamName`
+  - Opt out from non-responded list: `/dd-standup-reminder TeamName off`
+  - Opt back in to non-responded list: `/dd-standup-reminder TeamName on`
 - The bot also sends automatic DM reminders with interactive buttons
 
 ### 👥 Team Management
@@ -158,6 +162,7 @@ The bot posts a formatted summary showing:
 - All submitted standups with responses
 - List of team members who haven't submitted
 - Members on leave (automatically excluded)
+- Members who opted out of non-responded list (can still submit but won't be listed as not responded)
 
 ## 👥 Team Setup (Admin Guide)
 
@@ -223,6 +228,36 @@ You can update your standup for any day using the update command:
 - **New Submission**: If no standup exists for that date, it opens a fresh form
 - **Thread Updates**: When updating today's standup after the posting time, your update will automatically be posted to the team channel thread
 - **Historical Updates**: You can update standups for past or future dates without thread posting
+
+## 🔕 Standup Reminder Preferences
+
+You can control your visibility in the "Not Responded" section of team standup summaries while still maintaining the ability to submit standups:
+
+```bash
+# Check your current reminder preference for a team
+/dd-standup-reminder Engineering
+
+# Opt out from appearing in "Not Responded" list
+/dd-standup-reminder Engineering off
+
+# Opt back in to appear in "Not Responded" list (default behavior)
+/dd-standup-reminder Engineering on
+```
+
+### How It Works
+
+- **Opted In (Default)**: You appear in the "Not Responded" list if you don't submit a standup
+- **Opted Out**: You won't appear in the "Not Responded" list, but you can still submit standups normally
+- **Still Get Reminders**: You continue to receive DM reminders regardless of this setting
+- **Per-Team Setting**: This preference is set individually for each team you're part of
+
+### Use Cases
+
+This feature is useful for:
+- **Part-time team members** who don't submit daily but contribute occasionally
+- **Consultants or contractors** with irregular schedules
+- **Team leads or managers** who participate optionally in standups
+- **Cross-functional members** who only contribute when relevant
 
 ## 🎉 Holiday Management ⚠️ (Admin Only)
 
@@ -323,6 +358,7 @@ When you're on leave:
 - **Be Specific**: Provide clear, actionable updates
 - **Mention Blockers**: Don't hesitate to ask for help
 - **Set Leave Early**: Update your leave dates in advance
+- **Configure Reminder Preferences**: Use `/dd-standup-reminder` to opt out of non-responded lists if you have irregular participation
 
 ### For Team Admins
 

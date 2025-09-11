@@ -338,6 +338,52 @@ class TeamService {
       data: updateFields,
     });
   }
+
+  async getUserTeamMembership(slackUserId, teamId) {
+    const userData = await userService.fetchSlackUserData(slackUserId);
+    const user = await userService.findOrCreateUser(slackUserId, userData);
+
+    return await prisma.teamMember.findUnique({
+      where: {
+        teamId_userId: {
+          teamId: teamId,
+          userId: user.id,
+        },
+        isActive: true,
+      },
+    });
+  }
+
+  async updateTeamMemberPreferences(slackUserId, teamId, preferences, slackClient = null) {
+    const userData = await userService.fetchSlackUserData(slackUserId, slackClient);
+    const user = await userService.findOrCreateUser(slackUserId, userData);
+
+    // Check if user is a member of the team
+    const membership = await prisma.teamMember.findUnique({
+      where: {
+        teamId_userId: {
+          teamId: teamId,
+          userId: user.id,
+        },
+        isActive: true,
+      },
+    });
+
+    if (!membership) {
+      throw new Error("You are not a member of this team");
+    }
+
+    // Update preferences
+    return await prisma.teamMember.update({
+      where: {
+        teamId_userId: {
+          teamId: teamId,
+          userId: user.id,
+        },
+      },
+      data: preferences,
+    });
+  }
 }
 
 module.exports = new TeamService();

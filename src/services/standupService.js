@@ -328,13 +328,16 @@ class StandupService {
       },
     });
 
-    // Calculate not submitted (exclude admins)
+    // Calculate not submitted (exclude admins and those who opted out)
     const respondedUserIds = new Set(responses.map((r) => r.userId));
     const leaveUserIds = new Set(membersOnLeave.map((m) => m.userId));
 
     const notSubmitted = allMembers
       .filter(
-        (m) => !respondedUserIds.has(m.userId) && !leaveUserIds.has(m.userId) && m.role !== 'ADMIN'
+        (m) => !respondedUserIds.has(m.userId) && 
+               !leaveUserIds.has(m.userId) && 
+               m.role !== 'ADMIN' &&
+               !m.hideFromNotResponded
       )
       .map((m) => ({
         slackUserId: m.user.slackUserId,

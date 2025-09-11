@@ -126,6 +126,13 @@
                 "description": "List holidays for any date range or time period",
                 "usage_hint": "[YYYY|YYYY-MM|YYYY-MM-DD] [YYYY-MM-DD]",
                 "should_escape": false
+            },
+            {
+                "command": "/dd-standup-reminder",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "Opt in/out of standup non-responded list",
+                "usage_hint": "TeamName [on|off]",
+                "should_escape": false
             }
         ]
     },

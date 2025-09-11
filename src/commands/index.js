@@ -2,6 +2,7 @@ const teamCommands = require("./team");
 const leaveCommands = require("./leave");
 const standupCommands = require("./standup");
 const holidayCommands = require("./holiday");
+const preferencesCommands = require("./preferences");
 const { stripFormatting } = require("../middleware/command");
 
 function setupCommands(app) {
@@ -35,6 +36,9 @@ function setupCommands(app) {
   app.command("/dd-holiday-update", stripFormatting(), holidayCommands.updateHoliday);
   app.command("/dd-holiday-delete", stripFormatting(), holidayCommands.deleteHoliday);
   app.command("/dd-holiday-list", stripFormatting(), holidayCommands.listHolidays);
+
+  // Preferences management commands - wrapped with formatting removal middleware
+  app.command("/dd-standup-reminder", stripFormatting(), preferencesCommands.toggleStandupReminder);
 
   // Interactive components (no formatting removal needed for these)
   app.action(/open_standup_.*/, standupCommands.openStandupModal);

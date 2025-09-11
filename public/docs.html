@@ -484,6 +484,60 @@
                     </div>
                     
                     <div class="bg-white rounded-lg border p-6">
+                        <h3 class="font-semibold text-gray-900 mb-4">Standup Reminder Preferences</h3>
+                        <p class="text-gray-600 mb-4">Control your visibility in the non-responded list while maintaining ability to submit standups:</p>
+                        <div class="space-y-3">
+                            <div class="code-block p-4 relative">
+                                <code class="text-purple-400">/dd-standup-reminder &lt;team-name&gt;</code>
+                                <span class="text-gray-400 ml-2"># Check current status</span>
+                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder <team-name>')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="code-block p-4 relative">
+                                <code class="text-purple-400">/dd-standup-reminder &lt;team-name&gt; off</code>
+                                <span class="text-gray-400 ml-2"># Opt out of non-responded list</span>
+                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder <team-name> off')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="code-block p-4 relative">
+                                <code class="text-purple-400">/dd-standup-reminder &lt;team-name&gt; on</code>
+                                <span class="text-gray-400 ml-2"># Opt back into non-responded list</span>
+                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder <team-name> on')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="bg-purple-50 border border-purple-200 rounded p-4 mt-4">
+                            <h4 class="font-semibold text-purple-900 mb-2">Opt-out Benefits:</h4>
+                            <ul class="text-sm text-purple-800 space-y-1">
+                                <li><i class="fas fa-check mr-2"></i>Won't appear in "Not Responded" list in daily summaries</li>
+                                <li><i class="fas fa-check mr-2"></i>Can still submit standups normally at any time</li>
+                                <li><i class="fas fa-check mr-2"></i>Perfect for irregular contributors or project-based members</li>
+                                <li><i class="fas fa-check mr-2"></i>Reduces team noise while maintaining participation flexibility</li>
+                            </ul>
+                        </div>
+                        <div class="bg-blue-50 border border-blue-200 rounded p-4 mt-4">
+                            <h4 class="font-semibold text-blue-900 mb-2">Examples:</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="code-block p-2">
+                                    <code class="text-purple-400">/dd-standup-reminder Engineering</code>
+                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder Engineering')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <div class="code-block p-2">
+                                    <code class="text-purple-400">/dd-standup-reminder "Product Team" off</code>
+                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder &quot;Product Team&quot; off')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg border p-6">
                         <h3 class="font-semibold text-gray-900 mb-4">Standup Format</h3>
                         <p class="text-gray-600 mb-4">Each standup submission includes three sections:</p>
                         <div class="grid md:grid-cols-3 gap-4">
@@ -1355,6 +1409,18 @@
                             </summary>
                             <div class="mt-4 pt-4 border-t text-gray-600">
                                 <p>Part-time members can configure their work days using <code class="bg-gray-100 px-1 rounded">/dd-workdays-set</code> with their specific working days (e.g., <code class="bg-gray-100 px-1 rounded">1,2,3</code> for Mon-Wed). They'll only receive reminders on their configured work days.</p>
+                            </div>
+                        </details>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg border p-6">
+                        <details class="group">
+                            <summary class="flex items-center justify-between cursor-pointer">
+                                <h3 class="font-semibold text-gray-900">Can I opt out of appearing in the non-responded list?</h3>
+                                <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform"></i>
+                            </summary>
+                            <div class="mt-4 pt-4 border-t text-gray-600">
+                                <p>Yes! Use <code class="bg-gray-100 px-1 rounded">/dd-standup-reminder TeamName off</code> to opt out of appearing in the daily "Not Responded" list. You can still submit standups normally, but won't be listed when you don't respond. This is perfect for irregular contributors, project-based members, or anyone who doesn't want to add noise to daily summaries. Use <code class="bg-gray-100 px-1 rounded">/dd-standup-reminder TeamName on</code> to opt back in.</p>
                             </div>
                         </details>
                     </div>

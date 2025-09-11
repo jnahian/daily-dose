@@ -94,6 +94,7 @@ model TeamMember {
   role                    TeamRole    @default(MEMBER)
   isActive                Boolean     @default(true) @map("is_active")
   receiveNotifications    Boolean     @default(true) @map("receive_notifications")
+  hideFromNotResponded    Boolean     @default(false) @map("hide_from_not_responded")
   joinedAt                DateTime    @default(now()) @map("joined_at")
 
   team      Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
