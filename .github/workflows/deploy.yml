@@ -36,7 +36,7 @@ jobs:
           script: |
             set -e
             # Navigate to app directory
-            cd ~/dd.storeseo.dev
+            cd /var/www/html/daily-dose/
 
             # Stop the application
             pm2 stop daily-dose || echo "App not running"
