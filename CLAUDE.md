@@ -94,3 +94,4 @@ No automated tests currently configured - manual testing via Slack interactions 
 - call readme updater agent after adding/updating a feature
 - always write blocks in @src/utils/blockHelper.js
 - always call html document updater agent on adding/updating any feature
+- always maintain blocks formatting from @docs/slack-markdown-guidelines.md

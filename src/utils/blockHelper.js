@@ -292,7 +292,7 @@ function createNotRespondedBlocks(notResponded) {
   if (notResponded.length === 0) return [];
 
   const notRespondedText = notResponded
-    .map((m) => `- <@${m.slackUserId}>`)
+    .map((m) => `• <@${m.slackUserId}>`)
     .join("\n");
 
   return [
@@ -309,7 +309,7 @@ function createOnLeaveBlocks(onLeave) {
   if (onLeave.length === 0) return [];
 
   const onLeaveText = onLeave
-    .map((m) => `- <@${m.slackUserId}>`)
+    .map((m) => `• <@${m.slackUserId}>`)
     .join("\n");
 
   return [

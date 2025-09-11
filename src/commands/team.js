@@ -159,7 +159,7 @@ async function listTeams({ command, ack, respond }) {
     const teamList = teams
       .map(
         (t) =>
-          `- *${t.name}* (${
+          `• *${t.name}* (${
             t._count.members
           } members) - Standup: ${formatTime12Hour(t.standupTime)}`
       )

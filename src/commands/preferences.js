@@ -52,7 +52,7 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
 
       await updateResponse({
         blocks: [
-          createSectionBlock(`*🔔 Standup Reminder Status for ${teamName}*\n\n**Status:** ${status}\n**Description:** ${description}\n\nUse \`/dd-standup-reminder ${teamName} on\` to opt in\nUse \`/dd-standup-reminder ${teamName} off\` to opt out`)
+          createSectionBlock(`*🔔 Standup Reminder Status for ${teamName}*\n\n*Status:* ${status}\n*Description:* ${description}\n\nUse \`/dd-standup-reminder ${teamName} on\` to opt in\nUse \`/dd-standup-reminder ${teamName} off\` to opt out`)
         ],
       });
       return;
