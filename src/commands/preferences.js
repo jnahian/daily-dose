@@ -35,7 +35,7 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
       
       if (!team) {
         await updateResponse({
-          text: "❌ No team found in this channel. Please provide team name: `/dd-standup-reminder TeamName [on|off]`",
+          text: "❌ No team found in this channel. Please provide team name: `/dd-standup-reminder [TeamName] [on|off]`",
         });
         return;
       }

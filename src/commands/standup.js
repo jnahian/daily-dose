@@ -35,7 +35,7 @@ async function submitManual({ command, ack, respond, client }) {
 
     if (teams.length === 0) {
       await updateResponse({
-        text: "❌ You're not a member of any teams. Join a team first with `/dd-team-join TeamName`",
+        text: "❌ You're not a member of any teams. Join a team first with `/dd-team-join [TeamName]`",
       });
       return;
     }
@@ -74,8 +74,13 @@ async function submitManual({ command, ack, respond, client }) {
           blocks: [
             createSectionBlock(`*📝 Submit standup for ${team.name}*`),
             createActionsBlock([
-              createButton("📝 Open Standup Form", `open_standup_${team.id}`, team.id.toString(), "primary")
-            ])
+              createButton(
+                "📝 Open Standup Form",
+                `open_standup_${team.id}`,
+                team.id.toString(),
+                "primary"
+              ),
+            ]),
           ],
         });
       }
@@ -84,7 +89,7 @@ async function submitManual({ command, ack, respond, client }) {
       await updateResponse({
         blocks: [
           ...createTeamSelectionBlocks(teams, "select_team_standup"),
-          createSectionBlock("Usage: `/dd-standup TeamName`")
+          createSectionBlock("Usage: `/dd-standup [TeamName]`"),
         ],
       });
     }
@@ -252,7 +257,7 @@ async function handleStandupSubmission({ ack, body, view, client }) {
       user: body.user,
       team,
       client,
-      options: { isLate }
+      options: { isLate },
     });
 
     // If late, add to existing standup post as thread
@@ -307,15 +312,15 @@ async function updateStandup({ command, ack, respond, client }) {
   );
 
   try {
-    // Parse command: /dd-standup-update TeamName [YYYY-MM-DD]
+    // Parse command: /dd-standup-update [TeamName] [YYYY-MM-DD]
     const args = command.text.trim().split(" ");
-    
+
     // Get user's teams
     const teams = await teamService.listTeams(command.user_id);
 
     if (teams.length === 0) {
       await updateResponse({
-        text: "❌ You're not a member of any teams. Join a team first with `/dd-team-join TeamName`",
+        text: "❌ You're not a member of any teams. Join a team first with `/dd-team-join [TeamName]`",
       });
       return;
     }
@@ -324,7 +329,7 @@ async function updateStandup({ command, ack, respond, client }) {
     if (!args[0]) {
       const teamList = teams.map((t) => t.name).join(", ");
       await updateResponse({
-        text: `❌ Team name is required.\nUsage: \`/dd-standup-update TeamName [YYYY-MM-DD]\`\nAvailable teams: ${teamList}`,
+        text: `❌ Team name is required.\nUsage: \`/dd-standup-update [TeamName] [YYYY-MM-DD]\`\nAvailable teams: ${teamList}`,
       });
       return;
     }
@@ -337,7 +342,7 @@ async function updateStandup({ command, ack, respond, client }) {
     targetTeam = teams.find(
       (t) => t.name.toLowerCase() === teamName.toLowerCase()
     );
-    
+
     if (!targetTeam) {
       await updateResponse({
         text: `❌ Team "${teamName}" not found. Available teams: ${teams
@@ -370,7 +375,10 @@ async function updateStandup({ command, ack, respond, client }) {
     }
 
     // Get user record first
-    const userData = await userService.fetchSlackUserData(command.user_id, client);
+    const userData = await userService.fetchSlackUserData(
+      command.user_id,
+      client
+    );
     const user = await userService.findOrCreateUser(command.user_id, userData);
 
     // Check if user has existing standup for this date
@@ -389,13 +397,13 @@ async function updateStandup({ command, ack, respond, client }) {
 
     try {
       const modalView = createStandupUpdateModal(
-        targetTeam.name, 
-        targetTeam.id, 
-        today, 
-        targetDate, 
+        targetTeam.name,
+        targetTeam.id,
+        today,
+        targetDate,
         existingResponse
       );
-      
+
       await client.views.open({
         trigger_id: command.trigger_id,
         view: modalView,
@@ -406,7 +414,6 @@ async function updateStandup({ command, ack, respond, client }) {
         text: `❌ Error opening update form: ${modalError.message}`,
       });
     }
-
   } catch (error) {
     console.error("Error in standup update:", error);
     await updateResponse({

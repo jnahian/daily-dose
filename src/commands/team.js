@@ -22,7 +22,7 @@ async function createTeam({ command, ack, respond, client }) {
     if (args.length === 2) {
       // No team name provided, use channel name as default
       [standupTime, postingTime] = args;
-      
+
       // Get channel name as team name
       try {
         name = await getChannelName(client, command.channel_id);
@@ -92,7 +92,7 @@ async function joinTeam({ command, ack, respond, client }) {
     if (!teamName) {
       // No team name provided, try to find team in current channel
       team = await teamService.findTeamByChannel(command.channel_id);
-      
+
       if (!team) {
         await updateResponse({
           text: "❌ No team found in this channel. Usage: `/dd-team-join [TeamName]`\n- Run without team name to join the team in current channel\n- Or specify team name: `/dd-team-join Engineering`",
@@ -144,7 +144,7 @@ async function leaveTeam({ command, ack, respond, client }) {
     if (!teamName) {
       // No team name provided, try to find team in current channel
       team = await teamService.findTeamByChannel(command.channel_id);
-      
+
       if (!team) {
         await updateResponse({
           text: "❌ No team found in this channel. Usage: `/dd-team-leave [TeamName]`\n- Run without team name to leave the team in current channel\n- Or specify team name: `/dd-team-leave Engineering`",
@@ -204,7 +204,7 @@ async function listTeams({ command, ack, respond }) {
 
     await updateResponse({
       blocks: [
-        createSectionBlock(`*📋 Teams in your organization:*\n${teamList}`)
+        createSectionBlock(`*📋 Teams in your organization:*\n${teamList}`),
       ],
     });
   } catch (error) {
@@ -229,7 +229,7 @@ async function listMembers({ command, ack, respond }) {
     if (!teamName) {
       // No team name provided, try to find team in current channel
       team = await teamService.findTeamByChannel(command.channel_id);
-      
+
       if (!team) {
         await updateResponse({
           text: "❌ No team found in this channel. Usage: `/dd-team-members [TeamName]`\n- Run without team name to show members of the team in current channel\n- Or specify team name: `/dd-team-members Engineering`",
@@ -270,7 +270,9 @@ async function listMembers({ command, ack, respond }) {
 
     await updateResponse({
       blocks: [
-        createSectionBlock(`*👥 Members of team "${team.name}":*\n${memberList}`)
+        createSectionBlock(
+          `*👥 Members of team "${team.name}":*\n${memberList}`
+        ),
       ],
     });
   } catch (error) {
@@ -297,7 +299,7 @@ async function updateTeam({ command, ack, respond, client }) {
       // No arguments provided, try to find team in current channel
       team = await teamService.findTeamByChannel(command.channel_id);
       startIndex = 0;
-      
+
       if (!team) {
         await updateResponse({
           text: "❌ No team found in this channel. Usage: `/dd-team-update [TeamName] [parameters]`\n- Run without team name to update the team in current channel\n- Or specify team name: `/dd-team-update Engineering standup=09:00`\n\nParameters: `name=NewName`, `standup=HH:MM`, `posting=HH:MM`, `notifications=true/false`",
@@ -310,10 +312,10 @@ async function updateTeam({ command, ack, respond, client }) {
         // First argument is a parameter, try to find team in current channel
         team = await teamService.findTeamByChannel(command.channel_id);
         startIndex = 0;
-        
+
         if (!team) {
           await updateResponse({
-            text: "❌ No team found in this channel. Please provide team name: `/dd-team-update TeamName [parameters]`",
+            text: "❌ No team found in this channel. Please provide team name: `/dd-team-update [TeamName] [parameters]`",
           });
           return;
         }
@@ -373,7 +375,9 @@ async function updateTeam({ command, ack, respond, client }) {
             return;
           }
           updateData.receiveNotifications = value === "true";
-          updates.push(`Admin notifications: ${value === "true" ? "enabled" : "disabled"}`);
+          updates.push(
+            `Admin notifications: ${value === "true" ? "enabled" : "disabled"}`
+          );
           break;
         default:
           await updateResponse({
