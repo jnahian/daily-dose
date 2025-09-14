@@ -170,7 +170,7 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
 
 Each standup includes:
 
-- **Yesterday's Tasks**: What you worked on yesterday
+- **Last Working Day's Tasks**: What you worked on your last working day
 - **Today's Tasks**: What you plan to work on today
 - **Blockers**: Any obstacles or help needed
 
@@ -477,7 +477,7 @@ When you're on leave:
 
 ### Standup Writing Tips
 
-- **Yesterday**: Focus on completed work and outcomes
+- **Last working day**: Focus on completed work and outcomes
 - **Today**: Be specific about planned tasks and goals
 - **Blockers**: Clearly state what you need help with and from whom
 

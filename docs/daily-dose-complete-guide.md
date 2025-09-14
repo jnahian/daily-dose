@@ -1032,7 +1032,7 @@ class StandupService {
         let responseText = "";
 
         if (response.yesterdayTasks) {
-          responseText += `*Yesterday:*\n${response.yesterdayTasks}\n\n`;
+          responseText += `*Last Working Day:*\n${response.yesterdayTasks}\n\n`;
         }
 
         if (response.todayTasks) {
@@ -2054,7 +2054,7 @@ async function openStandupModal({ body, client, action }) {
             },
             label: {
               type: "plain_text",
-              text: "Yesterday's Tasks",
+              text: "Last Working Day's Tasks",
             },
             optional: true,
           },
@@ -2159,7 +2159,7 @@ async function handleStandupSubmission({ ack, body, client, view }) {
         }* (Late submission)`;
 
         if (yesterdayTasks) {
-          lateMessage += `\n*Yesterday:*\n${yesterdayTasks}`;
+          lateMessage += `\n*Last Working Day:*\n${yesterdayTasks}`;
         }
 
         if (todayTasks) {

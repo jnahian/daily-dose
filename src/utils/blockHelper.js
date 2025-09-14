@@ -137,9 +137,9 @@ function createStandupModal(teamName, teamId, today, existingResponse = null) {
       createDividerBlock(),
       createInputBlock(
         "yesterday_tasks",
-        "Yesterday's Tasks",
+        "Last Working Day's Tasks",
         "yesterday_input",
-        "What did you work on yesterday?",
+        "What did you work on your last working day?",
         false
       ),
       createInputBlock(
@@ -213,7 +213,7 @@ function createUserResponseBlocks(response) {
   if (response.yesterdayTasks) {
     fields.push({
       type: "mrkdwn",
-      text: `*📄 Yesterday*\n${response.yesterdayTasks}`,
+      text: `*📄 Last Working Day*\n${response.yesterdayTasks}`,
     });
   }
 
@@ -253,7 +253,7 @@ function createLateResponseBlocks(response) {
   if (response.yesterdayTasks) {
     fields.push({
       type: "mrkdwn",
-      text: `*📄 Yesterday*\n${response.yesterdayTasks}`,
+      text: `*📄 Last Working Day*\n${response.yesterdayTasks}`,
     });
   }
 
@@ -395,9 +395,9 @@ function createStandupUpdateModal(teamName, teamId, today, standupDate, existing
       createDividerBlock(),
       createInputBlock(
         "yesterday_tasks",
-        "Yesterday's Tasks",
+        "Last Working Day's Tasks",
         "yesterday_input",
-        "What did you work on yesterday?",
+        "What did you work on your last working day?",
         false,
         "rich_text_input"
       ),

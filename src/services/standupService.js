@@ -232,7 +232,7 @@ class StandupService {
       if (responseData.yesterdayTasks) {
         fields.push({
           type: "mrkdwn",
-          text: `*📄 Yesterday*\n${responseData.yesterdayTasks}`,
+          text: `*📄 Last Working Day*\n${responseData.yesterdayTasks}`,
         });
       }
       if (responseData.todayTasks) {
