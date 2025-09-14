@@ -130,8 +130,8 @@
             {
                 "command": "/dd-standup-reminder",
                 "url": "{{APP_URL}}/slack/events",
-                "description": "Opt in/out of standup non-responded list",
-                "usage_hint": "[TeamName] [on|off]",
+                "description": "Configure standup reminder preferences",
+                "usage_hint": "[TeamName] mention=on/off notify=on/off",
                 "should_escape": false
             }
         ]

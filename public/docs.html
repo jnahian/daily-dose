@@ -575,38 +575,45 @@
                     
                     <div class="bg-white rounded-lg border p-6">
                         <h3 class="font-semibold text-gray-900 mb-4">Standup Reminder Preferences</h3>
-                        <p class="text-gray-600 mb-4">Control your visibility in the non-responded list while maintaining ability to submit standups. Team name is optional - when not provided, the bot looks for a team in the current channel:</p>
+                        <p class="text-gray-600 mb-4">Control your standup reminder preferences with granular control over notifications and visibility. You can manage whether you receive reminder notifications (notify=on/off) and whether you appear in the "not responded" list (mention=on/off). Team name is optional - when not provided, the bot looks for a team in the current channel. At least one parameter (mention or notify) must be provided:</p>
                         <div class="space-y-3">
                             <div class="code-block p-4 relative">
                                 <code class="text-purple-400">/dd-standup-reminder [team-name]</code>
-                                <span class="text-gray-400 ml-2"># Check current status</span>
+                                <span class="text-gray-400 ml-2"># Check current settings</span>
                                 <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder')">
                                     <i class="fas fa-copy"></i>
                                 </button>
                             </div>
                             <div class="code-block p-4 relative">
-                                <code class="text-purple-400">/dd-standup-reminder [team-name] off</code>
-                                <span class="text-gray-400 ml-2"># Opt out of non-responded list</span>
-                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder off')">
+                                <code class="text-purple-400">/dd-standup-reminder [team-name] mention=off</code>
+                                <span class="text-gray-400 ml-2"># Hide from non-responded list</span>
+                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder mention=off')">
                                     <i class="fas fa-copy"></i>
                                 </button>
                             </div>
                             <div class="code-block p-4 relative">
-                                <code class="text-purple-400">/dd-standup-reminder [team-name] on</code>
-                                <span class="text-gray-400 ml-2"># Opt back into non-responded list</span>
-                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder on')">
+                                <code class="text-purple-400">/dd-standup-reminder [team-name] notify=off</code>
+                                <span class="text-gray-400 ml-2"># Stop reminder notifications</span>
+                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder notify=off')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="code-block p-4 relative">
+                                <code class="text-purple-400">/dd-standup-reminder [team-name] mention=off notify=off</code>
+                                <span class="text-gray-400 ml-2"># Disable both notifications and mentions</span>
+                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder mention=off notify=off')">
                                     <i class="fas fa-copy"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="bg-purple-50 border border-purple-200 rounded p-4 mt-4">
-                            <h4 class="font-semibold text-purple-900 mb-2">Opt-out Benefits:</h4>
-                            <ul class="text-sm text-purple-800 space-y-1">
-                                <li><i class="fas fa-check mr-2"></i>Won't appear in "Not Responded" list in daily summaries</li>
-                                <li><i class="fas fa-check mr-2"></i>Can still submit standups normally at any time</li>
+                            <h4 class="font-semibold text-purple-900 mb-2">Parameter Options:</h4>
+                            <ul class="text-sm text-purple-800 space-y-2">
+                                <li><i class="fas fa-bell mr-2"></i><strong>notify=on/off:</strong> Controls whether you receive daily reminder DMs</li>
+                                <li><i class="fas fa-eye mr-2"></i><strong>mention=on/off:</strong> Controls whether you appear in "Not Responded" list</li>
+                                <li><i class="fas fa-info-circle mr-2"></i>Use both parameters together: <code class="text-xs bg-white px-1 rounded">mention=off notify=off</code></li>
+                                <li><i class="fas fa-check mr-2"></i>Can still submit standups normally regardless of settings</li>
                                 <li><i class="fas fa-check mr-2"></i>Perfect for irregular contributors or project-based members</li>
-                                <li><i class="fas fa-check mr-2"></i>Reduces team noise while maintaining participation flexibility</li>
-                                <li><i class="fas fa-check mr-2"></i>Works from any channel when team name is omitted (uses channel's team)</li>
                             </ul>
                         </div>
                         <div class="bg-cyan-50 border border-cyan-200 rounded p-4 mt-4">
@@ -614,22 +621,22 @@
                             <div class="space-y-2 text-sm mb-4">
                                 <div class="code-block p-2">
                                     <code class="text-purple-400">/dd-standup-reminder</code>
-                                    <span class="text-gray-600 ml-2">→ Check status for team in current channel</span>
+                                    <span class="text-gray-600 ml-2">→ Check settings for team in current channel</span>
                                     <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder')">
                                         <i class="fas fa-copy"></i>
                                     </button>
                                 </div>
                                 <div class="code-block p-2">
-                                    <code class="text-purple-400">/dd-standup-reminder off</code>
-                                    <span class="text-gray-600 ml-2">→ Opt out for team in current channel</span>
-                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder off')">
+                                    <code class="text-purple-400">/dd-standup-reminder mention=off</code>
+                                    <span class="text-gray-600 ml-2">→ Hide from non-responded list for team in current channel</span>
+                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder mention=off')">
                                         <i class="fas fa-copy"></i>
                                     </button>
                                 </div>
                                 <div class="code-block p-2">
-                                    <code class="text-purple-400">/dd-standup-reminder on</code>
-                                    <span class="text-gray-600 ml-2">→ Opt in for team in current channel</span>
-                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder on')">
+                                    <code class="text-purple-400">/dd-standup-reminder notify=off</code>
+                                    <span class="text-gray-600 ml-2">→ Disable reminder notifications for team in current channel</span>
+                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder notify=off')">
                                         <i class="fas fa-copy"></i>
                                     </button>
                                 </div>
@@ -638,22 +645,22 @@
                             <div class="space-y-2 text-sm">
                                 <div class="code-block p-2">
                                     <code class="text-purple-400">/dd-standup-reminder Engineering</code>
-                                    <span class="text-gray-600 ml-2">→ Check status for specific team</span>
+                                    <span class="text-gray-600 ml-2">→ Check settings for specific team</span>
                                     <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder Engineering')">
                                         <i class="fas fa-copy"></i>
                                     </button>
                                 </div>
                                 <div class="code-block p-2">
-                                    <code class="text-purple-400">/dd-standup-reminder "Product Team" off</code>
-                                    <span class="text-gray-600 ml-2">→ Opt out for specific team</span>
-                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder &quot;Product Team&quot; off')">
+                                    <code class="text-purple-400">/dd-standup-reminder "Product Team" mention=off</code>
+                                    <span class="text-gray-600 ml-2">→ Hide from non-responded list for specific team</span>
+                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder &quot;Product Team&quot; mention=off')">
                                         <i class="fas fa-copy"></i>
                                     </button>
                                 </div>
                                 <div class="code-block p-2">
-                                    <code class="text-purple-400">/dd-standup-reminder Engineering on</code>
-                                    <span class="text-gray-600 ml-2">→ Opt in for specific team</span>
-                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder Engineering on')">
+                                    <code class="text-purple-400">/dd-standup-reminder Engineering notify=on mention=off</code>
+                                    <span class="text-gray-600 ml-2">→ Enable notifications but hide from mentions for specific team</span>
+                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-reminder Engineering notify=on mention=off')">
                                         <i class="fas fa-copy"></i>
                                     </button>
                                 </div>
@@ -1596,14 +1603,20 @@
                     <div class="bg-white rounded-lg border p-6">
                         <details class="group">
                             <summary class="flex items-center justify-between cursor-pointer">
-                                <h3 class="font-semibold text-gray-900">Can I opt out of appearing in the non-responded list?</h3>
+                                <h3 class="font-semibold text-gray-900">Can I control my standup reminder preferences?</h3>
                                 <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform"></i>
                             </summary>
                             <div class="mt-4 pt-4 border-t text-gray-600">
-                                <p>Yes! Use <code class="bg-gray-100 px-1 rounded">/dd-standup-reminder [team-name] off</code> to opt out of appearing in the daily "Not Responded" list. When no team name is provided, the bot looks for a team associated with the current channel. You can still submit standups normally, but won't be listed when you don't respond. This is perfect for irregular contributors, project-based members, or anyone who doesn't want to add noise to daily summaries. Use <code class="bg-gray-100 px-1 rounded">/dd-standup-reminder [team-name] on</code> to opt back in.</p>
+                                <p>Yes! You have granular control over your standup reminder preferences with two main settings:</p>
+                                <ul class="mt-2 space-y-2">
+                                    <li><strong>mention=on/off:</strong> Controls whether you appear in the "Not Responded" list in daily summaries</li>
+                                    <li><strong>notify=on/off:</strong> Controls whether you receive daily reminder DM notifications</li>
+                                </ul>
+                                <p class="mt-3">When no team name is provided, the bot looks for a team associated with the current channel. You can still submit standups normally regardless of your settings. This is perfect for irregular contributors, project-based members, or anyone who wants to customize their reminder experience.</p>
                                 <p class="mt-2"><strong>Examples:</strong><br>
-                                <code class="bg-gray-100 px-1 rounded">/dd-standup-reminder off</code> - Opt out for team in current channel<br>
-                                <code class="bg-gray-100 px-1 rounded">/dd-standup-reminder Engineering off</code> - Opt out for specific team</p>
+                                <code class="bg-gray-100 px-1 rounded">/dd-standup-reminder mention=off</code> - Hide from non-responded list for current channel's team<br>
+                                <code class="bg-gray-100 px-1 rounded">/dd-standup-reminder Engineering notify=off</code> - Stop reminder notifications for specific team<br>
+                                <code class="bg-gray-100 px-1 rounded">/dd-standup-reminder mention=off notify=off</code> - Disable both for current channel's team</p>
                             </div>
                         </details>
                     </div>
