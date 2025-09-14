@@ -89,6 +89,7 @@ async function submitManual({ command, ack, respond, client }) {
       });
     }
   } catch (error) {
+    console.error("Error in submitManual:", error);
     await updateResponse({
       text: `❌ Error: ${error.message}`,
     });
