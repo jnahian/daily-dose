@@ -405,7 +405,11 @@ class StandupService {
 
       return result;
     } catch (error) {
-      console.error(`❌ Failed to post standup for team ${team.name}:`, error);
+      console.error(
+        `❌ Failed to post standup for team ${team.name}:`,
+        error,
+        team
+      );
       throw error;
     }
   }
