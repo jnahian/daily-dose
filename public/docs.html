@@ -416,12 +416,22 @@
                     
                     <div class="bg-white rounded-lg border p-6">
                         <h3 class="font-semibold text-gray-900 mb-4">4. Submit Your First Standup</h3>
-                        <p class="text-gray-600 mb-4">The bot will send you DM reminders, or you can submit manually:</p>
-                        <div class="code-block p-4 relative">
-                            <code class="text-green-400">/dd-standup MyTeam</code>
-                            <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup MyTeam')">
-                                <i class="fas fa-copy"></i>
-                            </button>
+                        <p class="text-gray-600 mb-4">The bot will send you DM reminders, or you can submit manually from the team channel or by specifying the team name:</p>
+                        <div class="space-y-2">
+                            <div class="code-block p-4 relative">
+                                <code class="text-green-400">/dd-standup</code>
+                                <span class="text-gray-400 ml-2"># In team channel</span>
+                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="code-block p-4 relative">
+                                <code class="text-green-400">/dd-standup MyTeam</code>
+                                <span class="text-gray-400 ml-2"># Specify team name</span>
+                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup MyTeam')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -436,25 +446,47 @@
                 <div class="space-y-6">
                     <div class="bg-white rounded-lg border p-6">
                         <h3 class="font-semibold text-gray-900 mb-4">Manual Standup Submission</h3>
-                        <p class="text-gray-600 mb-4">Submit a standup outside of scheduled reminder times:</p>
-                        <div class="code-block p-4 relative mb-4">
-                            <code class="text-green-400">/dd-standup [team-name]</code>
-                            <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup [team-name]')">
-                                <i class="fas fa-copy"></i>
-                            </button>
+                        <p class="text-gray-600 mb-4">Submit a standup outside of scheduled reminder times. Team name is optional when run in a team channel:</p>
+                        <div class="space-y-3">
+                            <div class="code-block p-4 relative">
+                                <code class="text-green-400">/dd-standup</code>
+                                <span class="text-gray-400 ml-2"># Use team in current channel</span>
+                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="code-block p-4 relative">
+                                <code class="text-green-400">/dd-standup [team-name]</code>
+                                <span class="text-gray-400 ml-2"># Use specified team</span>
+                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup [team-name]')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div class="bg-cyan-50 border border-cyan-200 rounded p-4">
-                            <h4 class="font-semibold text-cyan-900 mb-2">Examples:</h4>
+                        <div class="bg-cyan-50 border border-cyan-200 rounded p-4 mt-4">
+                            <h4 class="font-semibold text-cyan-900 mb-2">Channel-Based Usage:</h4>
+                            <div class="space-y-2 text-sm mb-4">
+                                <div class="code-block p-2">
+                                    <code class="text-green-400">/dd-standup</code>
+                                    <span class="text-gray-600 ml-2">→ Submit for team in current channel</span>
+                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <h4 class="font-semibold text-cyan-900 mb-2">Name-Based Usage:</h4>
                             <div class="space-y-2 text-sm">
                                 <div class="code-block p-2">
                                     <code class="text-green-400">/dd-standup Engineering</code>
+                                    <span class="text-gray-600 ml-2">→ Submit for specific team</span>
                                     <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup Engineering')">
                                         <i class="fas fa-copy"></i>
                                     </button>
                                 </div>
                                 <div class="code-block p-2">
-                                    <code class="text-green-400">/dd-standup Marketing</code>
-                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup Marketing')">
+                                    <code class="text-green-400">/dd-standup "Product Team"</code>
+                                    <span class="text-gray-600 ml-2">→ Submit for team with spaces</span>
+                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup &quot;Product Team&quot;')">
                                         <i class="fas fa-copy"></i>
                                     </button>
                                 </div>
@@ -464,21 +496,71 @@
                     
                     <div class="bg-white rounded-lg border p-6">
                         <h3 class="font-semibold text-gray-900 mb-4">Update Standup Responses</h3>
-                        <p class="text-gray-600 mb-4">Update your standup for today or any specific date:</p>
+                        <p class="text-gray-600 mb-4">Update your standup for today or any specific date. Team name is optional when run in a team channel:</p>
                         <div class="space-y-3">
                             <div class="code-block p-4 relative">
-                                <code class="text-cyan-400">/dd-standup-update &lt;team-name&gt;</code>
-                                <span class="text-gray-400 ml-2"># Update today's standup</span>
-                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-update <team-name>')">
+                                <code class="text-cyan-400">/dd-standup-update</code>
+                                <span class="text-gray-400 ml-2"># Update today for team in current channel</span>
+                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-update')">
                                     <i class="fas fa-copy"></i>
                                 </button>
                             </div>
                             <div class="code-block p-4 relative">
-                                <code class="text-cyan-400">/dd-standup-update &lt;team-name&gt; [YYYY-MM-DD]</code>
-                                <span class="text-gray-400 ml-2"># Update specific date</span>
-                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-update <team-name> [YYYY-MM-DD]')">
+                                <code class="text-cyan-400">/dd-standup-update [YYYY-MM-DD]</code>
+                                <span class="text-gray-400 ml-2"># Update specific date for team in current channel</span>
+                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-update [YYYY-MM-DD]')">
                                     <i class="fas fa-copy"></i>
                                 </button>
+                            </div>
+                            <div class="code-block p-4 relative">
+                                <code class="text-cyan-400">/dd-standup-update [team-name]</code>
+                                <span class="text-gray-400 ml-2"># Update today for specified team</span>
+                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-update [team-name]')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="code-block p-4 relative">
+                                <code class="text-cyan-400">/dd-standup-update [team-name] [YYYY-MM-DD]</code>
+                                <span class="text-gray-400 ml-2"># Update specific date for specified team</span>
+                                <button class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs" onclick="copyToClipboard('/dd-standup-update [team-name] [YYYY-MM-DD]')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="bg-cyan-50 border border-cyan-200 rounded p-4 mt-4">
+                            <h4 class="font-semibold text-cyan-900 mb-2">Channel-Based Usage:</h4>
+                            <div class="space-y-2 text-sm mb-4">
+                                <div class="code-block p-2">
+                                    <code class="text-cyan-400">/dd-standup-update</code>
+                                    <span class="text-gray-600 ml-2">→ Update today for team in current channel</span>
+                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-update')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <div class="code-block p-2">
+                                    <code class="text-cyan-400">/dd-standup-update 2024-01-15</code>
+                                    <span class="text-gray-600 ml-2">→ Update specific date for team in current channel</span>
+                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-update 2024-01-15')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <h4 class="font-semibold text-cyan-900 mb-2">Name-Based Usage:</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="code-block p-2">
+                                    <code class="text-cyan-400">/dd-standup-update Engineering</code>
+                                    <span class="text-gray-600 ml-2">→ Update today for specific team</span>
+                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-update Engineering')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <div class="code-block p-2">
+                                    <code class="text-cyan-400">/dd-standup-update "Product Team" 2024-01-15</code>
+                                    <span class="text-gray-600 ml-2">→ Update specific date for team with spaces</span>
+                                    <button class="copy-button absolute top-1 right-1 bg-gray-700 hover:bg-gray-600 text-white px-1 py-0.5 rounded text-xs" onclick="copyToClipboard('/dd-standup-update &quot;Product Team&quot; 2024-01-15')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div class="bg-green-50 border border-green-200 rounded p-4 mt-4">
@@ -1482,7 +1564,7 @@
                                 <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform"></i>
                             </summary>
                             <div class="mt-4 pt-4 border-t text-gray-600">
-                                <p>You can submit a standup anytime using <code class="bg-gray-100 px-1 rounded">/dd-standup TeamName</code>. If you submit after the posting time, your response will be added as a thread reply to the team's summary.</p>
+                                <p>You can submit a standup anytime using <code class="bg-gray-100 px-1 rounded">/dd-standup</code> (if run in a team channel) or <code class="bg-gray-100 px-1 rounded">/dd-standup TeamName</code> to specify the team. If you submit after the posting time, your response will be added as a thread reply to the team's summary.</p>
                             </div>
                         </details>
                     </div>
@@ -1494,7 +1576,7 @@
                                 <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform"></i>
                             </summary>
                             <div class="mt-4 pt-4 border-t text-gray-600">
-                                <p>Yes! Use <code class="bg-gray-100 px-1 rounded">/dd-standup-update TeamName</code> to edit today's standup, or add a specific date to edit historical standups. Updates after posting time will appear as thread replies.</p>
+                                <p>Yes! Use <code class="bg-gray-100 px-1 rounded">/dd-standup-update</code> (if run in a team channel) or <code class="bg-gray-100 px-1 rounded">/dd-standup-update TeamName</code> to edit today's standup. Add a specific date like <code class="bg-gray-100 px-1 rounded">/dd-standup-update 2024-01-15</code> or <code class="bg-gray-100 px-1 rounded">/dd-standup-update TeamName 2024-01-15</code> to edit historical standups. Updates after posting time will appear as thread replies.</p>
                             </div>
                         </details>
                     </div>

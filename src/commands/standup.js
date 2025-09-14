@@ -40,11 +40,26 @@ async function submitManual({ command, ack, respond, client }) {
       return;
     }
 
-    // If user specified team name, use that; otherwise show team selection
     const teamName = command.text.trim();
+    let team;
 
-    if (teamName) {
-      const team = teams.find(
+    if (!teamName) {
+      // No team name provided, try to find team in current channel
+      team = await teamService.findTeamByChannel(command.channel_id);
+
+      if (!team) {
+        // Show team selection if no team found in channel
+        await updateResponse({
+          blocks: [
+            ...createTeamSelectionBlocks(teams, "select_team_standup"),
+            createSectionBlock("Usage: `/dd-standup [TeamName]`\n- Run without team name to submit standup for the team in current channel\n- Or specify team name: `/dd-standup Engineering`"),
+          ],
+        });
+        return;
+      }
+    } else {
+      // Find team by name
+      team = teams.find(
         (t) => t.name.toLowerCase() === teamName.toLowerCase()
       );
 
@@ -56,40 +71,32 @@ async function submitManual({ command, ack, respond, client }) {
         });
         return;
       }
+    }
 
-      // Open modal directly using the command's trigger_id
-      const today = dayjs().format("MMM DD, YYYY");
+    // Open modal directly using the command's trigger_id
+    const today = dayjs().format("MMM DD, YYYY");
 
-      try {
-        const modalView = createStandupModal(team.name, team.id, today);
-        await client.views.open({
-          trigger_id: command.trigger_id,
-          view: modalView,
-        });
-      } catch (modalError) {
-        console.error("Error opening modal directly:", modalError);
+    try {
+      const modalView = createStandupModal(team.name, team.id, today);
+      await client.views.open({
+        trigger_id: command.trigger_id,
+        view: modalView,
+      });
+    } catch (modalError) {
+      console.error("Error opening modal directly:", modalError);
 
-        // Fallback to button approach if modal fails
-        await updateResponse({
-          blocks: [
-            createSectionBlock(`*📝 Submit standup for ${team.name}*`),
-            createActionsBlock([
-              createButton(
-                "📝 Open Standup Form",
-                `open_standup_${team.id}`,
-                team.id.toString(),
-                "primary"
-              ),
-            ]),
-          ],
-        });
-      }
-    } else {
-      // Show team selection
+      // Fallback to button approach if modal fails
       await updateResponse({
         blocks: [
-          ...createTeamSelectionBlocks(teams, "select_team_standup"),
-          createSectionBlock("Usage: `/dd-standup [TeamName]`"),
+          createSectionBlock(`*📝 Submit standup for ${team.name}*`),
+          createActionsBlock([
+            createButton(
+              "📝 Open Standup Form",
+              `open_standup_${team.id}`,
+              team.id.toString(),
+              "primary"
+            ),
+          ]),
         ],
       });
     }
@@ -325,41 +332,67 @@ async function updateStandup({ command, ack, respond, client }) {
       return;
     }
 
-    // Team name is required
-    if (!args[0]) {
-      const teamList = teams.map((t) => t.name).join(", ");
-      await updateResponse({
-        text: `❌ Team name is required.\nUsage: \`/dd-standup-update [TeamName] [YYYY-MM-DD]\`\nAvailable teams: ${teamList}`,
-      });
-      return;
-    }
-
     let targetTeam = null;
     let targetDate = dayjs().format("YYYY-MM-DD"); // Default to today
+    let startIndex = 0;
 
-    // First arg must be team name
-    const teamName = args[0];
-    targetTeam = teams.find(
-      (t) => t.name.toLowerCase() === teamName.toLowerCase()
-    );
+    // Determine if first arg is team name or date
+    if (args.length === 0 || args[0] === "") {
+      // No arguments provided, try to find team in current channel
+      targetTeam = await teamService.findTeamByChannel(command.channel_id);
 
-    if (!targetTeam) {
-      await updateResponse({
-        text: `❌ Team "${teamName}" not found. Available teams: ${teams
-          .map((t) => t.name)
-          .join(", ")}`,
-      });
-      return;
+      if (!targetTeam) {
+        const teamList = teams.map((t) => t.name).join(", ");
+        await updateResponse({
+          text: `❌ No team found in this channel. Usage: \`/dd-standup-update [TeamName] [YYYY-MM-DD]\`\n- Run without team name to update standup for the team in current channel\n- Or specify team name: \`/dd-standup-update Engineering\`\nAvailable teams: ${teamList}`,
+        });
+        return;
+      }
+      startIndex = 0;
+    } else {
+      // Check if first argument is a date (YYYY-MM-DD format)
+      const isDate = /^\d{4}-\d{2}-\d{2}$/.test(args[0]);
+      
+      if (isDate) {
+        // First arg is a date, try to find team in current channel
+        targetTeam = await teamService.findTeamByChannel(command.channel_id);
+        
+        if (!targetTeam) {
+          await updateResponse({
+            text: "❌ No team found in this channel. Please provide team name: `/dd-standup-update [TeamName] [YYYY-MM-DD]`",
+          });
+          return;
+        }
+        
+        targetDate = args[0];
+        startIndex = 1;
+      } else {
+        // First arg is team name
+        const teamName = args[0];
+        targetTeam = teams.find(
+          (t) => t.name.toLowerCase() === teamName.toLowerCase()
+        );
+
+        if (!targetTeam) {
+          await updateResponse({
+            text: `❌ Team "${teamName}" not found. Available teams: ${teams
+              .map((t) => t.name)
+              .join(", ")}`,
+          });
+          return;
+        }
+        startIndex = 1;
+      }
     }
 
-    // Second arg is optional date
-    if (args.length >= 2 && args[1]) {
-      const isDate = /^\d{4}-\d{2}-\d{2}$/.test(args[1]);
+    // Parse optional date argument
+    if (args.length > startIndex && args[startIndex]) {
+      const isDate = /^\d{4}-\d{2}-\d{2}$/.test(args[startIndex]);
       if (isDate) {
-        targetDate = args[1];
+        targetDate = args[startIndex];
       } else {
         await updateResponse({
-          text: `❌ Invalid date format: ${args[1]}. Use YYYY-MM-DD format.\nUsage: \`/dd-standup-update ${teamName} [YYYY-MM-DD]\``,
+          text: `❌ Invalid date format: ${args[startIndex]}. Use YYYY-MM-DD format.\nUsage: \`/dd-standup-update ${targetTeam.name} [YYYY-MM-DD]\``,
         });
         return;
       }

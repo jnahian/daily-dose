@@ -79,9 +79,12 @@ When you first interact with the bot, you'll be automatically added to your orga
 The bot will send you a DM reminder at your team's configured time. Click the "Submit Standup" button or use:
 
 ```
-/dd-standup MyTeam              # Manual standup submission
-/dd-standup-update MyTeam       # Update today's standup for MyTeam
-/dd-standup-update MyTeam 2024-12-20  # Update standup for specific date
+/dd-standup                     # Manual standup submission for team in current channel
+/dd-standup MyTeam              # Manual standup submission for specific team
+/dd-standup-update              # Update today's standup for team in current channel
+/dd-standup-update MyTeam       # Update today's standup for specific team
+/dd-standup-update 2024-12-20   # Update standup for specific date (team in current channel)
+/dd-standup-update MyTeam 2024-12-20  # Update standup for specific date and team
 ```
 
 ## ⚡ Slash Commands
@@ -89,7 +92,13 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
 ### 📝 Standup Submission
 
 - `/dd-standup [team-name]` - Submit standup manually outside scheduled time
-- `/dd-standup-update <team-name> [YYYY-MM-DD]` - Update standup for any day (defaults to today)
+  - **Channel-based**: `/dd-standup` (submits for team in current channel)
+  - **Name-based**: `/dd-standup Engineering` (submits for specific team from any channel)
+- `/dd-standup-update [team-name|YYYY-MM-DD] [YYYY-MM-DD]` - Update standup for any day (defaults to today)
+  - **Channel-based**: `/dd-standup-update` (updates today's standup for team in current channel)
+  - **Channel-based with date**: `/dd-standup-update 2024-12-20` (updates specific date for team in current channel)
+  - **Name-based**: `/dd-standup-update Engineering` (updates today's standup for specific team)
+  - **Name-based with date**: `/dd-standup-update Engineering 2024-12-20` (updates specific date for specific team)
 - `/dd-standup-reminder [team-name] [on|off]` - Toggle visibility in non-responded list
   - **Channel-based operation** (when no team name provided):
     - `/dd-standup-reminder` - View status for team in current channel
@@ -244,8 +253,14 @@ Team admins can control whether they receive notifications when team members sub
 You can update your standup for any day using the update command:
 
 ```bash
+# Update today's standup for team in current channel
+/dd-standup-update
+
 # Update today's standup for specific team
 /dd-standup-update Engineering
+
+# Update standup for specific date (team in current channel)
+/dd-standup-update 2024-12-20
 
 # Update standup for specific date and team
 /dd-standup-update Engineering 2024-12-20
