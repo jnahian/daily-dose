@@ -328,14 +328,32 @@ class StandupService {
       },
     });
 
-    // Calculate not submitted (exclude admins and those who opted out)
+    // Check if all active members have disabled reminders and no standups submitted
     const respondedUserIds = new Set(responses.map((r) => r.userId));
     const leaveUserIds = new Set(membersOnLeave.map((m) => m.userId));
 
+    // Get members who are active, not on leave, and not admins
+    const eligibleMembers = allMembers.filter(
+      (m) => !leaveUserIds.has(m.userId) && m.role !== 'ADMIN'
+    );
+
+    // Check if all eligible members have disabled reminders
+    const allMembersDisabledReminders = eligibleMembers.length > 0 &&
+      eligibleMembers.every((m) => m.hideFromNotResponded);
+
+    // If all members disabled reminders AND no one submitted standups, skip posting
+    if (allMembersDisabledReminders && responses.length === 0) {
+      console.log(
+        `⏭️ Skipping standup post for team ${team.name} - all members have disabled reminders and no standups submitted`
+      );
+      return;
+    }
+
+    // Calculate not submitted (exclude admins and those who opted out)
     const notSubmitted = allMembers
       .filter(
-        (m) => !respondedUserIds.has(m.userId) && 
-               !leaveUserIds.has(m.userId) && 
+        (m) => !respondedUserIds.has(m.userId) &&
+               !leaveUserIds.has(m.userId) &&
                m.role !== 'ADMIN' &&
                !m.hideFromNotResponded
       )
