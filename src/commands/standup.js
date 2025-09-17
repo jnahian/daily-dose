@@ -77,7 +77,10 @@ async function submitManual({ command, ack, respond, client }) {
     const today = dayjs().format("MMM DD, YYYY");
 
     try {
-      const modalView = createStandupModal(team.name, team.id, today);
+      // Get user's last standup response to prefill today's tasks
+      const lastResponse = await standupService.getLastStandupResponse(team.id, command.user_id);
+
+      const modalView = createStandupModal(team.name, team.id, today, null, lastResponse);
       await client.views.open({
         trigger_id: command.trigger_id,
         view: modalView,
@@ -149,7 +152,10 @@ async function openStandupModal({ body, ack, client }, teamId = null) {
     // Acknowledge the button interaction and open modal in one go
     await ack();
 
-    const modalView = createStandupModal(team.name, teamId, today);
+    // Get user's last standup response to prefill today's tasks
+    const lastResponse = await standupService.getLastStandupResponse(teamId, body.user.id);
+
+    const modalView = createStandupModal(team.name, teamId, today, null, lastResponse);
     await client.views.open({
       trigger_id: body.trigger_id,
       view: modalView,

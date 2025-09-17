@@ -197,6 +197,28 @@ class StandupService {
     });
   }
 
+  async getLastStandupResponse(teamId, slackUserId) {
+    try {
+      // Get user data first
+      const userData = await userService.fetchSlackUserData(slackUserId);
+      const user = await userService.findOrCreateUser(slackUserId, userData);
+
+      // Find the most recent standup response for this user and team
+      return await prisma.standupResponse.findFirst({
+        where: {
+          teamId,
+          userId: user.id,
+        },
+        orderBy: {
+          standupDate: 'desc',
+        },
+      });
+    } catch (error) {
+      console.error('Error getting last standup response:', error);
+      return null;
+    }
+  }
+
   async formatStandupMessage(
     responses,
     notSubmitted,

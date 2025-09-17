@@ -113,9 +113,57 @@ function createInputBlock(blockId, label, actionId, placeholder, optional = fals
  * @param {string} teamId - Team ID
  * @param {string} today - Today's date formatted string
  * @param {object} existingResponse - Existing response data (optional)
+ * @param {object} lastResponse - Last standup response to prefill today's tasks (optional)
  * @returns {object} Complete modal view structure
  */
-function createStandupModal(teamName, teamId, today, existingResponse = null) {
+function createStandupModal(teamName, teamId, today, existingResponse = null, lastResponse = null) {
+  const blocks = [
+    createSectionBlock(`*📊 ${teamName} - ${today}*${existingResponse ? " (Update)" : ""}`),
+    createDividerBlock(),
+    createInputBlock(
+      "yesterday_tasks",
+      "Last Working Day's Tasks",
+      "yesterday_input",
+      "What did you work on your last working day?",
+      false
+    ),
+    createInputBlock(
+      "today_tasks",
+      "Today's Tasks",
+      "today_input",
+      "What will you work on today?",
+      false
+    ),
+    createInputBlock(
+      "blockers",
+      "Blockers",
+      "blockers_input",
+      "Any blockers or help needed?",
+      true
+    ),
+  ];
+
+  // Add initial values if lastResponse exists (prefill today's tasks with yesterday's tasks)
+  if (lastResponse && lastResponse.todayTasks) {
+    const todayTasksBlock = blocks.find(block => block.block_id === "today_tasks");
+    if (todayTasksBlock) {
+      todayTasksBlock.element.initial_value = {
+        type: "rich_text",
+        elements: [
+          {
+            type: "rich_text_section",
+            elements: [
+              {
+                type: "text",
+                text: lastResponse.todayTasks
+              }
+            ]
+          }
+        ]
+      };
+    }
+  }
+
   return {
     type: "modal",
     callback_id: "standup_modal",
@@ -132,31 +180,7 @@ function createStandupModal(teamName, teamId, today, existingResponse = null) {
       type: "plain_text",
       text: "Cancel",
     },
-    blocks: [
-      createSectionBlock(`*📊 ${teamName} - ${today}*${existingResponse ? " (Update)" : ""}`),
-      createDividerBlock(),
-      createInputBlock(
-        "yesterday_tasks",
-        "Last Working Day's Tasks",
-        "yesterday_input",
-        "What did you work on your last working day?",
-        false
-      ),
-      createInputBlock(
-        "today_tasks",
-        "Today's Tasks",
-        "today_input",
-        "What will you work on today?",
-        false
-      ),
-      createInputBlock(
-        "blockers",
-        "Blockers",
-        "blockers_input",
-        "Any blockers or help needed?",
-        true
-      ),
-    ],
+    blocks,
   };
 }
 
