@@ -155,10 +155,13 @@ class SchedulerService {
     const now = dayjs().tz(team.timezone);
 
     // Get active members (this now includes work day filtering)
-    const members = await standupService.getActiveMembers(
+    const allMembers = await standupService.getActiveMembers(
       team.id,
       now.toDate()
     );
+
+    // Filter out team owners/admins from receiving reminders
+    const members = allMembers.filter(member => member.role !== 'ADMIN');
 
     for (const member of members) {
       try {
