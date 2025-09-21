@@ -144,6 +144,244 @@ function extractRichTextValue(richTextValue) {
     .join("\n");
 };
 
+/**
+ * Convert markdown text to Slack rich text format for modal prefilling
+ * @param {string} text - Markdown formatted text
+ * @returns {object} Slack rich text value object
+ */
+function convertTextToRichText(text) {
+  if (!text || typeof text !== 'string') return null;
+
+  const elements = [];
+  const lines = text.split('\n');
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Handle code blocks (```...```)
+    if (line.trim().startsWith('```')) {
+      const codeLines = [];
+      i++; // Skip opening ```
+      while (i < lines.length && !lines[i].trim().startsWith('```')) {
+        codeLines.push(lines[i]);
+        i++;
+      }
+      if (i < lines.length) i++; // Skip closing ```
+
+      elements.push({
+        type: "rich_text_preformatted",
+        elements: [
+          {
+            type: "rich_text_section",
+            elements: [
+              {
+                type: "text",
+                text: codeLines.join('\n')
+              }
+            ]
+          }
+        ]
+      });
+      continue;
+    }
+
+    // Handle block quotes (> ...)
+    if (line.trim().startsWith('> ')) {
+      const quoteLines = [];
+      while (i < lines.length && lines[i].trim().startsWith('> ')) {
+        quoteLines.push(lines[i].replace(/^>\s*/, ''));
+        i++;
+      }
+
+      elements.push({
+        type: "rich_text_quote",
+        elements: [
+          {
+            type: "rich_text_section",
+            elements: [
+              {
+                type: "text",
+                text: quoteLines.join('\n')
+              }
+            ]
+          }
+        ]
+      });
+      continue;
+    }
+
+    // Handle bulleted lists (• ...)
+    if (line.trim().startsWith('• ')) {
+      const listItems = [];
+      while (i < lines.length && lines[i].trim().startsWith('• ')) {
+        const itemText = lines[i].replace(/^•\s*/, '');
+        listItems.push({
+          type: "rich_text_section",
+          elements: parseInlineFormatting(itemText)
+        });
+        i++;
+      }
+
+      elements.push({
+        type: "rich_text_list",
+        style: "bullet",
+        elements: listItems
+      });
+      continue;
+    }
+
+    // Handle numbered lists (1. ...)
+    if (/^\d+\.\s/.test(line.trim())) {
+      const listItems = [];
+      while (i < lines.length && /^\d+\.\s/.test(lines[i].trim())) {
+        const itemText = lines[i].replace(/^\d+\.\s*/, '');
+        listItems.push({
+          type: "rich_text_section",
+          elements: parseInlineFormatting(itemText)
+        });
+        i++;
+      }
+
+      elements.push({
+        type: "rich_text_list",
+        style: "ordered",
+        elements: listItems
+      });
+      continue;
+    }
+
+    // Handle regular text lines (with inline formatting)
+    if (line.trim()) {
+      elements.push({
+        type: "rich_text_section",
+        elements: parseInlineFormatting(line)
+      });
+    }
+
+    i++;
+  }
+
+  return {
+    type: "rich_text",
+    elements: elements.length > 0 ? elements : [
+      {
+        type: "rich_text_section",
+        elements: [
+          {
+            type: "text",
+            text: text
+          }
+        ]
+      }
+    ]
+  };
+}
+
+/**
+ * Parse inline formatting (bold, italic, strikethrough, code, links) in text
+ * @param {string} text - Text with inline markdown formatting
+ * @returns {Array} Array of text elements with formatting
+ */
+function parseInlineFormatting(text) {
+  const elements = [];
+  let currentPos = 0;
+
+  // Regex patterns for different formatting
+  const patterns = [
+    { regex: /\*([^*]+)\*/g, style: { bold: true } }, // Bold: *text*
+    { regex: /_([^_]+)_/g, style: { italic: true } }, // Italic: _text_
+    { regex: /~([^~]+)~/g, style: { strike: true } }, // Strikethrough: ~text~
+    { regex: /`([^`]+)`/g, style: { code: true } }, // Inline code: `text`
+    { regex: /<([^|>]+)\|([^>]+)>/g, type: 'link' }, // Links: <url|text>
+    { regex: /<@([^>]+)>/g, type: 'user' }, // User mentions: <@U123>
+    { regex: /<#([^>]+)>/g, type: 'channel' }, // Channel mentions: <#C123>
+  ];
+
+  // Find all matches and their positions
+  const matches = [];
+  patterns.forEach(pattern => {
+    let match;
+    while ((match = pattern.regex.exec(text)) !== null) {
+      matches.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        content: match[1],
+        fullMatch: match[0],
+        style: pattern.style,
+        type: pattern.type,
+        url: pattern.type === 'link' ? match[1] : undefined,
+        linkText: pattern.type === 'link' ? match[2] : undefined
+      });
+    }
+  });
+
+  // Sort matches by position
+  matches.sort((a, b) => a.start - b.start);
+
+  // Process text with formatting
+  matches.forEach(match => {
+    // Add plain text before this match
+    if (match.start > currentPos) {
+      const plainText = text.substring(currentPos, match.start);
+      if (plainText) {
+        elements.push({
+          type: "text",
+          text: plainText
+        });
+      }
+    }
+
+    // Add formatted element
+    if (match.type === 'link') {
+      elements.push({
+        type: "link",
+        url: match.url,
+        text: match.linkText
+      });
+    } else if (match.type === 'user') {
+      elements.push({
+        type: "user",
+        user_id: match.content
+      });
+    } else if (match.type === 'channel') {
+      elements.push({
+        type: "channel",
+        channel_id: match.content
+      });
+    } else if (match.style) {
+      elements.push({
+        type: "text",
+        text: match.content,
+        style: match.style
+      });
+    }
+
+    currentPos = match.end;
+  });
+
+  // Add remaining plain text
+  if (currentPos < text.length) {
+    const remainingText = text.substring(currentPos);
+    if (remainingText) {
+      elements.push({
+        type: "text",
+        text: remainingText
+      });
+    }
+  }
+
+  // If no formatting was found, return plain text
+  if (elements.length === 0) {
+    elements.push({
+      type: "text",
+      text: text
+    });
+  }
+
+  return elements;
+}
+
 module.exports = {
   getRandomStandupMessage,
   getRandomFollowupMessage,
@@ -151,4 +389,6 @@ module.exports = {
   FOLLOWUP_REMINDER_MESSAGES,
   formatTasks,
   extractRichTextValue,
+  convertTextToRichText,
+  parseInlineFormatting,
 };

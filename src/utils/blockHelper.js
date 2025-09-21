@@ -2,6 +2,8 @@
  * Utility functions for generating Slack Block Kit components
  */
 
+const { convertTextToRichText } = require('./messageHelper');
+
 /**
  * Create a basic section block with markdown text
  * @param {string} text - The markdown text to display
@@ -50,6 +52,7 @@ function createActionsBlock(elements) {
     elements,
   };
 }
+
 
 /**
  * Create a button element
@@ -143,24 +146,14 @@ function createStandupModal(teamName, teamId, today, existingResponse = null, la
     ),
   ];
 
-  // Add initial values if lastResponse exists (prefill today's tasks with yesterday's tasks)
+  // Add initial values if lastResponse exists (prefill yesterday's tasks with last response's today's tasks)
   if (lastResponse && lastResponse.todayTasks) {
-    const todayTasksBlock = blocks.find(block => block.block_id === "today_tasks");
-    if (todayTasksBlock) {
-      todayTasksBlock.element.initial_value = {
-        type: "rich_text",
-        elements: [
-          {
-            type: "rich_text_section",
-            elements: [
-              {
-                type: "text",
-                text: lastResponse.todayTasks
-              }
-            ]
-          }
-        ]
-      };
+    const yesterdayTasksBlock = blocks.find(block => block.block_id === "yesterday_tasks");
+    if (yesterdayTasksBlock) {
+      const richTextValue = convertTextToRichText(lastResponse.todayTasks);
+      if (richTextValue) {
+        yesterdayTasksBlock.element.initial_value = richTextValue;
+      }
     }
   }
 
