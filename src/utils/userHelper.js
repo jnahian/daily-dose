@@ -22,8 +22,9 @@ function getDisplayName(user) {
 function getUserMention(user) {
   if (!user) return "Unknown User";
 
-  const displayName = getDisplayName(user);
-  return `<@${user.slackUserId}> (${displayName})`;
+  // const displayName = getDisplayName(user);
+  // return `<@${user.slackUserId}> (${displayName})`;
+  return `<@${user.slackUserId}>`;
 }
 
 /**
