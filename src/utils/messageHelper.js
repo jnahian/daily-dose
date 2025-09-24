@@ -251,12 +251,51 @@ function convertTextToRichText(text) {
       continue;
     }
 
-    // Handle regular text lines (with inline formatting)
+    // Handle regular text lines - convert to list if multiple lines exist
     if (line.trim()) {
-      elements.push({
-        type: "rich_text_section",
-        elements: parseInlineFormatting(line)
-      });
+      // Check if we have multiple non-empty lines that should be converted to a list
+      const remainingLines = lines.slice(i).filter(l => l.trim());
+
+      if (remainingLines.length > 1 && !line.trim().startsWith('```') &&
+          !line.trim().startsWith('> ') && !line.trim().startsWith('• ') &&
+          !line.trim().match(/^\d+\.\s/)) {
+
+        // Collect consecutive non-empty lines for list conversion
+        const listItems = [];
+        while (i < lines.length && lines[i].trim() &&
+               !lines[i].trim().startsWith('```') &&
+               !lines[i].trim().startsWith('> ') &&
+               !lines[i].trim().startsWith('• ') &&
+               !lines[i].trim().match(/^\d+\.\s/)) {
+          listItems.push({
+            type: "rich_text_section",
+            elements: parseInlineFormatting(lines[i].trim())
+          });
+          i++;
+        }
+
+        // If we collected multiple items, create a bulleted list
+        if (listItems.length > 1) {
+          elements.push({
+            type: "rich_text_list",
+            style: "bullet",
+            elements: listItems
+          });
+          continue;
+        } else if (listItems.length === 1) {
+          // Single item, add as regular section
+          elements.push({
+            type: "rich_text_section",
+            elements: parseInlineFormatting(line.trim())
+          });
+        }
+      } else {
+        // Single line or already formatted, add as section
+        elements.push({
+          type: "rich_text_section",
+          elements: parseInlineFormatting(line)
+        });
+      }
     }
 
     i++;
