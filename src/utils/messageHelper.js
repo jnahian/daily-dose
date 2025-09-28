@@ -100,11 +100,28 @@ function extractRichTextValue(richTextValue) {
           .map((item, index) => {
             if (item.type === "rich_text_section") {
               const prefix =
-                element.style === "ordered" ? `${index + 1}. ` : "- ";
+                element.style === "ordered" ? `${index + 1}. ` : "• ";
               const content = item.elements
                 .map((el) => formatElement(el))
                 .join("");
               return prefix + content;
+            }
+            if (item.type === "rich_text_list") {
+              // Handle nested lists with proper indentation
+              const nestedContent = item.elements
+                .map((nestedItem, nestedIndex) => {
+                  if (nestedItem.type === "rich_text_section") {
+                    const nestedPrefix =
+                      item.style === "ordered" ? `${nestedIndex + 1}. ` : "• ";
+                    const nestedText = nestedItem.elements
+                      .map((el) => formatElement(el))
+                      .join("");
+                    return `  ${nestedPrefix}${nestedText}`;
+                  }
+                  return "";
+                })
+                .join("\n");
+              return nestedContent;
             }
             return "";
           })
@@ -142,7 +159,7 @@ function extractRichTextValue(richTextValue) {
       return "";
     })
     .join("\n");
-};
+}
 
 /**
  * Convert markdown text to Slack rich text format for modal prefilling
@@ -150,20 +167,20 @@ function extractRichTextValue(richTextValue) {
  * @returns {object} Slack rich text value object
  */
 function convertTextToRichText(text) {
-  if (!text || typeof text !== 'string') return null;
+  if (!text || typeof text !== "string") return null;
 
   const elements = [];
-  const lines = text.split('\n');
+  const lines = text.split("\n");
   let i = 0;
 
   while (i < lines.length) {
     const line = lines[i];
 
     // Handle code blocks (```...```)
-    if (line.trim().startsWith('```')) {
+    if (line.trim().startsWith("```")) {
       const codeLines = [];
       i++; // Skip opening ```
-      while (i < lines.length && !lines[i].trim().startsWith('```')) {
+      while (i < lines.length && !lines[i].trim().startsWith("```")) {
         codeLines.push(lines[i]);
         i++;
       }
@@ -177,20 +194,20 @@ function convertTextToRichText(text) {
             elements: [
               {
                 type: "text",
-                text: codeLines.join('\n')
-              }
-            ]
-          }
-        ]
+                text: codeLines.join("\n"),
+              },
+            ],
+          },
+        ],
       });
       continue;
     }
 
     // Handle block quotes (> ...)
-    if (line.trim().startsWith('> ')) {
+    if (line.trim().startsWith("> ")) {
       const quoteLines = [];
-      while (i < lines.length && lines[i].trim().startsWith('> ')) {
-        quoteLines.push(lines[i].replace(/^>\s*/, ''));
+      while (i < lines.length && lines[i].trim().startsWith("> ")) {
+        quoteLines.push(lines[i].replace(/^>\s*/, ""));
         i++;
       }
 
@@ -202,74 +219,55 @@ function convertTextToRichText(text) {
             elements: [
               {
                 type: "text",
-                text: quoteLines.join('\n')
-              }
-            ]
-          }
-        ]
+                text: quoteLines.join("\n"),
+              },
+            ],
+          },
+        ],
       });
       continue;
     }
 
-    // Handle bulleted lists (• ...)
-    if (line.trim().startsWith('• ')) {
-      const listItems = [];
-      while (i < lines.length && lines[i].trim().startsWith('• ')) {
-        const itemText = lines[i].replace(/^•\s*/, '');
-        listItems.push({
-          type: "rich_text_section",
-          elements: parseInlineFormatting(itemText)
-        });
-        i++;
-      }
-
-      elements.push({
-        type: "rich_text_list",
-        style: "bullet",
-        elements: listItems
-      });
-      continue;
-    }
-
-    // Handle numbered lists (1. ...)
-    if (/^\d+\.\s/.test(line.trim())) {
-      const listItems = [];
-      while (i < lines.length && /^\d+\.\s/.test(lines[i].trim())) {
-        const itemText = lines[i].replace(/^\d+\.\s*/, '');
-        listItems.push({
-          type: "rich_text_section",
-          elements: parseInlineFormatting(itemText)
-        });
-        i++;
-      }
-
-      elements.push({
-        type: "rich_text_list",
-        style: "ordered",
-        elements: listItems
-      });
+    // Handle lists (both bulleted and numbered) with multi-level support
+    const listInfo = getListItemInfo(line);
+    if (listInfo) {
+      // Parse the entire list structure recursively
+      const { listElement, nextIndex } = parseListStructure(
+        lines,
+        i,
+        listInfo.type,
+        listInfo.indentLevel
+      );
+      elements.push(listElement);
+      i = nextIndex;
       continue;
     }
 
     // Handle regular text lines - convert to list if multiple lines exist
     if (line.trim()) {
       // Check if we have multiple non-empty lines that should be converted to a list
-      const remainingLines = lines.slice(i).filter(l => l.trim());
+      const remainingLines = lines.slice(i).filter((l) => l.trim());
 
-      if (remainingLines.length > 1 && !line.trim().startsWith('```') &&
-          !line.trim().startsWith('> ') && !line.trim().startsWith('• ') &&
-          !line.trim().match(/^\d+\.\s/)) {
-
+      if (
+        remainingLines.length > 1 &&
+        !line.trim().startsWith("```") &&
+        !line.trim().startsWith("> ") &&
+        !line.trim().startsWith("• ") &&
+        !line.trim().match(/^\d+\.\s/)
+      ) {
         // Collect consecutive non-empty lines for list conversion
         const listItems = [];
-        while (i < lines.length && lines[i].trim() &&
-               !lines[i].trim().startsWith('```') &&
-               !lines[i].trim().startsWith('> ') &&
-               !lines[i].trim().startsWith('• ') &&
-               !lines[i].trim().match(/^\d+\.\s/)) {
+        while (
+          i < lines.length &&
+          lines[i].trim() &&
+          !lines[i].trim().startsWith("```") &&
+          !lines[i].trim().startsWith("> ") &&
+          !lines[i].trim().startsWith("• ") &&
+          !lines[i].trim().match(/^\d+\.\s/)
+        ) {
           listItems.push({
             type: "rich_text_section",
-            elements: parseInlineFormatting(lines[i].trim())
+            elements: parseInlineFormatting(lines[i].trim()),
           });
           i++;
         }
@@ -279,21 +277,21 @@ function convertTextToRichText(text) {
           elements.push({
             type: "rich_text_list",
             style: "bullet",
-            elements: listItems
+            elements: listItems,
           });
           continue;
         } else if (listItems.length === 1) {
           // Single item, add as regular section
           elements.push({
             type: "rich_text_section",
-            elements: parseInlineFormatting(line.trim())
+            elements: parseInlineFormatting(line.trim()),
           });
         }
       } else {
         // Single line or already formatted, add as section
         elements.push({
           type: "rich_text_section",
-          elements: parseInlineFormatting(line)
+          elements: parseInlineFormatting(line),
         });
       }
     }
@@ -303,18 +301,110 @@ function convertTextToRichText(text) {
 
   return {
     type: "rich_text",
-    elements: elements.length > 0 ? elements : [
-      {
-        type: "rich_text_section",
-        elements: [
-          {
-            type: "text",
-            text: text
-          }
-        ]
-      }
-    ]
+    elements:
+      elements.length > 0
+        ? elements
+        : [
+            {
+              type: "rich_text_section",
+              elements: [
+                {
+                  type: "text",
+                  text: text,
+                },
+              ],
+            },
+          ],
   };
+}
+
+/**
+ * Get the indentation level of a line
+ * @param {string} line - The line to check
+ * @returns {number} The indentation level (number of spaces/tabs)
+ */
+function getIndentLevel(line) {
+  const match = line.match(/^(\s*)/);
+  return match ? match[1].length : 0;
+}
+
+/**
+ * Recursively parse list structure with unlimited nesting levels
+ * @param {Array} lines - Array of lines to parse
+ * @param {number} startIndex - Starting index in the lines array
+ * @param {string} listType - Type of list ("bullet" or "ordered")
+ * @param {number} baseIndentLevel - Base indentation level for this list
+ * @returns {object} Object with listElement and nextIndex
+ */
+function parseListStructure(lines, startIndex, listType, baseIndentLevel) {
+  const listItems = [];
+  let i = startIndex;
+
+  while (i < lines.length) {
+    const currentListInfo = getListItemInfo(lines[i]);
+
+    // Stop if not a list item or different type
+    if (!currentListInfo || currentListInfo.type !== listType) {
+      break;
+    }
+
+    // Stop if less indented than base level
+    if (currentListInfo.indentLevel < baseIndentLevel) {
+      break;
+    }
+
+    if (currentListInfo.indentLevel === baseIndentLevel) {
+      // Same level item
+      listItems.push({
+        type: "rich_text_section",
+        elements: parseInlineFormatting(currentListInfo.text),
+      });
+      i++;
+    } else if (currentListInfo.indentLevel > baseIndentLevel) {
+      // Nested list - recursively parse it
+      const { listElement: nestedList, nextIndex } = parseListStructure(
+        lines,
+        i,
+        currentListInfo.type,
+        currentListInfo.indentLevel
+      );
+      listItems.push(nestedList);
+      i = nextIndex;
+    }
+  }
+
+  return {
+    listElement: {
+      type: "rich_text_list",
+      style: listType === "bullet" ? "bullet" : "ordered",
+      elements: listItems,
+    },
+    nextIndex: i,
+  };
+}
+
+/**
+ * Check if a line is a list item (bulleted or numbered)
+ * @param {string} line - The line to check
+ * @returns {object|null} Object with type and indent level, or null if not a list item
+ */
+function getListItemInfo(line) {
+  const trimmed = line.trim();
+  const indentLevel = getIndentLevel(line);
+
+  if (trimmed.startsWith("• ")) {
+    return { type: "bullet", indentLevel, text: trimmed.replace(/^•\s*/, "") };
+  }
+
+  if (/^\d+\.\s/.test(trimmed)) {
+    return {
+      type: "ordered",
+      indentLevel,
+      text: trimmed.replace(/^\d+\.\s*/, ""),
+    };
+  }
+
+  return null;
 }
 
 /**
@@ -332,14 +422,14 @@ function parseInlineFormatting(text) {
     { regex: /_([^_]+)_/g, style: { italic: true } }, // Italic: _text_
     { regex: /~([^~]+)~/g, style: { strike: true } }, // Strikethrough: ~text~
     { regex: /`([^`]+)`/g, style: { code: true } }, // Inline code: `text`
-    { regex: /<([^|>]+)\|([^>]+)>/g, type: 'link' }, // Links: <url|text>
-    { regex: /<@([^>]+)>/g, type: 'user' }, // User mentions: <@U123>
-    { regex: /<#([^>]+)>/g, type: 'channel' }, // Channel mentions: <#C123>
+    { regex: /<([^|>]+)\|([^>]+)>/g, type: "link" }, // Links: <url|text>
+    { regex: /<@([^>]+)>/g, type: "user" }, // User mentions: <@U123>
+    { regex: /<#([^>]+)>/g, type: "channel" }, // Channel mentions: <#C123>
   ];
 
   // Find all matches and their positions
   const matches = [];
-  patterns.forEach(pattern => {
+  patterns.forEach((pattern) => {
     let match;
     while ((match = pattern.regex.exec(text)) !== null) {
       matches.push({
@@ -349,8 +439,8 @@ function parseInlineFormatting(text) {
         fullMatch: match[0],
         style: pattern.style,
         type: pattern.type,
-        url: pattern.type === 'link' ? match[1] : undefined,
-        linkText: pattern.type === 'link' ? match[2] : undefined
+        url: pattern.type === "link" ? match[1] : undefined,
+        linkText: pattern.type === "link" ? match[2] : undefined,
       });
     }
   });
@@ -359,40 +449,40 @@ function parseInlineFormatting(text) {
   matches.sort((a, b) => a.start - b.start);
 
   // Process text with formatting
-  matches.forEach(match => {
+  matches.forEach((match) => {
     // Add plain text before this match
     if (match.start > currentPos) {
       const plainText = text.substring(currentPos, match.start);
       if (plainText) {
         elements.push({
           type: "text",
-          text: plainText
+          text: plainText,
         });
       }
     }
 
     // Add formatted element
-    if (match.type === 'link') {
+    if (match.type === "link") {
       elements.push({
         type: "link",
         url: match.url,
-        text: match.linkText
+        text: match.linkText,
       });
-    } else if (match.type === 'user') {
+    } else if (match.type === "user") {
       elements.push({
         type: "user",
-        user_id: match.content
+        user_id: match.content,
       });
-    } else if (match.type === 'channel') {
+    } else if (match.type === "channel") {
       elements.push({
         type: "channel",
-        channel_id: match.content
+        channel_id: match.content,
       });
     } else if (match.style) {
       elements.push({
         type: "text",
         text: match.content,
-        style: match.style
+        style: match.style,
       });
     }
 
@@ -405,7 +495,7 @@ function parseInlineFormatting(text) {
     if (remainingText) {
       elements.push({
         type: "text",
-        text: remainingText
+        text: remainingText,
       });
     }
   }
@@ -414,7 +504,7 @@ function parseInlineFormatting(text) {
   if (elements.length === 0) {
     elements.push({
       type: "text",
-      text: text
+      text: text,
     });
   }
 
@@ -430,4 +520,7 @@ module.exports = {
   extractRichTextValue,
   convertTextToRichText,
   parseInlineFormatting,
+  getIndentLevel,
+  getListItemInfo,
+  parseListStructure,
 };
