@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Daily Dose Scripts Documentation - Complete guide for utility scripts and database operations. Administrative tools and automation scripts.">
+    <meta name="keywords" content="daily dose scripts, automation scripts, database utilities, admin tools, team management scripts">
+    <meta name="author" content="Daily Dose">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="/scripts-docs">
+    <meta property="og:title" content="Daily Dose Scripts Documentation - Admin Tools Guide">
+    <meta property="og:description" content="Comprehensive documentation for Daily Dose administrative scripts including database operations, team management, and automation tools.">
+    <meta property="og:image" content="/logo.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="/scripts-docs">
+    <meta property="twitter:title" content="Daily Dose Scripts Documentation - Admin Tools Guide">
+    <meta property="twitter:description" content="Comprehensive documentation for Daily Dose administrative scripts including database operations, team management, and automation tools.">
+    <meta property="twitter:image" content="/logo.png">
+
+    <title>Scripts Documentation - Daily Dose | Admin Tools Guide</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'slack-purple': '#4A154B',
+                        'slack-green': '#007A5A',
+                        'slack-blue': '#1264A3',
+                        'primary': '#00CFFF',
+                        'secondary': '#00AFFF',
+                        'glow': '#007BFF',
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'Monaco', 'Consolas', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Prism.js for syntax highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/logo.png">
+
+    <style>
+        /* Custom scrollbar for sidebar */
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 2px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Smooth animations */
+        .sidebar-transition {
+            transition: transform 0.3s ease-in-out;
+        }
+
+        /* Code block styling */
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            border-radius: 0.5rem;
+            position: relative;
+        }
+
+        .copy-button {
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        .code-block:hover .copy-button {
+            opacity: 1;
+        }
+
+        /* Active navigation item */
+        .nav-item.active {
+            background-color: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid #3b82f6;
+            color: #3b82f6;
+        }
+
+        /* Smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Custom styles for better readability */
+        .prose {
+            max-width: none;
+        }
+
+        .prose h1, .prose h2, .prose h3 {
+            scroll-margin-top: 6rem;
+        }
+
+        /* Warning and info boxes */
+        .warning-box {
+            background: #fef3cd;
+            border: 1px solid #fbbf24;
+            color: #92400e;
+        }
+
+        .info-box {
+            background: #dbeafe;
+            border: 1px solid #3b82f6;
+            color: #1e40af;
+        }
+
+        .danger-box {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #dc2626;
+        }
+
+        .success-box {
+            background: #d1fae5;
+            border: 1px solid #10b981;
+            color: #065f46;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans">
+    <!-- Mobile menu button -->
+    <button id="mobile-menu-button" class="lg:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-lg shadow-lg border">
+        <i class="fas fa-bars text-gray-600"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="fixed left-0 top-0 h-full w-80 bg-white border-r border-gray-200 z-40 transform -translate-x-full lg:translate-x-0 sidebar-transition overflow-y-auto sidebar-scroll">
+        <div class="p-6">
+            <!-- Logo -->
+            <div class="flex items-center gap-3 mb-8">
+                <div class="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+                    <i class="fas fa-robot text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900">Daily Dose</h1>
+                    <p class="text-sm text-gray-500">Scripts Docs</p>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="space-y-2">
+                <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Overview</div>
+                <a href="#overview" class="nav-item block px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-info-circle w-5 mr-2"></i>
+                    Overview
+                </a>
+                <a href="#prerequisites" class="nav-item block px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-list-check w-5 mr-2"></i>
+                    Prerequisites
+                </a>
+
+                <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 mt-6">Database Scripts</div>
+                <a href="#seed-org" class="nav-item block px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-seedling w-5 mr-2"></i>
+                    seedOrg.js
+                </a>
+
+                <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 mt-6">Team Management</div>
+                <a href="#check-team-members" class="nav-item block px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-users w-5 mr-2"></i>
+                    check-team-members.js
+                </a>
+                <a href="#promote-team-member" class="nav-item block px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-user-check w-5 mr-2"></i>
+                    promoteTeamMember.js
+                </a>
+
+                <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 mt-6">Standup Automation</div>
+                <a href="#trigger-standup" class="nav-item block px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-play w-5 mr-2"></i>
+                    triggerStandup.js
+                </a>
+                <a href="#send-manual-standup" class="nav-item block px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-paper-plane w-5 mr-2"></i>
+                    sendManualStandup.js
+                </a>
+
+                <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 mt-6">Debugging & Info</div>
+                <a href="#debug-scheduler" class="nav-item block px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-bug w-5 mr-2"></i>
+                    debugScheduler.js
+                </a>
+                <a href="#view-slack-info" class="nav-item block px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-info w-5 mr-2"></i>
+                    viewSlackTeamInfo.js
+                </a>
+
+                <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 mt-6">Slack Configuration</div>
+                <a href="#update-slack-manifest" class="nav-item block px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-cog w-5 mr-2"></i>
+                    updateSlackManifest.js
+                </a>
+
+                <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 mt-6">Quick Links</div>
+                <a href="/docs" class="nav-item block px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-book w-5 mr-2"></i>
+                    Main Documentation
+                </a>
+                <a href="/" class="nav-item block px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-home w-5 mr-2"></i>
+                    Home
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Overlay for mobile -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden hidden"></div>
+
+    <!-- Main content -->
+    <div class="lg:ml-80">
+        <!-- Top bar -->
+        <div class="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Scripts Documentation</h1>
+                    <p class="text-gray-600">Administrative tools and automation scripts for Daily Dose</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="px-3 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+                        🔐 Admin Only
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="px-6 py-8 max-w-5xl">
+            <!-- Overview Section -->
+            <section id="overview" class="mb-12">
+                <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 rounded-xl mb-8">
+                    <h2 class="text-3xl font-bold mb-4">
+                        <i class="fas fa-terminal mr-3"></i>
+                        Scripts Overview
+                    </h2>
+                    <p class="text-lg opacity-90">
+                        Daily Dose includes powerful administrative scripts for database operations, team management, debugging, and automation. These tools help maintain and troubleshoot your Slack bot deployment.
+                    </p>
+                </div>
+
+                <div class="danger-box p-4 rounded-lg mb-6">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-exclamation-triangle text-red-500 mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold mb-2">⚠️ Administrator Access Required</h4>
+                            <p>These scripts have direct database access and can modify critical data. Only authorized administrators should execute these commands. Always test in development before running in production.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg border">
+                        <h3 class="text-lg font-semibold mb-3 flex items-center">
+                            <i class="fas fa-database text-blue-500 mr-2"></i>
+                            Database Operations
+                        </h3>
+                        <p class="text-gray-600 mb-4">Scripts for initializing and managing database records, including organization setup and user management.</p>
+                        <ul class="text-sm text-gray-500 space-y-1">
+                            <li>• Organization seeding</li>
+                            <li>• Initial admin setup</li>
+                            <li>• Test team creation</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg border">
+                        <h3 class="text-lg font-semibold mb-3 flex items-center">
+                            <i class="fas fa-users text-green-500 mr-2"></i>
+                            Team Management
+                        </h3>
+                        <p class="text-gray-600 mb-4">Tools for analyzing team membership, promotions, and member status checking across different dates.</p>
+                        <ul class="text-sm text-gray-500 space-y-1">
+                            <li>• Member eligibility checking</li>
+                            <li>• Role promotions</li>
+                            <li>• Leave status analysis</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg border">
+                        <h3 class="text-lg font-semibold mb-3 flex items-center">
+                            <i class="fas fa-robot text-purple-500 mr-2"></i>
+                            Automation Tools
+                        </h3>
+                        <p class="text-gray-600 mb-4">Scripts for triggering standup processes, manual posting, and scheduling operations outside normal automation.</p>
+                        <ul class="text-sm text-gray-500 space-y-1">
+                            <li>• Manual standup triggers</li>
+                            <li>• Custom posting times</li>
+                            <li>• Schedule debugging</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg border">
+                        <h3 class="text-lg font-semibold mb-3 flex items-center">
+                            <i class="fas fa-cogs text-orange-500 mr-2"></i>
+                            Configuration
+                        </h3>
+                        <p class="text-gray-600 mb-4">Slack app configuration management, manifest updates, and workspace information retrieval.</p>
+                        <ul class="text-sm text-gray-500 space-y-1">
+                            <li>• Slack app manifest management</li>
+                            <li>• Workspace info extraction</li>
+                            <li>• API configuration testing</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Prerequisites Section -->
+            <section id="prerequisites" class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-list-check mr-2 text-blue-500"></i>
+                    Prerequisites
+                </h2>
+
+                <div class="info-box p-4 rounded-lg mb-6">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-info-circle text-blue-500 mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold mb-2">Before Running Scripts</h4>
+                            <p>Ensure you have the proper environment setup and permissions before executing any administrative scripts.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-white p-6 rounded-lg border">
+                        <h3 class="text-lg font-semibold mb-4">Environment Setup</h3>
+                        <div class="code-block p-4 mb-4 relative">
+                            <button class="copy-button absolute top-2 right-2 bg-gray-700 text-white px-2 py-1 rounded text-xs">
+                                Copy
+                            </button>
+                            <pre class="font-mono text-sm"><code># 1. Ensure .env file is properly configured
+DATABASE_URL="your_database_url"
+SLACK_BOT_TOKEN="xoxb-your-bot-token"
+SLACK_SIGNING_SECRET="your_signing_secret"
+
+# 2. Install dependencies
+npm install
+
+# 3. Generate Prisma client
+npx prisma generate
+
+# 4. Check database connection
+npx prisma studio</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg border">
+                        <h3 class="text-lg font-semibold mb-4">Required Permissions</h3>
+                        <ul class="space-y-2">
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check text-green-500 mt-1"></i>
+                                <span><strong>Database Access:</strong> Full read/write permissions to PostgreSQL database</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check text-green-500 mt-1"></i>
+                                <span><strong>Slack Permissions:</strong> Bot token with necessary scopes for your workspace</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check text-green-500 mt-1"></i>
+                                <span><strong>Node.js:</strong> Version 16+ with npm package management</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check text-green-500 mt-1"></i>
+                                <span><strong>File System:</strong> Write access to project directory for logs and temp files</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg border">
+                        <h3 class="text-lg font-semibold mb-4">General Usage Pattern</h3>
+                        <div class="code-block p-4 relative">
+                            <button class="copy-button absolute top-2 right-2 bg-gray-700 text-white px-2 py-1 rounded text-xs">
+                                Copy
+                            </button>
+                            <pre class="font-mono text-sm"><code># Make script executable (Linux/Mac)
+chmod +x scripts/script-name.js
+
+# Run with Node.js
+node scripts/script-name.js [arguments]
+
+# Get help for any script
+node scripts/script-name.js --help</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Database Scripts -->
+            <section id="seed-org" class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-seedling mr-2 text-green-500"></i>
+                    seedOrg.js
+                </h2>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Purpose</h3>
+                    <p class="text-gray-600 mb-4">
+                        Initializes a new organization in the database with default settings, creates an initial admin user, and sets up a test team. This is typically the first script you run when setting up Daily Dose for a new Slack workspace.
+                    </p>
+
+                    <div class="success-box p-4 rounded-lg">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-lightbulb text-green-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-semibold mb-2">Use Case</h4>
+                                <p>Run this script once per workspace to bootstrap your Daily Dose installation with essential data.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Usage</h3>
+                    <div class="code-block p-4 relative">
+                        <button class="copy-button absolute top-2 right-2 bg-gray-700 text-white px-2 py-1 rounded text-xs">
+                            Copy
+                        </button>
+                        <pre class="font-mono text-sm"><code># Run the seeding script
+node scripts/seedOrg.js
+
+# Alternative: Run via npm script
+npm run seed</code></pre>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">What It Creates</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <h4 class="font-semibold text-blue-600 mb-2">Organization</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Name: "Startise"</li>
+                                <li>• Workspace ID: TD04Y26UB</li>
+                                <li>• Timezone: Asia/Dhaka</li>
+                                <li>• Default work days: Mon-Thu, Sun</li>
+                                <li>• Holiday country: BD</li>
+                            </ul>
+                        </div>
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <h4 class="font-semibold text-green-600 mb-2">Admin User</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Slack ID: UQS8FT0EN</li>
+                                <li>• Role: OWNER</li>
+                                <li>• Auto-linked to organization</li>
+                            </ul>
+                        </div>
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <h4 class="font-semibold text-purple-600 mb-2">Test Team</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Name: "TestTeam"</li>
+                                <li>• Channel: C04JPB43NFJ</li>
+                                <li>• Standup: 10:00 AM</li>
+                                <li>• Posting: 10:30 AM</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="warning-box p-4 rounded-lg">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-exclamation-triangle text-yellow-600 mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold mb-2">⚠️ Important Notes</h4>
+                            <ul class="space-y-1">
+                                <li>• Update the hardcoded values in the script to match your workspace</li>
+                                <li>• This script uses upsert operations, so it's safe to run multiple times</li>
+                                <li>• Ensure your Slack workspace ID and user IDs are correct before running</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Team Management Scripts -->
+            <section id="check-team-members" class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-users mr-2 text-blue-500"></i>
+                    check-team-members.js
+                </h2>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Purpose</h3>
+                    <p class="text-gray-600 mb-4">
+                        Analyzes team membership and determines which members are eligible for standup reminders on a given date. Shows detailed information about leave status, work days, and final eligibility for each team member.
+                    </p>
+
+                    <div class="info-box p-4 rounded-lg">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-info-circle text-blue-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-semibold mb-2">Perfect for Debugging</h4>
+                                <p>Use this script to troubleshoot why certain team members aren't receiving standup reminders.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Usage Examples</h3>
+                    <div class="code-block p-4 relative">
+                        <button class="copy-button absolute top-2 right-2 bg-gray-700 text-white px-2 py-1 rounded text-xs">
+                            Copy
+                        </button>
+                        <pre class="font-mono text-sm"><code># Check all teams for today
+node scripts/check-team-members.js
+
+# Check specific team for today
+node scripts/check-team-members.js "ShopifyDev"
+
+# Check team for specific date
+node scripts/check-team-members.js ShopifyDev 2025-09-10
+
+# Check all teams for specific date
+node scripts/check-team-members.js "" 2025-09-10
+
+# Get help
+node scripts/check-team-members.js --help
+
+# Alternative: Use npm script
+npm run team:members [team-name] [date]</code></pre>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Output Information</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <h4 class="font-semibold text-blue-600 mb-2">Team Overview</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Team name and organization</li>
+                                <li>• Standup and posting times</li>
+                                <li>• Timezone configuration</li>
+                                <li>• Slack channel ID</li>
+                            </ul>
+                        </div>
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <h4 class="font-semibold text-green-600 mb-2">Member Details</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Role (Admin 👑 or Member 👤)</li>
+                                <li>• Leave status for the date</li>
+                                <li>• Working day eligibility</li>
+                                <li>• Final reminder eligibility</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border">
+                    <h3 class="text-lg font-semibold mb-4">Parameters</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left py-2 font-semibold">Parameter</th>
+                                    <th class="text-left py-2 font-semibold">Type</th>
+                                    <th class="text-left py-2 font-semibold">Description</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-600">
+                                <tr class="border-b">
+                                    <td class="py-2 font-mono">team-name-or-id</td>
+                                    <td class="py-2">String (Optional)</td>
+                                    <td class="py-2">Team name (partial match, case insensitive) or UUID. If empty, checks all teams.</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-2 font-mono">date</td>
+                                    <td class="py-2">String (Optional)</td>
+                                    <td class="py-2">Date in YYYY-MM-DD format. Defaults to today.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="promote-team-member" class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-user-check mr-2 text-green-500"></i>
+                    promoteTeamMember.js
+                </h2>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Purpose</h3>
+                    <p class="text-gray-600 mb-4">
+                        Promotes a team member from MEMBER role to ADMIN role. This grants them administrative privileges for team management, including the ability to modify team settings and manage other members.
+                    </p>
+
+                    <div class="warning-box p-4 rounded-lg">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-exclamation-triangle text-yellow-600 mt-1"></i>
+                            <div>
+                                <h4 class="font-semibold mb-2">⚠️ Administrative Action</h4>
+                                <p>This action grants significant permissions. Ensure you trust the user before promoting them to admin.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Usage</h3>
+                    <div class="code-block p-4 relative">
+                        <button class="copy-button absolute top-2 right-2 bg-gray-700 text-white px-2 py-1 rounded text-xs">
+                            Copy
+                        </button>
+                        <pre class="font-mono text-sm"><code># Promote user in specific team
+node scripts/promoteTeamMember.js "TeamName" "U1234567890"
+
+# Using team UUID instead of name
+node scripts/promoteTeamMember.js "550e8400-e29b-41d4-a716-446655440000" "U1234567890"
+
+# Get help
+node scripts/promoteTeamMember.js --help</code></pre>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border">
+                    <h3 class="text-lg font-semibold mb-4">Parameters</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left py-2 font-semibold">Parameter</th>
+                                    <th class="text-left py-2 font-semibold">Required</th>
+                                    <th class="text-left py-2 font-semibold">Description</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-600">
+                                <tr class="border-b">
+                                    <td class="py-2 font-mono">teamNameOrId</td>
+                                    <td class="py-2">✅ Yes</td>
+                                    <td class="py-2">Team name (case insensitive partial match) or team UUID</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-2 font-mono">slackUserId</td>
+                                    <td class="py-2">✅ Yes</td>
+                                    <td class="py-2">Slack user ID (format: U1234567890) of the member to promote</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Standup Automation Scripts -->
+            <section id="trigger-standup" class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-play mr-2 text-purple-500"></i>
+                    triggerStandup.js
+                </h2>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Purpose</h3>
+                    <p class="text-gray-600 mb-4">
+                        Manually triggers standup reminders for a specific team outside of the normal scheduled time. Useful for testing, makeup standups, or when the regular scheduler has issues.
+                    </p>
+
+                    <div class="info-box p-4 rounded-lg">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-clock text-blue-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-semibold mb-2">Manual Override</h4>
+                                <p>Bypasses the regular scheduling system and sends reminders immediately to eligible team members.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Usage</h3>
+                    <div class="code-block p-4 relative">
+                        <button class="copy-button absolute top-2 right-2 bg-gray-700 text-white px-2 py-1 rounded text-xs">
+                            Copy
+                        </button>
+                        <pre class="font-mono text-sm"><code># Trigger standup for specific team
+node scripts/triggerStandup.js "TeamName"
+
+# Alternative: Use npm script
+npm run standup:trigger "TeamName"</code></pre>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border">
+                    <h3 class="text-lg font-semibold mb-4">What It Does</h3>
+                    <ol class="space-y-2 text-gray-600">
+                        <li class="flex items-start gap-3">
+                            <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-mono">1</span>
+                            <span>Finds the team by name (case insensitive exact match)</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-mono">2</span>
+                            <span>Initializes the scheduler service with Slack app instance</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-mono">3</span>
+                            <span>Determines eligible team members (not on leave, working day)</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-mono">4</span>
+                            <span>Sends DM reminders with standup modal to each eligible member</span>
+                        </li>
+                    </ol>
+                </div>
+            </section>
+
+            <section id="send-manual-standup" class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-paper-plane mr-2 text-orange-500"></i>
+                    sendManualStandup.js
+                </h2>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Purpose</h3>
+                    <p class="text-gray-600 mb-4">
+                        Manually posts standup summaries to team channels for any date and time. This comprehensive script can handle various scenarios including late posts, date-specific summaries, and troubleshooting channel access issues.
+                    </p>
+
+                    <div class="success-box p-4 rounded-lg">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-magic text-green-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-semibold mb-2">Most Powerful Script</h4>
+                                <p>This is the most feature-rich script, capable of handling edge cases and providing detailed troubleshooting information.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Usage Examples</h3>
+                    <div class="code-block p-4 relative">
+                        <button class="copy-button absolute top-2 right-2 bg-gray-700 text-white px-2 py-1 rounded text-xs">
+                            Copy
+                        </button>
+                        <pre class="font-mono text-sm"><code># Post today's standup for specific team
+node scripts/sendManualStandup.js "TeamName"
+
+# Post standup for specific date
+node scripts/sendManualStandup.js "TeamName" 2025-09-10
+
+# Post to all teams for today
+node scripts/sendManualStandup.js
+
+# Post to all teams for specific date
+node scripts/sendManualStandup.js "" 2025-09-10
+
+# Alternative: Use npm script
+npm run standup:post "TeamName" "2025-09-10"</code></pre>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Advanced Features</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <h4 class="font-semibold text-purple-600 mb-2">Channel Access Troubleshooting</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Detects channel permission issues</li>
+                                <li>• Provides troubleshooting blocks</li>
+                                <li>• Suggests solutions for access problems</li>
+                                <li>• Bot invitation guidance</li>
+                            </ul>
+                        </div>
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <h4 class="font-semibold text-blue-600 mb-2">Flexible Date Handling</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Any date in YYYY-MM-DD format</li>
+                                <li>• Automatic timezone conversion</li>
+                                <li>• Historical standup posting</li>
+                                <li>• Future date validation</li>
+                            </ul>
+                        </div>
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <h4 class="font-semibold text-green-600 mb-2">Smart Response Collection</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Aggregates all responses for date</li>
+                                <li>• Handles partial submissions</li>
+                                <li>• Identifies missing members</li>
+                                <li>• Leave status integration</li>
+                            </ul>
+                        </div>
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <h4 class="font-semibold text-red-600 mb-2">Error Recovery</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Graceful failure handling</li>
+                                <li>• Detailed error reporting</li>
+                                <li>• Alternative messaging paths</li>
+                                <li>• Admin notification system</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border">
+                    <h3 class="text-lg font-semibold mb-4">Parameters</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left py-2 font-semibold">Parameter</th>
+                                    <th class="text-left py-2 font-semibold">Type</th>
+                                    <th class="text-left py-2 font-semibold">Description</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-600">
+                                <tr class="border-b">
+                                    <td class="py-2 font-mono">teamName</td>
+                                    <td class="py-2">String (Optional)</td>
+                                    <td class="py-2">Team name (exact match, case insensitive). If empty, processes all active teams.</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-2 font-mono">date</td>
+                                    <td class="py-2">String (Optional)</td>
+                                    <td class="py-2">Date in YYYY-MM-DD format. Defaults to today.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Debug and Info Scripts -->
+            <section id="debug-scheduler" class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-bug mr-2 text-red-500"></i>
+                    debugScheduler.js
+                </h2>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Purpose</h3>
+                    <p class="text-gray-600 mb-4">
+                        Analyzes the scheduler service to help debug timing issues, job scheduling problems, and team configuration conflicts. Provides insights into currently scheduled jobs and tests the refresh functionality.
+                    </p>
+
+                    <div class="info-box p-4 rounded-lg">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-search text-blue-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-semibold mb-2">Debugging Tool</h4>
+                                <p>Essential for troubleshooting standup scheduling issues and verifying cron job configurations.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Usage</h3>
+                    <div class="code-block p-4 relative">
+                        <button class="copy-button absolute top-2 right-2 bg-gray-700 text-white px-2 py-1 rounded text-xs">
+                            Copy
+                        </button>
+                        <pre class="font-mono text-sm"><code># Run scheduler debugging
+node scripts/debugScheduler.js</code></pre>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border">
+                    <h3 class="text-lg font-semibold mb-4">Output Information</h3>
+                    <div class="space-y-4">
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <h4 class="font-semibold text-blue-600 mb-2">Active Teams Analysis</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Lists all teams eligible for scheduling</li>
+                                <li>• Shows standup and posting times</li>
+                                <li>• Displays timezone configurations</li>
+                                <li>• Verifies channel associations</li>
+                            </ul>
+                        </div>
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <h4 class="font-semibold text-green-600 mb-2">Scheduled Jobs Status</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Count of currently scheduled cron jobs</li>
+                                <li>• Job IDs and running status</li>
+                                <li>• Schedule state verification</li>
+                                <li>• Memory usage indicators</li>
+                            </ul>
+                        </div>
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <h4 class="font-semibold text-purple-600 mb-2">Refresh Testing</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Tests refresh functionality on first team</li>
+                                <li>• Verifies job recreation process</li>
+                                <li>• Confirms schedule updates work</li>
+                                <li>• Reports success or failure</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-slack-info" class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-info mr-2 text-blue-500"></i>
+                    viewSlackTeamInfo.js
+                </h2>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Purpose</h3>
+                    <p class="text-gray-600 mb-4">
+                        Retrieves comprehensive information about your Slack workspace including team details, user lists, channels, and permissions. Useful for understanding your workspace structure and verifying bot access.
+                    </p>
+
+                    <div class="success-box p-4 rounded-lg">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-eye text-green-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-semibold mb-2">Information Gathering</h4>
+                                <p>Perfect for workspace auditing and understanding the current state of your Slack integration.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Usage</h3>
+                    <div class="code-block p-4 relative">
+                        <button class="copy-button absolute top-2 right-2 bg-gray-700 text-white px-2 py-1 rounded text-xs">
+                            Copy
+                        </button>
+                        <pre class="font-mono text-sm"><code># Get Slack workspace information
+node scripts/viewSlackTeamInfo.js
+
+# Alternative: Use npm script
+npm run slack:info</code></pre>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border">
+                    <h3 class="text-lg font-semibold mb-4">Information Retrieved</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <h4 class="font-semibold text-blue-600 mb-2">Workspace Details</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Workspace name and ID</li>
+                                <li>• Domain information</li>
+                                <li>• Email domain settings</li>
+                                <li>• Workspace icon</li>
+                            </ul>
+                        </div>
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <h4 class="font-semibold text-green-600 mb-2">User Information</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• All workspace members</li>
+                                <li>• Active vs inactive users</li>
+                                <li>• Bot accounts identification</li>
+                                <li>• User roles and permissions</li>
+                            </ul>
+                        </div>
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <h4 class="font-semibold text-purple-600 mb-2">Channel Data</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Public and private channels</li>
+                                <li>• Channel membership info</li>
+                                <li>• Bot access verification</li>
+                                <li>• Channel creation dates</li>
+                            </ul>
+                        </div>
+                        <div class="border border-gray-200 p-4 rounded-lg">
+                            <h4 class="font-semibold text-orange-600 mb-2">Permissions</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Bot token capabilities</li>
+                                <li>• Scope verification</li>
+                                <li>• Access level assessment</li>
+                                <li>• Rate limit information</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slack Configuration Scripts -->
+            <section id="update-slack-manifest" class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-cog mr-2 text-indigo-500"></i>
+                    updateSlackManifest.js
+                </h2>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Purpose</h3>
+                    <p class="text-gray-600 mb-4">
+                        Manages Slack app manifests through the API, allowing you to create new apps or update existing ones. This script reads your local manifest configuration and applies it to your Slack app programmatically.
+                    </p>
+
+                    <div class="warning-box p-4 rounded-lg">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-exclamation-triangle text-yellow-600 mt-1"></i>
+                            <div>
+                                <h4 class="font-semibold mb-2">⚠️ Critical Configuration</h4>
+                                <p>This script modifies your Slack app settings. Always test changes in development before applying to production.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Usage Examples</h3>
+                    <div class="code-block p-4 relative">
+                        <button class="copy-button absolute top-2 right-2 bg-gray-700 text-white px-2 py-1 rounded text-xs">
+                            Copy
+                        </button>
+                        <pre class="font-mono text-sm"><code># Update existing app manifest
+node scripts/updateSlackManifest.js --app-id A1234567890
+
+# Create a new app from manifest
+node scripts/updateSlackManifest.js --create
+
+# Preview changes without applying (dry run)
+node scripts/updateSlackManifest.js --app-id A1234567890 --dry-run
+
+# Get help and see all options
+node scripts/updateSlackManifest.js --help
+
+# Alternative: Use npm scripts
+npm run manifest:update
+npm run manifest:create
+npm run manifest:dry-run</code></pre>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Command Options</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left py-2 font-semibold">Option</th>
+                                    <th class="text-left py-2 font-semibold">Description</th>
+                                    <th class="text-left py-2 font-semibold">Required</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-600">
+                                <tr class="border-b">
+                                    <td class="py-2 font-mono">--app-id &lt;id&gt;</td>
+                                    <td class="py-2">Slack app ID for updating existing apps</td>
+                                    <td class="py-2">For updates</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-2 font-mono">--create</td>
+                                    <td class="py-2">Create a new app instead of updating</td>
+                                    <td class="py-2">For new apps</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-2 font-mono">--dry-run</td>
+                                    <td class="py-2">Show changes without applying them</td>
+                                    <td class="py-2">No</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-2 font-mono">--help</td>
+                                    <td class="py-2">Display help message and usage examples</td>
+                                    <td class="py-2">No</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border">
+                    <h3 class="text-lg font-semibold mb-4">Prerequisites</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-file-code text-blue-500 mt-1"></i>
+                            <span><strong>Manifest File:</strong> Requires <code class="bg-gray-100 px-2 py-1 rounded">slack-app-manifest.json</code> in project root</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-key text-green-500 mt-1"></i>
+                            <span><strong>Tokens:</strong> Needs <code class="bg-gray-100 px-2 py-1 rounded">SLACK_USER_TOKEN</code> or <code class="bg-gray-100 px-2 py-1 rounded">SLACK_BOT_TOKEN</code> in environment</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-shield-alt text-purple-500 mt-1"></i>
+                            <span><strong>Permissions:</strong> Token must have <code class="bg-gray-100 px-2 py-1 rounded">apps:write</code> scope for manifest management</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="mt-16 pt-8 border-t border-gray-200 text-center text-gray-500">
+                <div class="flex items-center justify-center gap-2 mb-4">
+                    <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-robot text-white text-sm"></i>
+                    </div>
+                    <span class="font-semibold">Daily Dose Scripts Documentation</span>
+                </div>
+                <p class="text-sm">
+                    🤖 Generated with <a href="https://claude.com/claude-code" class="text-blue-500 hover:underline">Claude Code</a> |
+                    Last updated: <span id="current-date"></span>
+                </p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+    <script>
+        // Mobile menu functionality
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+        function toggleMobileMenu() {
+            sidebar.classList.toggle('-translate-x-full');
+            sidebarOverlay.classList.toggle('hidden');
+        }
+
+        mobileMenuButton.addEventListener('click', toggleMobileMenu);
+        sidebarOverlay.addEventListener('click', toggleMobileMenu);
+
+        // Navigation highlighting
+        function updateActiveNavigation() {
+            const sections = document.querySelectorAll('section[id]');
+            const navItems = document.querySelectorAll('.nav-item');
+
+            let currentSection = '';
+            sections.forEach(section => {
+                const rect = section.getBoundingClientRect();
+                if (rect.top <= 150 && rect.bottom >= 150) {
+                    currentSection = section.id;
+                }
+            });
+
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href') === `#${currentSection}`) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // Copy code functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('copy-button')) {
+                const codeBlock = e.target.parentNode.querySelector('code');
+                const text = codeBlock.textContent;
+
+                navigator.clipboard.writeText(text).then(() => {
+                    e.target.textContent = 'Copied!';
+                    setTimeout(() => {
+                        e.target.textContent = 'Copy';
+                    }, 2000);
+                });
+            }
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    // Close mobile menu if open
+                    if (window.innerWidth < 1024) {
+                        toggleMobileMenu();
+                    }
+                }
+            });
+        });
+
+        // Update active navigation on scroll
+        window.addEventListener('scroll', updateActiveNavigation);
+
+        // Initial call
+        updateActiveNavigation();
+
+        // Set current date
+        document.getElementById('current-date').textContent = new Date().toLocaleDateString();
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // ESC to close mobile menu
+            if (e.key === 'Escape' && !sidebar.classList.contains('-translate-x-full')) {
+                toggleMobileMenu();
+            }
+        });
+    </script>
+</body>
+</html>

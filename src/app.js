@@ -5,6 +5,7 @@ const prisma = require("./config/prisma");
 const { setupCommands } = require("./commands");
 const { setupWorkflows } = require("./workflows");
 const schedulerService = require("./services/schedulerService");
+const { basicAuth } = require("./middleware/basicAuth");
 
 const receiver = new ExpressReceiver({
   signingSecret: process.env.SLACK_SIGNING_SECRET
@@ -33,6 +34,11 @@ receiver.app.get('/', (req, res) => {
 // Documentation page route
 receiver.app.get('/docs', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/docs.html'));
+});
+
+// Protected scripts documentation route
+receiver.app.get('/scripts-docs', basicAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/scripts-docs.html'));
 });
 
 // Health check endpoint

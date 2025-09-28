@@ -41,6 +41,50 @@ Daily Dose now includes a professional landing page accessible at the base URL o
 - **Production**: Available at your deployment's base URL
 - **Assets**: Logo, CSS, and JavaScript files served from `/public` directory
 
+## 📚 Scripts Documentation
+
+Daily Dose includes a comprehensive administrative scripts documentation interface accessible at `/scripts-docs`. This protected route provides detailed documentation for all administrative scripts in the project.
+
+### Features
+- **Complete Script Coverage**: Documentation for all 8 administrative scripts including:
+  - `seedOrg.js` - Organization seeding
+  - `check-team-members.js` - Team member verification
+  - `promoteTeamMember.js` - Team member promotion
+  - `triggerStandup.js` - Manual standup triggering
+  - `sendManualStandup.js` - Manual standup posting
+  - `debugScheduler.js` - Scheduler debugging
+  - `viewSlackTeamInfo.js` - Slack team information
+  - `updateSlackManifest.js` - Slack manifest management
+- **Usage Examples**: Detailed command syntax and examples for each script
+- **Parameter Documentation**: Complete parameter descriptions and requirements
+- **Security Information**: Database access and permission requirements
+- **Professional Interface**: Clean, responsive design matching the landing page
+
+### Accessing Scripts Documentation
+- **URL**: `/scripts-docs` (relative to your deployment base URL)
+- **Local Development**: http://localhost:3000/scripts-docs
+- **Production**: Available at your deployment's base URL + `/scripts-docs`
+- **Authentication**: Protected with HTTP Basic Auth
+  - **Default Username**: `admin`
+  - **Default Password**: `daily-dose-admin`
+  - **Configurable**: Set via environment variables (see configuration section)
+
+### Authentication Configuration
+
+The scripts documentation route is protected with configurable HTTP Basic Authentication:
+
+```bash
+# Environment Variables for Scripts Documentation Auth
+SCRIPTS_AUTH_USERNAME=admin              # Default: "admin"
+SCRIPTS_AUTH_PASSWORD=daily-dose-admin    # Default: "daily-dose-admin"
+```
+
+**Security Recommendations:**
+- Change default credentials before deploying to production
+- Use strong, unique passwords for the documentation interface
+- Restrict access to authorized administrators only
+- Consider additional network-level security for production deployments
+
 The landing page serves as both a marketing tool and user onboarding resource, helping new teams understand the bot's value before installation.
 
 ## 🚀 Quick Start
@@ -566,10 +610,12 @@ When you're on leave:
 Daily Dose includes a comprehensive web interface:
 
 - **Landing Page**: Professional marketing page at the base URL (`/`)
+- **Scripts Documentation**: Administrative scripts documentation at `/scripts-docs` (password protected)
 - **Health Check**: System status endpoint at `/health`
 - **Static Assets**: Logo, CSS, and JavaScript served from `/public`
 - **Express Integration**: Built on Express.js with Slack Bolt framework
 - **Responsive Design**: Mobile-first approach using Tailwind CSS
+- **Authentication**: HTTP Basic Auth protection for administrative interfaces
 
 ### Supported Timezones
 
@@ -590,12 +636,49 @@ The bot needs these Slack permissions:
 - Read user information
 - Access slash commands
 
+### Environment Configuration
+
+Daily Dose requires several environment variables for proper operation:
+
+**Core Application Settings:**
+```bash
+PORT=3000                                 # Server port (default: 3000)
+APP_URL=https://your-domain.com           # Your application's base URL
+DEFAULT_TIMEZONE=America/New_York         # Default timezone for teams
+LOG_LEVEL=info                           # Logging level (debug, info, warn, error)
+```
+
+**Slack Integration:**
+```bash
+SLACK_BOT_TOKEN=xoxb-your-bot-token      # Slack Bot User OAuth Token
+SLACK_SIGNING_SECRET=your-signing-secret  # Slack App Signing Secret
+SLACK_APP_TOKEN=xapp-your-app-token      # Slack App Token (for Socket Mode)
+SLACK_USER_TOKEN=xoxp-your-user-token    # Slack User OAuth Token (for manifest updates)
+```
+
+**Database Configuration:**
+```bash
+DATABASE_URL=postgresql://user:pass@host:port/db     # Primary database connection
+DIRECT_URL=postgresql://user:pass@host:port/db       # Direct database connection
+```
+
+**Scripts Documentation Authentication:**
+```bash
+SCRIPTS_AUTH_USERNAME=admin              # Username for /scripts-docs access (default: "admin")
+SCRIPTS_AUTH_PASSWORD=daily-dose-admin    # Password for /scripts-docs access (default: "daily-dose-admin")
+```
+
+**Optional Monitoring:**
+```bash
+SENTRY_DSN=https://your-sentry-dsn       # Sentry error tracking (optional)
+```
+
 ### Server Requirements
 
 - **Node.js**: Version 14 or higher
 - **Database**: PostgreSQL (via Supabase)
-- **Web Server**: Express.js with static file serving
-- **Environment**: Requires proper environment variables for Slack integration
+- **Web Server**: Express.js with static file serving and authentication
+- **Environment**: Requires proper environment variables for Slack integration and authentication
 
 ---
 
