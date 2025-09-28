@@ -86,6 +86,75 @@
             color: #e2e8f0;
             border-radius: 0.5rem;
             position: relative;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            max-width: 100%;
+        }
+
+        .code-block pre {
+            margin: 0;
+            white-space: pre;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #4a5568 #2d3748;
+        }
+
+        .code-block code {
+            display: block;
+            font-family: 'JetBrains Mono', Monaco, Consolas, 'Courier New', monospace;
+            line-height: 1.5;
+            word-wrap: normal;
+            white-space: pre;
+            overflow-wrap: normal;
+            word-break: normal;
+        }
+
+        /* Custom scrollbar for code blocks */
+        .code-block pre::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .code-block pre::-webkit-scrollbar-track {
+            background: #2d3748;
+            border-radius: 4px;
+        }
+
+        .code-block pre::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            border-radius: 4px;
+        }
+
+        .code-block pre::-webkit-scrollbar-thumb:hover {
+            background: #718096;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .code-block {
+                margin-left: -1rem;
+                margin-right: -1rem;
+                border-radius: 0;
+                padding: 1rem;
+            }
+
+            .code-block pre {
+                font-size: 0.75rem;
+                padding-right: 2.5rem; /* Space for copy button */
+            }
+
+            .copy-button {
+                opacity: 1; /* Always visible on mobile */
+                font-size: 0.625rem;
+                padding: 0.25rem 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .code-block pre {
+                font-size: 0.7rem;
+                line-height: 1.4;
+            }
         }
 
         .copy-button {
@@ -142,16 +211,69 @@
             border: 1px solid #10b981;
             color: #065f46;
         }
+
+        /* Mobile content optimizations */
+        @media (max-width: 768px) {
+            .lg\\:ml-80 {
+                margin-left: 0 !important;
+            }
+
+            .px-6 {
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+
+            .max-w-5xl {
+                max-width: 100% !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+
+            /* Table responsiveness */
+            .overflow-x-auto {
+                margin-left: -1rem;
+                margin-right: -1rem;
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            /* Grid adjustments for mobile */
+            .grid.md\\:grid-cols-2 {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+
+            /* Reduce heading sizes on mobile */
+            .text-3xl {
+                font-size: 1.875rem !important;
+            }
+
+            .text-2xl {
+                font-size: 1.5rem !important;
+            }
+
+            /* Fixed topbar mobile adjustments */
+            .pt-16 {
+                padding-top: 4rem !important;
+            }
+        }
+
+        /* Enhanced mobile menu styling */
+        @media (max-width: 1024px) {
+            #sidebar {
+                top: 0 !important;
+                padding-top: 4rem !important;
+            }
+
+            .lg\\:pt-0 {
+                padding-top: 0 !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans">
-    <!-- Mobile menu button -->
-    <button id="mobile-menu-button" class="lg:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-lg shadow-lg border">
-        <i class="fas fa-bars text-gray-600"></i>
-    </button>
-
     <!-- Sidebar -->
-    <div id="sidebar" class="fixed left-0 top-0 h-full w-80 bg-white border-r border-gray-200 z-40 transform -translate-x-full lg:translate-x-0 sidebar-transition overflow-y-auto sidebar-scroll">
+    <div id="sidebar" class="fixed left-0 top-0 h-full w-80 bg-white border-r border-gray-200 z-40 transform -translate-x-full lg:translate-x-0 sidebar-transition overflow-y-auto sidebar-scroll pt-16 lg:pt-0">
         <div class="p-6">
             <!-- Logo -->
             <div class="flex items-center gap-3 mb-8">
@@ -234,25 +356,39 @@
     <!-- Overlay for mobile -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden hidden"></div>
 
-    <!-- Main content -->
-    <div class="lg:ml-80">
-        <!-- Top bar -->
-        <div class="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-20">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-2xl font-bold text-gray-900">Scripts Documentation</h1>
-                    <p class="text-gray-600">Administrative tools and automation scripts for Daily Dose</p>
-                </div>
-                <div class="flex items-center gap-4">
-                    <span class="px-3 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
-                        🔐 Admin Only
-                    </span>
+    <!-- Fixed Top bar -->
+    <div class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50">
+        <div class="flex items-center justify-between px-4 py-3 lg:px-6 lg:py-4">
+            <!-- Mobile menu button and title -->
+            <div class="flex items-center gap-3">
+                <button id="mobile-menu-button" class="lg:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
+                    <i class="fas fa-bars text-lg"></i>
+                </button>
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center lg:hidden">
+                        <i class="fas fa-robot text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg lg:text-2xl font-bold text-gray-900">Scripts Documentation</h1>
+                        <p class="text-xs lg:text-sm text-gray-600 hidden sm:block">Administrative tools and automation scripts for Daily Dose</p>
+                    </div>
                 </div>
             </div>
+
+            <!-- Admin badge and additional controls -->
+            <div class="flex items-center gap-2 lg:gap-4">
+                <span class="px-2 py-1 lg:px-3 lg:py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+                    🔐 Admin Only
+                </span>
+            </div>
         </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="lg:ml-80 pt-16 lg:pt-20">
 
         <!-- Content -->
-        <div class="px-6 py-8 max-w-5xl">
+        <div class="px-6 py-8 max-w-5xl mx-auto">
             <!-- Overview Section -->
             <section id="overview" class="mb-12">
                 <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 rounded-xl mb-8">
