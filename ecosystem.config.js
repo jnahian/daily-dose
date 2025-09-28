@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "daily-dose",
+      name: "DAILY_DOSE_BOT",
       script: "src/app.js",
       instances: 1,
       autorestart: true,
