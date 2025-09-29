@@ -434,7 +434,7 @@ Add these Bot Token Scopes:
 - `/dd-team-update` - Update team settings ⚠️ **(admin only)**
 - `/dd-team-join` - Join a team
 - `/dd-team-leave` - Leave a team
-- `/dd-team-list` - List all teams
+- `/dd-team-list` - List all teams with member count, reminder time, posting time, and timezone
 - `/dd-team-members` - View team members
 
 **Leave Management Commands:**
@@ -1689,9 +1689,13 @@ async function listTeams({ command, ack, respond }) {
         (t) =>
           `• *${t.name}* (${
             t._count.members
-          } members) - Standup: ${formatTime12Hour(t.standupTime)}`
+          } members)\n  🔔 Reminder: ${formatTime12Hour(
+            t.standupTime
+          )} | 📊 Posting: ${formatTime12Hour(t.postingTime)} | 🌍 ${
+            t.timezone
+          }`
       )
-      .join("\n");
+      .join("\n\n");
 
     await respond({
       blocks: [
@@ -1699,7 +1703,7 @@ async function listTeams({ command, ack, respond }) {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `*📋 Teams in your organization:*\n${teamList}`,
+            text: `*📋 Teams in your organization:*\n\n${teamList}`,
           },
         },
       ],

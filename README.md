@@ -105,7 +105,7 @@ When you first interact with the bot, you'll be automatically added to your orga
 ### 2. Join or Create a Team
 
 ```
-/dd-team-list                         # See available teams
+/dd-team-list                         # See available teams with timing info
 /dd-team-join                         # Join team in current channel
 /dd-team-join Engineering             # Join specific team by name
 /dd-team-leave                        # Leave team in current channel  
@@ -159,7 +159,11 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
 
 ### 👥 Team Management
 
-- `/dd-team-list` - List all teams in your organization
+- `/dd-team-list` - List all teams in your organization with detailed timing information
+  - Shows team name and member count
+  - 🔔 Reminder time (when standup reminders are sent)
+  - 📊 Posting time (when standup summaries are posted)
+  - 🌍 Timezone for each team
 - `/dd-team-join [team-name]` - Join a team
   - **Channel-based**: `/dd-team-join` (joins the team in current channel)
   - **Name-based**: `/dd-team-join Engineering` (joins specific team by name from any channel)
@@ -599,7 +603,7 @@ When you're on leave:
 
 ### Getting Help
 
-- Use `/dd-team-list` to see your teams and their settings
+- Use `/dd-team-list` to see your teams with detailed timing and timezone information
 - Check the bot's response messages for specific error details
 - Contact your organization admin for permission issues
 

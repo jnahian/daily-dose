@@ -575,7 +575,7 @@
               </h3>
               <p class="text-gray-600 mb-4">
                 Use the team list command to see available teams in your
-                organization:
+                organization, including reminder times, posting times, and timezone information:
               </p>
               <div class="code-block p-4 relative">
                 <code class="text-green-400">/dd-team-list</code>
@@ -1178,13 +1178,13 @@
             <div class="bg-white rounded-lg border p-6">
               <h3 class="font-semibold text-gray-900 mb-4">View Teams</h3>
               <p class="text-gray-600 mb-4">
-                List all teams in your organization and check membership:
+                List all teams in your organization with detailed information including member count, reminder time, posting time, and timezone:
               </p>
               <div class="space-y-3">
                 <div class="code-block p-4 relative">
                   <code class="text-green-400">/dd-team-list</code>
                   <span class="text-gray-400 ml-2"
-                    ># See all available teams</span
+                    ># See all teams with times & timezone</span
                   >
                   <button
                     class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs"
@@ -1192,6 +1192,19 @@
                   >
                     <i class="fas fa-copy"></i>
                   </button>
+                </div>
+                <div class="space-y-2 mt-3">
+                  <div class="text-sm text-gray-600">
+                    <strong>Team List Output Example:</strong><br />
+                    <div class="bg-gray-50 p-3 rounded border mt-2">
+                      <code class="text-sm">
+                        • <strong>Engineering</strong> (5 members)<br />
+                        &nbsp;&nbsp;🔔 Reminder: 9:30 AM | 📊 Posting: 10:00 AM | 🌍 America/New_York<br /><br />
+                        • <strong>Marketing</strong> (3 members)<br />
+                        &nbsp;&nbsp;🔔 Reminder: 9:00 AM | 📊 Posting: 10:30 AM | 🌍 America/Los_Angeles
+                      </code>
+                    </div>
+                  </div>
                 </div>
                 <div class="code-block p-4 relative">
                   <code class="text-green-400"

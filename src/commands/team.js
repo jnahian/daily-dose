@@ -198,13 +198,17 @@ async function listTeams({ command, ack, respond }) {
         (t) =>
           `• *${t.name}* (${
             t._count.members
-          } members) - Standup: ${formatTime12Hour(t.standupTime)}`
+          } members)\n  🔔 Reminder: ${formatTime12Hour(
+            t.standupTime
+          )} | 📊 Posting: ${formatTime12Hour(t.postingTime)} | 🌍 ${
+            t.timezone
+          }`
       )
-      .join("\n");
+      .join("\n\n");
 
     await updateResponse({
       blocks: [
-        createSectionBlock(`*📋 Teams in your organization:*\n${teamList}`),
+        createSectionBlock(`*📋 Teams in your organization:*\n\n${teamList}`),
       ],
     });
   } catch (error) {
