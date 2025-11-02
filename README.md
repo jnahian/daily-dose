@@ -185,11 +185,27 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
 
 ### 🌴 Leave Management
 
+**Personal Leave Management (All Users)**
 - `/dd-leave-list` - View your upcoming leaves
 - `/dd-leave-set <start-date> [end-date] [reason]` - Set leave dates
   - Single day: `/dd-leave-set 2024-12-25 Holiday`
   - Date range: `/dd-leave-set 2024-12-25 2024-12-26 Holiday break`
 - `/dd-leave-cancel <leave-id>` - Cancel a leave (use ID from list command)
+
+**Admin Leave Management ⚠️ (Admin Only)**
+- `/dd-leave-set-member @user [team-name] <start-date> [end-date] [reason]` - Set leave for team member ⚠️ **(admin only)**
+  - **With team name**: `/dd-leave-set-member @john Engineering 2024-12-25 Holiday`
+  - **Single team admin**: `/dd-leave-set-member @john 2024-12-25 Holiday` (auto-detects team)
+  - **Date range**: `/dd-leave-set-member @john Engineering 2024-12-25 2024-12-26 Holiday break`
+  - **Note**: If admin is in multiple teams, team name is required
+- `/dd-leave-cancel-member @user <leave-id> [team-name]` - Cancel team member's leave ⚠️ **(admin only)**
+  - **With team name**: `/dd-leave-cancel-member @john abc123 Engineering`
+  - **Single team admin**: `/dd-leave-cancel-member @john abc123` (auto-detects team)
+  - **Note**: If admin is in multiple teams, team name is required
+- `/dd-leave-list-member @user [team-name]` - List team member's leaves ⚠️ **(admin only)**
+  - **With team name**: `/dd-leave-list-member @john Engineering`
+  - **Single team admin**: `/dd-leave-list-member @john` (auto-detects team)
+  - **Note**: If admin is in multiple teams, team name is required
 
 ### 📅 Work Days Configuration
 
@@ -522,6 +538,121 @@ When you're on leave:
 - No standup reminders are sent
 - You're marked as "On leave" in team summaries
 - Automatic exclusion from standup expectations
+
+### Admin Leave Management ⚠️ (Admin Only)
+
+Team admins can manage leave for any member in their teams. This is useful for:
+- **Emergency situations** when team members are suddenly unavailable
+- **Planned absences** where the admin wants to set up leaves in advance
+- **Bulk leave management** for team events or company-wide holidays
+- **Vacation coordination** to ensure proper coverage
+
+#### Setting Member Leave ⚠️ (Admin Only)
+
+```bash
+# Single day leave (admin in only one team)
+/dd-leave-set-member @john 2024-12-25 Holiday
+
+# Single day leave with team name
+/dd-leave-set-member @john Engineering 2024-12-25 Holiday
+
+# Date range with team name
+/dd-leave-set-member @john Engineering 2024-12-25 2024-12-26 Holiday break
+
+# Multiple team members (requires multiple commands)
+/dd-leave-set-member @john Engineering 2024-12-25 Team event
+/dd-leave-set-member @jane Engineering 2024-12-25 Team event
+```
+
+#### Canceling Member Leave ⚠️ (Admin Only)
+
+```bash
+# Cancel leave (admin in only one team)
+/dd-leave-cancel-member @john abc123
+
+# Cancel leave with team name
+/dd-leave-cancel-member @john abc123 Engineering
+
+# Note: Leave ID can be obtained from list command
+```
+
+#### Viewing Member Leaves ⚠️ (Admin Only)
+
+```bash
+# View member leaves (admin in only one team)
+/dd-leave-list-member @john
+
+# View member leaves with team name
+/dd-leave-list-member @john Engineering
+
+# Use this to get leave IDs for cancellation
+```
+
+#### Admin Requirements
+
+- **ADMIN role required**: Only team admins can use these commands
+- **Team membership**: Mentioned user must be a member of the specified team
+- **Team specification**: If admin is in multiple teams, team name is required
+- **User mentions**: Commands support @mentions for easy user selection
+
+#### Common Error Scenarios
+
+```bash
+# Error: Not an admin
+/dd-leave-set-member @john 2024-12-25 Holiday
+# Response: "❌ You must be an admin to manage member leaves"
+
+# Error: Admin in multiple teams without team name
+/dd-leave-set-member @john 2024-12-25 Holiday
+# Response: "❌ You are an admin in multiple teams. Please specify team name: /dd-leave-set-member @user [team-name] ..."
+
+# Error: User not in team
+/dd-leave-set-member @external Engineering 2024-12-25 Holiday
+# Response: "❌ User is not a member of team 'Engineering'"
+
+# Error: Team doesn't exist
+/dd-leave-set-member @john NonexistentTeam 2024-12-25 Holiday
+# Response: "❌ Team 'NonexistentTeam' not found"
+```
+
+#### Example Workflows
+
+**Scenario 1: Emergency leave setup**
+```bash
+# Team member calls in sick, admin sets leave immediately
+/dd-leave-set-member @john Engineering 2024-11-02 Sick leave
+# Response: "✅ Leave set for @john from 2024-11-02 to 2024-11-02"
+```
+
+**Scenario 2: Planned vacation coordination**
+```bash
+# View member's existing leaves first
+/dd-leave-list-member @jane Engineering
+
+# Set new vacation period
+/dd-leave-set-member @jane Engineering 2024-12-20 2024-12-31 Year-end vacation
+# Response: "✅ Leave set for @jane from 2024-12-20 to 2024-12-31"
+```
+
+**Scenario 3: Cancel incorrect leave**
+```bash
+# View leaves to get ID
+/dd-leave-list-member @john Engineering
+# Shows: ID: abc123, Dates: 2024-12-25 to 2024-12-26
+
+# Cancel the leave
+/dd-leave-cancel-member @john abc123 Engineering
+# Response: "✅ Leave cancelled successfully for @john"
+```
+
+**Scenario 4: Team-wide event**
+```bash
+# Set leave for all team members attending offsite
+/dd-leave-set-member @john Engineering 2024-11-15 Team offsite
+/dd-leave-set-member @jane Engineering 2024-11-15 Team offsite
+/dd-leave-set-member @mike Engineering 2024-11-15 Team offsite
+# Each member automatically excluded from standup on that day
+```
 
 ## 📅 Work Days Configuration
 

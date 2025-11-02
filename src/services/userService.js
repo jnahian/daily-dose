@@ -229,6 +229,73 @@ class UserService {
       },
     });
   }
+
+  async setMemberLeave(targetSlackUserId, startDate, endDate, reason, slackClient = null) {
+    const userData = await this.fetchSlackUserData(targetSlackUserId, slackClient);
+    const user = await this.findOrCreateUser(targetSlackUserId, userData);
+
+    return await prisma.leave.create({
+      data: {
+        userId: user.id,
+        startDate,
+        endDate,
+        reason,
+      },
+    });
+  }
+
+  async cancelMemberLeave(targetSlackUserId, leaveId) {
+    const user = await prisma.user.findUnique({
+      where: { slackUserId: targetSlackUserId },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Handle partial IDs - find leaves that start with the provided ID
+    const matchingLeaves = await prisma.leave.findMany({
+      where: {
+        userId: user.id,
+        id: {
+          startsWith: leaveId,
+        },
+      },
+    });
+
+    if (matchingLeaves.length === 0) {
+      throw new Error("Leave record not found");
+    }
+
+    if (matchingLeaves.length > 1) {
+      throw new Error(
+        "Multiple leaves match this ID. Please provide a more specific ID"
+      );
+    }
+
+    const leaveToDelete = matchingLeaves[0];
+
+    return await prisma.leave.delete({
+      where: {
+        id: leaveToDelete.id,
+      },
+    });
+  }
+
+  async listMemberLeaves(targetSlackUserId, slackClient = null) {
+    const userData = await this.fetchSlackUserData(targetSlackUserId, slackClient);
+    const user = await this.findOrCreateUser(targetSlackUserId, userData);
+
+    return await prisma.leave.findMany({
+      where: {
+        userId: user.id,
+        endDate: { gte: new Date() }, // Only show current and future leaves
+      },
+      orderBy: {
+        startDate: "asc",
+      },
+    });
+  }
 }
 
 module.exports = new UserService();

@@ -1,4 +1,5 @@
 const userService = require("../services/userService");
+const teamService = require("../services/teamService");
 const prisma = require("../config/prisma");
 const dayjs = require("dayjs");
 const { ackWithProcessing } = require("../utils/commandHelper");
@@ -304,10 +305,421 @@ async function showWorkDays({ command, ack, respond, client }) {
   }
 }
 
+async function setMemberLeave({ command, ack, respond, client }) {
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "Setting member leave...",
+    command
+  );
+
+  try {
+    // Parse command text: /dd-leave-set-member @user YYYY-MM-DD [YYYY-MM-DD] [reason]
+    // or: /dd-leave-set-member @user team-name YYYY-MM-DD [YYYY-MM-DD] [reason]
+    const parts = command.text.split(" ");
+
+    if (parts.length < 2) {
+      await updateResponse({
+        text: "❌ Usage: `/dd-leave-set-member @user [team-name] YYYY-MM-DD [YYYY-MM-DD] [reason]`\nExamples:\n- Single day: `/dd-leave-set-member @john 2024-12-25 Holiday`\n- With team: `/dd-leave-set-member @john Engineering 2024-12-25 Holiday`\n- Date range: `/dd-leave-set-member @john 2024-12-25 2024-12-26 Holiday break`",
+      });
+      return;
+    }
+
+    // Extract user ID from mention (format: <@U123456|username> or <@U123456>)
+    const userMention = parts[0];
+    const userIdMatch = userMention.match(/<@([A-Z0-9]+)(\|[^>]+)?>/);
+
+    if (!userIdMatch) {
+      await updateResponse({
+        text: "❌ Invalid user mention. Please use @mention format (e.g., @john)",
+      });
+      return;
+    }
+
+    const targetSlackUserId = userIdMatch[1];
+
+    // Check if second parameter is a team name or a date
+    let teamName = null;
+    let dateStartIndex = 1;
+
+    const potentialDate = dayjs(parts[1]);
+    if (!potentialDate.isValid() && parts.length > 2) {
+      // Second parameter is not a date, treat it as team name
+      teamName = parts[1];
+      dateStartIndex = 2;
+    }
+
+    // Get user's teams to verify admin access
+    const userTeams = await teamService.getUserTeams(command.user_id, client);
+
+    if (userTeams.length === 0) {
+      await updateResponse({
+        text: "❌ You must be a member of at least one team to set member leave",
+      });
+      return;
+    }
+
+    // Find the team to check admin permissions
+    let targetTeam = null;
+
+    if (teamName) {
+      // Team name was specified
+      targetTeam = userTeams.find(
+        t => t.name.toLowerCase() === teamName.toLowerCase()
+      );
+
+      if (!targetTeam) {
+        await updateResponse({
+          text: `❌ Team "${teamName}" not found or you are not a member`,
+        });
+        return;
+      }
+    } else if (userTeams.length === 1) {
+      // Only one team, use it
+      targetTeam = userTeams[0];
+    } else {
+      // Multiple teams, need to specify which one
+      const teamList = userTeams.map(t => `• ${t.name}`).join("\n");
+      await updateResponse({
+        text: `❌ You are a member of multiple teams. Please specify which team:\n${teamList}\n\nUsage: \`/dd-leave-set-member @user team-name YYYY-MM-DD [YYYY-MM-DD] [reason]\``,
+      });
+      return;
+    }
+
+    // Check if user is admin of the team
+    const isAdmin = await teamService.isTeamAdmin(command.user_id, targetTeam.id, client);
+
+    if (!isAdmin) {
+      await updateResponse({
+        text: `❌ You need admin permissions in team "${targetTeam.name}" to set member leave`,
+      });
+      return;
+    }
+
+    // Verify target user is a member of the team
+    const teamMembers = await teamService.getTeamMembers(targetTeam.id);
+    const isMember = teamMembers.some(m => m.user.slackUserId === targetSlackUserId);
+
+    if (!isMember) {
+      await updateResponse({
+        text: `❌ <@${targetSlackUserId}> is not a member of team "${targetTeam.name}"`,
+      });
+      return;
+    }
+
+    // Parse dates
+    if (parts.length < dateStartIndex + 1) {
+      await updateResponse({
+        text: "❌ Missing start date. Usage: `/dd-leave-set-member @user [team-name] YYYY-MM-DD [YYYY-MM-DD] [reason]`",
+      });
+      return;
+    }
+
+    const startDate = dayjs(parts[dateStartIndex]);
+
+    if (!startDate.isValid()) {
+      await updateResponse({
+        text: "❌ Invalid start date format. Use YYYY-MM-DD",
+      });
+      return;
+    }
+
+    // Check if next parameter is a date or part of the reason
+    let endDate = startDate; // Default to same day for single date
+    let reasonStartIndex = dateStartIndex + 1;
+
+    if (parts.length > dateStartIndex + 1) {
+      const potentialEndDate = dayjs(parts[dateStartIndex + 1]);
+      if (potentialEndDate.isValid()) {
+        // Next parameter is a valid date, use it as end date
+        endDate = potentialEndDate;
+        reasonStartIndex = dateStartIndex + 2;
+
+        if (startDate > endDate) {
+          await updateResponse({
+            text: "❌ Start date must be before or equal to end date",
+          });
+          return;
+        }
+      }
+      // If next parameter is not a valid date, treat it as part of reason
+    }
+
+    const reason = parts.slice(reasonStartIndex).join(" ") || "Leave set by admin";
+
+    await userService.setMemberLeave(
+      targetSlackUserId,
+      startDate.toDate(),
+      endDate.toDate(),
+      reason,
+      client
+    );
+
+    const dateText = startDate.isSame(endDate, "day")
+      ? `on ${startDate.format("MMM DD, YYYY")}`
+      : `from ${startDate.format("MMM DD, YYYY")} to ${endDate.format("MMM DD, YYYY")}`;
+
+    await updateResponse({
+      text: `✅ Leave set for <@${targetSlackUserId}> ${dateText}\nTeam: ${targetTeam.name}\nReason: ${reason}`,
+    });
+  } catch (error) {
+    await updateResponse({
+      text: `❌ Error: ${error.message}`,
+    });
+  }
+}
+
+async function cancelMemberLeave({ command, ack, respond, client }) {
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "Cancelling member leave...",
+    command
+  );
+
+  try {
+    // Parse command text: /dd-leave-cancel-member @user leave-id [team-name]
+    const parts = command.text.split(" ");
+
+    if (parts.length < 2) {
+      await updateResponse({
+        text: "❌ Usage: `/dd-leave-cancel-member @user leave-id [team-name]`\nExamples:\n- `/dd-leave-cancel-member @john abc123`\n- `/dd-leave-cancel-member @john abc123 Engineering`",
+      });
+      return;
+    }
+
+    // Extract user ID from mention
+    const userMention = parts[0];
+    const userIdMatch = userMention.match(/<@([A-Z0-9]+)(\|[^>]+)?>/);
+
+    if (!userIdMatch) {
+      await updateResponse({
+        text: "❌ Invalid user mention. Please use @mention format (e.g., @john)",
+      });
+      return;
+    }
+
+    const targetSlackUserId = userIdMatch[1];
+    const leaveId = parts[1].trim();
+
+    if (!leaveId) {
+      await updateResponse({
+        text: "❌ Missing leave ID. Usage: `/dd-leave-cancel-member @user leave-id [team-name]`",
+      });
+      return;
+    }
+
+    // Get team name if provided
+    const teamName = parts.length > 2 ? parts[2] : null;
+
+    // Get user's teams to verify admin access
+    const userTeams = await teamService.getUserTeams(command.user_id, client);
+
+    if (userTeams.length === 0) {
+      await updateResponse({
+        text: "❌ You must be a member of at least one team to cancel member leave",
+      });
+      return;
+    }
+
+    // Find the team to check admin permissions
+    let targetTeam = null;
+
+    if (teamName) {
+      // Team name was specified
+      targetTeam = userTeams.find(
+        t => t.name.toLowerCase() === teamName.toLowerCase()
+      );
+
+      if (!targetTeam) {
+        await updateResponse({
+          text: `❌ Team "${teamName}" not found or you are not a member`,
+        });
+        return;
+      }
+    } else if (userTeams.length === 1) {
+      // Only one team, use it
+      targetTeam = userTeams[0];
+    } else {
+      // Multiple teams, need to specify which one
+      const teamList = userTeams.map(t => `• ${t.name}`).join("\n");
+      await updateResponse({
+        text: `❌ You are a member of multiple teams. Please specify which team:\n${teamList}\n\nUsage: \`/dd-leave-cancel-member @user leave-id team-name\``,
+      });
+      return;
+    }
+
+    // Check if user is admin of the team
+    const isAdmin = await teamService.isTeamAdmin(command.user_id, targetTeam.id, client);
+
+    if (!isAdmin) {
+      await updateResponse({
+        text: `❌ You need admin permissions in team "${targetTeam.name}" to cancel member leave`,
+      });
+      return;
+    }
+
+    // Verify target user is a member of the team
+    const teamMembers = await teamService.getTeamMembers(targetTeam.id);
+    const isMember = teamMembers.some(m => m.user.slackUserId === targetSlackUserId);
+
+    if (!isMember) {
+      await updateResponse({
+        text: `❌ <@${targetSlackUserId}> is not a member of team "${targetTeam.name}"`,
+      });
+      return;
+    }
+
+    await userService.cancelMemberLeave(targetSlackUserId, leaveId);
+
+    await updateResponse({
+      text: `✅ Leave cancelled for <@${targetSlackUserId}>\nTeam: ${targetTeam.name}`,
+    });
+  } catch (error) {
+    await updateResponse({
+      text: `❌ Error: ${error.message}`,
+    });
+  }
+}
+
+async function listMemberLeaves({ command, ack, respond, client }) {
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "Loading member leaves...",
+    command
+  );
+
+  try {
+    // Parse command text: /dd-leave-list-member @user [team-name]
+    const parts = command.text.split(" ");
+
+    if (parts.length < 1 || !parts[0]) {
+      await updateResponse({
+        text: "❌ Usage: `/dd-leave-list-member @user [team-name]`\nExamples:\n- `/dd-leave-list-member @john`\n- `/dd-leave-list-member @john Engineering`",
+      });
+      return;
+    }
+
+    // Extract user ID from mention
+    const userMention = parts[0];
+    const userIdMatch = userMention.match(/<@([A-Z0-9]+)(\|[^>]+)?>/);
+
+    if (!userIdMatch) {
+      await updateResponse({
+        text: "❌ Invalid user mention. Please use @mention format (e.g., @john)",
+      });
+      return;
+    }
+
+    const targetSlackUserId = userIdMatch[1];
+    const teamName = parts.length > 1 ? parts[1] : null;
+
+    // Get user's teams to verify admin access
+    const userTeams = await teamService.getUserTeams(command.user_id, client);
+
+    if (userTeams.length === 0) {
+      await updateResponse({
+        text: "❌ You must be a member of at least one team to view member leave",
+      });
+      return;
+    }
+
+    // Find the team to check admin permissions
+    let targetTeam = null;
+
+    if (teamName) {
+      // Team name was specified
+      targetTeam = userTeams.find(
+        t => t.name.toLowerCase() === teamName.toLowerCase()
+      );
+
+      if (!targetTeam) {
+        await updateResponse({
+          text: `❌ Team "${teamName}" not found or you are not a member`,
+        });
+        return;
+      }
+    } else if (userTeams.length === 1) {
+      // Only one team, use it
+      targetTeam = userTeams[0];
+    } else {
+      // Multiple teams, need to specify which one
+      const teamList = userTeams.map(t => `• ${t.name}`).join("\n");
+      await updateResponse({
+        text: `❌ You are a member of multiple teams. Please specify which team:\n${teamList}\n\nUsage: \`/dd-leave-list-member @user team-name\``,
+      });
+      return;
+    }
+
+    // Check if user is admin of the team
+    const isAdmin = await teamService.isTeamAdmin(command.user_id, targetTeam.id, client);
+
+    if (!isAdmin) {
+      await updateResponse({
+        text: `❌ You need admin permissions in team "${targetTeam.name}" to view member leave`,
+      });
+      return;
+    }
+
+    // Verify target user is a member of the team
+    const teamMembers = await teamService.getTeamMembers(targetTeam.id);
+    const isMember = teamMembers.some(m => m.user.slackUserId === targetSlackUserId);
+
+    if (!isMember) {
+      await updateResponse({
+        text: `❌ <@${targetSlackUserId}> is not a member of team "${targetTeam.name}"`,
+      });
+      return;
+    }
+
+    const leaves = await userService.listMemberLeaves(targetSlackUserId, client);
+
+    if (leaves.length === 0) {
+      await updateResponse({
+        text: `📅 <@${targetSlackUserId}> has no upcoming leaves scheduled\nTeam: ${targetTeam.name}`,
+      });
+      return;
+    }
+
+    const leaveList = leaves
+      .map((leave) => {
+        const startDate = dayjs(leave.startDate).format("MMM DD, YYYY");
+        const endDate = dayjs(leave.endDate).format("MMM DD, YYYY");
+        const dateRange =
+          startDate === endDate ? startDate : `${startDate} - ${endDate}`;
+        return `• ${dateRange}: ${leave.reason || "No reason"} (ID: ${leave.id.slice(0, 8)})`;
+      })
+      .join("\n");
+
+    await updateResponse({
+      blocks: [
+        createSectionBlock(`*📅 Upcoming Leaves for <@${targetSlackUserId}>:*\nTeam: ${targetTeam.name}\n\n${leaveList}`),
+        {
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: "To cancel a leave, use: `/dd-leave-cancel-member @user [leave-id]`",
+            },
+          ],
+        },
+      ],
+    });
+  } catch (error) {
+    await updateResponse({
+      text: `❌ Error: ${error.message}`,
+    });
+  }
+}
+
 module.exports = {
   setLeave,
   cancelLeave,
   listLeaves,
   setWorkDays,
   showWorkDays,
+  setMemberLeave,
+  cancelMemberLeave,
+  listMemberLeaves,
 };

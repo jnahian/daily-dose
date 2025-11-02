@@ -23,6 +23,11 @@ function setupCommands(app) {
   app.command("/dd-leave-set", stripFormatting(), leaveCommands.setLeave);
   app.command("/dd-leave-cancel", stripFormatting(), leaveCommands.cancelLeave);
 
+  // Admin leave management commands - wrapped with formatting removal middleware
+  app.command("/dd-leave-set-member", stripFormatting(), leaveCommands.setMemberLeave);
+  app.command("/dd-leave-cancel-member", stripFormatting(), leaveCommands.cancelMemberLeave);
+  app.command("/dd-leave-list-member", stripFormatting(), leaveCommands.listMemberLeaves);
+
   // Work days configuration commands - wrapped with formatting removal middleware
   app.command(
     "/dd-workdays-show",

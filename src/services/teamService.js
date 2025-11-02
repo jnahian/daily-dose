@@ -396,6 +396,43 @@ class TeamService {
       data: preferences,
     });
   }
+
+  async isTeamAdmin(slackUserId, teamId, slackClient = null) {
+    const userData = await userService.fetchSlackUserData(slackUserId, slackClient);
+    const user = await userService.findOrCreateUser(slackUserId, userData);
+
+    const membership = await prisma.teamMember.findUnique({
+      where: {
+        teamId_userId: {
+          teamId: teamId,
+          userId: user.id,
+        },
+        isActive: true,
+      },
+    });
+
+    return membership && membership.role === "ADMIN";
+  }
+
+  async getUserTeams(slackUserId, slackClient = null) {
+    const userData = await userService.fetchSlackUserData(slackUserId, slackClient);
+    const user = await userService.findOrCreateUser(slackUserId, userData);
+
+    const memberships = await prisma.teamMember.findMany({
+      where: {
+        userId: user.id,
+        isActive: true,
+        team: {
+          isActive: true,
+        },
+      },
+      include: {
+        team: true,
+      },
+    });
+
+    return memberships.map(m => m.team);
+  }
 }
 
 module.exports = new TeamService();

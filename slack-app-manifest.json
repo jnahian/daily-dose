@@ -73,6 +73,27 @@
                 "should_escape": false
             },
             {
+                "command": "/dd-leave-set-member",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "Set leave for team member (admin only)",
+                "usage_hint": "@user [team-name] YYYY-MM-DD [YYYY-MM-DD] [reason]",
+                "should_escape": false
+            },
+            {
+                "command": "/dd-leave-cancel-member",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "Cancel team member's leave (admin only)",
+                "usage_hint": "@user leave-id [team-name]",
+                "should_escape": false
+            },
+            {
+                "command": "/dd-leave-list-member",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "List team member's leaves (admin only)",
+                "usage_hint": "@user [team-name]",
+                "should_escape": false
+            },
+            {
                 "command": "/dd-workdays-set",
                 "url": "{{APP_URL}}/slack/events",
                 "description": "Set your personal work days",
