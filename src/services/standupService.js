@@ -359,6 +359,17 @@ class StandupService {
       (m) => !leaveUserIds.has(m.userId) && m.role !== 'ADMIN'
     );
 
+    // Get members who would be shown in the standup (not hidden from mentions)
+    const visibleMembers = eligibleMembers.filter((m) => !m.hideFromNotResponded);
+
+    // Skip posting if there are no visible members (all are hidden/mention=off)
+    if (visibleMembers.length === 0 && responses.length === 0) {
+      console.log(
+        `⏭️ Skipping standup post for team ${team.name} - no visible members and no standup submissions`
+      );
+      return;
+    }
+
     // Check if all eligible members have disabled reminders
     const allMembersDisabledReminders = eligibleMembers.length > 0 &&
       eligibleMembers.every((m) => m.hideFromNotResponded);
