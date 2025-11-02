@@ -5,12 +5,12 @@
  *
  * This script allows you to create or update your Slack app manifest via the API.
  * It reads the local manifest file and applies it to your Slack app.
+ * The app ID is automatically read from the SLACK_APP_ID environment variable.
  *
  * Usage:
  *   node src/scripts/updateSlackManifest.js [options]
  *
  * Options:
- *   --app-id <id>     Slack app ID (required for updates)
  *   --create          Create a new app instead of updating
  *   --dry-run         Show what would be done without making changes
  *   --help            Show this help message
@@ -348,12 +348,14 @@ class SlackManifestManager {
       if (options.create) {
         await this.createApp(manifest, options.dryRun);
       } else {
-        if (!options.appId) {
-          console.error("❌ Error: --app-id is required for updates");
+        if (!this.appId) {
+          console.error("❌ Error: SLACK_APP_ID must be set in .env for updates");
           console.error("   Use --create to create a new app instead");
           process.exit(1);
         }
-        await this.updateApp(options.appId, manifest, options.dryRun);
+
+        console.log(`📋 Using SLACK_APP_ID from .env: ${this.appId}`);
+        await this.updateApp(this.appId, manifest, options.dryRun);
       }
     } catch (error) {
       console.error("❌ Script failed:", error.message);
@@ -371,7 +373,6 @@ Usage:
   node src/scripts/updateSlackManifest.js [options]
 
 Options:
-  --app-id <id>     Slack app ID (required for updates)
   --create          Create a new app instead of updating existing one
   --dry-run         Show what would be done without making changes
   --help            Show this help message
@@ -380,17 +381,18 @@ Examples:
   # Create a new app
   node src/scripts/updateSlackManifest.js --create
 
-  # Update existing app
-  node src/scripts/updateSlackManifest.js --app-id A1234567890
+  # Update existing app using SLACK_APP_ID from .env
+  node src/scripts/updateSlackManifest.js
 
   # Dry run to see changes
-  node src/scripts/updateSlackManifest.js --app-id A1234567890 --dry-run
+  node src/scripts/updateSlackManifest.js --dry-run
 
 Environment Variables:
   SLACK_USER_TOKEN         User token with apps:write scope (preferred)
   SLACK_USER_REFRESH_TOKEN Refresh token to automatically renew expired access tokens
   SLACK_CLIENT_ID          App client ID (required with refresh token)
   SLACK_CLIENT_SECRET      App client secret (required with refresh token)
+  SLACK_APP_ID             Slack app ID (required for updates)
   SLACK_BOT_TOKEN          Bot token (fallback, may have limited permissions)
 `);
 }
@@ -407,9 +409,6 @@ function parseArgs() {
       case "-h":
         showHelp();
         process.exit(0);
-        break;
-      case "--app-id":
-        options.appId = args[++i];
         break;
       case "--create":
         options.create = true;

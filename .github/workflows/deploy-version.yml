@@ -110,6 +110,10 @@ jobs:
             # Run database migrations
             npx prisma db push
 
+            # Update Slack app manifest
+            echo "📋 Updating Slack app manifest..."
+            node scripts/updateSlackManifest.js || echo "⚠️ Manifest update failed, continuing deployment..."
+
             # Start/restart the application with PM2
             pm2 start ecosystem.config.js --env production || pm2 restart daily-dose
 
