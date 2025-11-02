@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Admin leave management commands for team admins
+  - `/dd-leave-set-member` - Set leave for any team member (admin only)
+  - `/dd-leave-cancel-member` - Cancel team member's leave (admin only)
+  - `/dd-leave-list-member` - List team member's upcoming leaves (admin only)
+- `isTeamAdmin()` method in TeamService to check admin permissions
+- `getUserTeams()` method in TeamService to get user's teams
+- `setMemberLeave()`, `cancelMemberLeave()`, and `listMemberLeaves()` methods in UserService
+- Support for @mentions in admin leave commands
+- Smart team detection for single-team admins
+- Comprehensive permission checks for admin leave operations
+- Admin leave management documentation in README
+
+### Changed
+
+- Leave management section in README reorganized to separate personal vs admin commands
+- Slack manifest updated with new admin leave commands
+
 ## [1.0.2] - 2025-11-02
 
 ### Added
