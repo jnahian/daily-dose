@@ -19,12 +19,12 @@
     "team:promote": "node scripts/promoteTeamMember.js",
     "debug:scheduler": "node scripts/debugScheduler.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "version:patch": "npm version patch -m '🔖 Release v%s'",
-    "version:minor": "npm version minor -m '🔖 Release v%s'",
-    "version:major": "npm version major -m '🔖 Release v%s'",
+    "version:patch": "npm version patch --no-git-tag-version -m '🔖 Release v%s' && git add package.json && git commit -m '🔖 Bump version to v'$(node -p \"require('./package.json').version\")",
+    "version:minor": "npm version minor --no-git-tag-version -m '🔖 Release v%s' && git add package.json && git commit -m '🔖 Bump version to v'$(node -p \"require('./package.json').version\")",
+    "version:major": "npm version major --no-git-tag-version -m '🔖 Release v%s' && git add package.json && git commit -m '🔖 Bump version to v'$(node -p \"require('./package.json').version\")",
     "version:check": "node scripts/checkVersion.js",
     "preversion": "npm run version:check && git diff --exit-code",
-    "postversion": "git push && git push --tags"
+    "release": "git tag v$(node -p \"require('./package.json').version\") && git push && git push --tags"
   },
   "keywords": [
     "slack",
