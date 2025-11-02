@@ -36,6 +36,11 @@ receiver.app.get('/docs', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/docs.html'));
 });
 
+// Changelog page route
+receiver.app.get('/changelog', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/changelog.html'));
+});
+
 // Protected scripts documentation route
 receiver.app.get('/scripts-docs', basicAuth, (req, res) => {
   res.sendFile(path.join(__dirname, '../public/scripts-docs.html'));

@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Daily Dose Changelog - Track all updates, new features, and improvements to the Slack standup bot. Stay informed about the latest releases."
+    />
+    <meta
+      name="keywords"
+      content="daily dose changelog, release notes, version history, slack bot updates"
+    />
+    <meta name="author" content="Daily Dose" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="/changelog" />
+    <meta
+      property="og:title"
+      content="Daily Dose Changelog - Release Notes & Updates"
+    />
+    <meta
+      property="og:description"
+      content="Track all updates, new features, and improvements to Daily Dose Slack bot. View complete version history."
+    />
+    <meta property="og:image" content="/logo.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="/changelog" />
+    <meta
+      property="twitter:title"
+      content="Daily Dose Changelog - Release Notes & Updates"
+    />
+    <meta
+      property="twitter:description"
+      content="Track all updates, new features, and improvements to Daily Dose Slack bot. View complete version history."
+    />
+    <meta property="twitter:image" content="/logo.png" />
+
+    <title>Changelog - Daily Dose | Release Notes & Version History</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              "slack-purple": "#4A154B",
+              "slack-green": "#007A5A",
+              "slack-blue": "#1264A3",
+              primary: "#00CFFF",
+              secondary: "#00AFFF",
+              glow: "#007BFF",
+            },
+            fontFamily: {
+              sans: ["Inter", "system-ui", "sans-serif"],
+              mono: ["JetBrains Mono", "Monaco", "Consolas", "monospace"],
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/logo.png" />
+
+    <style>
+      /* Smooth scrolling */
+      html {
+        scroll-behavior: smooth;
+      }
+
+      /* Custom styles for changelog badges */
+      .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+      }
+
+      .badge-added {
+        background-color: #10b981;
+        color: white;
+      }
+
+      .badge-changed {
+        background-color: #3b82f6;
+        color: white;
+      }
+
+      .badge-fixed {
+        background-color: #f59e0b;
+        color: white;
+      }
+
+      .badge-security {
+        background-color: #ef4444;
+        color: white;
+      }
+
+      .badge-deprecated {
+        background-color: #8b5cf6;
+        color: white;
+      }
+
+      .badge-removed {
+        background-color: #64748b;
+        color: white;
+      }
+
+      /* Version card hover effect */
+      .version-card {
+        transition: all 0.3s ease;
+      }
+
+      .version-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0, 207, 255, 0.1);
+      }
+
+      /* Glow effect for latest version */
+      .glow-effect {
+        box-shadow: 0 0 20px rgba(0, 207, 255, 0.3);
+      }
+    </style>
+  </head>
+
+  <body class="bg-gradient-to-b from-gray-50 to-white">
+    <!-- Header Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center space-x-3">
+            <img src="/logo.png" alt="Daily Dose Logo" class="h-8 w-8" />
+            <a href="/" class="text-xl font-bold text-gray-900">Daily Dose</a>
+          </div>
+
+          <div class="hidden md:flex items-center space-x-8">
+            <a
+              href="/"
+              class="text-gray-600 hover:text-primary transition-colors"
+              >Home</a
+            >
+            <a
+              href="/docs"
+              class="text-gray-600 hover:text-primary transition-colors"
+              >Documentation</a
+            >
+            <a
+              href="/changelog"
+              class="text-primary font-semibold transition-colors"
+              >Changelog</a
+            >
+            <a
+              href="https://github.com/jnahian/daily-dose"
+              target="_blank"
+              class="text-gray-600 hover:text-primary transition-colors"
+              ><i class="fab fa-github text-xl"></i
+            ></a>
+          </div>
+
+          <!-- Mobile menu button -->
+          <button
+            id="mobile-menu-button"
+            class="md:hidden text-gray-600 hover:text-gray-900 focus:outline-none"
+          >
+            <i class="fas fa-bars text-2xl"></i>
+          </button>
+        </div>
+
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="hidden md:hidden pb-4">
+          <a
+            href="/"
+            class="block py-2 text-gray-600 hover:text-primary transition-colors"
+            >Home</a
+          >
+          <a
+            href="/docs"
+            class="block py-2 text-gray-600 hover:text-primary transition-colors"
+            >Documentation</a
+          >
+          <a
+            href="/changelog"
+            class="block py-2 text-primary font-semibold transition-colors"
+            >Changelog</a
+          >
+          <a
+            href="https://github.com/jnahian/daily-dose"
+            target="_blank"
+            class="block py-2 text-gray-600 hover:text-primary transition-colors"
+            >GitHub</a
+          >
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="py-16 bg-gradient-to-r from-primary to-secondary">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="text-5xl font-bold text-white mb-4">
+          <i class="fas fa-history mr-3"></i>Changelog
+        </h1>
+        <p class="text-xl text-white/90 max-w-3xl mx-auto">
+          Track all updates, new features, and improvements to Daily Dose. We
+          follow
+          <a
+            href="https://semver.org/"
+            target="_blank"
+            class="underline hover:text-white"
+            >Semantic Versioning</a
+          >
+          and keep detailed release notes.
+        </p>
+        <div class="mt-8 flex justify-center items-center space-x-4">
+          <a
+            href="https://github.com/jnahian/daily-dose/releases"
+            target="_blank"
+            class="inline-flex items-center px-6 py-3 bg-white text-primary font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <i class="fab fa-github mr-2"></i>View on GitHub
+          </a>
+          <a
+            href="/docs"
+            class="inline-flex items-center px-6 py-3 bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition-colors"
+          >
+            <i class="fas fa-book mr-2"></i>Documentation
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Changelog Versions -->
+    <section class="py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Version 1.0.2 -->
+        <div class="version-card bg-white rounded-xl shadow-lg p-8 mb-8 glow-effect border-2 border-primary">
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-4">
+              <div class="bg-gray-800 text-white px-4 py-2 rounded-lg font-bold text-xl">
+                v1.0.2
+              </div>
+              <span class="text-gray-500 text-sm">2025-11-02</span>
+            </div>
+            <span class="badge bg-green-100 text-green-800">Latest</span>
+          </div>
+
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-3">
+                <span class="badge badge-added mr-2">Added</span>
+              </h3>
+              <ul class="space-y-2 ml-4">
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Git-based
+                  package versioning with SemVer policy
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Automated
+                  deployment on version tag push
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Version
+                  management scripts (patch, minor, major)
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Pre-version
+                  checks for clean git state
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>GitHub
+                  Actions workflow for version releases
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Changelog
+                  page with version history
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>CHANGELOG.md
+                  for tracking version history
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-3">
+                <span class="badge badge-changed mr-2">Changed</span>
+              </h3>
+              <ul class="space-y-2 ml-4">
+                <li class="text-gray-700">
+                  <i class="fas fa-sync-alt text-blue-600 mr-2"></i>Standup
+                  posting logic to skip when no eligible members exist
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-sync-alt text-blue-600 mr-2"></i>Standup
+                  messages exclude mention=off members from display
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Version 1.0.0 -->
+        <div class="version-card bg-white rounded-xl shadow-lg p-8 mb-8">
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-4">
+              <div class="bg-gray-800 text-white px-4 py-2 rounded-lg font-bold text-xl">
+                v1.0.0
+              </div>
+              <span class="text-gray-500 text-sm">2025-11-02</span>
+            </div>
+            <span class="badge bg-blue-100 text-blue-800">Initial Release</span>
+          </div>
+
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-3">
+                <span class="badge badge-added mr-2">Added</span>
+              </h3>
+              <ul class="space-y-2 ml-4">
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Initial
+                  release of Daily Dose Slack bot
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Automated
+                  daily standup reminders
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Team
+                  management commands
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Leave
+                  tracking system
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Timezone-aware
+                  scheduling
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Work day
+                  configuration
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Standup
+                  response collection via modals
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Team
+                  standup summaries
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Late
+                  submission threading
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>User
+                  preference management
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Admin role
+                  management
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Multi-tenant
+                  organization support
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>PostgreSQL
+                  database with Prisma ORM
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>PM2
+                  process management
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Health
+                  check endpoint
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Comprehensive
+                  documentation
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-3">
+                <i class="fas fa-terminal mr-2"></i>Features & Commands
+              </h3>
+              <div class="grid md:grid-cols-2 gap-3 ml-4">
+                <div class="bg-gray-50 rounded-lg p-3">
+                  <code class="text-sm text-primary">/dd-team-create</code>
+                  <p class="text-xs text-gray-600 mt-1">Create new standup teams</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-3">
+                  <code class="text-sm text-primary">/dd-team-list</code>
+                  <p class="text-xs text-gray-600 mt-1">List all teams</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-3">
+                  <code class="text-sm text-primary">/dd-team-info</code>
+                  <p class="text-xs text-gray-600 mt-1">View team details</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-3">
+                  <code class="text-sm text-primary">/dd-team-update</code>
+                  <p class="text-xs text-gray-600 mt-1">Update team configuration</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-3">
+                  <code class="text-sm text-primary">/dd-standup-submit</code>
+                  <p class="text-xs text-gray-600 mt-1">Submit standup updates</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-3">
+                  <code class="text-sm text-primary">/dd-leave-add</code>
+                  <p class="text-xs text-gray-600 mt-1">Add leave periods</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Legend Section -->
+    <section class="py-12 bg-gray-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">
+          <i class="fas fa-tags mr-2"></i>Change Categories
+        </h2>
+        <div class="grid md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div class="bg-white rounded-lg p-4 text-center shadow">
+            <span class="badge badge-added">Added</span>
+            <p class="text-sm text-gray-600 mt-2">New features</p>
+          </div>
+          <div class="bg-white rounded-lg p-4 text-center shadow">
+            <span class="badge badge-changed">Changed</span>
+            <p class="text-sm text-gray-600 mt-2">Changes in functionality</p>
+          </div>
+          <div class="bg-white rounded-lg p-4 text-center shadow">
+            <span class="badge badge-deprecated">Deprecated</span>
+            <p class="text-sm text-gray-600 mt-2">Soon-to-be removed</p>
+          </div>
+          <div class="bg-white rounded-lg p-4 text-center shadow">
+            <span class="badge badge-removed">Removed</span>
+            <p class="text-sm text-gray-600 mt-2">Removed features</p>
+          </div>
+          <div class="bg-white rounded-lg p-4 text-center shadow">
+            <span class="badge badge-fixed">Fixed</span>
+            <p class="text-sm text-gray-600 mt-2">Bug fixes</p>
+          </div>
+          <div class="bg-white rounded-lg p-4 text-center shadow">
+            <span class="badge badge-security">Security</span>
+            <p class="text-sm text-gray-600 mt-2">Security patches</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black py-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-4 gap-8">
+          <div class="col-span-2">
+            <div class="flex items-center space-x-3 mb-4">
+              <img src="/logo.png" alt="Daily Dose Logo" class="h-8 w-8" />
+              <span class="text-xl font-bold text-white">Daily Dose</span>
+            </div>
+            <p class="text-gray-400 max-w-md">
+              Automate your team's daily standups with intelligence and style.
+              Save time, improve communication, boost productivity.
+            </p>
+          </div>
+
+          <div>
+            <h4 class="text-white font-semibold mb-4">Product</h4>
+            <ul class="space-y-2">
+              <li>
+                <a
+                  href="/"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Home</a
+                >
+              </li>
+              <li>
+                <a
+                  href="/#features"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Features</a
+                >
+              </li>
+              <li>
+                <a
+                  href="/#how-it-works"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >How It Works</a
+                >
+              </li>
+              <li>
+                <a
+                  href="/changelog"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Changelog</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 class="text-white font-semibold mb-4">Support</h4>
+            <ul class="space-y-2">
+              <li>
+                <a
+                  href="mailto:support@dailydose.bot"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Contact Support</a
+                >
+              </li>
+              <li>
+                <a
+                  href="/docs"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Documentation</a
+                >
+              </li>
+              <li>
+                <a
+                  href="/scripts-docs"
+                  class="text-gray-400 hover:text-white transition-colors"
+                >
+                  <i class="fas fa-lock text-xs mr-1"></i>Scripts Admin
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/health"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Service Status</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-800 mt-8 pt-8 text-center">
+          <p class="text-gray-400">
+            © 2024 Daily Dose. Made with ❤️ for productive teams everywhere.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+      // Mobile menu toggle
+      const mobileMenuButton = document.getElementById("mobile-menu-button");
+      const mobileMenu = document.getElementById("mobile-menu");
+
+      mobileMenuButton.addEventListener("click", () => {
+        mobileMenu.classList.toggle("hidden");
+      });
+
+      // Smooth scroll for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute("href"));
+          if (target) {
+            target.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

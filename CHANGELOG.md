@@ -5,9 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.2] - 2025-11-02
 
 ### Added
+
 - Git-based package versioning with SemVer policy
 - Automated deployment on version tag push
 - Version management scripts (patch, minor, major)
@@ -16,12 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CHANGELOG.md for tracking version history
 
 ### Changed
+
 - Standup posting logic to skip when no eligible members exist
 - Standup messages exclude mention=off members from display
 
 ## [1.0.0] - 2025-11-02
 
 ### Added
+
 - Initial release of Daily Dose Slack bot
 - Automated daily standup reminders
 - Team management commands
@@ -40,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive documentation
 
 ### Features
+
 - `/dd-team-create` - Create new standup teams
 - `/dd-team-list` - List all teams
 - `/dd-team-info` - View team details
