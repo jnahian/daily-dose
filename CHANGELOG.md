@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2025-01-02
+
 ### Added
 
 - Admin leave management commands for team admins
@@ -20,11 +22,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Smart team detection for single-team admins
 - Comprehensive permission checks for admin leave operations
 - Admin leave management documentation in README
+- Slack app manifest auto-update during deployment
+- Release workflow separating version bump from tag creation
 
 ### Changed
 
 - Leave management section in README reorganized to separate personal vs admin commands
 - Slack manifest updated with new admin leave commands
+- Version commands now only bump version without creating tags
+- Release command creates tags and triggers deployment
+- Manifest update script always uses `SLACK_APP_ID` from environment
 
 ## [1.0.2] - 2025-11-02
 
@@ -116,5 +123,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/jnahian/daily-dose/compare/v1.0.2...v1.1.0
+[1.0.2]: https://github.com/jnahian/daily-dose/compare/v1.0.0...v1.0.2
 [1.0.0]: https://github.com/jnahian/daily-dose/releases/tag/v1.0.0

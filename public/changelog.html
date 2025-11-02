@@ -255,7 +255,7 @@
     <!-- Changelog Versions -->
     <section class="py-16">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Unreleased -->
+        <!-- Version 1.1.0 -->
         <div
           class="version-card bg-white rounded-xl shadow-lg p-8 mb-8 glow-effect border-2 border-primary"
         >
@@ -264,11 +264,11 @@
               <div
                 class="bg-gradient-to-r from-primary to-secondary text-white px-4 py-2 rounded-lg font-bold text-xl"
               >
-                Unreleased
+                v1.1.0
               </div>
-              <span class="text-gray-500 text-sm">In Development</span>
+              <span class="text-gray-500 text-sm">2025-01-02</span>
             </div>
-            <span class="badge bg-yellow-100 text-yellow-800">Next Release</span>
+            <span class="badge bg-green-100 text-green-800">Latest Release</span>
           </div>
 
           <div class="space-y-6">
@@ -321,6 +321,14 @@
                   <i class="fas fa-check-circle text-green-600 mr-2"></i
                   >Admin leave management documentation in README
                 </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i
+                  >Slack app manifest auto-update during deployment
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i
+                  >Release workflow separating version bump from tag creation
+                </li>
               </ul>
             </div>
 
@@ -334,6 +342,15 @@
                 </li>
                 <li class="text-gray-700">
                   <i class="fas fa-sync-alt text-blue-600 mr-2"></i>Slack manifest updated with new admin leave commands
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-sync-alt text-blue-600 mr-2"></i>Version commands now only bump version without creating tags
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-sync-alt text-blue-600 mr-2"></i>Release command creates tags and triggers deployment
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-sync-alt text-blue-600 mr-2"></i>Manifest update script always uses <code class="text-xs bg-gray-100 px-1 py-0.5 rounded">SLACK_APP_ID</code> from environment
                 </li>
               </ul>
             </div>
@@ -353,7 +370,7 @@
               </div>
               <span class="text-gray-500 text-sm">2025-11-02</span>
             </div>
-            <span class="badge bg-green-100 text-green-800">Latest Release</span>
+            <span class="badge bg-blue-100 text-blue-800">Previous Release</span>
           </div>
 
           <div class="space-y-6">

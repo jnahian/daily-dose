@@ -171,21 +171,32 @@ jobs:
         id: changelog
         run: |
           TAG_NAME=${{ steps.version.outputs.tag }}
+          VERSION=${{ steps.version.outputs.version }}
 
           if [ -f CHANGELOG.md ]; then
             # Extract changelog section for this version
-            CHANGELOG=$(sed -n "/## \[${{ steps.version.outputs.version }}\]/,/## \[/p" CHANGELOG.md | sed '$d')
+            # Match the version heading and extract content until the next version heading
+            CHANGELOG=$(awk "/## \[$VERSION\]/{flag=1; next} /## \[/{flag=0} flag" CHANGELOG.md)
 
             if [ -z "$CHANGELOG" ]; then
-              CHANGELOG="Release $TAG_NAME"
+              echo "⚠️ No changelog entry found for version $VERSION"
+              CHANGELOG="## Release $TAG_NAME\n\nNo changelog entry found. Please update CHANGELOG.md."
+            else
+              # Add version header to the changelog
+              CHANGELOG="## Release $TAG_NAME\n\n$CHANGELOG"
             fi
           else
-            CHANGELOG="Release $TAG_NAME"
+            echo "⚠️ CHANGELOG.md not found"
+            CHANGELOG="## Release $TAG_NAME\n\nNo changelog available."
           fi
 
           # Write to output file to handle multiline
-          echo "$CHANGELOG" > /tmp/changelog.txt
+          echo -e "$CHANGELOG" > /tmp/changelog.txt
           echo "changelog_file=/tmp/changelog.txt" >> $GITHUB_OUTPUT
+
+          # Display what was extracted for debugging
+          echo "📋 Extracted changelog:"
+          cat /tmp/changelog.txt
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
