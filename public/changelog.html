@@ -255,9 +255,94 @@
     <!-- Changelog Versions -->
     <section class="py-16">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Version 1.0.2 -->
+        <!-- Unreleased -->
         <div
           class="version-card bg-white rounded-xl shadow-lg p-8 mb-8 glow-effect border-2 border-primary"
+        >
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-4">
+              <div
+                class="bg-gradient-to-r from-primary to-secondary text-white px-4 py-2 rounded-lg font-bold text-xl"
+              >
+                Unreleased
+              </div>
+              <span class="text-gray-500 text-sm">In Development</span>
+            </div>
+            <span class="badge bg-yellow-100 text-yellow-800">Next Release</span>
+          </div>
+
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-3">
+                <span class="badge badge-added mr-2">Added</span>
+              </h3>
+              <ul class="space-y-2 ml-4">
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i
+                  >Admin leave management commands for team admins
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-terminal text-primary mr-2"></i
+                  ><code class="text-sm bg-gray-100 px-2 py-1 rounded">/dd-leave-set-member</code> - Set leave for any team member (admin only)
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-terminal text-primary mr-2"></i
+                  ><code class="text-sm bg-gray-100 px-2 py-1 rounded">/dd-leave-cancel-member</code> - Cancel team member's leave (admin only)
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-terminal text-primary mr-2"></i
+                  ><code class="text-sm bg-gray-100 px-2 py-1 rounded">/dd-leave-list-member</code> - List team member's upcoming leaves (admin only)
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i
+                  ><code class="text-xs">isTeamAdmin()</code> method in TeamService to check admin permissions
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i
+                  ><code class="text-xs">getUserTeams()</code> method in TeamService to get user's teams
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i
+                  ><code class="text-xs">setMemberLeave()</code>, <code class="text-xs">cancelMemberLeave()</code>, and <code class="text-xs">listMemberLeaves()</code> methods in UserService
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i
+                  >Support for @mentions in admin leave commands
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i
+                  >Smart team detection for single-team admins
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i
+                  >Comprehensive permission checks for admin leave operations
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i
+                  >Admin leave management documentation in README
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-3">
+                <span class="badge badge-changed mr-2">Changed</span>
+              </h3>
+              <ul class="space-y-2 ml-4">
+                <li class="text-gray-700">
+                  <i class="fas fa-sync-alt text-blue-600 mr-2"></i>Leave management section in README reorganized to separate personal vs admin commands
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-sync-alt text-blue-600 mr-2"></i>Slack manifest updated with new admin leave commands
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Version 1.0.2 -->
+        <div
+          class="version-card bg-white rounded-xl shadow-lg p-8 mb-8"
         >
           <div class="flex items-center justify-between mb-6">
             <div class="flex items-center space-x-4">
@@ -268,7 +353,7 @@
               </div>
               <span class="text-gray-500 text-sm">2025-11-02</span>
             </div>
-            <span class="badge bg-green-100 text-green-800">Latest</span>
+            <span class="badge bg-green-100 text-green-800">Latest Release</span>
           </div>
 
           <div class="space-y-6">
