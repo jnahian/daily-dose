@@ -8,6 +8,14 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon --ignore 'logs/' --ignore 'temp/' src/app.js",
+    "dev:bot": "nodemon --ignore 'logs/' --ignore 'temp/' src/app.js",
+    "dev:web": "cd web && npm run dev",
+    "dev:all": "concurrently \"npm run dev:bot\" \"npm run dev:web\"",
+    "build:web": "cd web && npm run build",
+    "start:web": "cd web && npm run start",
+    "start:all": "pm2 start ecosystem.config.js",
+    "stop:all": "pm2 stop ecosystem.config.js",
+    "restart:all": "pm2 restart ecosystem.config.js",
     "seed": "node scripts/seedOrg.js",
     "manifest:create": "node scripts/updateSlackManifest.js --create",
     "manifest:update": "node scripts/updateSlackManifest.js",
@@ -44,6 +52,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
+    "concurrently": "^9.2.1",
     "eslint": "^9.34.0",
     "nodemon": "^3.1.10",
     "prisma": "^6.15.0",
