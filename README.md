@@ -684,6 +684,73 @@ SENTRY_DSN=https://your-sentry-dsn       # Sentry error tracking (optional)
 - **Web Server**: Express.js with static file serving and authentication
 - **Environment**: Requires proper environment variables for Slack integration and authentication
 
+## 🔖 Versioning and Releases
+
+Daily Dose follows [Semantic Versioning (SemVer)](https://semver.org/) with automated deployments on version tag pushes.
+
+### Version Format
+
+```
+v1.2.3
+│ │ │
+│ │ └─ PATCH: Bug fixes, minor improvements
+│ └─── MINOR: New features, backwards-compatible changes
+└───── MAJOR: Breaking changes, incompatible API changes
+```
+
+### Creating a Release
+
+For maintainers, create a new release using npm scripts:
+
+```bash
+# For bug fixes (1.0.0 → 1.0.1)
+npm run version:patch
+
+# For new features (1.0.0 → 1.1.0)
+npm run version:minor
+
+# For breaking changes (1.0.0 → 2.0.0)
+npm run version:major
+```
+
+### What Happens Automatically
+
+1. ✅ **Pre-version checks**: Validates git state and branch
+2. 📝 **Updates version**: Bumps version in package.json
+3. 🏷️ **Creates tag**: Tags commit with version (e.g., v1.2.3)
+4. 🚀 **Pushes changes**: Pushes commit and tag to remote
+5. ⚡ **Triggers deployment**: GitHub Actions deploys to production
+6. 📋 **Creates release**: Generates GitHub release with notes
+
+### Deployment Workflow
+
+When a version tag is pushed (e.g., `v1.2.3`):
+
+1. **Validation**: Verifies SemVer format and version match
+2. **Deploy**: Deploys to production VPS via SSH
+3. **Health Check**: Verifies application is running
+4. **Release Notes**: Creates GitHub release with changelog
+5. **Notification**: Provides deployment summary
+
+### Version Management Commands
+
+```bash
+# Check version and git status
+npm run version:check
+
+# View current version
+node -p "require('./package.json').version"
+
+# View version history
+git tag --list
+```
+
+### Documentation
+
+- **Changelog**: See [CHANGELOG.md](CHANGELOG.md) for version history
+- **Versioning Guide**: See [docs/VERSIONING.md](docs/VERSIONING.md) for detailed process
+- **Releases**: View on [GitHub Releases](https://github.com/jnahian/daily-dose/releases)
+
 ---
 
 For technical setup and administration, see the [Complete Implementation Guide](docs/daily-dose-complete-guide.md).

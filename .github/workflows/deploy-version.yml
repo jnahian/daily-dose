@@ -1,0 +1,233 @@
+name: Deploy Version Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  validate:
+    name: Validate Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Validate tag format
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          if [[ ! $TAG_NAME =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid tag format: $TAG_NAME"
+            echo "Expected format: v*.*.* (e.g., v1.2.3)"
+            exit 1
+          fi
+          echo "✅ Valid SemVer tag: $TAG_NAME"
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG_NAME#v}
+          echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Verify package.json version matches tag
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          TAG_VERSION="${{ steps.version.outputs.version }}"
+
+          if [ "$PACKAGE_VERSION" != "$TAG_VERSION" ]; then
+            echo "❌ Version mismatch!"
+            echo "package.json version: $PACKAGE_VERSION"
+            echo "Git tag version: $TAG_VERSION"
+            exit 1
+          fi
+
+          echo "✅ Versions match: $PACKAGE_VERSION"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: validate
+    environment:
+      name: production
+      url: http://${{ secrets.VPS_HOST }}:${{ secrets.APP_PORT }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version info
+        id: version
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG_NAME#v}
+          echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            set -e
+
+            echo "🚀 Deploying Daily Dose ${{ steps.version.outputs.tag }}..."
+
+            # Navigate to app directory
+            cd /var/www/html/daily-dose/
+
+            # Stop the application
+            pm2 stop daily-dose || echo "App not running"
+
+            # Fetch all tags and checkout the specific version
+            git fetch --all --tags
+            git checkout tags/${{ steps.version.outputs.tag }} -b release-${{ steps.version.outputs.version }} || git checkout release-${{ steps.version.outputs.version }}
+
+            # Install dependencies
+            npm ci --production
+
+            # Generate Prisma client
+            npx prisma generate
+
+            # Run database migrations
+            npx prisma db push
+
+            # Start/restart the application with PM2
+            pm2 start ecosystem.config.js --env production || pm2 restart daily-dose
+
+            # Save PM2 configuration
+            pm2 save
+
+            echo "✅ Deployment of version ${{ steps.version.outputs.tag }} completed successfully!"
+
+  health-check:
+    name: Health Check
+    runs-on: ubuntu-latest
+    needs: deploy
+
+    steps:
+      - name: Wait for application startup
+        run: sleep 30
+
+      - name: Check application health
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.VPS_HOST }}:${{ secrets.APP_PORT }}/health || echo "000")
+          if [ "$response" = "200" ]; then
+            echo "✅ Application is healthy"
+          else
+            echo "❌ Health check failed with status: $response"
+            exit 1
+          fi
+
+      - name: Verify deployment
+        if: success()
+        run: |
+          echo "✅ Version ${{ needs.deploy.outputs.version }} deployed successfully!"
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [validate, deploy, health-check]
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version info
+        id: version
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG_NAME#v}
+          echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          TAG_NAME=${{ steps.version.outputs.tag }}
+
+          if [ -f CHANGELOG.md ]; then
+            # Extract changelog section for this version
+            CHANGELOG=$(sed -n "/## \[${{ steps.version.outputs.version }}\]/,/## \[/p" CHANGELOG.md | sed '$d')
+
+            if [ -z "$CHANGELOG" ]; then
+              CHANGELOG="Release $TAG_NAME"
+            fi
+          else
+            CHANGELOG="Release $TAG_NAME"
+          fi
+
+          # Write to output file to handle multiline
+          echo "$CHANGELOG" > /tmp/changelog.txt
+          echo "changelog_file=/tmp/changelog.txt" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          release_name: Release ${{ steps.version.outputs.tag }}
+          body_path: ${{ steps.changelog.outputs.changelog_file }}
+          draft: false
+          prerelease: false
+
+  notify:
+    name: Send Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [validate, deploy, health-check, create-release]
+    if: always()
+
+    steps:
+      - name: Determine deployment status
+        id: status
+        run: |
+          if [ "${{ needs.deploy.result }}" == "success" ] && [ "${{ needs.health-check.result }}" == "success" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "emoji=✅" >> $GITHUB_OUTPUT
+            echo "message=Deployment successful" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "emoji=❌" >> $GITHUB_OUTPUT
+            echo "message=Deployment failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Extract version info
+        id: version
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+
+      - name: Deployment summary
+        run: |
+          echo "${{ steps.status.outputs.emoji }} Deployment Status: ${{ steps.status.outputs.message }}"
+          echo "Version: ${{ steps.version.outputs.tag }}"
+          echo "Environment: Production"
+          echo ""
+          echo "Job Results:"
+          echo "- Validate: ${{ needs.validate.result }}"
+          echo "- Deploy: ${{ needs.deploy.result }}"
+          echo "- Health Check: ${{ needs.health-check.result }}"
+          echo "- Create Release: ${{ needs.create-release.result }}"
