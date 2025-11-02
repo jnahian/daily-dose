@@ -3,7 +3,7 @@ name: Deploy Version Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
 
 jobs:
   validate:
@@ -65,7 +65,7 @@ jobs:
     needs: validate
     environment:
       name: production
-      url: http://${{ secrets.VPS_HOST }}:${{ secrets.APP_PORT }}
+      # url: http://${{ secrets.VPS_HOST }}:${{ secrets.APP_PORT }}
 
     steps:
       - name: Checkout code
