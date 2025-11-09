@@ -110,9 +110,32 @@ jobs:
             # Run database migrations
             npx prisma db push
 
-            # Update Slack app manifest
-            echo "📋 Updating Slack app manifest..."
-            node scripts/updateSlackManifest.js || echo "⚠️ Manifest update failed, continuing deployment..."
+            # Check if manifest-related files have changed
+            echo "🔍 Checking for manifest-related changes..."
+            PREV_TAG=$(git describe --tags --abbrev=0 ${{ steps.version.outputs.tag }}^ 2>/dev/null || echo "")
+
+            if [ -z "$PREV_TAG" ]; then
+              echo "No previous tag found, will update manifest"
+              MANIFEST_CHANGED=true
+            else
+              echo "Comparing changes between $PREV_TAG and ${{ steps.version.outputs.tag }}"
+              CHANGED_FILES=$(git diff --name-only $PREV_TAG ${{ steps.version.outputs.tag }} | grep -E '(src/commands/|scripts/updateSlackManifest\.js|src/app\.js)' || true)
+
+              if [ -n "$CHANGED_FILES" ]; then
+                echo "📋 Manifest-related files changed:"
+                echo "$CHANGED_FILES"
+                MANIFEST_CHANGED=true
+              else
+                echo "✅ No manifest-related changes detected, skipping manifest update"
+                MANIFEST_CHANGED=false
+              fi
+            fi
+
+            # Update Slack app manifest if needed
+            if [ "$MANIFEST_CHANGED" = true ]; then
+              echo "📋 Updating Slack app manifest..."
+              node scripts/updateSlackManifest.js || echo "⚠️ Manifest update failed, continuing deployment..."
+            fi
 
             # Start/restart the application with PM2
             pm2 start ecosystem.config.js --env production || pm2 restart daily-dose
