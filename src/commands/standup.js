@@ -2,13 +2,20 @@ const standupService = require("../services/standupService");
 const teamService = require("../services/teamService");
 const userService = require("../services/userService");
 const notificationService = require("../services/notificationService");
+const schedulerService = require("../services/schedulerService");
 const prisma = require("../config/prisma");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
 const { ackWithProcessing } = require("../utils/commandHelper");
-const { getUserMention } = require("../utils/userHelper");
+const { getUserMention, getUserLogIdentifier } = require("../utils/userHelper");
 const { extractRichTextValue } = require("../utils/messageHelper");
+const { canManageTeam, getUserBySlackId } = require("../utils/permissionHelper");
+const {
+  resolveTeamFromContext,
+  parseCommandArguments,
+  validateDateFormat,
+} = require("../utils/teamHelper");
 const {
   createStandupModal,
   createStandupUpdateModal,
@@ -16,6 +23,11 @@ const {
   createButton,
   createActionsBlock,
   createSectionBlock,
+  createCommandSuccessBlocks,
+  createCommandErrorBlocks,
+  createPermissionDeniedBlocks,
+  createStandupPreviewHeaderBlocks,
+  createNoDataBlocks,
 } = require("../utils/blockHelper");
 
 dayjs.extend(utc);
@@ -612,10 +624,509 @@ async function handleStandupUpdateSubmission({ ack, body, view, client }) {
   }
 }
 
+/**
+ * Admin/Owner command: Send standup reminders to team members
+ * Usage: /dd-standup-remind [team-name]
+ */
+async function sendReminders({ command, ack, respond, client }) {
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "Sending standup reminders...",
+    command
+  );
+
+  try {
+    // Get user from database
+    const user = await getUserBySlackId(command.user_id);
+    if (!user) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          "User not found. Please ensure you're registered in the system."
+        ),
+      });
+      return;
+    }
+
+    // Parse team name from command text
+    const teamName = command.text.trim() || null;
+
+    // Resolve team from context
+    const { team, error } = await resolveTeamFromContext(
+      command.channel_id,
+      teamName,
+      user.id
+    );
+
+    if (error || !team) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          error || "Team not found",
+          [
+            "Ensure you're in a team channel or provide a team name",
+            "Use `/dd-team-list` to see available teams",
+          ]
+        ),
+      });
+      return;
+    }
+
+    // Check permissions
+    const permission = await canManageTeam(user.id, team.id);
+    if (!permission.canManage) {
+      await updateResponse({
+        blocks: createPermissionDeniedBlocks(),
+      });
+      return;
+    }
+
+    // Initialize scheduler service and send reminders
+    await schedulerService.initialize(client);
+    await schedulerService.sendStandupReminders(team);
+
+    // Get count of active members for confirmation
+    const now = dayjs().tz(team.timezone);
+    const members = await standupService.getActiveMembers(team.id, now.toDate());
+
+    await updateResponse({
+      blocks: createCommandSuccessBlocks(
+        `Standup reminders sent for *${team.name}*`,
+        {
+          "Team": team.name,
+          "Members notified": members.length,
+          "Your role": permission.role,
+        }
+      ),
+    });
+
+    console.log(
+      `📧 ${getUserLogIdentifier(user)} sent standup reminders for team ${team.name} (${members.length} members)`
+    );
+  } catch (error) {
+    console.error("Error in sendReminders command:", error);
+    await updateResponse({
+      blocks: createCommandErrorBlocks(
+        `Failed to send reminders: ${error.message}`,
+        ["Check team configuration", "Verify bot permissions in team channel"]
+      ),
+    });
+  }
+}
+
+/**
+ * Admin/Owner command: Post standup summary to channel
+ * Usage: /dd-standup-post [date] [team-name]
+ */
+async function postStandup({ command, ack, respond, client }) {
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "Posting standup summary...",
+    command
+  );
+
+  try {
+    // Get user from database
+    const user = await getUserBySlackId(command.user_id);
+    if (!user) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          "User not found. Please ensure you're registered in the system."
+        ),
+      });
+      return;
+    }
+
+    // Parse command arguments (date and/or team name)
+    const { date: dateStr, teamName } = parseCommandArguments(command.text);
+
+    // Validate date format if provided
+    if (dateStr) {
+      const validation = validateDateFormat(dateStr);
+      if (!validation.isValid) {
+        await updateResponse({
+          blocks: createCommandErrorBlocks(validation.error, [
+            "Use format: YYYY-MM-DD (e.g., 2025-01-15)",
+          ]),
+        });
+        return;
+      }
+    }
+
+    // Resolve team from context
+    const { team, error } = await resolveTeamFromContext(
+      command.channel_id,
+      teamName,
+      user.id
+    );
+
+    if (error || !team) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          error || "Team not found",
+          [
+            "Ensure you're in a team channel or provide a team name",
+            "Use `/dd-team-list` to see available teams",
+          ]
+        ),
+      });
+      return;
+    }
+
+    // Check permissions
+    const permission = await canManageTeam(user.id, team.id);
+    if (!permission.canManage) {
+      await updateResponse({
+        blocks: createPermissionDeniedBlocks(),
+      });
+      return;
+    }
+
+    // Determine target date
+    const targetDate = dateStr
+      ? dayjs(dateStr).tz(team.timezone)
+      : dayjs().tz(team.timezone);
+
+    // Check if responses exist
+    const responses = await standupService.getTeamResponses(
+      team.id,
+      targetDate.toDate()
+    );
+    const lateResponses = await standupService.getLateResponses(
+      team.id,
+      targetDate.toDate()
+    );
+    const allMembers = await standupService.getActiveMembers(
+      team.id,
+      targetDate.toDate()
+    );
+
+    if (responses.length === 0 && lateResponses.length === 0) {
+      await updateResponse({
+        blocks: createNoDataBlocks(
+          "standup responses",
+          targetDate.format("MMM DD, YYYY")
+        ),
+      });
+      return;
+    }
+
+    // Post standup using service
+    const result = await standupService.postTeamStandup(
+      team,
+      targetDate.toDate(),
+      client
+    );
+
+    await updateResponse({
+      blocks: createCommandSuccessBlocks(
+        `Standup posted for *${team.name}*`,
+        {
+          "Date": targetDate.format("MMM DD, YYYY"),
+          "Responses": responses.length,
+          "Late responses": lateResponses.length,
+          "Message timestamp": result.ts,
+        }
+      ),
+    });
+
+    console.log(
+      `📊 ${getUserLogIdentifier(user)} posted standup for team ${team.name} (${targetDate.format("YYYY-MM-DD")})`
+    );
+  } catch (error) {
+    console.error("Error in postStandup command:", error);
+    await updateResponse({
+      blocks: createCommandErrorBlocks(
+        `Failed to post standup: ${error.message}`,
+        [
+          "Check if bot has access to team channel",
+          "Verify standup responses exist for the date",
+        ]
+      ),
+    });
+  }
+}
+
+/**
+ * Admin/Owner command: Preview standup summary
+ * Usage: /dd-standup-preview [date] [team-name]
+ */
+async function previewStandup({ command, ack, respond, client }) {
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "Generating standup preview...",
+    command
+  );
+
+  try {
+    // Get user from database
+    const user = await getUserBySlackId(command.user_id);
+    if (!user) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          "User not found. Please ensure you're registered in the system."
+        ),
+        response_type: "ephemeral",
+      });
+      return;
+    }
+
+    // Parse command arguments
+    const { date: dateStr, teamName } = parseCommandArguments(command.text);
+
+    // Validate date format if provided
+    if (dateStr) {
+      const validation = validateDateFormat(dateStr);
+      if (!validation.isValid) {
+        await updateResponse({
+          blocks: createCommandErrorBlocks(validation.error, [
+            "Use format: YYYY-MM-DD (e.g., 2025-01-15)",
+          ]),
+          response_type: "ephemeral",
+        });
+        return;
+      }
+    }
+
+    // Resolve team from context
+    const { team, error } = await resolveTeamFromContext(
+      command.channel_id,
+      teamName,
+      user.id
+    );
+
+    if (error || !team) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          error || "Team not found",
+          [
+            "Ensure you're in a team channel or provide a team name",
+            "Use `/dd-team-list` to see available teams",
+          ]
+        ),
+        response_type: "ephemeral",
+      });
+      return;
+    }
+
+    // Check permissions
+    const permission = await canManageTeam(user.id, team.id);
+    if (!permission.canManage) {
+      await updateResponse({
+        blocks: createPermissionDeniedBlocks(),
+        response_type: "ephemeral",
+      });
+      return;
+    }
+
+    // Determine target date
+    const targetDate = dateStr
+      ? dayjs(dateStr).tz(team.timezone)
+      : dayjs().tz(team.timezone);
+
+    // Get standup data
+    const responses = await standupService.getTeamResponses(
+      team.id,
+      targetDate.toDate()
+    );
+    const lateResponses = await standupService.getLateResponses(
+      team.id,
+      targetDate.toDate()
+    );
+    const allMembers = await standupService.getActiveMembers(
+      team.id,
+      targetDate.toDate()
+    );
+
+    // Get members on leave
+    const membersOnLeave = await prisma.teamMember.findMany({
+      where: {
+        teamId: team.id,
+        isActive: true,
+        user: {
+          leaves: {
+            some: {
+              startDate: { lte: targetDate.toDate() },
+              endDate: { gte: targetDate.toDate() },
+            },
+          },
+        },
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    // Calculate not submitted
+    const respondedUserIds = new Set(responses.map((r) => r.userId));
+    const leaveUserIds = new Set(membersOnLeave.map((m) => m.userId));
+
+    const notSubmitted = allMembers
+      .filter(
+        (m) => !respondedUserIds.has(m.userId) && !leaveUserIds.has(m.userId)
+      )
+      .map((m) => ({
+        slackUserId: m.user.slackUserId,
+        user: m.user,
+        onLeave: false,
+      }));
+
+    const onLeave = membersOnLeave.map((m) => ({
+      slackUserId: m.user.slackUserId,
+      user: m.user,
+      onLeave: true,
+    }));
+
+    if (responses.length === 0 && lateResponses.length === 0) {
+      await updateResponse({
+        blocks: createNoDataBlocks(
+          "standup responses",
+          targetDate.format("MMM DD, YYYY")
+        ),
+        response_type: "ephemeral",
+      });
+      return;
+    }
+
+    // Format message
+    const message = await standupService.formatStandupMessage(
+      responses,
+      notSubmitted,
+      onLeave,
+      targetDate
+    );
+
+    // Add preview header
+    const isToday = targetDate.isSame(dayjs(), "day");
+    const previewBlocks = [
+      ...createStandupPreviewHeaderBlocks(
+        team.name,
+        targetDate.format("MMM DD, YYYY"),
+        isToday
+      ),
+      ...message.blocks,
+    ];
+
+    await updateResponse({
+      blocks: previewBlocks,
+      response_type: "ephemeral",
+    });
+
+    console.log(
+      `🔍 ${getUserLogIdentifier(user)} previewed standup for team ${team.name} (${targetDate.format("YYYY-MM-DD")})`
+    );
+  } catch (error) {
+    console.error("Error in previewStandup command:", error);
+    await updateResponse({
+      blocks: createCommandErrorBlocks(
+        `Failed to generate preview: ${error.message}`
+      ),
+      response_type: "ephemeral",
+    });
+  }
+}
+
+/**
+ * Admin/Owner command: Send followup reminders to non-responders
+ * Usage: /dd-standup-followup [team-name]
+ */
+async function sendFollowupReminders({ command, ack, respond, client }) {
+  const updateResponse = ackWithProcessing(
+    ack,
+    respond,
+    "Sending followup reminders...",
+    command
+  );
+
+  try {
+    // Get user from database
+    const user = await getUserBySlackId(command.user_id);
+    if (!user) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          "User not found. Please ensure you're registered in the system."
+        ),
+      });
+      return;
+    }
+
+    // Parse team name from command text
+    const teamName = command.text.trim() || null;
+
+    // Resolve team from context
+    const { team, error } = await resolveTeamFromContext(
+      command.channel_id,
+      teamName,
+      user.id
+    );
+
+    if (error || !team) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          error || "Team not found",
+          [
+            "Ensure you're in a team channel or provide a team name",
+            "Use `/dd-team-list` to see available teams",
+          ]
+        ),
+      });
+      return;
+    }
+
+    // Check permissions
+    const permission = await canManageTeam(user.id, team.id);
+    if (!permission.canManage) {
+      await updateResponse({
+        blocks: createPermissionDeniedBlocks(),
+      });
+      return;
+    }
+
+    // Initialize scheduler service and send followup reminders
+    await schedulerService.initialize(client);
+    await schedulerService.sendFollowupReminders(team);
+
+    // Get count of pending members for confirmation
+    const now = dayjs().tz(team.timezone);
+    const allMembers = await standupService.getActiveMembers(team.id, now.toDate());
+    const responses = await standupService.getTeamResponses(team.id, now.toDate());
+    const respondedUserIds = new Set(responses.map((r) => r.userId));
+    const pendingCount = allMembers.filter((m) => !respondedUserIds.has(m.userId)).length;
+
+    await updateResponse({
+      blocks: createCommandSuccessBlocks(
+        `Followup reminders sent for *${team.name}*`,
+        {
+          "Team": team.name,
+          "Pending members": pendingCount,
+          "Your role": permission.role,
+        }
+      ),
+    });
+
+    console.log(
+      `🔔 ${getUserLogIdentifier(user)} sent followup reminders for team ${team.name} (${pendingCount} pending)`
+    );
+  } catch (error) {
+    console.error("Error in sendFollowupReminders command:", error);
+    await updateResponse({
+      blocks: createCommandErrorBlocks(
+        `Failed to send followup reminders: ${error.message}`,
+        ["Check team configuration", "Verify bot permissions"]
+      ),
+    });
+  }
+}
+
 module.exports = {
   submitManual,
   openStandupModal,
   handleStandupSubmission,
   updateStandup,
   handleStandupUpdateSubmission,
+  sendReminders,
+  postStandup,
+  previewStandup,
+  sendFollowupReminders,
 };

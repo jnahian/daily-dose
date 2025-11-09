@@ -470,6 +470,141 @@ function createStandupUpdateModal(teamName, teamId, today, standupDate, existing
   };
 }
 
+/**
+ * Create command success response blocks
+ * @param {string} message - Success message text
+ * @param {object} details - Optional details object with additional info
+ * @returns {Array<object>} Array of blocks for success response
+ */
+function createCommandSuccessBlocks(message, details = null) {
+  const blocks = [
+    createSectionBlock(`✅ ${message}`),
+  ];
+
+  if (details) {
+    const detailsText = Object.entries(details)
+      .map(([key, value]) => `• *${key}:* ${value}`)
+      .join("\n");
+
+    blocks.push({
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: detailsText,
+        },
+      ],
+    });
+  }
+
+  return blocks;
+}
+
+/**
+ * Create command error response blocks
+ * @param {string} message - Error message text
+ * @param {Array<string>} suggestions - Optional array of suggestion strings
+ * @returns {Array<object>} Array of blocks for error response
+ */
+function createCommandErrorBlocks(message, suggestions = null) {
+  const blocks = [
+    createSectionBlock(`❌ ${message}`),
+  ];
+
+  if (suggestions && suggestions.length > 0) {
+    const suggestionsText = suggestions
+      .map((s, i) => `${i + 1}. ${s}`)
+      .join("\n");
+
+    blocks.push(
+      createDividerBlock(),
+      createSectionBlock(`*💡 Suggestions:*\n${suggestionsText}`)
+    );
+  }
+
+  return blocks;
+}
+
+/**
+ * Create permission denied response blocks
+ * @param {string} requiredRole - The required role (ADMIN or OWNER)
+ * @returns {Array<object>} Array of blocks for permission denied response
+ */
+function createPermissionDeniedBlocks(requiredRole = "ADMIN") {
+  const roleText = requiredRole === "OWNER"
+    ? "organization owner"
+    : "team admin or organization owner";
+
+  return [
+    createSectionBlock(`❌ *Permission Denied*`),
+    createSectionBlock(`You need to be a ${roleText} to use this command.`),
+    {
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: "_Contact your team admin or organization owner for help._",
+        },
+      ],
+    },
+  ];
+}
+
+/**
+ * Create standup preview header blocks
+ * @param {string} teamName - Team name
+ * @param {string} date - Date string
+ * @param {boolean} isToday - Whether the preview is for today
+ * @returns {Array<object>} Array of blocks for preview header
+ */
+function createStandupPreviewHeaderBlocks(teamName, date, isToday = true) {
+  const dateLabel = isToday ? "Today" : date;
+
+  return [
+    {
+      type: "header",
+      text: {
+        type: "plain_text",
+        text: `🔍 Standup Preview - ${teamName}`,
+      },
+    },
+    createSectionBlock(`*📅 ${dateLabel}*`),
+    {
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: "_This is a preview. Use `/dd-standup-post` to publish this standup._",
+        },
+      ],
+    },
+    createDividerBlock(),
+  ];
+}
+
+/**
+ * Create no data available blocks
+ * @param {string} context - Context of what data is missing (e.g., "standup responses")
+ * @param {string} date - Optional date string
+ * @returns {Array<object>} Array of blocks for no data message
+ */
+function createNoDataBlocks(context = "data", date = null) {
+  const dateText = date ? ` for ${date}` : "";
+
+  return [
+    createSectionBlock(`⚠️ *No ${context} found${dateText}*`),
+    {
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: "_Team members haven't submitted any responses yet._",
+        },
+      ],
+    },
+  ];
+}
+
 module.exports = {
   createSectionBlock,
   createFieldsBlock,
@@ -488,4 +623,9 @@ module.exports = {
   createTeamSelectionBlocks,
   createErrorBlocks,
   createSuccessBlocks,
+  createCommandSuccessBlocks,
+  createCommandErrorBlocks,
+  createPermissionDeniedBlocks,
+  createStandupPreviewHeaderBlocks,
+  createNoDataBlocks,
 };
