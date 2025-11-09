@@ -121,6 +121,34 @@
                 "should_escape": false
             },
             {
+                "command": "/dd-standup-remind",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "Send standup reminders to team members (admin/owner)",
+                "usage_hint": "[team-name]",
+                "should_escape": false
+            },
+            {
+                "command": "/dd-standup-post",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "Post standup summary to channel (admin/owner)",
+                "usage_hint": "[YYYY-MM-DD] [team-name]",
+                "should_escape": false
+            },
+            {
+                "command": "/dd-standup-preview",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "Preview standup summary before posting (admin/owner)",
+                "usage_hint": "[YYYY-MM-DD] [team-name]",
+                "should_escape": false
+            },
+            {
+                "command": "/dd-standup-followup",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "Send followup reminders to non-responders (admin/owner)",
+                "usage_hint": "[team-name]",
+                "should_escape": false
+            },
+            {
                 "command": "/dd-holiday-set",
                 "url": "{{APP_URL}}/slack/events",
                 "description": "Set holidays for single day or date range (admin only)",

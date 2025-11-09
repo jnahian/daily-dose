@@ -157,6 +157,185 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
   - **Parameters**: At least one parameter required (mention=on/off controls visibility in "not responded" list, notify=on/off controls reminder notifications)
 - The bot also sends automatic DM reminders with interactive buttons
 
+### 🔧 Manual Standup Trigger Commands ⚠️ (Admin/Owner Only)
+
+These commands allow team admins and organization owners to manually trigger standup operations that are normally automated by the scheduler.
+
+**Permission Requirements:**
+- **Team Admins**: Can use commands in their team's channel without specifying team name
+- **Organization Owners**: Can use commands from any channel but must specify team name
+
+#### Command Overview
+
+- `/dd-standup-remind [team-name]` - Send standup reminders to team members ⚠️ **(admin/owner only)**
+- `/dd-standup-post [YYYY-MM-DD] [team-name]` - Post standup summary to channel ⚠️ **(admin/owner only)**
+- `/dd-standup-preview [YYYY-MM-DD] [team-name]` - Preview standup summary before posting ⚠️ **(admin/owner only)**
+- `/dd-standup-followup [team-name]` - Send followup reminders to non-responders ⚠️ **(admin/owner only)**
+
+#### Context-Aware Behavior
+
+**For Team Admins (in team channel):**
+```bash
+# Send reminders to all team members (uses current channel's team)
+/dd-standup-remind
+
+# Post today's standup summary (uses current channel's team)
+/dd-standup-post
+
+# Post standup summary for specific date (uses current channel's team)
+/dd-standup-post 2024-12-20
+
+# Preview today's standup (uses current channel's team)
+/dd-standup-preview
+
+# Preview standup for specific date (uses current channel's team)
+/dd-standup-preview 2024-12-20
+
+# Send followup reminders to members who haven't responded (uses current channel's team)
+/dd-standup-followup
+```
+
+**For Organization Owners (from any channel):**
+```bash
+# Send reminders to Engineering team members
+/dd-standup-remind Engineering
+
+# Post today's standup summary for Marketing team
+/dd-standup-post Marketing
+
+# Post standup summary for specific date for DevOps team
+/dd-standup-post 2024-12-20 DevOps
+
+# Preview today's standup for QA team
+/dd-standup-preview QA
+
+# Preview standup for specific date for Engineering team
+/dd-standup-preview 2024-12-20 Engineering
+
+# Send followup reminders to Engineering team non-responders
+/dd-standup-followup Engineering
+```
+
+#### Detailed Command Documentation
+
+**Standup Remind** - `/dd-standup-remind [team-name]`
+- **Purpose**: Manually send standup reminders to all eligible team members
+- **Who receives reminders**: Active team members who are not on leave, not on holidays, and have notifications enabled
+- **Context-aware**:
+  - Admins in team channel: `/dd-standup-remind`
+  - Owners from anywhere: `/dd-standup-remind Engineering`
+- **Use cases**:
+  - Send early reminders before the scheduled time
+  - Send additional reminders if team members forgot
+  - Test reminder functionality for new teams
+
+**Standup Post** - `/dd-standup-post [YYYY-MM-DD] [team-name]`
+- **Purpose**: Manually post standup summary to the team channel
+- **Date format**: YYYY-MM-DD (e.g., 2024-12-20)
+- **Default**: Posts today's standup if no date specified
+- **Context-aware**:
+  - Admins in team channel: `/dd-standup-post` or `/dd-standup-post 2024-12-20`
+  - Owners from anywhere: `/dd-standup-post Engineering` or `/dd-standup-post 2024-12-20 Engineering`
+- **Use cases**:
+  - Post summary early before scheduled posting time
+  - Re-post summary if original was deleted
+  - Post past standup summaries that were missed
+
+**Standup Preview** - `/dd-standup-preview [YYYY-MM-DD] [team-name]`
+- **Purpose**: Preview standup summary before posting to channel (ephemeral message)
+- **Date format**: YYYY-MM-DD (e.g., 2024-12-20)
+- **Default**: Previews today's standup if no date specified
+- **Visibility**: Only visible to you (ephemeral)
+- **Context-aware**:
+  - Admins in team channel: `/dd-standup-preview` or `/dd-standup-preview 2024-12-20`
+  - Owners from anywhere: `/dd-standup-preview Engineering` or `/dd-standup-preview 2024-12-20 Engineering`
+- **Use cases**:
+  - Check what the summary looks like before posting
+  - Verify all expected submissions are included
+  - Review standup data without posting to channel
+
+**Standup Followup** - `/dd-standup-followup [team-name]`
+- **Purpose**: Send followup reminders to team members who haven't submitted today's standup
+- **Who receives**: Active team members who haven't submitted and have notifications enabled
+- **Context-aware**:
+  - Admins in team channel: `/dd-standup-followup`
+  - Owners from anywhere: `/dd-standup-followup Engineering`
+- **Use cases**:
+  - Gentle reminder for team members who missed the initial reminder
+  - Follow up before posting time if participation is low
+  - Encourage last-minute submissions
+
+#### Permission Errors
+
+```bash
+# Error: Not an admin or owner
+/dd-standup-remind
+# Response: "❌ You must be a team admin or organization owner to trigger standup reminders"
+
+# Error: Admin trying to use command outside team channel without team name
+/dd-standup-remind
+# Response: "❌ No team found in this channel. As an admin, please run this command from your team's channel, or provide the team name if you're an owner"
+
+# Error: Team doesn't exist
+/dd-standup-remind NonexistentTeam
+# Response: "❌ Team 'NonexistentTeam' not found"
+
+# Error: Invalid date format
+/dd-standup-post 12-20-2024 Engineering
+# Response: "❌ Invalid date format. Use YYYY-MM-DD (e.g., 2024-12-20)"
+```
+
+#### Example Workflows
+
+**Scenario 1: Admin sending early reminder**
+```bash
+# Admin in #engineering channel wants to send reminder at 9:00 instead of scheduled 9:30
+/dd-standup-remind
+# Response: "✅ Standup reminders sent to 5 team members for Engineering team"
+```
+
+**Scenario 2: Owner posting multiple team summaries**
+```bash
+# Owner from #general channel posts summaries for multiple teams
+/dd-standup-post Engineering
+/dd-standup-post Marketing
+/dd-standup-post DevOps
+# Each team's summary posted to their respective channels
+```
+
+**Scenario 3: Preview before posting**
+```bash
+# Admin wants to check standup participation before posting
+/dd-standup-preview
+# Reviews the preview (only visible to admin)
+# If satisfied, posts the summary
+/dd-standup-post
+# Response: "✅ Standup summary posted to #engineering"
+```
+
+**Scenario 4: Following up on low participation**
+```bash
+# Admin checks preview at 9:45 (posting time is 10:00)
+/dd-standup-preview
+# Sees only 2 out of 8 members responded
+# Sends followup reminder
+/dd-standup-followup
+# Response: "✅ Followup reminders sent to 6 team members who haven't submitted"
+# Waits a few minutes and checks again
+/dd-standup-preview
+# Now 6 out of 8 members responded, posts summary
+/dd-standup-post
+```
+
+**Scenario 5: Posting historical standup**
+```bash
+# Owner realizes yesterday's standup wasn't posted
+/dd-standup-preview 2024-12-19 Engineering
+# Reviews yesterday's submissions
+/dd-standup-post 2024-12-19 Engineering
+# Response: "✅ Standup summary posted to #engineering for 2024-12-19"
+```
+
 ### 👥 Team Management
 
 - `/dd-team-list` - List all teams in your organization with detailed timing information

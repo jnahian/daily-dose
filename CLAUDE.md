@@ -36,7 +36,7 @@ Daily Dose is a Slack bot that automates daily standup meetings for teams. Built
 - **Entry Point**: `src/app.js` - Main application file with Slack Bolt setup
 - **Commands**: `src/commands/` - Slack slash command handlers (team, leave, standup)
 - **Services**: `src/services/` - Business logic (scheduler, standup, team, user)
-- **Utilities**: `src/utils/` - Helper functions (date, message, command, user, logger)
+- **Utilities**: `src/utils/` - Helper functions (date, message, command, user, logger, permission, team)
 - **Database**: Prisma ORM with PostgreSQL via Supabase
 
 ### Key Services
@@ -86,6 +86,27 @@ Uses node-cron for:
 4. Responses collected via interactive modals
 5. Summary posted to team channel at posting time
 6. Late submissions added as thread replies
+
+### Permission System
+The application implements a role-based permission system for administrative commands:
+- **Organization Owners**: Users who created the organization (have access to all teams)
+- **Team Admins**: Members with ADMIN role in TeamMember table (can manage specific teams)
+- **Permission Helper** (`src/utils/permissionHelper.js`): Provides functions to check user roles
+- **Context-Aware Commands**: Automatically resolve team from channel for admins, require explicit team name for owners
+
+### Manual Standup Trigger Commands (Admin/Owner)
+Four new slash commands allow manual control of automated standup operations:
+- `/dd-standup-remind [team-name]` - Manually send standup reminders to all active team members
+- `/dd-standup-post [date] [team-name]` - Post standup summary for any date (includes late responses)
+- `/dd-standup-preview [date] [team-name]` - Preview standup summary as ephemeral message before posting
+- `/dd-standup-followup [team-name]` - Send followup reminders to members who haven't responded
+
+**Implementation Details:**
+- Commands use context-aware team resolution via `teamHelper.js`
+- Admins can run commands in team channel without team name
+- Owners must specify team name when running from any location
+- Date parsing supports optional YYYY-MM-DD format for historical standups
+- All commands integrated with existing `schedulerService` and `standupService` logic
 
 ### Testing Approach
 No automated tests currently configured - manual testing via Slack interactions and script execution.

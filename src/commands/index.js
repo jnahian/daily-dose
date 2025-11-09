@@ -10,6 +10,12 @@ function setupCommands(app) {
   app.command("/dd-standup", stripFormatting(), standupCommands.submitManual);
   app.command("/dd-standup-update", stripFormatting(), standupCommands.updateStandup);
 
+  // Admin/Owner standup management commands - wrapped with formatting removal middleware
+  app.command("/dd-standup-remind", stripFormatting(), standupCommands.sendReminders);
+  app.command("/dd-standup-post", stripFormatting(), standupCommands.postStandup);
+  app.command("/dd-standup-preview", stripFormatting(), standupCommands.previewStandup);
+  app.command("/dd-standup-followup", stripFormatting(), standupCommands.sendFollowupReminders);
+
   // Team management commands - wrapped with formatting removal middleware
   app.command("/dd-team-list", stripFormatting(), teamCommands.listTeams);
   app.command("/dd-team-join", stripFormatting(), teamCommands.joinTeam);

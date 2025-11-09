@@ -255,7 +255,7 @@
     <!-- Changelog Versions -->
     <section class="py-16">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Version 1.2.0 -->
+        <!-- Version 1.3.0 -->
         <div
           class="version-card bg-white rounded-xl shadow-lg p-8 mb-8 glow-effect border-2 border-primary"
         >
@@ -264,11 +264,101 @@
               <div
                 class="bg-gradient-to-r from-primary to-secondary text-white px-4 py-2 rounded-lg font-bold text-xl"
               >
-                v1.2.0
+                v1.3.0
               </div>
               <span class="text-gray-500 text-sm">2025-01-09</span>
             </div>
             <span class="badge bg-green-100 text-green-800">Latest Release</span>
+          </div>
+
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-3">
+                <span class="badge badge-added mr-2">Added</span>
+              </h3>
+              <ul class="space-y-2 ml-4">
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Manual standup trigger commands for admins and organization owners
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-terminal text-primary mr-2"></i><code class="text-sm bg-gray-100 px-2 py-1 rounded">/dd-standup-remind [team-name]</code> - Send standup reminders to team members
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-terminal text-primary mr-2"></i><code class="text-sm bg-gray-100 px-2 py-1 rounded">/dd-standup-post [YYYY-MM-DD] [team-name]</code> - Post standup summary for specific date
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-terminal text-primary mr-2"></i><code class="text-sm bg-gray-100 px-2 py-1 rounded">/dd-standup-preview [YYYY-MM-DD] [team-name]</code> - Preview standup summary (ephemeral)
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-terminal text-primary mr-2"></i><code class="text-sm bg-gray-100 px-2 py-1 rounded">/dd-standup-followup [team-name]</code> - Send followup reminders to non-responders
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Permission system with role-based access control
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-code text-primary mr-2"></i><code class="text-xs">permissionHelper.js</code> utility for checking Organization Owner and Team Admin roles
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-code text-primary mr-2"></i><code class="text-xs">isOrganizationOwner()</code>, <code class="text-xs">isTeamAdmin()</code>, and <code class="text-xs">canManageTeam()</code> functions
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Context-aware team resolution in <code class="text-xs">teamHelper.js</code>
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-user-shield text-primary mr-2"></i>Admins can run commands from team channel without specifying team name
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-crown text-amber-500 mr-2"></i>Owners must specify team name when running from any location
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-code text-primary mr-2"></i><code class="text-xs">resolveTeamFromContext()</code> function for automatic team detection
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-code text-primary mr-2"></i><code class="text-xs">parseCommandArguments()</code> for flexible date and team name parsing
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Block helper functions for formatted command responses
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-code text-primary mr-2"></i><code class="text-xs">createCommandSuccessBlocks()</code> - Success messages with details
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-code text-primary mr-2"></i><code class="text-xs">createCommandErrorBlocks()</code> - Error messages with suggestions
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-code text-primary mr-2"></i><code class="text-xs">createPermissionDeniedBlocks()</code> - Permission error messages
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-code text-primary mr-2"></i><code class="text-xs">createStandupPreviewHeaderBlocks()</code> - Preview header formatting
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-code text-primary mr-2"></i><code class="text-xs">createNoDataBlocks()</code> - No data available messages
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>Comprehensive audit logging for all admin actions
+                </li>
+                <li class="text-gray-700">
+                  <i class="fas fa-check-circle text-green-600 mr-2"></i>User stories and implementation plan documentation
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Version 1.2.0 -->
+        <div
+          class="version-card bg-white rounded-xl shadow-lg p-8 mb-8"
+        >
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-4">
+              <div
+                class="bg-gray-800 text-white px-4 py-2 rounded-lg font-bold text-xl"
+              >
+                v1.2.0
+              </div>
+              <span class="text-gray-500 text-sm">2025-01-09</span>
+            </div>
+            <span class="badge bg-blue-100 text-blue-800">Previous Release</span>
           </div>
 
           <div class="space-y-6">
