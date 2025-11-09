@@ -273,7 +273,7 @@ async function handleStandupSubmission({ ack, body, view, client }) {
       options: { isLate },
     });
 
-    // If late, add to existing standup post as thread
+    // If late, add to existing standup post as thread or create parent if doesn't exist
     if (isLate && team) {
       const standupPost = await standupService.getStandupPost(
         teamId,
@@ -281,6 +281,7 @@ async function handleStandupSubmission({ ack, body, view, client }) {
       );
 
       if (standupPost?.slackMessageTs) {
+        // Parent post exists - add as thread reply
         // Create a response object that matches the expected format
         const lateResponse = {
           user: {
@@ -303,6 +304,12 @@ async function handleStandupSubmission({ ack, body, view, client }) {
           text: `🕐 *Late Submission* of ${getUserMention(lateResponse.user)}`,
           ...message,
         });
+      } else {
+        // No parent post exists - create the full standup post (first late submission becomes parent)
+        console.log(
+          `📝 No parent standup post found for ${team.name}. Creating full standup post from late submission...`
+        );
+        await standupService.postStandupOnDemand(team, now.toDate(), { client });
       }
     }
   } catch (error) {
@@ -555,15 +562,16 @@ async function handleStandupUpdateSubmission({ ack, body, view, client }) {
       }
     });
 
-    // If this is an update for today and it's after posting time, post to thread
-    if (isUpdate && isLate && targetDate.isSame(dayjs(), 'day') && team) {
+    // If this is for today and it's after posting time, post to thread or create parent if doesn't exist
+    if (isLate && targetDate.isSame(dayjs(), 'day') && team) {
       const standupPost = await standupService.getStandupPost(
         teamId,
         targetDate.toDate()
       );
 
       if (standupPost?.slackMessageTs) {
-        const updateResponse = {
+        // Parent post exists - add as thread reply
+        const lateResponse = {
           user: {
             name: body.user.name || body.user.id,
             slackUserId: body.user.id,
@@ -574,16 +582,24 @@ async function handleStandupUpdateSubmission({ ack, body, view, client }) {
         };
 
         const message = await standupService.formatLateResponseMessage(
-          updateResponse
+          lateResponse
         );
 
         await client.chat.postMessage({
           channel: standupPost.channelId,
           thread_ts: standupPost.slackMessageTs,
           reply_broadcast: true,
-          text: `🔄 *Update* from ${getUserMention(updateResponse.user)}`,
+          text: isUpdate
+            ? `🔄 *Update* from ${getUserMention(lateResponse.user)}`
+            : `🕐 *Late Submission* from ${getUserMention(lateResponse.user)}`,
           ...message,
         });
+      } else {
+        // No parent post exists - create the full standup post
+        console.log(
+          `📝 No parent standup post found for ${team.name}. Creating full standup post from late ${isUpdate ? 'update' : 'submission'}...`
+        );
+        await standupService.postStandupOnDemand(team, targetDate.toDate(), { client });
       }
     }
   } catch (error) {

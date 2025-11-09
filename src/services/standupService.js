@@ -465,6 +465,106 @@ class StandupService {
     }
   }
 
+  async postStandupOnDemand(team, date, slackApp) {
+    try {
+      const targetDate = dayjs(date).tz(team.timezone);
+
+      // Get all responses for this date (both late and on-time)
+      const allResponses = await prisma.standupResponse.findMany({
+        where: {
+          teamId: team.id,
+          standupDate: {
+            gte: targetDate.startOf("day").toDate(),
+            lte: targetDate.endOf("day").toDate(),
+          },
+        },
+        include: {
+          user: true,
+        },
+        orderBy: {
+          submittedAt: "asc",
+        },
+      });
+
+      const allMembers = await this.getActiveMembers(team.id, targetDate.toDate());
+
+      // Get members on leave
+      const membersOnLeave = await prisma.teamMember.findMany({
+        where: {
+          teamId: team.id,
+          isActive: true,
+          user: {
+            leaves: {
+              some: {
+                startDate: { lte: targetDate.toDate() },
+                endDate: { gte: targetDate.toDate() },
+              },
+            },
+          },
+        },
+        include: {
+          user: true,
+        },
+      });
+
+      const respondedUserIds = new Set(allResponses.map((r) => r.userId));
+      const leaveUserIds = new Set(membersOnLeave.map((m) => m.userId));
+
+      // Calculate not submitted (exclude admins and those who opted out)
+      const notSubmitted = allMembers
+        .filter(
+          (m) => !respondedUserIds.has(m.userId) &&
+                 !leaveUserIds.has(m.userId) &&
+                 m.role !== 'ADMIN' &&
+                 !m.hideFromNotResponded
+        )
+        .map((m) => ({
+          slackUserId: m.user.slackUserId,
+          user: m.user,
+          onLeave: false,
+        }));
+
+      // Format on-leave members
+      const onLeave = membersOnLeave.map((m) => ({
+        slackUserId: m.user.slackUserId,
+        user: m.user,
+        onLeave: true,
+      }));
+
+      // Format and post message
+      const message = await this.formatStandupMessage(
+        allResponses,
+        notSubmitted,
+        onLeave,
+        targetDate
+      );
+
+      console.log(`📤 Posting on-demand standup message for team ${team.name}...`);
+      const result = await slackApp.client.chat.postMessage({
+        channel: team.slackChannelId,
+        ...message,
+      });
+
+      console.log(`✅ Message posted successfully with timestamp: ${result.ts}`);
+
+      // Save message timestamp for threading future late responses
+      await this.saveStandupPost(
+        team.id,
+        targetDate.toDate(),
+        result.ts,
+        team.slackChannelId
+      );
+
+      return result;
+    } catch (error) {
+      console.error(
+        `❌ Failed to post on-demand standup for team ${team.name}:`,
+        error
+      );
+      throw error;
+    }
+  }
+
   async postLateResponses(team, date, slackApp) {
     try {
       // Get the standup post for threading
