@@ -53,8 +53,8 @@ async function isTeamAdmin(userId, teamId) {
 async function canManageTeam(userId, teamId) {
   try {
     // Get team with organization info
-    const team = await prisma.team.findUnique({
-      where: { id: teamId },
+    const team = await prisma.team.findFirst({
+      where: { id: teamId, isActive: true },
       select: { organizationId: true },
     });
 
