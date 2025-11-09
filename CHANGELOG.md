@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Manual standup trigger commands for admins and organization owners
+  - `/dd-standup-remind [team-name]` - Send standup reminders to team members
+  - `/dd-standup-post [YYYY-MM-DD] [team-name]` - Post standup summary for specific date
+  - `/dd-standup-preview [YYYY-MM-DD] [team-name]` - Preview standup summary (ephemeral)
+  - `/dd-standup-followup [team-name]` - Send followup reminders to non-responders
+- Permission system with role-based access control
+  - `permissionHelper.js` utility for checking Organization Owner and Team Admin roles
+  - `isOrganizationOwner()`, `isTeamAdmin()`, and `canManageTeam()` functions
+- Context-aware team resolution in `teamHelper.js`
+  - Admins can run commands from team channel without specifying team name
+  - Owners must specify team name when running from any location
+  - `resolveTeamFromContext()` function for automatic team detection
+  - `parseCommandArguments()` for flexible date and team name parsing
+- Block helper functions for formatted command responses
+  - `createCommandSuccessBlocks()` - Success messages with details
+  - `createCommandErrorBlocks()` - Error messages with suggestions
+  - `createPermissionDeniedBlocks()` - Permission error messages
+  - `createStandupPreviewHeaderBlocks()` - Preview header formatting
+  - `createNoDataBlocks()` - No data available messages
+- Comprehensive audit logging for all admin actions
+- User stories and implementation plan documentation
+
 ## [1.2.0] - 2025-01-09
 
 ### Changed

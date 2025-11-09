@@ -94,7 +94,9 @@ daily-dose/
 │   │   ├── commandHelper.js   # Command processing helpers
 │   │   ├── messageHelper.js   # Message formatting helpers
 │   │   ├── blockHelper.js     # Slack block UI helpers
-│   │   └── userHelper.js      # User data helpers
+│   │   ├── userHelper.js      # User data helpers
+│   │   ├── permissionHelper.js # Permission checking (Owner/Admin)
+│   │   └── teamHelper.js      # Team resolution and parsing
 │   └── scripts/
 │       ├── seedOrg.js         # Manual organization setup
 │       ├── updateSlackManifest.js # Slack manifest management
@@ -428,6 +430,12 @@ Add these Bot Token Scopes:
 **Standup Commands:**
 - `/dd-standup` - Submit standup manually
 - `/dd-standup-update` - Update standup for any day
+
+**Manual Standup Trigger Commands ⚠️ (Admin/Owner Only):**
+- `/dd-standup-remind [team-name]` - Send standup reminders to team members ⚠️ **(admin/owner only)**
+- `/dd-standup-post [YYYY-MM-DD] [team-name]` - Post standup summary to channel ⚠️ **(admin/owner only)**
+- `/dd-standup-preview [YYYY-MM-DD] [team-name]` - Preview standup summary before posting ⚠️ **(admin/owner only)**
+- `/dd-standup-followup [team-name]` - Send followup reminders to non-responders ⚠️ **(admin/owner only)**
 
 **Team Management Commands:**
 - `/dd-team-create` - Create a new team ⚠️ **(admin only)**
@@ -1557,6 +1565,12 @@ function setupCommands(app) {
   // Standup commands (primary functionality) - wrapped with formatting removal middleware
   app.command("/dd-standup", stripFormatting(), standupCommands.submitManual);
   app.command("/dd-standup-update", stripFormatting(), standupCommands.updateStandup);
+
+  // Admin/Owner standup management commands - wrapped with formatting removal middleware ⚠️ admin/owner only
+  app.command("/dd-standup-remind", stripFormatting(), standupCommands.sendReminders);
+  app.command("/dd-standup-post", stripFormatting(), standupCommands.postStandup);
+  app.command("/dd-standup-preview", stripFormatting(), standupCommands.previewStandup);
+  app.command("/dd-standup-followup", stripFormatting(), standupCommands.sendFollowupReminders);
 
   // Team management commands - wrapped with formatting removal middleware
   app.command("/dd-team-list", stripFormatting(), teamCommands.listTeams);
