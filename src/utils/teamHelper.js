@@ -18,14 +18,30 @@ async function resolveTeamFromContext(channelId = null, teamName = null, userId 
 
     // Priority 1: If team name is provided, search by name
     if (teamName && teamName.trim()) {
-      team = await prisma.team.findFirst({
-        where: {
-          name: {
-            equals: teamName.trim(),
-            mode: "insensitive",
-          },
-          isActive: true,
+      let organizationIdFilter = null;
+
+      if (userId) {
+        const requestingUser = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { organizationId: true },
+        });
+        organizationIdFilter = requestingUser?.organizationId ?? null;
+      }
+
+      const normalizedName = teamName.trim();
+      const nameLookup = {
+        name: {
+          equals: normalizedName,
+          mode: "insensitive",
         },
+        isActive: true,
+        ...(organizationIdFilter
+          ? { organizationId: organizationIdFilter }
+          : {}),
+      };
+
+      team = await prisma.team.findFirst({
+        where: nameLookup,
         include: {
           organization: true,
         },
@@ -40,7 +56,6 @@ async function resolveTeamFromContext(channelId = null, teamName = null, userId 
 
       return { team, error: null };
     }
-
     // Priority 2: If no team name, try to find by channel ID
     if (channelId) {
       team = await prisma.team.findFirst({
