@@ -117,7 +117,7 @@ async function getTeamsByOrganization(organizationId) {
  */
 async function getTeamById(teamId) {
   try {
-    const team = await prisma.team.findUnique({
+    const team = await prisma.team.findFirst({
       where: {
         id: teamId,
         isActive: true,
@@ -131,6 +131,8 @@ async function getTeamById(teamId) {
   } catch (error) {
     console.error("Error fetching team by ID:", error);
     return null;
+  }
+}
   }
 }
 
