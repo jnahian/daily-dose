@@ -255,7 +255,7 @@
     <!-- Changelog Versions -->
     <section class="py-16">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Version 1.1.0 -->
+        <!-- Version 1.2.0 -->
         <div
           class="version-card bg-white rounded-xl shadow-lg p-8 mb-8 glow-effect border-2 border-primary"
         >
@@ -264,11 +264,53 @@
               <div
                 class="bg-gradient-to-r from-primary to-secondary text-white px-4 py-2 rounded-lg font-bold text-xl"
               >
+                v1.2.0
+              </div>
+              <span class="text-gray-500 text-sm">2025-01-09</span>
+            </div>
+            <span class="badge bg-green-100 text-green-800">Latest Release</span>
+          </div>
+
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-3">
+                <span class="badge badge-changed mr-2">Changed</span>
+              </h3>
+              <ul class="space-y-2 ml-4">
+                <li class="text-gray-700">
+                  <i class="fas fa-sync-alt text-blue-600 mr-2"></i>Late standup submissions now create full standup posts when no parent message exists
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-check-circle text-blue-600 mr-2"></i>First late submission for the day creates a complete standup post with all sections
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-check-circle text-blue-600 mr-2"></i>Subsequent late submissions are added as threaded replies to the parent
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-check-circle text-blue-600 mr-2"></i>Applies to both <code class="text-sm bg-gray-100 px-2 py-1 rounded">/dd-standup</code> submissions and <code class="text-sm bg-gray-100 px-2 py-1 rounded">/dd-standup-update</code> updates
+                </li>
+                <li class="text-gray-700 ml-6">
+                  <i class="fas fa-code text-blue-600 mr-2"></i>New <code class="text-xs">postStandupOnDemand()</code> method in StandupService for on-demand standup post creation
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Version 1.1.0 -->
+        <div
+          class="version-card bg-white rounded-xl shadow-lg p-8 mb-8"
+        >
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-4">
+              <div
+                class="bg-gray-800 text-white px-4 py-2 rounded-lg font-bold text-xl"
+              >
                 v1.1.0
               </div>
               <span class="text-gray-500 text-sm">2025-01-02</span>
             </div>
-            <span class="badge bg-green-100 text-green-800">Latest Release</span>
+            <span class="badge bg-blue-100 text-blue-800">Previous Release</span>
           </div>
 
           <div class="space-y-6">

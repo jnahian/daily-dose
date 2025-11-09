@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2025-01-09
+
+### Changed
+
+- Late standup submissions now create full standup posts when no parent message exists
+  - First late submission for the day creates a complete standup post with all sections
+  - Subsequent late submissions are added as threaded replies to the parent
+  - Applies to both `/dd-standup` submissions and `/dd-standup-update` updates
+  - New `postStandupOnDemand()` method in StandupService for on-demand standup post creation
+
 ## [1.1.0] - 2025-01-02
 
 ### Added
@@ -123,7 +133,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/jnahian/daily-dose/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/jnahian/daily-dose/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/jnahian/daily-dose/compare/v1.0.0...v1.0.2
 [1.0.0]: https://github.com/jnahian/daily-dose/releases/tag/v1.0.0
