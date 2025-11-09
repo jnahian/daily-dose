@@ -922,6 +922,176 @@
                 </div>
               </div>
 
+              <div class="bg-white rounded-lg border p-6 border-l-4 border-l-amber-500">
+                <div class="flex items-center mb-4">
+                  <h3 class="font-semibold text-gray-900">
+                    Manual Standup Trigger Commands
+                  </h3>
+                  <span class="ml-3 px-3 py-1 bg-amber-100 text-amber-800 text-xs font-semibold rounded-full">
+                    ⚠️ ADMIN/OWNER ONLY
+                  </span>
+                </div>
+                <p class="text-gray-600 mb-4">
+                  Organization owners and team admins can manually trigger standup operations. These commands provide manual control over automated standup workflows while maintaining proper permission boundaries.
+                </p>
+
+                <!-- Remind Command -->
+                <div class="mb-6">
+                  <h4 class="font-semibold text-gray-800 mb-3">
+                    <i class="fas fa-bell text-amber-500 mr-2"></i>Send Standup Reminders
+                  </h4>
+                  <p class="text-sm text-gray-600 mb-3">
+                    Manually send standup reminders to all active team members who haven't submitted their standup yet.
+                  </p>
+                  <div class="space-y-2">
+                    <div class="code-block p-3 relative">
+                      <code class="text-amber-400">/dd-standup-remind</code>
+                      <span class="text-gray-400 ml-2"># Admin in team channel</span>
+                      <button
+                        class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs"
+                        onclick="copyToClipboard('/dd-standup-remind')"
+                      >
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>
+                    <div class="code-block p-3 relative">
+                      <code class="text-amber-400">/dd-standup-remind Engineering Team</code>
+                      <span class="text-gray-400 ml-2"># Owner specifies team</span>
+                      <button
+                        class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs"
+                        onclick="copyToClipboard('/dd-standup-remind Engineering Team')"
+                      >
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Post Command -->
+                <div class="mb-6">
+                  <h4 class="font-semibold text-gray-800 mb-3">
+                    <i class="fas fa-paper-plane text-amber-500 mr-2"></i>Post Standup Summary
+                  </h4>
+                  <p class="text-sm text-gray-600 mb-3">
+                    Manually post the standup summary to the team channel. Includes all responses and late submissions. Optional date parameter for historical standups.
+                  </p>
+                  <div class="space-y-2">
+                    <div class="code-block p-3 relative">
+                      <code class="text-amber-400">/dd-standup-post</code>
+                      <span class="text-gray-400 ml-2"># Post today's standup</span>
+                      <button
+                        class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs"
+                        onclick="copyToClipboard('/dd-standup-post')"
+                      >
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>
+                    <div class="code-block p-3 relative">
+                      <code class="text-amber-400">/dd-standup-post 2025-01-15</code>
+                      <span class="text-gray-400 ml-2"># Post specific date</span>
+                      <button
+                        class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs"
+                        onclick="copyToClipboard('/dd-standup-post 2025-01-15')"
+                      >
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>
+                    <div class="code-block p-3 relative">
+                      <code class="text-amber-400">/dd-standup-post Marketing Team</code>
+                      <span class="text-gray-400 ml-2"># Owner posts for team</span>
+                      <button
+                        class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs"
+                        onclick="copyToClipboard('/dd-standup-post Marketing Team')"
+                      >
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Preview Command -->
+                <div class="mb-6">
+                  <h4 class="font-semibold text-gray-800 mb-3">
+                    <i class="fas fa-eye text-amber-500 mr-2"></i>Preview Standup Summary
+                  </h4>
+                  <p class="text-sm text-gray-600 mb-3">
+                    Preview the standup summary as an ephemeral message (only visible to you) before posting it publicly.
+                  </p>
+                  <div class="space-y-2">
+                    <div class="code-block p-3 relative">
+                      <code class="text-amber-400">/dd-standup-preview</code>
+                      <span class="text-gray-400 ml-2"># Preview today's standup</span>
+                      <button
+                        class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs"
+                        onclick="copyToClipboard('/dd-standup-preview')"
+                      >
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>
+                    <div class="code-block p-3 relative">
+                      <code class="text-amber-400">/dd-standup-preview 2025-01-15</code>
+                      <span class="text-gray-400 ml-2"># Preview specific date</span>
+                      <button
+                        class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs"
+                        onclick="copyToClipboard('/dd-standup-preview 2025-01-15')"
+                      >
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Followup Command -->
+                <div class="mb-6">
+                  <h4 class="font-semibold text-gray-800 mb-3">
+                    <i class="fas fa-redo text-amber-500 mr-2"></i>Send Followup Reminders
+                  </h4>
+                  <p class="text-sm text-gray-600 mb-3">
+                    Send followup reminders to team members who haven't submitted their standup yet.
+                  </p>
+                  <div class="space-y-2">
+                    <div class="code-block p-3 relative">
+                      <code class="text-amber-400">/dd-standup-followup</code>
+                      <span class="text-gray-400 ml-2"># Admin in team channel</span>
+                      <button
+                        class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs"
+                        onclick="copyToClipboard('/dd-standup-followup')"
+                      >
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>
+                    <div class="code-block p-3 relative">
+                      <code class="text-amber-400">/dd-standup-followup Product Team</code>
+                      <span class="text-gray-400 ml-2"># Owner specifies team</span>
+                      <button
+                        class="copy-button absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs"
+                        onclick="copyToClipboard('/dd-standup-followup Product Team')"
+                      >
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Permission Info -->
+                <div class="bg-amber-50 border border-amber-200 rounded p-4">
+                  <h4 class="font-semibold text-amber-900 mb-2">
+                    <i class="fas fa-shield-alt mr-2"></i>Context-Aware Behavior:
+                  </h4>
+                  <ul class="text-sm text-amber-800 space-y-2">
+                    <li>
+                      <i class="fas fa-user-shield mr-2"></i><strong>Team Admins:</strong> Can run commands from their team's channel without specifying team name
+                    </li>
+                    <li>
+                      <i class="fas fa-crown mr-2"></i><strong>Organization Owners:</strong> Must specify team name when running from any channel
+                    </li>
+                    <li>
+                      <i class="fas fa-ban mr-2"></i><strong>Regular Members:</strong> Cannot use these commands (permission denied)
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
               <div class="bg-white rounded-lg border p-6">
                 <h3 class="font-semibold text-gray-900 mb-4">
                   Standup Reminder Preferences
