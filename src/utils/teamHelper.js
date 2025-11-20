@@ -148,8 +148,6 @@ async function getTeamById(teamId) {
     return null;
   }
 }
-  }
-}
 
 /**
  * Parse team name from command text
