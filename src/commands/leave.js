@@ -4,6 +4,7 @@ const prisma = require("../config/prisma");
 const dayjs = require("dayjs");
 const { ackWithProcessing } = require("../utils/commandHelper");
 const { createSectionBlock } = require("../utils/blockHelper");
+const permissionHelper = require("../utils/permissionHelper");
 
 async function setLeave({ command, ack, respond, client }) {
   const updateResponse = ackWithProcessing(
@@ -67,8 +68,8 @@ async function setLeave({ command, ack, respond, client }) {
     const dateText = startDate.isSame(endDate, "day")
       ? `on ${startDate.format("MMM DD, YYYY")}`
       : `from ${startDate.format("MMM DD, YYYY")} to ${endDate.format(
-          "MMM DD, YYYY"
-        )}`;
+        "MMM DD, YYYY"
+      )}`;
 
     await updateResponse({
       text: `✅ Leave set ${dateText}\nReason: ${reason}`,
@@ -148,9 +149,8 @@ async function listLeaves({ command, ack, respond, client }) {
         const endDate = dayjs(leave.endDate).format("MMM DD, YYYY");
         const dateRange =
           startDate === endDate ? startDate : `${startDate} - ${endDate}`;
-        return `- ${dateRange}: ${
-          leave.reason || "No reason"
-        } (ID: ${leave.id.slice(0, 8)})`;
+        return `- ${dateRange}: ${leave.reason || "No reason"
+          } (ID: ${leave.id.slice(0, 8)})`;
       })
       .join("\n");
 
@@ -349,49 +349,89 @@ async function setMemberLeave({ command, ack, respond, client }) {
       dateStartIndex = 2;
     }
 
-    // Get user's teams to verify admin access
-    const userTeams = await teamService.getUserTeams(command.user_id, client);
-
-    if (userTeams.length === 0) {
+    // Get user's organization
+    const userOrg = await userService.getUserOrganization(command.user_id);
+    if (!userOrg) {
       await updateResponse({
-        text: "❌ You must be a member of at least one team to set member leave",
+        text: "❌ You must belong to an organization to set member leave",
       });
       return;
     }
 
-    // Find the team to check admin permissions
+    // Find the team to check permissions
     let targetTeam = null;
 
     if (teamName) {
-      // Team name was specified
-      targetTeam = userTeams.find(
-        t => t.name.toLowerCase() === teamName.toLowerCase()
-      );
+      // Team name was specified - look in user's organization
+      targetTeam = await prisma.team.findFirst({
+        where: {
+          organizationId: userOrg.id,
+          name: {
+            equals: teamName,
+            mode: "insensitive",
+          },
+          isActive: true,
+        },
+      });
 
       if (!targetTeam) {
         await updateResponse({
-          text: `❌ Team "${teamName}" not found or you are not a member`,
+          text: `❌ Team "${teamName}" not found in your organization`,
         });
         return;
       }
-    } else if (userTeams.length === 1) {
-      // Only one team, use it
-      targetTeam = userTeams[0];
     } else {
-      // Multiple teams, need to specify which one
-      const teamList = userTeams.map(t => `• ${t.name}`).join("\n");
-      await updateResponse({
-        text: `❌ You are a member of multiple teams. Please specify which team:\n${teamList}\n\nUsage: \`/dd-leave-set-member @user team-name YYYY-MM-DD [YYYY-MM-DD] [reason]\``,
-      });
-      return;
+      // No team specified - check if user can manage any teams
+      // First, check if user is an Org Owner
+      const isOwner = await permissionHelper.isOrganizationOwner(command.user_id, userOrg.id);
+
+      if (isOwner) {
+        // Owner can manage all teams
+        const allTeams = await prisma.team.findMany({
+          where: { organizationId: userOrg.id, isActive: true },
+        });
+
+        if (allTeams.length === 0) {
+          await updateResponse({
+            text: "❌ No active teams found in your organization",
+          });
+          return;
+        } else if (allTeams.length === 1) {
+          targetTeam = allTeams[0];
+        } else {
+          const teamList = allTeams.map(t => `• ${t.name}`).join("\n");
+          await updateResponse({
+            text: `❌ Multiple teams found. Please specify which team:\n${teamList}\n\nUsage: \`/dd-leave-set-member @user team-name YYYY-MM-DD [YYYY-MM-DD] [reason]\``,
+          });
+          return;
+        }
+      } else {
+        // Not an owner, check team memberships
+        const userTeams = await teamService.getUserTeams(command.user_id, client);
+
+        if (userTeams.length === 0) {
+          await updateResponse({
+            text: "❌ You must be a member of at least one team or an organization owner to set member leave",
+          });
+          return;
+        } else if (userTeams.length === 1) {
+          targetTeam = userTeams[0];
+        } else {
+          const teamList = userTeams.map(t => `• ${t.name}`).join("\n");
+          await updateResponse({
+            text: `❌ You are a member of multiple teams. Please specify which team:\n${teamList}\n\nUsage: \`/dd-leave-set-member @user team-name YYYY-MM-DD [YYYY-MM-DD] [reason]\``,
+          });
+          return;
+        }
+      }
     }
 
-    // Check if user is admin of the team
-    const isAdmin = await teamService.isTeamAdmin(command.user_id, targetTeam.id, client);
+    // Check permissions using helper
+    const permission = await permissionHelper.canManageTeam(command.user_id, targetTeam.id);
 
-    if (!isAdmin) {
+    if (!permission.canManage) {
       await updateResponse({
-        text: `❌ You need admin permissions in team "${targetTeam.name}" to set member leave`,
+        text: `❌ You need admin permissions or organization ownership to set member leave for team "${targetTeam.name}"`,
       });
       return;
     }
@@ -512,49 +552,89 @@ async function cancelMemberLeave({ command, ack, respond, client }) {
     // Get team name if provided
     const teamName = parts.length > 2 ? parts[2] : null;
 
-    // Get user's teams to verify admin access
-    const userTeams = await teamService.getUserTeams(command.user_id, client);
-
-    if (userTeams.length === 0) {
+    // Get user's organization
+    const userOrg = await userService.getUserOrganization(command.user_id);
+    if (!userOrg) {
       await updateResponse({
-        text: "❌ You must be a member of at least one team to cancel member leave",
+        text: "❌ You must belong to an organization to cancel member leave",
       });
       return;
     }
 
-    // Find the team to check admin permissions
+    // Find the team to check permissions
     let targetTeam = null;
 
     if (teamName) {
-      // Team name was specified
-      targetTeam = userTeams.find(
-        t => t.name.toLowerCase() === teamName.toLowerCase()
-      );
+      // Team name was specified - look in user's organization
+      targetTeam = await prisma.team.findFirst({
+        where: {
+          organizationId: userOrg.id,
+          name: {
+            equals: teamName,
+            mode: "insensitive",
+          },
+          isActive: true,
+        },
+      });
 
       if (!targetTeam) {
         await updateResponse({
-          text: `❌ Team "${teamName}" not found or you are not a member`,
+          text: `❌ Team "${teamName}" not found in your organization`,
         });
         return;
       }
-    } else if (userTeams.length === 1) {
-      // Only one team, use it
-      targetTeam = userTeams[0];
     } else {
-      // Multiple teams, need to specify which one
-      const teamList = userTeams.map(t => `• ${t.name}`).join("\n");
-      await updateResponse({
-        text: `❌ You are a member of multiple teams. Please specify which team:\n${teamList}\n\nUsage: \`/dd-leave-cancel-member @user leave-id team-name\``,
-      });
-      return;
+      // No team specified - check if user can manage any teams
+      // First, check if user is an Org Owner
+      const isOwner = await permissionHelper.isOrganizationOwner(command.user_id, userOrg.id);
+
+      if (isOwner) {
+        // Owner can manage all teams
+        const allTeams = await prisma.team.findMany({
+          where: { organizationId: userOrg.id, isActive: true },
+        });
+
+        if (allTeams.length === 0) {
+          await updateResponse({
+            text: "❌ No active teams found in your organization",
+          });
+          return;
+        } else if (allTeams.length === 1) {
+          targetTeam = allTeams[0];
+        } else {
+          const teamList = allTeams.map(t => `• ${t.name}`).join("\n");
+          await updateResponse({
+            text: `❌ Multiple teams found. Please specify which team:\n${teamList}\n\nUsage: \`/dd-leave-cancel-member @user leave-id team-name\``,
+          });
+          return;
+        }
+      } else {
+        // Not an owner, check team memberships
+        const userTeams = await teamService.getUserTeams(command.user_id, client);
+
+        if (userTeams.length === 0) {
+          await updateResponse({
+            text: "❌ You must be a member of at least one team or an organization owner to cancel member leave",
+          });
+          return;
+        } else if (userTeams.length === 1) {
+          targetTeam = userTeams[0];
+        } else {
+          const teamList = userTeams.map(t => `• ${t.name}`).join("\n");
+          await updateResponse({
+            text: `❌ You are a member of multiple teams. Please specify which team:\n${teamList}\n\nUsage: \`/dd-leave-cancel-member @user leave-id team-name\``,
+          });
+          return;
+        }
+      }
     }
 
-    // Check if user is admin of the team
-    const isAdmin = await teamService.isTeamAdmin(command.user_id, targetTeam.id, client);
+    // Check permissions using helper
+    const permission = await permissionHelper.canManageTeam(command.user_id, targetTeam.id);
 
-    if (!isAdmin) {
+    if (!permission.canManage) {
       await updateResponse({
-        text: `❌ You need admin permissions in team "${targetTeam.name}" to cancel member leave`,
+        text: `❌ You need admin permissions or organization ownership to cancel member leave for team "${targetTeam.name}"`,
       });
       return;
     }
@@ -615,49 +695,89 @@ async function listMemberLeaves({ command, ack, respond, client }) {
     const targetSlackUserId = userIdMatch[1];
     const teamName = parts.length > 1 ? parts[1] : null;
 
-    // Get user's teams to verify admin access
-    const userTeams = await teamService.getUserTeams(command.user_id, client);
-
-    if (userTeams.length === 0) {
+    // Get user's organization
+    const userOrg = await userService.getUserOrganization(command.user_id);
+    if (!userOrg) {
       await updateResponse({
-        text: "❌ You must be a member of at least one team to view member leave",
+        text: "❌ You must belong to an organization to view member leave",
       });
       return;
     }
 
-    // Find the team to check admin permissions
+    // Find the team to check permissions
     let targetTeam = null;
 
     if (teamName) {
-      // Team name was specified
-      targetTeam = userTeams.find(
-        t => t.name.toLowerCase() === teamName.toLowerCase()
-      );
+      // Team name was specified - look in user's organization
+      targetTeam = await prisma.team.findFirst({
+        where: {
+          organizationId: userOrg.id,
+          name: {
+            equals: teamName,
+            mode: "insensitive",
+          },
+          isActive: true,
+        },
+      });
 
       if (!targetTeam) {
         await updateResponse({
-          text: `❌ Team "${teamName}" not found or you are not a member`,
+          text: `❌ Team "${teamName}" not found in your organization`,
         });
         return;
       }
-    } else if (userTeams.length === 1) {
-      // Only one team, use it
-      targetTeam = userTeams[0];
     } else {
-      // Multiple teams, need to specify which one
-      const teamList = userTeams.map(t => `• ${t.name}`).join("\n");
-      await updateResponse({
-        text: `❌ You are a member of multiple teams. Please specify which team:\n${teamList}\n\nUsage: \`/dd-leave-list-member @user team-name\``,
-      });
-      return;
+      // No team specified - check if user can manage any teams
+      // First, check if user is an Org Owner
+      const isOwner = await permissionHelper.isOrganizationOwner(command.user_id, userOrg.id);
+
+      if (isOwner) {
+        // Owner can manage all teams
+        const allTeams = await prisma.team.findMany({
+          where: { organizationId: userOrg.id, isActive: true },
+        });
+
+        if (allTeams.length === 0) {
+          await updateResponse({
+            text: "❌ No active teams found in your organization",
+          });
+          return;
+        } else if (allTeams.length === 1) {
+          targetTeam = allTeams[0];
+        } else {
+          const teamList = allTeams.map(t => `• ${t.name}`).join("\n");
+          await updateResponse({
+            text: `❌ Multiple teams found. Please specify which team:\n${teamList}\n\nUsage: \`/dd-leave-list-member @user team-name\``,
+          });
+          return;
+        }
+      } else {
+        // Not an owner, check team memberships
+        const userTeams = await teamService.getUserTeams(command.user_id, client);
+
+        if (userTeams.length === 0) {
+          await updateResponse({
+            text: "❌ You must be a member of at least one team or an organization owner to view member leave",
+          });
+          return;
+        } else if (userTeams.length === 1) {
+          targetTeam = userTeams[0];
+        } else {
+          const teamList = userTeams.map(t => `• ${t.name}`).join("\n");
+          await updateResponse({
+            text: `❌ You are a member of multiple teams. Please specify which team:\n${teamList}\n\nUsage: \`/dd-leave-list-member @user team-name\``,
+          });
+          return;
+        }
+      }
     }
 
-    // Check if user is admin of the team
-    const isAdmin = await teamService.isTeamAdmin(command.user_id, targetTeam.id, client);
+    // Check permissions using helper
+    const permission = await permissionHelper.canManageTeam(command.user_id, targetTeam.id);
 
-    if (!isAdmin) {
+    if (!permission.canManage) {
       await updateResponse({
-        text: `❌ You need admin permissions in team "${targetTeam.name}" to view member leave`,
+        text: `❌ You need admin permissions or organization ownership to view member leave for team "${targetTeam.name}"`,
       });
       return;
     }
