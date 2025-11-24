@@ -6,7 +6,7 @@ export function Changelog() {
   const versions = [
     {
       version: '1.3.0',
-      date: '2025-01-09',
+      date: '2025-11-09',
       type: 'latest',
       changes: {
         added: [
@@ -24,7 +24,7 @@ export function Changelog() {
     },
     {
       version: '1.2.0',
-      date: '2025-01-09',
+      date: '2025-11-09',
       type: 'previous',
       changes: {
         changed: [
@@ -36,7 +36,7 @@ export function Changelog() {
     },
     {
       version: '1.1.0',
-      date: '2025-01-02',
+      date: '2025-11-02',
       type: 'previous',
       changes: {
         added: [
