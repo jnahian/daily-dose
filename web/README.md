@@ -55,7 +55,7 @@ The web application provides:
 
 ### Prerequisites
 
-- Node.js 16+ with npm
+- Node.js 20.19+ (or 22.12+) with npm (required for Vite 7.2+)
 - Git
 
 ### Installation
