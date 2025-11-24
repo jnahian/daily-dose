@@ -120,7 +120,7 @@ export function Changelog() {
   return (
     <>
       {/* Hero Section */}
-      <section className="py-16 bg-gradient-to-r from-primary to-secondary">
+      <section className="py-16 bg-linear-to-r from-primary to-secondary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl font-bold text-white mb-4">
             <FontAwesomeIcon icon={faHistory} className="mr-3" />
@@ -177,7 +177,7 @@ export function Changelog() {
                   <div
                     className={`${
                       version.type === 'latest'
-                        ? 'bg-gradient-to-r from-primary to-secondary'
+                        ? 'bg-linear-to-r from-primary to-secondary'
                         : 'bg-gray-800'
                     } text-white px-4 py-2 rounded-lg font-bold text-xl`}
                   >

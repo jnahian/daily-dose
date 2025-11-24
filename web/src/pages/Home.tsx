@@ -29,49 +29,55 @@ export function Home() {
       title: 'Automated Reminders',
       description:
         'Send personalized DM reminders at configured times. Never miss a standup again with smart, timezone-aware scheduling.',
-      color: 'primary',
+      bgClass: 'bg-primary/10',
+      iconClass: 'text-primary',
     },
     {
       icon: faUsers,
       title: 'Team Management',
       description:
         'Create and join teams with custom schedules. Flexible team organization with admin controls and member permissions.',
-      color: 'secondary',
+      bgClass: 'bg-secondary/10',
+      iconClass: 'text-secondary',
     },
     {
       icon: faUmbrellaBeach,
       title: 'Leave Management',
       description:
         'Set vacation and leave dates to automatically skip reminders. Smart exclusion from standup expectations when you are away.',
-      color: 'green-500',
+      bgClass: 'bg-green-500/10',
+      iconClass: 'text-green-500',
     },
     {
       icon: faCalendar,
       title: 'Work Day Configuration',
       description:
         'Customize working days for each team member. Perfect for part-time workers and flexible schedules.',
-      color: 'yellow-500',
+      bgClass: 'bg-yellow-500/10',
+      iconClass: 'text-yellow-500',
     },
     {
       icon: faBuilding,
       title: 'Multi-Organization',
       description:
         'Support for multiple organizations and workspaces. Scale across your entire company with centralized management.',
-      color: 'red-500',
+      bgClass: 'bg-red-500/10',
+      iconClass: 'text-red-500',
     },
     {
       icon: faClock,
       title: 'Late Submission Tracking',
       description:
         'Handle late submissions gracefully with automatic thread replies. Keep the conversation flowing even after posting time.',
-      color: 'indigo-500',
+      bgClass: 'bg-indigo-500/10',
+      iconClass: 'text-indigo-500',
     },
   ]
 
   return (
     <>
       {/* Hero Section */}
-      <section className="pt-24 pb-20 bg-gradient-to-br from-cyan-50 via-white to-blue-50">
+      <section className="pt-24 pb-20 bg-linear-to-br from-cyan-50 via-white to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="mb-8">
@@ -83,7 +89,7 @@ export function Home() {
             </div>
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
               Automate Your Team's{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-secondary">
                 Daily Standups
               </span>
             </h1>
@@ -132,11 +138,11 @@ export function Home() {
                 className="bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-shadow"
               >
                 <div
-                  className={`bg-${feature.color} bg-opacity-10 w-12 h-12 rounded-lg flex items-center justify-center mb-4`}
+                  className={`${feature.bgClass} w-12 h-12 rounded-lg flex items-center justify-center mb-4`}
                 >
                   <FontAwesomeIcon
                     icon={feature.icon}
-                    className={`text-${feature.color} text-xl`}
+                    className={`${feature.iconClass} text-xl`}
                   />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -152,7 +158,7 @@ export function Home() {
       {/* How It Works Section */}
       <section
         id="how-it-works"
-        className="py-20 bg-gradient-to-br from-gray-50 to-cyan-50"
+        className="py-20 bg-linear-to-br from-gray-50 to-cyan-50"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -172,28 +178,31 @@ export function Home() {
                 title: 'Morning Reminder',
                 description:
                   "Daily Dose sends personalized DM reminders at your team's configured standup time. No more forgotten standups!",
-                color: 'primary',
+                bgClass: 'bg-primary/10',
+                textClass: 'text-primary',
               },
               {
                 step: 2,
                 title: 'Submit Updates',
                 description:
                   "Team members respond with yesterday's tasks, today's plans, and any blockers through an intuitive modal interface.",
-                color: 'secondary',
+                bgClass: 'bg-secondary/10',
+                textClass: 'text-secondary',
               },
               {
                 step: 3,
                 title: 'Beautiful Summary',
                 description:
                   'At posting time, Daily Dose creates a formatted summary in your team channel, keeping everyone aligned and informed.',
-                color: 'green-500',
+                bgClass: 'bg-green-500/10',
+                textClass: 'text-green-500',
               },
             ].map((step) => (
               <div key={step.step} className="text-center">
                 <div
-                  className={`bg-${step.color} bg-opacity-10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6`}
+                  className={`${step.bgClass} w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6`}
                 >
-                  <span className={`text-2xl font-bold text-${step.color}`}>
+                  <span className={`text-2xl font-bold ${step.textClass}`}>
                     {step.step}
                   </span>
                 </div>
@@ -239,7 +248,7 @@ export function Home() {
                   },
                 ].map((benefit, index) => (
                   <div key={index} className="flex items-start space-x-4">
-                    <div className="bg-primary bg-opacity-10 w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="bg-primary/10 w-10 h-10 rounded-lg flex items-center justify-center shrink-0">
                       <FontAwesomeIcon
                         icon={faCheckCircle}
                         className="text-primary"
@@ -256,7 +265,7 @@ export function Home() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-primary to-secondary p-8 rounded-2xl text-white">
+            <div className="bg-linear-to-br from-primary to-secondary p-8 rounded-2xl text-white">
               <h3 className="text-2xl font-bold mb-6">Perfect for Modern Teams</h3>
               <div className="space-y-4">
                 {[
