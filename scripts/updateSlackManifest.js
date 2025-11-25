@@ -5,13 +5,23 @@
  *
  * This script allows you to create or update your Slack app manifest via the API.
  * It reads the local manifest file and applies it to your Slack app.
- * The app ID is automatically read from the SLACK_APP_ID environment variable.
+ *
+ * IMPORTANT: The app ID is ALWAYS read from the SLACK_APP_ID environment variable.
+ * It cannot be passed as a command-line parameter for security reasons.
+ *
+ * Required Environment Variables:
+ *   SLACK_USER_TOKEN         - App configuration token (xoxe.xoxp-...)
+ *   SLACK_USER_REFRESH_TOKEN - Refresh token for auto-renewal (xoxe-...)
+ *   SLACK_APP_ID             - Your Slack app ID (required for updates)
+ *   SLACK_CLIENT_ID          - App client ID (required with refresh token)
+ *   SLACK_CLIENT_SECRET      - App client secret (required with refresh token)
+ *   APP_URL                  - Your app's base URL (for manifest placeholders)
  *
  * Usage:
- *   node src/scripts/updateSlackManifest.js [options]
+ *   node scripts/updateSlackManifest.js [options]
  *
  * Options:
- *   --create          Create a new app instead of updating
+ *   --create          Create a new app instead of updating existing one
  *   --dry-run         Show what would be done without making changes
  *   --help            Show this help message
  */
@@ -197,7 +207,7 @@ class SlackManifestManager {
       // If token is expired and we have a refresh token, try to refresh
       if (
         !data.ok &&
-        data.error === "token_expired" &&
+        (data.error === "token_expired" || data.error === "invalid_auth") &&
         this.refreshToken &&
         retryCount === 0
       ) {
@@ -294,7 +304,9 @@ class SlackManifestManager {
    */
   async getCurrentManifest(appId) {
     try {
-      const result = await this.makeRequest("apps.manifest.export", "GET");
+      const result = await this.makeRequest("apps.manifest.export", "POST", {
+        app_id: appId,
+      });
       return result.manifest;
     } catch (error) {
       console.warn(
@@ -369,8 +381,11 @@ function showHelp() {
   console.log(`
 Slack App Manifest Management Script
 
+IMPORTANT: The app ID is ALWAYS read from SLACK_APP_ID in .env
+           It cannot be passed as a command-line parameter.
+
 Usage:
-  node src/scripts/updateSlackManifest.js [options]
+  node scripts/updateSlackManifest.js [options]
 
 Options:
   --create          Create a new app instead of updating existing one
@@ -379,13 +394,13 @@ Options:
 
 Examples:
   # Create a new app
-  node src/scripts/updateSlackManifest.js --create
+  node scripts/updateSlackManifest.js --create
 
   # Update existing app using SLACK_APP_ID from .env
-  node src/scripts/updateSlackManifest.js
+  node scripts/updateSlackManifest.js
 
   # Dry run to see changes
-  node src/scripts/updateSlackManifest.js --dry-run
+  node scripts/updateSlackManifest.js --dry-run
 
 Environment Variables:
   SLACK_USER_TOKEN         User token with apps:write scope (preferred)

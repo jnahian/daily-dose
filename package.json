@@ -9,6 +9,7 @@
     "start": "node src/app.js",
     "dev": "nodemon --ignore 'logs/' --ignore 'temp/' src/app.js",
     "seed": "node scripts/seedOrg.js",
+    "org:add-admin": "node scripts/addOrgAdmin.js",
     "manifest:create": "node scripts/updateSlackManifest.js --create",
     "manifest:update": "node scripts/updateSlackManifest.js",
     "manifest:dry-run": "node scripts/updateSlackManifest.js --dry-run",
