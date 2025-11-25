@@ -89,10 +89,6 @@ export const Navbar = () => {
                                     <History size={18} />
                                     <span className="hidden sm:inline">Changelog</span>
                                 </Link>
-                                <Link to="/" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2">
-                                    <Home size={18} />
-                                    <span className="hidden sm:inline">Home</span>
-                                </Link>
                             </>
                         )}
 
