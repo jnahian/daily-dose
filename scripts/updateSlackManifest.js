@@ -197,7 +197,7 @@ class SlackManifestManager {
       // If token is expired and we have a refresh token, try to refresh
       if (
         !data.ok &&
-        data.error === "token_expired" &&
+        (data.error === "token_expired" || data.error === "invalid_auth") &&
         this.refreshToken &&
         retryCount === 0
       ) {
@@ -294,7 +294,9 @@ class SlackManifestManager {
    */
   async getCurrentManifest(appId) {
     try {
-      const result = await this.makeRequest("apps.manifest.export", "GET");
+      const result = await this.makeRequest("apps.manifest.export", "POST", {
+        app_id: appId,
+      });
       return result.manifest;
     } catch (error) {
       console.warn(
