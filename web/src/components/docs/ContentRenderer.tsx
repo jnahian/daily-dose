@@ -7,6 +7,32 @@ interface ContentRendererProps {
     content: ContentItem[];
 }
 
+const formatText = (text: string) => {
+    if (!text) return null;
+
+    // Split by newlines first to handle paragraphs/breaks
+    const lines = text.split('\n');
+
+    return lines.map((line, lineIndex) => {
+        // Process bold text: **text**
+        const parts = line.split(/(\*\*.*?\*\*)/g);
+
+        const formattedLine = parts.map((part, index) => {
+            if (part.startsWith('**') && part.endsWith('**')) {
+                return <strong key={index} className="text-white font-semibold">{part.slice(2, -2)}</strong>;
+            }
+            return part;
+        });
+
+        return (
+            <React.Fragment key={lineIndex}>
+                {formattedLine}
+                {lineIndex < lines.length - 1 && <br />}
+            </React.Fragment>
+        );
+    });
+};
+
 export const ContentRenderer = ({ content }: ContentRendererProps) => {
     return (
         <>
@@ -14,16 +40,16 @@ export const ContentRenderer = ({ content }: ContentRendererProps) => {
                 switch (item.type) {
                     case 'text':
                         return (
-                            <p key={index} className="text-gray-300 mb-4">
-                                {item.value}
-                            </p>
+                            <div key={index} className="text-gray-300 mb-4">
+                                {formatText(item.value!)}
+                            </div>
                         );
 
                     case 'command':
                         return (
                             <div key={index} className="mb-6">
                                 <CommandHeader command={item.command!} />
-                                <p className="text-gray-300 mb-3">{item.description}</p>
+                                <p className="text-gray-300 mb-3">{formatText(item.description!)}</p>
                                 {item.examples && item.examples.length > 0 && (
                                     <CodeBlock>{item.examples.join('\n\n')}</CodeBlock>
                                 )}
@@ -41,7 +67,7 @@ export const ContentRenderer = ({ content }: ContentRendererProps) => {
                         return (
                             <ul key={index} className="list-disc list-inside space-y-2 text-gray-300 ml-4 mb-4">
                                 {item.items?.map((listItem, i) => (
-                                    <li key={i}>{listItem}</li>
+                                    <li key={i}>{formatText(listItem)}</li>
                                 ))}
                             </ul>
                         );
@@ -50,7 +76,7 @@ export const ContentRenderer = ({ content }: ContentRendererProps) => {
                         return (
                             <div key={index} className="bg-brand-navy-light border border-brand-cyan/30 rounded-lg p-4 my-4">
                                 <p className="text-sm text-brand-cyan font-semibold mb-2">{item.title}</p>
-                                <p className="text-sm text-gray-300">{item.value}</p>
+                                <div className="text-sm text-gray-300">{formatText(item.value!)}</div>
                             </div>
                         );
 
@@ -58,7 +84,7 @@ export const ContentRenderer = ({ content }: ContentRendererProps) => {
                         return (
                             <div key={index} className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-4">
                                 <p className="text-sm text-yellow-400 font-semibold mb-2">{item.title}</p>
-                                <p className="text-sm text-gray-300">{item.value}</p>
+                                <div className="text-sm text-gray-300">{formatText(item.value!)}</div>
                             </div>
                         );
 
