@@ -1,0 +1,504 @@
+{
+    "overview": {
+        "title": "Scripts Overview",
+        "description": "Daily Dose includes powerful administrative scripts for database operations, team management, debugging, and automation. These tools help maintain and troubleshoot your Slack bot deployment.",
+        "warning": {
+            "title": "⚠️ Administrator Access Required",
+            "description": "These scripts have direct database access and can modify critical data. Only authorized administrators should execute these commands. Always test in development before running in production."
+        },
+        "categories": [
+            {
+                "title": "Database Operations",
+                "icon": "database",
+                "iconColor": "text-blue-500",
+                "description": "Scripts for initializing and managing database records, including organization setup and user management.",
+                "highlights": [
+                    "Organization seeding",
+                    "Initial admin setup",
+                    "Test team creation"
+                ]
+            },
+            {
+                "title": "Team Management",
+                "icon": "users",
+                "iconColor": "text-green-500",
+                "description": "Tools for analyzing team membership, promotions, and member status checking across different dates.",
+                "highlights": [
+                    "Member eligibility checking",
+                    "Role promotions",
+                    "Leave status analysis"
+                ]
+            },
+            {
+                "title": "Automation Tools",
+                "icon": "robot",
+                "iconColor": "text-purple-500",
+                "description": "Scripts for triggering standup processes, manual posting, and scheduling operations outside normal automation.",
+                "highlights": [
+                    "Manual standup triggers",
+                    "Custom posting times",
+                    "Schedule debugging"
+                ]
+            },
+            {
+                "title": "Configuration",
+                "icon": "settings",
+                "iconColor": "text-orange-500",
+                "description": "Slack app configuration management, manifest updates, and workspace information retrieval.",
+                "highlights": [
+                    "Slack app manifest management",
+                    "Workspace info extraction",
+                    "API configuration testing"
+                ]
+            }
+        ]
+    },
+    "prerequisites": {
+        "environmentSetup": "# 1. Ensure .env file is properly configured\nDATABASE_URL=\"your_database_url\"\nSLACK_BOT_TOKEN=\"xoxb-your-bot-token\"\nSLACK_SIGNING_SECRET=\"your_signing_secret\"\n\n# 2. Install dependencies\nnpm install\n\n# 3. Generate Prisma client\nnpx prisma generate\n\n# 4. Check database connection\nnpx prisma studio",
+        "requiredPermissions": [
+            {
+                "title": "Database Access",
+                "description": "Full read/write permissions to PostgreSQL database"
+            },
+            {
+                "title": "Slack Permissions",
+                "description": "Bot token with necessary scopes for your workspace"
+            },
+            {
+                "title": "Node.js",
+                "description": "Version 16+ with npm package management"
+            },
+            {
+                "title": "File System",
+                "description": "Write access to project directory for logs and temp files"
+            }
+        ],
+        "generalUsage": "# Make script executable (Linux/Mac)\nchmod +x scripts/script-name.js\n\n# Run with Node.js\nnode scripts/script-name.js [arguments]\n\n# Get help for any script\nnode scripts/script-name.js --help"
+    },
+    "categories": [
+        {
+            "id": "database",
+            "title": "Database Scripts",
+            "icon": "database",
+            "iconColor": "text-blue-500",
+            "description": "Initialize and manage database records",
+            "highlights": [],
+            "scripts": [
+                {
+                    "id": "seed-org",
+                    "name": "seedOrg.js",
+                    "icon": "seedling",
+                    "iconColor": "text-green-500",
+                    "purpose": "Initializes a new organization in the database with default settings, creates an initial admin user, and sets up a test team. This is typically the first script you run when setting up Daily Dose for a new Slack workspace.",
+                    "usageNote": {
+                        "type": "success",
+                        "title": "Use Case",
+                        "description": "Run this script once per workspace to bootstrap your Daily Dose installation with essential data."
+                    },
+                    "examples": [
+                        {
+                            "code": "# Run the seeding script\nnode scripts/seedOrg.js\n\n# Alternative: Run via npm script\nnpm run seed"
+                        }
+                    ],
+                    "features": [
+                        {
+                            "title": "Organization",
+                            "items": [
+                                "Name: \"Startise\"",
+                                "Workspace ID: TD04Y26UB",
+                                "Timezone: Asia/Dhaka",
+                                "Default work days: Mon-Thu, Sun",
+                                "Holiday country: BD"
+                            ]
+                        },
+                        {
+                            "title": "Admin User",
+                            "items": [
+                                "Slack ID: UQS8FT0EN",
+                                "Role: OWNER",
+                                "Auto-linked to organization"
+                            ]
+                        },
+                        {
+                            "title": "Test Team",
+                            "items": [
+                                "Name: \"TestTeam\"",
+                                "Channel: C04JPB43NFJ",
+                                "Standup: 10:00 AM",
+                                "Posting: 10:30 AM"
+                            ]
+                        }
+                    ],
+                    "prerequisites": [
+                        "Update the hardcoded values in the script to match your workspace",
+                        "This script uses upsert operations, so it's safe to run multiple times",
+                        "Ensure your Slack workspace ID and user IDs are correct before running"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "team-management",
+            "title": "Team Management",
+            "icon": "users",
+            "iconColor": "text-green-500",
+            "description": "Analyze and manage team members",
+            "highlights": [],
+            "scripts": [
+                {
+                    "id": "check-team-members",
+                    "name": "check-team-members.js",
+                    "icon": "users",
+                    "iconColor": "text-blue-500",
+                    "purpose": "Analyzes team membership and determines which members are eligible for standup reminders on a given date. Shows detailed information about leave status, work days, and final eligibility for each team member.",
+                    "usageNote": {
+                        "type": "info",
+                        "title": "Perfect for Debugging",
+                        "description": "Use this script to troubleshoot why certain team members aren't receiving standup reminders."
+                    },
+                    "examples": [
+                        {
+                            "code": "# Check all teams for today\nnode scripts/check-team-members.js\n\n# Check specific team for today\nnode scripts/check-team-members.js \"ShopifyDev\"\n\n# Check team for specific date\nnode scripts/check-team-members.js ShopifyDev 2025-09-10\n\n# Check all teams for specific date\nnode scripts/check-team-members.js \"\" 2025-09-10\n\n# Get help\nnode scripts/check-team-members.js --help\n\n# Alternative: Use npm script\nnpm run team:members [team-name] [date]"
+                        }
+                    ],
+                    "parameters": [
+                        {
+                            "name": "team-name-or-id",
+                            "type": "String (Optional)",
+                            "required": false,
+                            "description": "Team name (partial match, case insensitive) or UUID. If empty, checks all teams."
+                        },
+                        {
+                            "name": "date",
+                            "type": "String (Optional)",
+                            "required": false,
+                            "description": "Date in YYYY-MM-DD format. Defaults to today."
+                        }
+                    ],
+                    "features": [
+                        {
+                            "title": "Team Overview",
+                            "items": [
+                                "Team name and organization",
+                                "Standup and posting times",
+                                "Timezone configuration",
+                                "Slack channel ID"
+                            ]
+                        },
+                        {
+                            "title": "Member Details",
+                            "items": [
+                                "Role (Admin 👑 or Member 👤)",
+                                "Leave status for the date",
+                                "Working day eligibility",
+                                "Final reminder eligibility"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "promote-team-member",
+                    "name": "promoteTeamMember.js",
+                    "icon": "user-check",
+                    "iconColor": "text-green-500",
+                    "purpose": "Promotes a team member from MEMBER role to ADMIN role. This grants them administrative privileges for team management, including the ability to modify team settings and manage other members.",
+                    "usageNote": {
+                        "type": "warning",
+                        "title": "⚠️ Administrative Action",
+                        "description": "This action grants significant permissions. Ensure you trust the user before promoting them to admin."
+                    },
+                    "examples": [
+                        {
+                            "code": "# Promote user in specific team\nnode scripts/promoteTeamMember.js \"TeamName\" \"U1234567890\"\n\n# Using team UUID instead of name\nnode scripts/promoteTeamMember.js \"550e8400-e29b-41d4-a716-446655440000\" \"U1234567890\"\n\n# Get help\nnode scripts/promoteTeamMember.js --help"
+                        }
+                    ],
+                    "parameters": [
+                        {
+                            "name": "teamNameOrId",
+                            "type": "String",
+                            "required": true,
+                            "description": "Team name (case insensitive partial match) or team UUID"
+                        },
+                        {
+                            "name": "slackUserId",
+                            "type": "String",
+                            "required": true,
+                            "description": "Slack user ID (format: U1234567890) of the member to promote"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "standup-automation",
+            "title": "Standup Automation",
+            "icon": "play",
+            "iconColor": "text-purple-500",
+            "description": "Manual standup triggers and posting",
+            "highlights": [],
+            "scripts": [
+                {
+                    "id": "trigger-standup",
+                    "name": "triggerStandup.js",
+                    "icon": "play",
+                    "iconColor": "text-purple-500",
+                    "purpose": "Manually triggers standup reminders for a specific team outside of the normal scheduled time. Useful for testing, makeup standups, or when the regular scheduler has issues.",
+                    "usageNote": {
+                        "type": "info",
+                        "title": "Manual Override",
+                        "description": "Bypasses the regular scheduling system and sends reminders immediately to eligible team members."
+                    },
+                    "examples": [
+                        {
+                            "code": "# Trigger standup for specific team\nnode scripts/triggerStandup.js \"TeamName\"\n\n# Alternative: Use npm script\nnpm run standup:trigger \"TeamName\""
+                        }
+                    ],
+                    "whatItDoes": [
+                        "Finds the team by name (case insensitive exact match)",
+                        "Initializes the scheduler service with Slack app instance",
+                        "Determines eligible team members (not on leave, working day)",
+                        "Sends DM reminders with standup modal to each eligible member"
+                    ]
+                },
+                {
+                    "id": "send-manual-standup",
+                    "name": "sendManualStandup.js",
+                    "icon": "paper-plane",
+                    "iconColor": "text-orange-500",
+                    "purpose": "Manually posts standup summaries to team channels for any date and time. This comprehensive script can handle various scenarios including late posts, date-specific summaries, and troubleshooting channel access issues.",
+                    "usageNote": {
+                        "type": "success",
+                        "title": "Most Powerful Script",
+                        "description": "This is the most feature-rich script, capable of handling edge cases and providing detailed troubleshooting information."
+                    },
+                    "examples": [
+                        {
+                            "code": "# Post today's standup for specific team\nnode scripts/sendManualStandup.js \"TeamName\"\n\n# Post standup for specific date\nnode scripts/sendManualStandup.js \"TeamName\" 2025-09-10\n\n# Post to all teams for today\nnode scripts/sendManualStandup.js\n\n# Post to all teams for specific date\nnode scripts/sendManualStandup.js \"\" 2025-09-10\n\n# Alternative: Use npm script\nnpm run standup:post \"TeamName\" \"2025-09-10\""
+                        }
+                    ],
+                    "parameters": [
+                        {
+                            "name": "teamName",
+                            "type": "String (Optional)",
+                            "required": false,
+                            "description": "Team name (exact match, case insensitive). If empty, processes all active teams."
+                        },
+                        {
+                            "name": "date",
+                            "type": "String (Optional)",
+                            "required": false,
+                            "description": "Date in YYYY-MM-DD format. Defaults to today."
+                        }
+                    ],
+                    "features": [
+                        {
+                            "title": "Channel Access Troubleshooting",
+                            "items": [
+                                "Detects channel permission issues",
+                                "Provides troubleshooting blocks",
+                                "Suggests solutions for access problems",
+                                "Bot invitation guidance"
+                            ]
+                        },
+                        {
+                            "title": "Flexible Date Handling",
+                            "items": [
+                                "Any date in YYYY-MM-DD format",
+                                "Automatic timezone conversion",
+                                "Historical standup posting",
+                                "Future date validation"
+                            ]
+                        },
+                        {
+                            "title": "Smart Response Collection",
+                            "items": [
+                                "Aggregates all responses for date",
+                                "Handles partial submissions",
+                                "Identifies missing members",
+                                "Leave status integration"
+                            ]
+                        },
+                        {
+                            "title": "Error Recovery",
+                            "items": [
+                                "Graceful failure handling",
+                                "Detailed error reporting",
+                                "Alternative messaging paths",
+                                "Admin notification system"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "debugging",
+            "title": "Debugging & Info",
+            "icon": "bug",
+            "iconColor": "text-red-500",
+            "description": "Debug and analyze system state",
+            "highlights": [],
+            "scripts": [
+                {
+                    "id": "debug-scheduler",
+                    "name": "debugScheduler.js",
+                    "icon": "bug",
+                    "iconColor": "text-red-500",
+                    "purpose": "Analyzes the scheduler service to help debug timing issues, job scheduling problems, and team configuration conflicts. Provides insights into currently scheduled jobs and tests the refresh functionality.",
+                    "usageNote": {
+                        "type": "info",
+                        "title": "Debugging Tool",
+                        "description": "Essential for troubleshooting standup scheduling issues and verifying cron job configurations."
+                    },
+                    "examples": [
+                        {
+                            "code": "# Run scheduler debugging\nnode scripts/debugScheduler.js"
+                        }
+                    ],
+                    "features": [
+                        {
+                            "title": "Active Teams Analysis",
+                            "items": [
+                                "Lists all teams eligible for scheduling",
+                                "Shows standup and posting times",
+                                "Displays timezone configurations",
+                                "Verifies channel associations"
+                            ]
+                        },
+                        {
+                            "title": "Scheduled Jobs Status",
+                            "items": [
+                                "Count of currently scheduled cron jobs",
+                                "Job IDs and running status",
+                                "Schedule state verification",
+                                "Memory usage indicators"
+                            ]
+                        },
+                        {
+                            "title": "Refresh Testing",
+                            "items": [
+                                "Tests refresh functionality on first team",
+                                "Verifies job recreation process",
+                                "Confirms schedule updates work",
+                                "Reports success or failure"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "view-slack-info",
+                    "name": "viewSlackTeamInfo.js",
+                    "icon": "info",
+                    "iconColor": "text-blue-500",
+                    "purpose": "Retrieves comprehensive information about your Slack workspace including team details, user lists, channels, and permissions. Useful for understanding your workspace structure and verifying bot access.",
+                    "usageNote": {
+                        "type": "success",
+                        "title": "Information Gathering",
+                        "description": "Perfect for workspace auditing and understanding the current state of your Slack integration."
+                    },
+                    "examples": [
+                        {
+                            "code": "# Get Slack workspace information\nnode scripts/viewSlackTeamInfo.js\n\n# Alternative: Use npm script\nnpm run slack:info"
+                        }
+                    ],
+                    "features": [
+                        {
+                            "title": "Workspace Details",
+                            "items": [
+                                "Workspace name and ID",
+                                "Domain information",
+                                "Email domain settings",
+                                "Workspace icon"
+                            ]
+                        },
+                        {
+                            "title": "User Information",
+                            "items": [
+                                "All workspace members",
+                                "Active vs inactive users",
+                                "Bot accounts identification",
+                                "User roles and permissions"
+                            ]
+                        },
+                        {
+                            "title": "Channel Data",
+                            "items": [
+                                "Public and private channels",
+                                "Channel membership info",
+                                "Bot access verification",
+                                "Channel creation dates"
+                            ]
+                        },
+                        {
+                            "title": "Permissions",
+                            "items": [
+                                "Bot token capabilities",
+                                "Scope verification",
+                                "Access level assessment",
+                                "Rate limit information"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "slack-configuration",
+            "title": "Slack Configuration",
+            "icon": "settings",
+            "iconColor": "text-indigo-500",
+            "description": "Manage Slack app settings",
+            "highlights": [],
+            "scripts": [
+                {
+                    "id": "update-slack-manifest",
+                    "name": "updateSlackManifest.js",
+                    "icon": "cog",
+                    "iconColor": "text-indigo-500",
+                    "purpose": "Manages Slack app manifests through the API, allowing you to create new apps or update existing ones. This script reads your local manifest configuration and applies it to your Slack app programmatically.",
+                    "usageNote": {
+                        "type": "warning",
+                        "title": "⚠️ Critical Configuration",
+                        "description": "This script modifies your Slack app settings. Always test changes in development before applying to production."
+                    },
+                    "examples": [
+                        {
+                            "code": "# Update existing app manifest\nnode scripts/updateSlackManifest.js --app-id A1234567890\n\n# Create a new app from manifest\nnode scripts/updateSlackManifest.js --create\n\n# Preview changes without applying (dry run)\nnode scripts/updateSlackManifest.js --app-id A1234567890 --dry-run\n\n# Get help and see all options\nnode scripts/updateSlackManifest.js --help\n\n# Alternative: Use npm scripts\nnpm run manifest:update\nnpm run manifest:create\nnpm run manifest:dry-run"
+                        }
+                    ],
+                    "parameters": [
+                        {
+                            "name": "--app-id <id>",
+                            "type": "String",
+                            "required": false,
+                            "description": "Slack app ID for updating existing apps (required for updates)"
+                        },
+                        {
+                            "name": "--create",
+                            "type": "Boolean",
+                            "required": false,
+                            "description": "Create a new app instead of updating (required for new apps)"
+                        },
+                        {
+                            "name": "--dry-run",
+                            "type": "Boolean",
+                            "required": false,
+                            "description": "Show changes without applying them"
+                        },
+                        {
+                            "name": "--help",
+                            "type": "Boolean",
+                            "required": false,
+                            "description": "Display help message and usage examples"
+                        }
+                    ],
+                    "prerequisites": [
+                        "Manifest File: Requires slack-app-manifest.json in project root",
+                        "Tokens: Needs SLACK_USER_TOKEN or SLACK_BOT_TOKEN in environment",
+                        "Permissions: Token must have apps:write scope for manifest management"
+                    ]
+                }
+            ]
+        }
+    ]
+}

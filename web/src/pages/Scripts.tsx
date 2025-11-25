@@ -1,0 +1,167 @@
+import React, { useState } from 'react';
+import { Link } from 'react-router';
+import { Terminal, Database, Users, Play, Settings, CheckCircle, AlertCircle, Book, History } from 'lucide-react';
+import { ScriptsNavbar, ScriptsTOC, ScriptCard } from '../components/scripts';
+import { CodeBlock } from '../components/docs';
+import { BasicAuth } from '../components/auth';
+import scriptsData from '../data/scripts.json';
+import type { ScriptsData } from '../types/scripts';
+
+const Scripts = () => {
+    const data = scriptsData as ScriptsData;
+    const [activeScript, setActiveScript] = useState(data.categories[0]?.scripts[0]?.id || '');
+
+    const iconMap: Record<string, React.ElementType> = {
+        database: Database,
+        users: Users,
+        robot: Play,
+        settings: Settings,
+    };
+
+    return (
+        <BasicAuth>
+            <div className="min-h-screen bg-brand-navy text-white">
+                <ScriptsNavbar />
+
+                {/* Main content */}
+                <main className="pt-16">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                        {/* Header */}
+                        <div className="mb-12">
+                            <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-8 rounded-xl mb-8">
+                                <h1 className="text-5xl font-bold text-white mb-4 flex items-center gap-3">
+                                    <Terminal size={48} />
+                                    Scripts Overview
+                                </h1>
+                                <p className="text-xl text-white/90 mb-6">
+                                    {data.overview.description}
+                                </p>
+                                <div className="flex items-center gap-4 flex-wrap">
+                                    <Link
+                                        to="/docs"
+                                        className="inline-flex items-center gap-2 px-6 py-3 bg-white/20 hover:bg-white/30 border border-white/10 text-white font-semibold rounded-lg transition-colors"
+                                    >
+                                        <Book size={20} />
+                                        Main Documentation
+                                    </Link>
+                                    <Link
+                                        to="/changelog"
+                                        className="inline-flex items-center gap-2 px-6 py-3 bg-white/20 hover:bg-white/30 border border-white/10 text-white font-semibold rounded-lg transition-colors"
+                                    >
+                                        <History size={20} />
+                                        Changelog
+                                    </Link>
+                                </div>
+                            </div>
+
+                            {/* Warning */}
+                            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-8">
+                                <div className="flex items-start gap-3">
+                                    <AlertCircle size={20} className="text-red-400 mt-0.5" />
+                                    <div>
+                                        <h4 className="font-semibold text-red-400 mb-2">{data.overview.warning.title}</h4>
+                                        <p className="text-red-300/90">{data.overview.warning.description}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Categories Overview */}
+                            <div className="grid md:grid-cols-2 gap-6 mb-12">
+                                {data.overview.categories.map((category, index) => {
+                                    const Icon = iconMap[category.icon] || Database;
+                                    return (
+                                        <div key={index} className="bg-brand-navy-light border border-white/10 p-6 rounded-lg">
+                                            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                                                <Icon size={20} className={category.iconColor} />
+                                                <span className="text-white">{category.title}</span>
+                                            </h3>
+                                            <p className="text-gray-400 mb-4">{category.description}</p>
+                                            <ul className="text-sm text-gray-500 space-y-1">
+                                                {category.highlights.map((highlight, hIndex) => (
+                                                    <li key={hIndex}>• {highlight}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Prerequisites */}
+                        <section className="mb-12">
+                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-2">
+                                <CheckCircle size={32} className="text-blue-500" />
+                                Prerequisites
+                            </h2>
+
+                            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+                                <div className="flex items-start gap-3">
+                                    <AlertCircle size={20} className="text-blue-400 mt-0.5" />
+                                    <div>
+                                        <h4 className="font-semibold text-blue-400 mb-2">Before Running Scripts</h4>
+                                        <p className="text-blue-300/90">Ensure you have the proper environment setup and permissions before executing any administrative scripts.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="bg-brand-navy-light border border-white/10 p-6 rounded-lg">
+                                    <h3 className="text-lg font-semibold text-white mb-4">Environment Setup</h3>
+                                    <CodeBlock>{data.prerequisites.environmentSetup}</CodeBlock>
+                                </div>
+
+                                <div className="bg-brand-navy-light border border-white/10 p-6 rounded-lg">
+                                    <h3 className="text-lg font-semibold text-white mb-4">Required Permissions</h3>
+                                    <ul className="space-y-2">
+                                        {data.prerequisites.requiredPermissions.map((perm, index) => (
+                                            <li key={index} className="flex items-start gap-3">
+                                                <CheckCircle size={20} className="text-green-500 mt-0.5" />
+                                                <span className="text-gray-300">
+                                                    <strong className="text-white">{perm.title}:</strong> {perm.description}
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                <div className="bg-brand-navy-light border border-white/10 p-6 rounded-lg">
+                                    <h3 className="text-lg font-semibold text-white mb-4">General Usage Pattern</h3>
+                                    <CodeBlock>{data.prerequisites.generalUsage}</CodeBlock>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Scripts Grid with TOC */}
+                        <div className="grid lg:grid-cols-[1fr_300px] gap-8">
+                            {/* Scripts */}
+                            <div>
+                                {data.categories.map((category) => (
+                                    <section key={category.id} className="mb-12">
+                                        <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-2">
+                                            {React.createElement(iconMap[category.icon] || Database, { size: 32, className: category.iconColor })}
+                                            {category.title}
+                                        </h2>
+                                        {category.scripts.map((script) => (
+                                            <ScriptCard key={script.id} script={script} />
+                                        ))}
+                                    </section>
+                                ))}
+                            </div>
+
+                            {/* Table of Contents - Right Side */}
+                            <div className="hidden lg:block">
+                                <ScriptsTOC
+                                    data={data}
+                                    activeScript={activeScript}
+                                    setActiveScript={setActiveScript}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </BasicAuth>
+    );
+};
+
+export default Scripts;
