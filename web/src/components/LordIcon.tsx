@@ -17,6 +17,7 @@ interface LordIconProps {
   colors?: string;
   delay?: number;
   className?: string;
+  target?: string;
 }
 
 export const LordIcon = ({
@@ -26,6 +27,7 @@ export const LordIcon = ({
   colors,
   delay,
   className,
+  target,
 }: LordIconProps) => {
   const iconRef = useRef<HTMLElement>(null);
 
@@ -37,23 +39,11 @@ export const LordIcon = ({
       trigger={trigger}
       colors={colors}
       delay={delay}
+      target={target}
       style={{ width: size, height: size }}
       class={className}
     />
   );
 };
 
-// Add type definition for lord-icon element
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'lord-icon': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
-        src?: string;
-        trigger?: string;
-        colors?: string;
-        delay?: number;
-        class?: string;
-      };
-    }
-  }
-}
+

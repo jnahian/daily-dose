@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useId } from 'react';
 import { LordIcon } from '../LordIcon';
 
 interface FeatureCardProps {
@@ -8,21 +9,34 @@ interface FeatureCardProps {
   delay: number;
 }
 
-const FeatureCard = ({ title, description, icon, delay }: FeatureCardProps) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ delay, duration: 0.5 }}
-    className="bg-brand-navy-light p-8 rounded-3xl border border-white/5 hover:border-brand-cyan/30 transition-all group hover:shadow-[0_0_30px_rgba(0,207,255,0.05)]"
-  >
-    <div className="w-14 h-14 bg-brand-navy rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border border-white/5">
-      <LordIcon src={icon} trigger="hover" colors="primary:#00cfff,secondary:#00afff" size={32} />
-    </div>
-    <h3 className="text-xl font-bold text-white mb-3">{title}</h3>
-    <p className="text-gray-400 leading-relaxed">{description}</p>
-  </motion.div>
-);
+const FeatureCard = ({ title, description, icon, delay }: FeatureCardProps) => {
+  const id = useId();
+  // Convert the ID to a valid CSS selector format (remove colons)
+  const safeId = `feature-${id.replace(/:/g, '')}`;
+
+  return (
+    <motion.div
+      id={safeId}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay, duration: 0.5 }}
+      className="bg-brand-navy-light p-8 rounded-3xl border border-white/5 hover:border-brand-cyan/30 transition-all group hover:shadow-[0_0_30px_rgba(0,207,255,0.05)]"
+    >
+      <div className="w-14 h-14 bg-brand-navy rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border border-white/5">
+        <LordIcon
+          src={icon}
+          trigger="hover"
+          target={`#${safeId}`}
+          colors="primary:#00cfff,secondary:#00afff"
+          size={32}
+        />
+      </div>
+      <h3 className="text-xl font-bold text-white mb-3">{title}</h3>
+      <p className="text-gray-400 leading-relaxed">{description}</p>
+    </motion.div>
+  );
+};
 
 export const Features = () => {
   const features = [
@@ -73,9 +87,20 @@ export const Features = () => {
     <section id="features" className="py-24 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Everything you need to <br />
-            sync your team
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4 flex flex-col items-center justify-center gap-4">
+            <div className="w-16 h-16 bg-brand-navy-light rounded-2xl flex items-center justify-center border border-white/5 shadow-[0_0_30px_rgba(0,207,255,0.1)]">
+              <LordIcon
+                src="https://cdn.lordicon.com/osuxyevn.json"
+                trigger="loop"
+                delay={2000}
+                colors="primary:#00cfff,secondary:#00afff"
+                size={40}
+              />
+            </div>
+            <span>
+              Everything you need to <br />
+              sync your team
+            </span>
           </h2>
           <p className="text-gray-400 max-w-2xl mx-auto">
             Powerful features designed to make daily updates effortless and effective.

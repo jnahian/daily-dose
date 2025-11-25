@@ -73,7 +73,7 @@ export const Hero = () => {
               <div className="p-6 space-y-6">
                 {/* Bot Message */}
                 <div className="flex gap-4">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-cyan to-brand-blue flex items-center justify-center text-white">
                       <img src="/logo.png" alt="Daily Dose" />
                     </div>
@@ -107,7 +107,7 @@ export const Hero = () => {
                   transition={{ delay: 1, duration: 0.5 }}
                   className="flex gap-4"
                 >
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <div className="w-10 h-10 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 font-bold">
                       JD
                     </div>

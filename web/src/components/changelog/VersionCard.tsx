@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Check, AlertCircle, Wrench, Shield, AlertTriangle, Trash2 } from 'lucide-react';
 import type { ChangeItem } from '../../types/changelog';
 

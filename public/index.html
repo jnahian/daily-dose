@@ -1,659 +1,507 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Daily Dose - Automate your team's daily standup meetings with our intelligent Slack bot. Save time, improve communication, and boost productivity."
-    />
-    <meta
-      name="keywords"
-      content="slack bot, daily standup, team productivity, automation, remote work"
-    />
-    <meta name="author" content="Daily Dose" />
 
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="" />
-    <meta
-      property="og:title"
-      content="Daily Dose - Automate Your Team Standups"
-    />
-    <meta
-      property="og:description"
-      content="Intelligent Slack bot that automates daily standup meetings for better team communication and productivity."
-    />
-    <meta property="og:image" content="/logo.png" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Daily Dose - Automate your team's daily standup meetings with our intelligent Slack bot. Save time, improve communication, and boost productivity." />
+  <meta name="keywords" content="slack bot, daily standup, team productivity, automation, remote work" />
+  <meta name="author" content="Daily Dose" />
 
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="" />
-    <meta
-      property="twitter:title"
-      content="Daily Dose - Automate Your Team Standups"
-    />
-    <meta
-      property="twitter:description"
-      content="Intelligent Slack bot that automates daily standup meetings for better team communication and productivity."
-    />
-    <meta property="twitter:image" content="/logo.png" />
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="" />
+  <meta property="og:title" content="Daily Dose - Automate Your Team Standups" />
+  <meta property="og:description"
+    content="Intelligent Slack bot that automates daily standup meetings for better team communication and productivity." />
+  <meta property="og:image" content="/logo.png" />
 
-    <title>Daily Dose - Automate Your Team Standups | Slack Bot</title>
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="" />
+  <meta property="twitter:title" content="Daily Dose - Automate Your Team Standups" />
+  <meta property="twitter:description"
+    content="Intelligent Slack bot that automates daily standup meetings for better team communication and productivity." />
+  <meta property="twitter:image" content="/logo.png" />
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              "slack-purple": "#4A154B",
-              "slack-green": "#007A5A",
-              "slack-blue": "#1264A3",
-              primary: "#00CFFF",
-              secondary: "#00AFFF",
-              glow: "#007BFF",
-            },
-            fontFamily: {
-              sans: ["Inter", "system-ui", "sans-serif"],
-            },
+  <title>Daily Dose - Automate Your Team Standups | Slack Bot</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            "slack-purple": "#4A154B",
+            "slack-green": "#007A5A",
+            "slack-blue": "#1264A3",
+            primary: "#00CFFF",
+            secondary: "#00AFFF",
+            glow: "#007BFF",
+          },
+          fontFamily: {
+            sans: ["Inter", "system-ui", "sans-serif"],
           },
         },
-      };
-    </script>
+      },
+    };
+  </script>
 
-    <!-- Google Fonts -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
 
-    <!-- Font Awesome for icons -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="/logo.png" />
-  </head>
-  <body class="font-sans bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm fixed w-full top-0 z-50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center space-x-3">
-            <img src="/logo.png" alt="Daily Dose Logo" class="h-10 w-10" />
-            <span class="text-xl font-bold text-gray-900">Daily Dose</span>
-          </div>
-          <div class="hidden md:flex items-center space-x-8">
-            <a
-              href="#features"
-              class="text-gray-600 hover:text-primary transition-colors"
-              >Features</a
-            >
-            <a
-              href="#how-it-works"
-              class="text-gray-600 hover:text-primary transition-colors"
-              >How It Works</a
-            >
-            <a
-              href="/docs"
-              class="text-gray-600 hover:text-primary transition-colors"
-              >Docs</a
-            >
-            <a
-              href="#contact"
-              class="text-gray-600 hover:text-primary transition-colors"
-              >Contact</a
-            >
-            <button
-              onclick="scrollToContact()"
-              class="bg-primary hover:bg-[#00AFFF] text-white px-6 py-2 rounded-lg transition-colors font-medium"
-            >
-              Get Started
-            </button>
-          </div>
-          <div class="md:hidden">
-            <button
-              id="mobile-menu-btn"
-              class="text-gray-600 hover:text-gray-900"
-            >
-              <i class="fas fa-bars text-xl"></i>
-            </button>
-          </div>
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/logo.png" />
+</head>
+
+<body class="font-sans bg-gray-50">
+  <!-- Navigation -->
+  <nav class="bg-white shadow-sm fixed w-full top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center space-x-3">
+          <img src="/logo.png" alt="Daily Dose Logo" class="h-10 w-10" />
+          <span class="text-xl font-bold text-gray-900">Daily Dose</span>
         </div>
-      </div>
-
-      <!-- Mobile menu -->
-      <div id="mobile-menu" class="md:hidden hidden bg-white border-t">
-        <div class="px-4 py-3 space-y-3">
-          <a
-            href="#features"
-            class="block text-gray-600 hover:text-primary transition-colors"
-            >Features</a
-          >
-          <a
-            href="#how-it-works"
-            class="block text-gray-600 hover:text-primary transition-colors"
-            >How It Works</a
-          >
-          <a
-            href="/docs"
-            class="block text-gray-600 hover:text-primary transition-colors"
-            >Docs</a
-          >
-          <a
-            href="#contact"
-            class="block text-gray-600 hover:text-primary transition-colors"
-            >Contact</a
-          >
-          <button
-            onclick="scrollToContact()"
-            class="w-full bg-primary hover:bg-[#00AFFF] text-white px-6 py-2 rounded-lg transition-colors font-medium"
-          >
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="#features" class="text-gray-600 hover:text-primary transition-colors">Features</a>
+          <a href="#how-it-works" class="text-gray-600 hover:text-primary transition-colors">How It Works</a>
+          <a href="/docs" class="text-gray-600 hover:text-primary transition-colors">Docs</a>
+          <a href="#contact" class="text-gray-600 hover:text-primary transition-colors">Contact</a>
+          <button onclick="scrollToContact()"
+            class="bg-primary hover:bg-[#00AFFF] text-white px-6 py-2 rounded-lg transition-colors font-medium">
             Get Started
           </button>
         </div>
-      </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section
-      class="pt-24 pb-20 bg-gradient-to-br from-cyan-50 via-white to-blue-50"
-    >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center">
-          <div class="mb-8">
-            <img
-              src="/logo.png"
-              alt="Daily Dose Logo"
-              class="h-24 w-24 mx-auto mb-6"
-            />
-          </div>
-          <h1 class="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Automate Your Team's
-            <span
-              class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary"
-            >
-              Daily Standups
-            </span>
-          </h1>
-          <p
-            class="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed"
-          >
-            Daily Dose is an intelligent Slack bot that streamlines your team's
-            standup meetings. Save time, improve communication, and boost
-            productivity with automated reminders and beautiful summaries.
-          </p>
-          <div
-            class="flex flex-col sm:flex-row gap-4 justify-center items-center"
-          >
-            <button
-              onclick="scrollToContact()"
-              class="bg-primary hover:bg-[#00AFFF] text-white px-8 py-4 rounded-lg text-lg font-semibold transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
-            >
-              <i class="fas fa-rocket mr-2"></i>
-              Get Daily Dose for Your Team
-            </button>
-            <button
-              onclick="scrollToFeatures()"
-              class="border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg text-lg font-semibold transition-all"
-            >
-              <i class="fas fa-play-circle mr-2"></i>
-              See How It Works
-            </button>
-          </div>
+        <div class="md:hidden">
+          <button id="mobile-menu-btn" class="text-gray-600 hover:text-gray-900">
+            <i class="fas fa-bars text-xl"></i>
+          </button>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- Features Section -->
-    <section id="features" class="py-20 bg-white">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            ✨ Powerful Features for Modern Teams
-          </h2>
-          <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-            Everything you need to run efficient, engaging daily standups that
-            your team will actually love.
-          </p>
-        </div>
-
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <!-- Feature 1 -->
-          <div
-            class="bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-shadow"
-          >
-            <div
-              class="bg-primary bg-opacity-10 w-12 h-12 rounded-lg flex items-center justify-center mb-4"
-            >
-              <i class="fas fa-bell text-primary text-xl"></i>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-3">
-              Automated Reminders
-            </h3>
-            <p class="text-gray-600">
-              Send personalized DM reminders at configured times. Never miss a
-              standup again with smart, timezone-aware scheduling.
-            </p>
-          </div>
-
-          <!-- Feature 2 -->
-          <div
-            class="bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-shadow"
-          >
-            <div
-              class="bg-secondary bg-opacity-10 w-12 h-12 rounded-lg flex items-center justify-center mb-4"
-            >
-              <i class="fas fa-users text-secondary text-xl"></i>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-3">
-              Team Management
-            </h3>
-            <p class="text-gray-600">
-              Create and join teams with custom schedules. Flexible team
-              organization with admin controls and member permissions.
-            </p>
-          </div>
-
-          <!-- Feature 3 -->
-          <div
-            class="bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-shadow"
-          >
-            <div
-              class="bg-green-500 bg-opacity-10 w-12 h-12 rounded-lg flex items-center justify-center mb-4"
-            >
-              <i class="fas fa-umbrella-beach text-green-500 text-xl"></i>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-3">
-              Leave Management
-            </h3>
-            <p class="text-gray-600">
-              Set vacation and leave dates to automatically skip reminders.
-              Smart exclusion from standup expectations when you're away.
-            </p>
-          </div>
-
-          <!-- Feature 4 -->
-          <div
-            class="bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-shadow"
-          >
-            <div
-              class="bg-yellow-500 bg-opacity-10 w-12 h-12 rounded-lg flex items-center justify-center mb-4"
-            >
-              <i class="fas fa-calendar-alt text-yellow-500 text-xl"></i>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-3">
-              Work Day Configuration
-            </h3>
-            <p class="text-gray-600">
-              Customize working days for each team member. Perfect for part-time
-              workers and flexible schedules.
-            </p>
-          </div>
-
-          <!-- Feature 5 -->
-          <div
-            class="bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-shadow"
-          >
-            <div
-              class="bg-red-500 bg-opacity-10 w-12 h-12 rounded-lg flex items-center justify-center mb-4"
-            >
-              <i class="fas fa-building text-red-500 text-xl"></i>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-3">
-              Multi-Organization
-            </h3>
-            <p class="text-gray-600">
-              Support for multiple organizations and workspaces. Scale across
-              your entire company with centralized management.
-            </p>
-          </div>
-
-          <!-- Feature 6 -->
-          <div
-            class="bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-shadow"
-          >
-            <div
-              class="bg-indigo-500 bg-opacity-10 w-12 h-12 rounded-lg flex items-center justify-center mb-4"
-            >
-              <i class="fas fa-clock text-indigo-500 text-xl"></i>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-3">
-              Late Submission Tracking
-            </h3>
-            <p class="text-gray-600">
-              Handle late submissions gracefully with automatic thread replies.
-              Keep the conversation flowing even after posting time.
-            </p>
-          </div>
-        </div>
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="md:hidden hidden bg-white border-t">
+      <div class="px-4 py-3 space-y-3">
+        <a href="#features" class="block text-gray-600 hover:text-primary transition-colors">Features</a>
+        <a href="#how-it-works" class="block text-gray-600 hover:text-primary transition-colors">How It Works</a>
+        <a href="/docs" class="block text-gray-600 hover:text-primary transition-colors">Docs</a>
+        <a href="#contact" class="block text-gray-600 hover:text-primary transition-colors">Contact</a>
+        <button onclick="scrollToContact()"
+          class="w-full bg-primary hover:bg-[#00AFFF] text-white px-6 py-2 rounded-lg transition-colors font-medium">
+          Get Started
+        </button>
       </div>
-    </section>
+    </div>
+  </nav>
 
-    <!-- How It Works Section -->
-    <section
-      id="how-it-works"
-      class="py-20 bg-gradient-to-br from-gray-50 to-cyan-50"
-    >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            🔄 How Daily Dose Works
-          </h2>
-          <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-            Simple, automated workflow that fits seamlessly into your team's
-            routine.
-          </p>
+  <!-- Hero Section -->
+  <section class="pt-24 pb-20 bg-gradient-to-br from-cyan-50 via-white to-blue-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center">
+        <div class="mb-8">
+          <img src="/logo.png" alt="Daily Dose Logo" class="h-24 w-24 mx-auto mb-6" />
         </div>
-
-        <div class="grid md:grid-cols-3 gap-8">
-          <!-- Step 1 -->
-          <div class="text-center">
-            <div
-              class="bg-primary bg-opacity-10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
-            >
-              <span class="text-2xl font-bold text-primary">1</span>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-4">
-              Morning Reminder
-            </h3>
-            <p class="text-gray-600">
-              Daily Dose sends personalized DM reminders at your team's
-              configured standup time. No more forgotten standups!
-            </p>
-          </div>
-
-          <!-- Step 2 -->
-          <div class="text-center">
-            <div
-              class="bg-secondary bg-opacity-10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
-            >
-              <span class="text-2xl font-bold text-secondary">2</span>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-4">
-              Submit Updates
-            </h3>
-            <p class="text-gray-600">
-              Team members respond with yesterday's tasks, today's plans, and
-              any blockers through an intuitive modal interface.
-            </p>
-          </div>
-
-          <!-- Step 3 -->
-          <div class="text-center">
-            <div
-              class="bg-green-500 bg-opacity-10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
-            >
-              <span class="text-2xl font-bold text-green-500">3</span>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-4">
-              Beautiful Summary
-            </h3>
-            <p class="text-gray-600">
-              At posting time, Daily Dose creates a formatted summary in your
-              team channel, keeping everyone aligned and informed.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Benefits Section -->
-    <section class="py-20 bg-white">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-              💡 Why Teams Choose Daily Dose
-            </h2>
-            <div class="space-y-6">
-              <div class="flex items-start space-x-4">
-                <div
-                  class="bg-primary bg-opacity-10 w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                >
-                  <i class="fas fa-clock text-primary"></i>
-                </div>
-                <div>
-                  <h3 class="text-lg font-semibold text-gray-900 mb-2">
-                    Save 30+ Minutes Daily
-                  </h3>
-                  <p class="text-gray-600">
-                    Eliminate manual standup coordination and reduce meeting
-                    overhead with automated workflows.
-                  </p>
-                </div>
-              </div>
-
-              <div class="flex items-start space-x-4">
-                <div
-                  class="bg-secondary bg-opacity-10 w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                >
-                  <i class="fas fa-chart-line text-secondary"></i>
-                </div>
-                <div>
-                  <h3 class="text-lg font-semibold text-gray-900 mb-2">
-                    Boost Participation
-                  </h3>
-                  <p class="text-gray-600">
-                    Friendly reminders and easy-to-use interfaces increase team
-                    engagement by 85%.
-                  </p>
-                </div>
-              </div>
-
-              <div class="flex items-start space-x-4">
-                <div
-                  class="bg-green-500 bg-opacity-10 w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                >
-                  <i class="fas fa-sync-alt text-green-500"></i>
-                </div>
-                <div>
-                  <h3 class="text-lg font-semibold text-gray-900 mb-2">
-                    Better Team Alignment
-                  </h3>
-                  <p class="text-gray-600">
-                    Consistent, structured updates keep everyone informed about
-                    team progress and blockers.
-                  </p>
-                </div>
-              </div>
-
-              <div class="flex items-start space-x-4">
-                <div
-                  class="bg-yellow-500 bg-opacity-10 w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                >
-                  <i class="fas fa-shield-alt text-yellow-500"></i>
-                </div>
-                <div>
-                  <h3 class="text-lg font-semibold text-gray-900 mb-2">
-                    Secure & Private
-                  </h3>
-                  <p class="text-gray-600">
-                    Enterprise-grade security with data privacy controls and
-                    compliance-ready features.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div
-            class="bg-gradient-to-br from-primary to-secondary p-8 rounded-2xl text-white"
-          >
-            <h3 class="text-2xl font-bold mb-6">Perfect for Modern Teams</h3>
-            <div class="space-y-4">
-              <div class="flex items-center space-x-3">
-                <i class="fas fa-check-circle"></i>
-                <span>Remote and hybrid workforces</span>
-              </div>
-              <div class="flex items-center space-x-3">
-                <i class="fas fa-check-circle"></i>
-                <span>Agile and scrum teams</span>
-              </div>
-              <div class="flex items-center space-x-3">
-                <i class="fas fa-check-circle"></i>
-                <span>Cross-functional project teams</span>
-              </div>
-              <div class="flex items-center space-x-3">
-                <i class="fas fa-check-circle"></i>
-                <span>Multiple timezone organizations</span>
-              </div>
-              <div class="flex items-center space-x-3">
-                <i class="fas fa-check-circle"></i>
-                <span>Fast-growing companies</span>
-              </div>
-            </div>
-            <button
-              onclick="scrollToContact()"
-              class="mt-6 bg-white text-primary hover:bg-gray-100 px-6 py-3 rounded-lg font-semibold transition-all w-full"
-            >
-              Get Started Today →
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Contact/CTA Section -->
-    <section id="contact" class="py-20 bg-gray-900">
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">
-          🚀 Ready to Transform Your Standups?
-        </h2>
-        <p class="text-xl text-gray-300 mb-8">
-          Join teams that have already saved thousands of hours with Daily Dose.
-          Contact us to get started with your custom installation.
+        <h1 class="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+          Automate Your Team's
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+            Daily Standups
+          </span>
+        </h1>
+        <p class="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+          Daily Dose is an intelligent Slack bot that streamlines your team's
+          standup meetings. Save time, improve communication, and boost
+          productivity with automated reminders and beautiful summaries.
         </p>
-
-        <div class="bg-gray-800 p-8 rounded-2xl max-w-2xl mx-auto">
-          <h3 class="text-xl font-semibold text-white mb-6">
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <button onclick="scrollToContact()"
+            class="bg-primary hover:bg-[#00AFFF] text-white px-8 py-4 rounded-lg text-lg font-semibold transition-all transform hover:scale-105 shadow-lg hover:shadow-xl">
+            <i class="fas fa-rocket mr-2"></i>
             Get Daily Dose for Your Team
-          </h3>
-          <div class="space-y-4">
-            <div class="flex flex-col sm:flex-row gap-4">
-              <a
-                href="mailto:contact@dailydose.bot"
-                class="flex-1 bg-primary hover:bg-[#00AFFF] text-white px-6 py-4 rounded-lg font-semibold transition-all flex items-center justify-center"
-              >
-                <i class="fas fa-envelope mr-2"></i>
-                Email Us
-              </a>
-              <a
-                href="#"
-                onclick="alert('Please contact us via email for installation details')"
-                class="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-lg font-semibold transition-all flex items-center justify-center"
-              >
-                <i class="fab fa-slack mr-2"></i>
-                Request Demo
-              </a>
-            </div>
-            <p class="text-gray-400 text-sm">
-              We'll help you set up Daily Dose for your workspace and provide
-              full onboarding support.
-            </p>
-          </div>
+          </button>
+          <button onclick="scrollToFeatures()"
+            class="border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-4 rounded-lg text-lg font-semibold transition-all">
+            <i class="fas fa-play-circle mr-2"></i>
+            See How It Works
+          </button>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Footer -->
-    <footer class="bg-black py-12">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid md:grid-cols-4 gap-8">
-          <div class="col-span-2">
-            <div class="flex items-center space-x-3 mb-4">
-              <img src="/logo.png" alt="Daily Dose Logo" class="h-8 w-8" />
-              <span class="text-xl font-bold text-white">Daily Dose</span>
-            </div>
-            <p class="text-gray-400 max-w-md">
-              Automate your team's daily standups with intelligence and style.
-              Save time, improve communication, boost productivity.
-            </p>
-          </div>
+  <!-- Features Section -->
+  <section id="features" class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          ✨ Powerful Features for Modern Teams
+        </h2>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+          Everything you need to run efficient, engaging daily standups that
+          your team will actually love.
+        </p>
+      </div>
 
-          <div>
-            <h4 class="text-white font-semibold mb-4">Product</h4>
-            <ul class="space-y-2">
-              <li>
-                <a
-                  href="#features"
-                  class="text-gray-400 hover:text-white transition-colors"
-                  >Features</a
-                >
-              </li>
-              <li>
-                <a
-                  href="#how-it-works"
-                  class="text-gray-400 hover:text-white transition-colors"
-                  >How It Works</a
-                >
-              </li>
-              <li>
-                <a
-                  href="#contact"
-                  class="text-gray-400 hover:text-white transition-colors"
-                  >Get Started</a
-                >
-              </li>
-              <li>
-                <a
-                  href="/changelog"
-                  class="text-gray-400 hover:text-white transition-colors"
-                  >Changelog</a
-                >
-              </li>
-            </ul>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Feature 1 -->
+        <div class="bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-shadow">
+          <div class="bg-primary bg-opacity-10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+            <i class="fas fa-bell text-primary text-xl"></i>
           </div>
-
-          <div>
-            <h4 class="text-white font-semibold mb-4">Support</h4>
-            <ul class="space-y-2">
-              <li>
-                <a
-                  href="mailto:support@dailydose.bot"
-                  class="text-gray-400 hover:text-white transition-colors"
-                  >Contact Support</a
-                >
-              </li>
-              <li>
-                <a
-                  href="/docs"
-                  class="text-gray-400 hover:text-white transition-colors"
-                  >Documentation</a
-                >
-              </li>
-              <li>
-                <a
-                  href="/scripts-docs"
-                  class="text-gray-400 hover:text-white transition-colors"
-                >
-                  <i class="fas fa-lock text-xs mr-1"></i>Scripts Admin
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/health"
-                  class="text-gray-400 hover:text-white transition-colors"
-                  >Service Status</a
-                >
-              </li>
-            </ul>
-          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">
+            Automated Reminders
+          </h3>
+          <p class="text-gray-600">
+            Send personalized DM reminders at configured times. Never miss a
+            standup again with smart, timezone-aware scheduling.
+          </p>
         </div>
 
-        <div class="border-t border-gray-800 mt-8 pt-8 text-center">
-          <p class="text-gray-400">
-            © 2025 Daily Dose. Made with ❤️ for productive teams everywhere.
+        <!-- Feature 2 -->
+        <div class="bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-shadow">
+          <div class="bg-secondary bg-opacity-10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+            <i class="fas fa-users text-secondary text-xl"></i>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">
+            Team Management
+          </h3>
+          <p class="text-gray-600">
+            Create and join teams with custom schedules. Flexible team
+            organization with admin controls and member permissions.
+          </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-shadow">
+          <div class="bg-green-500 bg-opacity-10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+            <i class="fas fa-umbrella-beach text-green-500 text-xl"></i>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">
+            Leave Management
+          </h3>
+          <p class="text-gray-600">
+            Set vacation and leave dates to automatically skip reminders.
+            Smart exclusion from standup expectations when you're away.
+          </p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-shadow">
+          <div class="bg-yellow-500 bg-opacity-10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+            <i class="fas fa-calendar-alt text-yellow-500 text-xl"></i>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">
+            Work Day Configuration
+          </h3>
+          <p class="text-gray-600">
+            Customize working days for each team member. Perfect for part-time
+            workers and flexible schedules.
+          </p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-shadow">
+          <div class="bg-red-500 bg-opacity-10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+            <i class="fas fa-building text-red-500 text-xl"></i>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">
+            Multi-Organization
+          </h3>
+          <p class="text-gray-600">
+            Support for multiple organizations and workspaces. Scale across
+            your entire company with centralized management.
+          </p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="bg-gray-50 p-8 rounded-xl hover:shadow-lg transition-shadow">
+          <div class="bg-indigo-500 bg-opacity-10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+            <i class="fas fa-clock text-indigo-500 text-xl"></i>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">
+            Late Submission Tracking
+          </h3>
+          <p class="text-gray-600">
+            Handle late submissions gracefully with automatic thread replies.
+            Keep the conversation flowing even after posting time.
           </p>
         </div>
       </div>
-    </footer>
+    </div>
+  </section>
 
-    <!-- JavaScript -->
-    <script src="/js/main.js"></script>
-  </body>
+  <!-- How It Works Section -->
+  <section id="how-it-works" class="py-20 bg-gradient-to-br from-gray-50 to-cyan-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          🔄 How Daily Dose Works
+        </h2>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+          Simple, automated workflow that fits seamlessly into your team's
+          routine.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8">
+        <!-- Step 1 -->
+        <div class="text-center">
+          <div class="bg-primary bg-opacity-10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-2xl font-bold text-primary">1</span>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-4">
+            Morning Reminder
+          </h3>
+          <p class="text-gray-600">
+            Daily Dose sends personalized DM reminders at your team's
+            configured standup time. No more forgotten standups!
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="text-center">
+          <div class="bg-secondary bg-opacity-10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-2xl font-bold text-secondary">2</span>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-4">
+            Submit Updates
+          </h3>
+          <p class="text-gray-600">
+            Team members respond with yesterday's tasks, today's plans, and
+            any blockers through an intuitive modal interface.
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="text-center">
+          <div class="bg-green-500 bg-opacity-10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="text-2xl font-bold text-green-500">3</span>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-4">
+            Beautiful Summary
+          </h3>
+          <p class="text-gray-600">
+            At posting time, Daily Dose creates a formatted summary in your
+            team channel, keeping everyone aligned and informed.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits Section -->
+  <section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            💡 Why Teams Choose Daily Dose
+          </h2>
+          <div class="space-y-6">
+            <div class="flex items-start space-x-4">
+              <div class="bg-primary bg-opacity-10 w-10 h-10 rounded-lg flex items-center justify-center shrink-0">
+                <i class="fas fa-clock text-primary"></i>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                  Save 30+ Minutes Daily
+                </h3>
+                <p class="text-gray-600">
+                  Eliminate manual standup coordination and reduce meeting
+                  overhead with automated workflows.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-4">
+              <div class="bg-secondary bg-opacity-10 w-10 h-10 rounded-lg flex items-center justify-center shrink-0">
+                <i class="fas fa-chart-line text-secondary"></i>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                  Boost Participation
+                </h3>
+                <p class="text-gray-600">
+                  Friendly reminders and easy-to-use interfaces increase team
+                  engagement by 85%.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-4">
+              <div class="bg-green-500 bg-opacity-10 w-10 h-10 rounded-lg flex items-center justify-center shrink-0">
+                <i class="fas fa-sync-alt text-green-500"></i>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                  Better Team Alignment
+                </h3>
+                <p class="text-gray-600">
+                  Consistent, structured updates keep everyone informed about
+                  team progress and blockers.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-4">
+              <div class="bg-yellow-500 bg-opacity-10 w-10 h-10 rounded-lg flex items-center justify-center shrink-0">
+                <i class="fas fa-shield-alt text-yellow-500"></i>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                  Secure & Private
+                </h3>
+                <p class="text-gray-600">
+                  Enterprise-grade security with data privacy controls and
+                  compliance-ready features.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-primary to-secondary p-8 rounded-2xl text-white">
+          <h3 class="text-2xl font-bold mb-6">Perfect for Modern Teams</h3>
+          <div class="space-y-4">
+            <div class="flex items-center space-x-3">
+              <i class="fas fa-check-circle"></i>
+              <span>Remote and hybrid workforces</span>
+            </div>
+            <div class="flex items-center space-x-3">
+              <i class="fas fa-check-circle"></i>
+              <span>Agile and scrum teams</span>
+            </div>
+            <div class="flex items-center space-x-3">
+              <i class="fas fa-check-circle"></i>
+              <span>Cross-functional project teams</span>
+            </div>
+            <div class="flex items-center space-x-3">
+              <i class="fas fa-check-circle"></i>
+              <span>Multiple timezone organizations</span>
+            </div>
+            <div class="flex items-center space-x-3">
+              <i class="fas fa-check-circle"></i>
+              <span>Fast-growing companies</span>
+            </div>
+          </div>
+          <button onclick="scrollToContact()"
+            class="mt-6 bg-white text-primary hover:bg-gray-100 px-6 py-3 rounded-lg font-semibold transition-all w-full">
+            Get Started Today →
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact/CTA Section -->
+  <section id="contact" class="py-20 bg-gray-900">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">
+        🚀 Ready to Transform Your Standups?
+      </h2>
+      <p class="text-xl text-gray-300 mb-8">
+        Join teams that have already saved thousands of hours with Daily Dose.
+        Contact us to get started with your custom installation.
+      </p>
+
+      <div class="bg-gray-800 p-8 rounded-2xl max-w-2xl mx-auto">
+        <h3 class="text-xl font-semibold text-white mb-6">
+          Get Daily Dose for Your Team
+        </h3>
+        <div class="space-y-4">
+          <div class="flex flex-col sm:flex-row gap-4">
+            <a href="mailto:contact@dailydose.bot"
+              class="flex-1 bg-primary hover:bg-[#00AFFF] text-white px-6 py-4 rounded-lg font-semibold transition-all flex items-center justify-center">
+              <i class="fas fa-envelope mr-2"></i>
+              Email Us
+            </a>
+            <a href="#" onclick="alert('Please contact us via email for installation details')"
+              class="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-lg font-semibold transition-all flex items-center justify-center">
+              <i class="fab fa-slack mr-2"></i>
+              Request Demo
+            </a>
+          </div>
+          <p class="text-gray-400 text-sm">
+            We'll help you set up Daily Dose for your workspace and provide
+            full onboarding support.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-black py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-4 gap-8">
+        <div class="col-span-2">
+          <div class="flex items-center space-x-3 mb-4">
+            <img src="/logo.png" alt="Daily Dose Logo" class="h-8 w-8" />
+            <span class="text-xl font-bold text-white">Daily Dose</span>
+          </div>
+          <p class="text-gray-400 max-w-md">
+            Automate your team's daily standups with intelligence and style.
+            Save time, improve communication, boost productivity.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="text-white font-semibold mb-4">Product</h4>
+          <ul class="space-y-2">
+            <li>
+              <a href="#features" class="text-gray-400 hover:text-white transition-colors">Features</a>
+            </li>
+            <li>
+              <a href="#how-it-works" class="text-gray-400 hover:text-white transition-colors">How It Works</a>
+            </li>
+            <li>
+              <a href="#contact" class="text-gray-400 hover:text-white transition-colors">Get Started</a>
+            </li>
+            <li>
+              <a href="/changelog" class="text-gray-400 hover:text-white transition-colors">Changelog</a>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="text-white font-semibold mb-4">Support</h4>
+          <ul class="space-y-2">
+            <li>
+              <a href="mailto:support@dailydose.bot" class="text-gray-400 hover:text-white transition-colors">Contact
+                Support</a>
+            </li>
+            <li>
+              <a href="/docs" class="text-gray-400 hover:text-white transition-colors">Documentation</a>
+            </li>
+            <li>
+              <a href="/scripts-docs" class="text-gray-400 hover:text-white transition-colors">
+                <i class="fas fa-lock text-xs mr-1"></i>Scripts Admin
+              </a>
+            </li>
+            <li>
+              <a href="/health" class="text-gray-400 hover:text-white transition-colors">Service Status</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-800 mt-8 pt-8 text-center">
+        <p class="text-gray-400">
+          © 2025 Daily Dose. Made with ❤️ for productive teams everywhere.
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script src="/js/main.js"></script>
+</body>
+
 </html>

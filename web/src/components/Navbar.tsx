@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router';
-import { Home, Terminal, History, Book, Slack, Menu, X } from 'lucide-react';
+import { Terminal, History, Book, Slack, Menu, X } from 'lucide-react';
 
 export const Navbar = () => {
   const location = useLocation();

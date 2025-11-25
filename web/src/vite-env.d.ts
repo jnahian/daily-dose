@@ -8,6 +8,7 @@ declare namespace JSX {
       colors?: string;
       delay?: number;
       class?: string;
+      target?: string;
     };
   }
 }
