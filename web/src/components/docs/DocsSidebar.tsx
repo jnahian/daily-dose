@@ -119,68 +119,72 @@ export const DocsSidebar = ({
         />
       )}
 
-      {/* Sidebar */}
-      <aside
-        className={`
-        fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-bg-surface border-r border-border-default 
-        transform transition-transform duration-300 z-40 overflow-y-auto
+      <div className="border-r border-border-default">
+        {/* Sidebar */}
+        <aside
+          className={`
+        w-64 overflow-y-auto
+        fixed top-16 left-0 h-[calc(100vh-4rem)] z-40
+        transform transition-transform duration-300
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:translate-x-0
+        md:translate-x-0 md:h-auto md:max-h-[calc(100vh-4rem)] md:sticky md:top-20 md:shrink-0 md:border-0
       `}
-      >
-        <div className="p-6">
-          {/* Search */}
-          <div className="relative mb-6">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
-            <input
-              type="text"
-              placeholder="Search docs..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-bg-primary border border-border-default rounded-lg pl-10 pr-4 py-2 text-sm text-text-primary placeholder-text-secondary/50 focus:outline-none focus:border-brand-cyan/50 transition-colors"
-            />
-          </div>
+        >
+          <div className="py-6 pr-6">
+            {/* Search */}
+            <div className="relative mb-6">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
+              <input
+                type="text"
+                placeholder="Search docs..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-bg-primary border border-border-default rounded-lg pl-10 pr-4 py-2 text-sm text-text-primary placeholder-text-secondary/50 focus:outline-none focus:border-brand-cyan/50 transition-colors"
+              />
+            </div>
 
-          {/* Navigation */}
-          <nav className="space-y-6">
-            {navItems.map((item) => (
-              <div key={item.id}>
-                <button
-                  onClick={() => scrollToSection(item.id)}
-                  className={`
+            {/* Navigation */}
+            <nav className="space-y-6">
+              {navItems.map((item) => (
+                <div key={item.id}>
+                  <button
+                    onClick={() => scrollToSection(item.id)}
+                    className={`
                     w-full text-left font-semibold text-sm mb-2 transition-colors flex items-center gap-2
                     ${activeSection === item.id ? 'text-brand-cyan' : 'text-text-primary hover:text-brand-cyan'}
                   `}
-                >
-                  <item.icon size={18} />
-                  {item.title}
-                </button>
-                {item.subsections && (
-                  <ul className="space-y-2 ml-3 border-l border-border-default">
-                    {item.subsections.map((sub) => (
-                      <li key={sub.id}>
-                        <button
-                          onClick={() => scrollToSection(sub.id)}
-                          className={`
+                  >
+                    <item.icon size={18} />
+                    {item.title}
+                  </button>
+                  {item.subsections && (
+                    <ul className="space-y-2 ml-3 border-l border-border-default">
+                      {item.subsections.map((sub) => (
+                        <li key={sub.id}>
+                          <button
+                            onClick={() => scrollToSection(sub.id)}
+                            className={`
                             w-full text-left text-sm pl-3 py-1 transition-colors flex items-center gap-2
                             ${activeSection === sub.id ? 'text-brand-cyan' : 'text-text-secondary hover:text-text-primary'}
                           `}
-                        >
-                          <ChevronRight
-                            size={14}
-                            className={activeSection === sub.id ? 'opacity-100' : 'opacity-0'}
-                          />
-                          {sub.title}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
-          </nav>
-        </div>
-      </aside>
+                          >
+                            <ChevronRight
+                              size={14}
+                              className={activeSection === sub.id ? 'opacity-100' : 'opacity-0'}
+                            />
+                            {sub.title}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </nav>
+          </div>
+        </aside>
+
+      </div>
     </>
   );
 };

@@ -87,47 +87,52 @@ const Docs = () => {
         {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
-      <DocsSidebar
-        isOpen={sidebarOpen}
-        setIsOpen={setSidebarOpen}
-        activeSection={activeSection}
-        setActiveSection={setActiveSection}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-      />
+      {/* Container for sidebar and content */}
+      <div className="pt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex gap-8">
+            <DocsSidebar
+              isOpen={sidebarOpen}
+              setIsOpen={setSidebarOpen}
+              activeSection={activeSection}
+              setActiveSection={setActiveSection}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+            />
 
-      {/* Main content */}
-      <main className="pt-16 md:pl-64">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Header */}
-          <div className="mb-12">
-            <h1 className="text-5xl font-bold text-text-primary mb-4">Documentation</h1>
-            <p className="text-xl text-text-secondary">
-              Everything you need to know about using Daily Dose for your team's standups.
-            </p>
+            {/* Main content */}
+            <main className="flex-1 min-w-0 py-12">
+              {/* Header */}
+              <div className="mb-12">
+                <h1 className="text-5xl font-bold text-text-primary mb-4">Documentation</h1>
+                <p className="text-xl text-text-secondary">
+                  Everything you need to know about using Daily Dose for your team's standups.
+                </p>
+              </div>
+
+              {/* Render sections from JSON */}
+              {filteredSections.length > 0 ? (
+                filteredSections.map((section) => (
+                  <ContentSection key={section.id} id={section.id} title={section.title}>
+                    {section.description && <p className="text-text-secondary mb-6">{section.description}</p>}
+
+                    {section.subsections.map((subsection) => (
+                      <div key={subsection.id} id={subsection.id} className="mt-8">
+                        <h3 className="text-2xl font-bold text-text-primary mb-4">{subsection.title}</h3>
+                        <ContentRenderer content={subsection.content} />
+                      </div>
+                    ))}
+                  </ContentSection>
+                ))
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-xl text-text-secondary">No results found for "{searchQuery}"</p>
+                </div>
+              )}
+            </main>
           </div>
-
-          {/* Render sections from JSON */}
-          {filteredSections.length > 0 ? (
-            filteredSections.map((section) => (
-              <ContentSection key={section.id} id={section.id} title={section.title}>
-                {section.description && <p className="text-text-secondary mb-6">{section.description}</p>}
-
-                {section.subsections.map((subsection) => (
-                  <div key={subsection.id} id={subsection.id} className="mt-8">
-                    <h3 className="text-2xl font-bold text-text-primary mb-4">{subsection.title}</h3>
-                    <ContentRenderer content={subsection.content} />
-                  </div>
-                ))}
-              </ContentSection>
-            ))
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-xl text-text-secondary">No results found for "{searchQuery}"</p>
-            </div>
-          )}
         </div>
-      </main>
+      </div>
     </div>
   );
 };
