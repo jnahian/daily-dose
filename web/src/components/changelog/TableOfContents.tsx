@@ -28,8 +28,8 @@ export const TableOfContents = ({
   };
 
   return (
-    <div className="sticky top-24 bg-brand-navy-light border border-white/10 rounded-xl p-6 h-fit">
-      <h3 className="font-semibold text-white mb-4 text-sm uppercase tracking-wide">Versions</h3>
+    <div className="sticky top-24 bg-bg-surface border border-border-default rounded-xl p-6 h-fit">
+      <h3 className="font-semibold text-text-primary mb-4 text-sm uppercase tracking-wide">Versions</h3>
       <nav className="space-y-2">
         {versions.map((version) => (
           <button
@@ -37,7 +37,7 @@ export const TableOfContents = ({
             onClick={() => scrollToVersion(version.version)}
             className={`
               w-full text-left text-sm px-3 py-2 rounded-md transition-colors flex items-center gap-2
-              ${activeVersion === version.version ? 'bg-brand-cyan/10 text-brand-cyan' : 'text-gray-400 hover:text-white hover:bg-white/5'}
+              ${activeVersion === version.version ? 'bg-brand-cyan/10 text-brand-cyan' : 'text-text-secondary hover:text-text-primary hover:bg-bg-primary'}
             `}
           >
             <ChevronRight

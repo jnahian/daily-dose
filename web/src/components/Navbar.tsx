@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router';
 import { Terminal, History, Book, Slack, Menu, X } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 
 export const Navbar = () => {
   const location = useLocation();
@@ -33,15 +34,15 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="fixed w-full z-50 bg-brand-navy/80 backdrop-blur-md border-b border-white/10">
+    <nav className="fixed w-full z-50 bg-bg-primary/80 backdrop-blur-md border-b border-border-default transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <img src="/logo.png" alt="Daily Dose Logo" className="w-8 h-8 rounded-lg" />
             <div>
-              <span className="text-white font-bold text-xl tracking-tight">Daily Dose</span>
-              {isScriptsPage && <span className="text-gray-400 text-sm ml-2">Scripts Docs</span>}
+              <span className="text-text-primary font-bold text-xl tracking-tight">Daily Dose</span>
+              {isScriptsPage && <span className="text-text-secondary text-sm ml-2">Scripts Docs</span>}
             </div>
           </Link>
 
@@ -54,32 +55,32 @@ export const Navbar = () => {
                   <a
                     href="#"
                     onClick={scrollToTop}
-                    className="text-gray-300 hover:text-brand-cyan px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
+                    className="text-text-secondary hover:text-brand-cyan px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
                   >
                     Home
                   </a>
                   <a
                     href="#features"
                     onClick={(e) => scrollToSection(e, 'features')}
-                    className="text-gray-300 hover:text-brand-cyan px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
+                    className="text-text-secondary hover:text-brand-cyan px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
                   >
                     Features
                   </a>
                   <a
                     href="#how-it-works"
                     onClick={(e) => scrollToSection(e, 'how-it-works')}
-                    className="text-gray-300 hover:text-brand-cyan px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
+                    className="text-text-secondary hover:text-brand-cyan px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
                   >
                     How it Works
                   </a>
                   <Link
                     to="/docs"
-                    className="text-gray-300 hover:text-brand-cyan px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                    className="text-text-secondary hover:text-brand-cyan px-3 py-2 rounded-md text-sm font-medium transition-colors"
                   >
                     Documentation
                   </Link>
                 </div>
-                <button className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 border border-white/10">
+                <button className="bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-cyan px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 border border-brand-blue/20">
                   <Slack size={16} />
                   Add to Slack
                 </button>
@@ -94,7 +95,7 @@ export const Navbar = () => {
                 </span>
                 <Link
                   to="/docs"
-                  className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+                  className="text-text-secondary hover:text-text-primary transition-colors flex items-center gap-2"
                 >
                   <Book size={18} />
                   <span className="hidden sm:inline">Documentation</span>
@@ -107,14 +108,14 @@ export const Navbar = () => {
               <>
                 <Link
                   to="/scripts"
-                  className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+                  className="text-text-secondary hover:text-text-primary transition-colors flex items-center gap-2"
                 >
                   <Terminal size={18} />
                   <span className="hidden sm:inline">Scripts</span>
                 </Link>
                 <Link
                   to="/changelog"
-                  className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+                  className="text-text-secondary hover:text-text-primary transition-colors flex items-center gap-2"
                 >
                   <History size={18} />
                   <span className="hidden sm:inline">Changelog</span>
@@ -126,56 +127,61 @@ export const Navbar = () => {
             {isChangelogPage && (
               <Link
                 to="/docs"
-                className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+                className="text-text-secondary hover:text-text-primary transition-colors flex items-center gap-2"
               >
                 <Book size={18} />
                 <span className="hidden sm:inline">Documentation</span>
               </Link>
             )}
+
+            <div className="ml-2 pl-2 border-l border-border-default">
+              <ThemeToggle />
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
-          {isHomePage && (
-            <div className="-mr-2 flex md:hidden">
+          <div className="flex items-center gap-4 md:hidden">
+            <ThemeToggle />
+            {isHomePage && (
               <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="text-gray-400 hover:text-white p-2"
+                className="text-text-secondary hover:text-text-primary p-2"
               >
                 {isOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
       {/* Mobile Menu (Home Page Only) */}
       {isHomePage && isOpen && (
-        <div className="md:hidden bg-brand-navy border-b border-white/10">
+        <div className="md:hidden bg-bg-primary border-b border-border-default">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <a
               href="#"
               onClick={scrollToTop}
-              className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium cursor-pointer"
+              className="text-text-secondary hover:text-text-primary block px-3 py-2 rounded-md text-base font-medium cursor-pointer"
             >
               Home
             </a>
             <a
               href="#features"
               onClick={(e) => scrollToSection(e, 'features')}
-              className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium cursor-pointer"
+              className="text-text-secondary hover:text-text-primary block px-3 py-2 rounded-md text-base font-medium cursor-pointer"
             >
               Features
             </a>
             <a
               href="#how-it-works"
               onClick={(e) => scrollToSection(e, 'how-it-works')}
-              className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium cursor-pointer"
+              className="text-text-secondary hover:text-text-primary block px-3 py-2 rounded-md text-base font-medium cursor-pointer"
             >
               How it Works
             </a>
             <Link
               to="/docs"
-              className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+              className="text-text-secondary hover:text-text-primary block px-3 py-2 rounded-md text-base font-medium"
             >
               Documentation
             </Link>

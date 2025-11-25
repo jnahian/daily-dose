@@ -19,7 +19,7 @@ export const CommandHeader = ({ command }: CommandHeaderProps) => {
       <h4 className="text-lg font-semibold text-brand-cyan">{command}</h4>
       <button
         onClick={handleCopy}
-        className="flex items-center gap-2 px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs text-gray-400 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+        className="flex items-center gap-2 px-3 py-1 bg-bg-surface hover:bg-bg-surface/80 border border-border-default rounded-lg text-xs text-text-secondary hover:text-text-primary transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
       >
         {copied ? (
           <>

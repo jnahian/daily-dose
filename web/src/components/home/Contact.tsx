@@ -18,7 +18,7 @@ export const Contact = () => {
                         viewport={{ once: true }}
                         transition={{ duration: 0.5 }}
                     >
-                        <div className="w-20 h-20 bg-brand-navy-light rounded-3xl flex items-center justify-center border border-white/5 shadow-[0_0_30px_rgba(0,207,255,0.1)] mb-8">
+                        <div className="w-20 h-20 bg-bg-surface rounded-3xl flex items-center justify-center border border-border-default shadow-[0_0_30px_rgba(0,207,255,0.1)] mb-8">
                             <LordIcon
                                 src="https://cdn.lordicon.com/aycieyht.json"
                                 trigger="loop"
@@ -28,35 +28,35 @@ export const Contact = () => {
                             />
                         </div>
 
-                        <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
+                        <h2 className="text-3xl sm:text-4xl font-bold text-text-primary mb-6">
                             Get in touch
                         </h2>
 
-                        <p className="text-gray-400 text-lg mb-12 leading-relaxed">
+                        <p className="text-text-secondary text-lg mb-12 leading-relaxed">
                             Have questions about Daily Dose? We're here to help. Fill out the form
                             and our team will get back to you shortly.
                         </p>
 
                         <div className="space-y-8">
                             <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 bg-brand-navy-light rounded-xl flex items-center justify-center border border-white/5 shrink-0 text-brand-cyan">
+                                <div className="w-12 h-12 bg-bg-surface rounded-xl flex items-center justify-center border border-border-default shrink-0 text-brand-cyan">
                                     <Mail className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h3 className="text-white font-bold mb-1">Email Us</h3>
-                                    <p className="text-gray-400">support@dailydose.bot</p>
-                                    <p className="text-gray-400">sales@dailydose.bot</p>
+                                    <h3 className="text-text-primary font-bold mb-1">Email Us</h3>
+                                    <p className="text-text-secondary">support@dailydose.bot</p>
+                                    <p className="text-text-secondary">sales@dailydose.bot</p>
                                 </div>
                             </div>
 
                             <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 bg-brand-navy-light rounded-xl flex items-center justify-center border border-white/5 shrink-0 text-brand-cyan">
+                                <div className="w-12 h-12 bg-bg-surface rounded-xl flex items-center justify-center border border-border-default shrink-0 text-brand-cyan">
                                     <MapPin className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h3 className="text-white font-bold mb-1">Location</h3>
-                                    <p className="text-gray-400">San Francisco, CA</p>
-                                    <p className="text-gray-400">United States</p>
+                                    <h3 className="text-text-primary font-bold mb-1">Location</h3>
+                                    <p className="text-text-secondary">San Francisco, CA</p>
+                                    <p className="text-text-secondary">United States</p>
                                 </div>
                             </div>
                         </div>

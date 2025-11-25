@@ -122,7 +122,7 @@ export const DocsSidebar = ({
       {/* Sidebar */}
       <aside
         className={`
-        fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-brand-navy-light border-r border-white/10 
+        fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-bg-surface border-r border-border-default 
         transform transition-transform duration-300 z-40 overflow-y-auto
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0
@@ -131,13 +131,13 @@ export const DocsSidebar = ({
         <div className="p-6">
           {/* Search */}
           <div className="relative mb-6">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
             <input
               type="text"
               placeholder="Search docs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-brand-navy border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-cyan/50 transition-colors"
+              className="w-full bg-bg-primary border border-border-default rounded-lg pl-10 pr-4 py-2 text-sm text-text-primary placeholder-text-secondary/50 focus:outline-none focus:border-brand-cyan/50 transition-colors"
             />
           </div>
 
@@ -149,21 +149,21 @@ export const DocsSidebar = ({
                   onClick={() => scrollToSection(item.id)}
                   className={`
                     w-full text-left font-semibold text-sm mb-2 transition-colors flex items-center gap-2
-                    ${activeSection === item.id ? 'text-brand-cyan' : 'text-white hover:text-brand-cyan'}
+                    ${activeSection === item.id ? 'text-brand-cyan' : 'text-text-primary hover:text-brand-cyan'}
                   `}
                 >
                   <item.icon size={18} />
                   {item.title}
                 </button>
                 {item.subsections && (
-                  <ul className="space-y-2 ml-3 border-l border-white/10">
+                  <ul className="space-y-2 ml-3 border-l border-border-default">
                     {item.subsections.map((sub) => (
                       <li key={sub.id}>
                         <button
                           onClick={() => scrollToSection(sub.id)}
                           className={`
                             w-full text-left text-sm pl-3 py-1 transition-colors flex items-center gap-2
-                            ${activeSection === sub.id ? 'text-brand-cyan' : 'text-gray-400 hover:text-white'}
+                            ${activeSection === sub.id ? 'text-brand-cyan' : 'text-text-secondary hover:text-text-primary'}
                           `}
                         >
                           <ChevronRight

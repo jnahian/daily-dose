@@ -20,7 +20,7 @@ const formatText = (text: string) => {
     const formattedLine = parts.map((part, index) => {
       if (part.startsWith('**') && part.endsWith('**')) {
         return (
-          <strong key={index} className="text-white font-semibold">
+          <strong key={index} className="text-text-primary font-semibold">
             {part.slice(2, -2)}
           </strong>
         );
@@ -44,7 +44,7 @@ export const ContentRenderer = ({ content }: ContentRendererProps) => {
         switch (item.type) {
           case 'text':
             return (
-              <div key={index} className="text-gray-300 mb-4">
+              <div key={index} className="text-text-secondary mb-4">
                 {formatText(item.value!)}
               </div>
             );
@@ -53,7 +53,7 @@ export const ContentRenderer = ({ content }: ContentRendererProps) => {
             return (
               <div key={index} className="mb-6">
                 <CommandHeader command={item.command!} />
-                <p className="text-gray-300 mb-3">{formatText(item.description!)}</p>
+                <p className="text-text-secondary mb-3">{formatText(item.description!)}</p>
                 {item.examples && item.examples.length > 0 && (
                   <CodeBlock>{item.examples.join('\n\n')}</CodeBlock>
                 )}
@@ -69,7 +69,7 @@ export const ContentRenderer = ({ content }: ContentRendererProps) => {
 
           case 'list':
             return (
-              <ul key={index} className="list-disc list-inside space-y-2 text-gray-300 ml-4 mb-4">
+              <ul key={index} className="list-disc list-inside space-y-2 text-text-secondary ml-4 mb-4">
                 {item.items?.map((listItem, i) => (
                   <li key={i}>{formatText(listItem)}</li>
                 ))}
@@ -80,10 +80,10 @@ export const ContentRenderer = ({ content }: ContentRendererProps) => {
             return (
               <div
                 key={index}
-                className="bg-brand-navy-light border border-brand-cyan/30 rounded-lg p-4 my-4"
+                className="bg-bg-surface border border-brand-cyan/30 rounded-lg p-4 my-4"
               >
                 <p className="text-sm text-brand-cyan font-semibold mb-2">{item.title}</p>
-                <div className="text-sm text-gray-300">{formatText(item.value!)}</div>
+                <div className="text-sm text-text-secondary">{formatText(item.value!)}</div>
               </div>
             );
 
@@ -94,7 +94,7 @@ export const ContentRenderer = ({ content }: ContentRendererProps) => {
                 className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-4"
               >
                 <p className="text-sm text-yellow-400 font-semibold mb-2">{item.title}</p>
-                <div className="text-sm text-gray-300">{formatText(item.value!)}</div>
+                <div className="text-sm text-text-secondary">{formatText(item.value!)}</div>
               </div>
             );
 

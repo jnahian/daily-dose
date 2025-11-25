@@ -50,14 +50,14 @@ export const ScriptsTOC = ({ data, activeScript, setActiveScript }: ScriptsTOCPr
   };
 
   return (
-    <div className="sticky top-24 bg-brand-navy-light border border-white/10 rounded-xl p-6 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto">
-      <h3 className="font-semibold text-white mb-4 text-sm uppercase tracking-wide">Scripts</h3>
+    <div className="sticky top-24 bg-bg-surface border border-border-default rounded-xl p-6 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto">
+      <h3 className="font-semibold text-text-primary mb-4 text-sm uppercase tracking-wide">Scripts</h3>
       <nav className="space-y-4">
         {data.categories.map((category) => {
           const CategoryIcon = iconMap[category.icon] || Database;
           return (
             <div key={category.id}>
-              <div className="flex items-center gap-2 text-gray-400 text-xs uppercase tracking-wide mb-2">
+              <div className="flex items-center gap-2 text-text-secondary text-xs uppercase tracking-wide mb-2">
                 <CategoryIcon size={14} className={category.iconColor} />
                 <span>{category.title}</span>
               </div>
@@ -70,7 +70,7 @@ export const ScriptsTOC = ({ data, activeScript, setActiveScript }: ScriptsTOCPr
                       onClick={() => scrollToScript(script.id)}
                       className={`
                         w-full text-left text-sm px-3 py-2 rounded-md transition-colors flex items-center gap-2
-                        ${activeScript === script.id ? 'bg-brand-cyan/10 text-brand-cyan' : 'text-gray-400 hover:text-white hover:bg-white/5'}
+                        ${activeScript === script.id ? 'bg-brand-cyan/10 text-brand-cyan' : 'text-text-secondary hover:text-text-primary hover:bg-bg-primary'}
                       `}
                     >
                       <ChevronRight

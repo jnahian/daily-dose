@@ -22,24 +22,24 @@ export const Hero = () => {
               <span className="inline-block py-1 px-3 rounded-full bg-brand-blue/10 text-brand-cyan text-sm font-semibold mb-6 border border-brand-blue/20">
                 🚀 The Ultimate Standup Bot for Slack
               </span>
-              <h1 className="text-5xl sm:text-7xl font-extrabold text-white tracking-tight mb-8 leading-tight">
+              <h1 className="text-5xl sm:text-7xl font-extrabold text-text-primary tracking-tight mb-8 leading-tight">
                 Automate your <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-cyan to-brand-blue">
                   Daily Standups
                 </span>
               </h1>
-              <p className="mt-4 text-xl text-gray-400 mb-10 max-w-lg mx-auto lg:mx-0">
+              <p className="mt-4 text-xl text-text-secondary mb-10 max-w-lg mx-auto lg:mx-0">
                 Streamline your team's daily syncs, track progress, and remove blockers without the
                 meeting fatigue.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center">
-                <button className="px-8 py-4 bg-gradient-to-r from-brand-cyan to-brand-blue rounded-full text-white font-bold text-lg hover:shadow-[0_0_20px_rgba(0,207,255,0.5)] transition-all transform hover:-translate-y-1 flex items-center gap-2">
+                <button className="px-8 py-4 bg-gradient-to-r from-brand-cyan to-brand-blue rounded-full text-white font-bold text-lg hover:shadow-[0_0_20px_rgba(0,207,255,0.5)] transition-all transform hover:-translate-y-1 flex items-center gap-2 cursor-pointer">
                   <Slack size={20} />
                   Add to Slack
                 </button>
                 <Link
                   to="/docs"
-                  className="px-8 py-4 bg-white/5 border border-white/10 rounded-full text-white font-semibold hover:bg-white/10 transition-all flex items-center gap-2"
+                  className="px-8 py-4 bg-bg-surface border border-border-default rounded-full text-text-primary font-semibold hover:bg-bg-surface/80 transition-all flex items-center gap-2"
                 >
                   View Documentation
                   <ArrowRight size={18} />
@@ -55,17 +55,17 @@ export const Hero = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative mx-auto w-full max-w-lg lg:max-w-none"
           >
-            <div className="bg-slate-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden backdrop-blur-sm">
+            <div className="bg-bg-surface border border-border-default rounded-xl shadow-2xl overflow-hidden backdrop-blur-sm">
               {/* Slack Header Mock */}
-              <div className="bg-slate-950/50 border-b border-white/5 p-4 flex items-center gap-3">
+              <div className="bg-bg-surface/50 border-b border-border-default p-4 flex items-center gap-3">
                 <div className="flex gap-2">
                   <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50" />
                   <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50" />
                   <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50" />
                 </div>
-                <div className="h-4 w-px bg-white/10 mx-2" />
-                <span className="text-gray-400 text-sm font-medium flex items-center gap-1">
-                  <span className="text-gray-600">#</span> daily-standup
+                <div className="h-4 w-px bg-border-default mx-2" />
+                <span className="text-text-secondary text-sm font-medium flex items-center gap-1">
+                  <span className="text-text-secondary">#</span> daily-standup
                 </span>
               </div>
 
@@ -80,20 +80,20 @@ export const Hero = () => {
                   </div>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-baseline gap-2">
-                      <span className="font-bold text-white">Daily Dose</span>
+                      <span className="font-bold text-text-primary">Daily Dose</span>
                       <span className="bg-brand-blue/20 text-brand-blue text-[10px] px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">
                         APP
                       </span>
-                      <span className="text-xs text-gray-500">9:00 AM</span>
+                      <span className="text-xs text-text-secondary">9:00 AM</span>
                     </div>
-                    <div className="text-gray-300 text-sm leading-relaxed">
+                    <div className="text-text-secondary text-sm leading-relaxed">
                       <p className="mb-2">Good morning! It's time for our daily standup. 🚀</p>
-                      <div className="pl-3 border-l-2 border-white/10 space-y-1 text-gray-400">
+                      <div className="pl-3 border-l-2 border-border-default space-y-1 text-text-secondary">
                         <p>1. What did you accomplish yesterday?</p>
                         <p>2. What are you working on today?</p>
                         <p>3. Any blockers?</p>
                       </div>
-                      <button className="mt-3 px-4 py-1.5 bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-cyan text-sm font-medium rounded border border-brand-blue/20 transition-colors">
+                      <button className="mt-3 px-4 py-1.5 bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-cyan text-sm font-medium rounded border border-brand-blue/20 transition-colors cursor-pointer">
                         Submit Standup
                       </button>
                     </div>
@@ -114,12 +114,12 @@ export const Hero = () => {
                   </div>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-baseline gap-2">
-                      <span className="font-bold text-white">John Doe</span>
-                      <span className="text-xs text-gray-500">9:05 AM</span>
+                      <span className="font-bold text-text-primary">John Doe</span>
+                      <span className="text-xs text-text-secondary">9:05 AM</span>
                     </div>
-                    <div className="text-gray-300 text-sm leading-relaxed">
+                    <div className="text-text-secondary text-sm leading-relaxed">
                       <p>Here's my update:</p>
-                      <ul className="list-disc list-inside space-y-1 mt-1 text-gray-300">
+                      <ul className="list-disc list-inside space-y-1 mt-1 text-text-secondary">
                         <li>Fixed the authentication bug 🐛</li>
                         <li>Working on the new dashboard layout 📊</li>
                         <li>No blockers at the moment ✅</li>

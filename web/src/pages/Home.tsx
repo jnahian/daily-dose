@@ -37,7 +37,7 @@ export const meta = () => {
 
 const Home = () => {
   return (
-    <div className="min-h-screen bg-brand-navy text-white selection:bg-brand-cyan/30">
+    <div className="min-h-screen bg-bg-primary text-text-primary selection:bg-brand-cyan/30 transition-colors duration-300">
       <Navbar />
       <Hero />
       <Features />

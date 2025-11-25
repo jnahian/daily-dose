@@ -55,20 +55,20 @@ export const ScriptCard = ({ script }: ScriptCardProps) => {
   return (
     <div
       id={`script-${script.id}`}
-      className="bg-brand-navy-light rounded-xl border border-white/10 p-8 mb-8 scroll-mt-24"
+      className="bg-bg-surface rounded-xl border border-border-default p-8 mb-8 scroll-mt-24"
     >
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className={`p-3 bg-white/5 rounded-lg border border-white/10`}>
+        <div className={`p-3 bg-bg-primary rounded-lg border border-border-default`}>
           <Icon size={24} className={script.iconColor} />
         </div>
-        <h3 className="text-2xl font-bold text-white">{script.name}</h3>
+        <h3 className="text-2xl font-bold text-text-primary">{script.name}</h3>
       </div>
 
       {/* Purpose */}
       <div className="mb-6">
-        <h4 className="text-lg font-semibold text-white mb-2">Purpose</h4>
-        <p className="text-gray-300">{script.purpose}</p>
+        <h4 className="text-lg font-semibold text-text-primary mb-2">Purpose</h4>
+        <p className="text-text-secondary">{script.purpose}</p>
       </div>
 
       {/* Usage Note */}
@@ -90,11 +90,11 @@ export const ScriptCard = ({ script }: ScriptCardProps) => {
       {/* Examples */}
       {script.examples && script.examples.length > 0 && (
         <div className="mb-6">
-          <h4 className="text-lg font-semibold text-white mb-3">Usage</h4>
+          <h4 className="text-lg font-semibold text-text-primary mb-3">Usage</h4>
           {script.examples.map((example, index) => (
             <div key={index} className="mb-4">
               {example.description && (
-                <p className="text-gray-400 text-sm mb-2">{example.description}</p>
+                <p className="text-text-secondary text-sm mb-2">{example.description}</p>
               )}
               <CodeBlock>{example.code}</CodeBlock>
             </div>
@@ -105,19 +105,19 @@ export const ScriptCard = ({ script }: ScriptCardProps) => {
       {/* Parameters */}
       {script.parameters && script.parameters.length > 0 && (
         <div className="mb-6">
-          <h4 className="text-lg font-semibold text-white mb-3">Parameters</h4>
+          <h4 className="text-lg font-semibold text-text-primary mb-3">Parameters</h4>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/10">
-                  <th className="text-left py-2 font-semibold text-gray-300">Parameter</th>
-                  <th className="text-left py-2 font-semibold text-gray-300">Type</th>
-                  <th className="text-left py-2 font-semibold text-gray-300">Description</th>
+                <tr className="border-b border-border-default">
+                  <th className="text-left py-2 font-semibold text-text-secondary">Parameter</th>
+                  <th className="text-left py-2 font-semibold text-text-secondary">Type</th>
+                  <th className="text-left py-2 font-semibold text-text-secondary">Description</th>
                 </tr>
               </thead>
-              <tbody className="text-gray-400">
+              <tbody className="text-text-secondary">
                 {script.parameters.map((param, index) => (
-                  <tr key={index} className="border-b border-white/10">
+                  <tr key={index} className="border-b border-border-default">
                     <td className="py-2 font-mono text-brand-cyan">{param.name}</td>
                     <td className="py-2">{param.type}</td>
                     <td className="py-2">{param.description}</td>
@@ -132,10 +132,10 @@ export const ScriptCard = ({ script }: ScriptCardProps) => {
       {/* What It Does */}
       {script.whatItDoes && script.whatItDoes.length > 0 && (
         <div className="mb-6">
-          <h4 className="text-lg font-semibold text-white mb-3">What It Does</h4>
+          <h4 className="text-lg font-semibold text-text-primary mb-3">What It Does</h4>
           <ol className="space-y-2">
             {script.whatItDoes.map((step, index) => (
-              <li key={index} className="flex items-start gap-3 text-gray-300">
+              <li key={index} className="flex items-start gap-3 text-text-secondary">
                 <span className="bg-brand-cyan text-white text-xs px-2 py-1 rounded-full font-mono min-w-[24px] text-center">
                   {index + 1}
                 </span>
@@ -149,14 +149,14 @@ export const ScriptCard = ({ script }: ScriptCardProps) => {
       {/* Features */}
       {script.features && script.features.length > 0 && (
         <div className="mb-6">
-          <h4 className="text-lg font-semibold text-white mb-3">
+          <h4 className="text-lg font-semibold text-text-primary mb-3">
             {script.features.length > 1 ? 'Features' : 'What It Creates'}
           </h4>
           <div className="grid md:grid-cols-2 gap-4">
             {script.features.map((feature, index) => (
-              <div key={index} className="border border-white/10 p-4 rounded-lg bg-white/5">
+              <div key={index} className="border border-border-default p-4 rounded-lg bg-bg-primary">
                 <h5 className="font-semibold text-brand-cyan mb-2">{feature.title}</h5>
-                <ul className="text-sm text-gray-400 space-y-1">
+                <ul className="text-sm text-text-secondary space-y-1">
                   {feature.items.map((item, itemIndex) => (
                     <li key={itemIndex}>{item}</li>
                   ))}

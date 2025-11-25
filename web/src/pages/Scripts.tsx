@@ -66,7 +66,7 @@ const Scripts = () => {
 
   return (
     <BasicAuth>
-      <div className="min-h-screen bg-brand-navy text-white">
+      <div className="min-h-screen bg-bg-primary text-text-primary transition-colors duration-300">
         <Navbar />
 
         {/* Main content */}
@@ -118,14 +118,14 @@ const Scripts = () => {
                   return (
                     <div
                       key={index}
-                      className="bg-brand-navy-light border border-white/10 p-6 rounded-lg"
+                      className="bg-bg-surface border border-border-default p-6 rounded-lg"
                     >
                       <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                         <Icon size={20} className={category.iconColor} />
-                        <span className="text-white">{category.title}</span>
+                        <span className="text-text-primary">{category.title}</span>
                       </h3>
-                      <p className="text-gray-400 mb-4">{category.description}</p>
-                      <ul className="text-sm text-gray-500 space-y-1">
+                      <p className="text-text-secondary mb-4">{category.description}</p>
+                      <ul className="text-sm text-text-secondary space-y-1">
                         {category.highlights.map((highlight, hIndex) => (
                           <li key={hIndex}>• {highlight}</li>
                         ))}
@@ -138,7 +138,7 @@ const Scripts = () => {
 
             {/* Prerequisites */}
             <section className="mb-12">
-              <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-2">
+              <h2 className="text-3xl font-bold text-text-primary mb-6 flex items-center gap-2">
                 <CheckCircle size={32} className="text-blue-500" />
                 Prerequisites
               </h2>
@@ -157,27 +157,27 @@ const Scripts = () => {
               </div>
 
               <div className="space-y-6">
-                <div className="bg-brand-navy-light border border-white/10 p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold text-white mb-4">Environment Setup</h3>
+                <div className="bg-bg-surface border border-border-default p-6 rounded-lg">
+                  <h3 className="text-lg font-semibold text-text-primary mb-4">Environment Setup</h3>
                   <CodeBlock>{data.prerequisites.environmentSetup}</CodeBlock>
                 </div>
 
-                <div className="bg-brand-navy-light border border-white/10 p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold text-white mb-4">Required Permissions</h3>
+                <div className="bg-bg-surface border border-border-default p-6 rounded-lg">
+                  <h3 className="text-lg font-semibold text-text-primary mb-4">Required Permissions</h3>
                   <ul className="space-y-2">
                     {data.prerequisites.requiredPermissions.map((perm, index) => (
                       <li key={index} className="flex items-start gap-3">
                         <CheckCircle size={20} className="text-green-500 mt-0.5" />
-                        <span className="text-gray-300">
-                          <strong className="text-white">{perm.title}:</strong> {perm.description}
+                        <span className="text-text-secondary">
+                          <strong className="text-text-primary">{perm.title}:</strong> {perm.description}
                         </span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="bg-brand-navy-light border border-white/10 p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold text-white mb-4">General Usage Pattern</h3>
+                <div className="bg-bg-surface border border-border-default p-6 rounded-lg">
+                  <h3 className="text-lg font-semibold text-text-primary mb-4">General Usage Pattern</h3>
                   <CodeBlock>{data.prerequisites.generalUsage}</CodeBlock>
                 </div>
               </div>
@@ -189,7 +189,7 @@ const Scripts = () => {
               <div>
                 {data.categories.map((category) => (
                   <section key={category.id} className="mb-12">
-                    <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-2">
+                    <h2 className="text-3xl font-bold text-text-primary mb-6 flex items-center gap-2">
                       {React.createElement(iconMap[category.icon] || Database, {
                         size: 32,
                         className: category.iconColor,

@@ -49,24 +49,24 @@ export const BasicAuth = ({ children }: BasicAuthProps) => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-brand-navy flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+      <div className="min-h-screen bg-bg-primary flex items-center justify-center">
+        <div className="text-text-primary">Loading...</div>
       </div>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-brand-navy flex items-center justify-center px-4">
+      <div className="min-h-screen bg-bg-primary flex items-center justify-center px-4 transition-colors duration-300">
         <div className="max-w-md w-full">
-          <div className="bg-brand-navy-light border border-white/10 rounded-xl p-8 shadow-xl">
+          <div className="bg-bg-surface border border-border-default rounded-xl p-8 shadow-xl">
             {/* Header */}
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-red-500/20 border border-red-500/30 rounded-full mb-4">
                 <Lock size={32} className="text-red-400" />
               </div>
-              <h1 className="text-2xl font-bold text-white mb-2">Authentication Required</h1>
-              <p className="text-gray-400">
+              <h1 className="text-2xl font-bold text-text-primary mb-2">Authentication Required</h1>
+              <p className="text-text-secondary">
                 Scripts documentation is restricted to administrators only.
               </p>
             </div>
@@ -74,7 +74,7 @@ export const BasicAuth = ({ children }: BasicAuthProps) => {
             {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
+                <label htmlFor="username" className="block text-sm font-medium text-text-secondary mb-2">
                   Username
                 </label>
                 <input
@@ -82,7 +82,7 @@ export const BasicAuth = ({ children }: BasicAuthProps) => {
                   id="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:border-transparent"
+                  className="w-full px-4 py-2 bg-bg-primary border border-border-default rounded-lg text-text-primary placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:border-transparent"
                   placeholder="Enter username"
                   required
                   autoComplete="username"
@@ -90,7 +90,7 @@ export const BasicAuth = ({ children }: BasicAuthProps) => {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+                <label htmlFor="password" className="block text-sm font-medium text-text-secondary mb-2">
                   Password
                 </label>
                 <div className="relative">
@@ -99,7 +99,7 @@ export const BasicAuth = ({ children }: BasicAuthProps) => {
                     id="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:border-transparent pr-12"
+                    className="w-full px-4 py-2 bg-bg-primary border border-border-default rounded-lg text-text-primary placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:border-transparent pr-12"
                     placeholder="Enter password"
                     required
                     autoComplete="current-password"
@@ -107,7 +107,7 @@ export const BasicAuth = ({ children }: BasicAuthProps) => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors"
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
@@ -122,15 +122,15 @@ export const BasicAuth = ({ children }: BasicAuthProps) => {
 
               <button
                 type="submit"
-                className="w-full px-4 py-3 bg-brand-cyan hover:bg-brand-blue text-white font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2 focus:ring-offset-brand-navy"
+                className="w-full px-4 py-3 bg-brand-cyan hover:bg-brand-blue text-white font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-cyan focus:ring-offset-2 focus:ring-offset-bg-primary cursor-pointer"
               >
                 Sign In
               </button>
             </form>
 
             {/* Info */}
-            <div className="mt-6 pt-6 border-t border-white/10">
-              <p className="text-xs text-gray-500 text-center">
+            <div className="mt-6 pt-6 border-t border-border-default">
+              <p className="text-xs text-text-secondary text-center">
                 Contact your administrator if you need access to the scripts documentation.
               </p>
             </div>

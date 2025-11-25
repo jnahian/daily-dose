@@ -34,14 +34,14 @@ export const ContactForm = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="bg-brand-navy-light p-8 rounded-3xl border border-white/5 shadow-xl relative overflow-hidden"
+            className="bg-bg-surface p-8 rounded-3xl border border-border-default shadow-xl relative overflow-hidden"
         >
             {/* Success Overlay */}
             {status === 'success' && (
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="absolute inset-0 bg-brand-navy-light/95 backdrop-blur-sm z-10 flex flex-col items-center justify-center text-center p-8"
+                    className="absolute inset-0 bg-bg-surface/95 backdrop-blur-sm z-10 flex flex-col items-center justify-center text-center p-8"
                 >
                     <motion.div
                         initial={{ scale: 0.5 }}
@@ -50,15 +50,15 @@ export const ContactForm = () => {
                     >
                         <CheckCircle className="w-8 h-8" />
                     </motion.div>
-                    <h3 className="text-2xl font-bold text-white mb-2">Message Sent!</h3>
-                    <p className="text-gray-400">We'll get back to you as soon as possible.</p>
+                    <h3 className="text-2xl font-bold text-text-primary mb-2">Message Sent!</h3>
+                    <p className="text-text-secondary">We'll get back to you as soon as possible.</p>
                 </motion.div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label htmlFor="name" className="text-sm font-medium text-gray-400 ml-1">
+                        <label htmlFor="name" className="text-sm font-medium text-text-secondary ml-1">
                             Name
                         </label>
                         <input
@@ -68,12 +68,12 @@ export const ContactForm = () => {
                             required
                             value={formData.name}
                             onChange={handleChange}
-                            className="w-full bg-brand-navy border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-cyan/50 focus:ring-1 focus:ring-brand-cyan/50 transition-all"
+                            className="w-full bg-bg-primary border border-border-default rounded-xl px-4 py-3 text-text-primary placeholder-text-secondary/50 focus:outline-none focus:border-brand-cyan/50 focus:ring-1 focus:ring-brand-cyan/50 transition-all"
                             placeholder="John Doe"
                         />
                     </div>
                     <div className="space-y-2">
-                        <label htmlFor="email" className="text-sm font-medium text-gray-400 ml-1">
+                        <label htmlFor="email" className="text-sm font-medium text-text-secondary ml-1">
                             Email
                         </label>
                         <input
@@ -83,14 +83,14 @@ export const ContactForm = () => {
                             required
                             value={formData.email}
                             onChange={handleChange}
-                            className="w-full bg-brand-navy border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-cyan/50 focus:ring-1 focus:ring-brand-cyan/50 transition-all"
+                            className="w-full bg-bg-primary border border-border-default rounded-xl px-4 py-3 text-text-primary placeholder-text-secondary/50 focus:outline-none focus:border-brand-cyan/50 focus:ring-1 focus:ring-brand-cyan/50 transition-all"
                             placeholder="john@example.com"
                         />
                     </div>
                 </div>
 
                 <div className="space-y-2">
-                    <label htmlFor="subject" className="text-sm font-medium text-gray-400 ml-1">
+                    <label htmlFor="subject" className="text-sm font-medium text-text-secondary ml-1">
                         Subject
                     </label>
                     <input
@@ -100,13 +100,13 @@ export const ContactForm = () => {
                         required
                         value={formData.subject}
                         onChange={handleChange}
-                        className="w-full bg-brand-navy border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-cyan/50 focus:ring-1 focus:ring-brand-cyan/50 transition-all"
+                        className="w-full bg-bg-primary border border-border-default rounded-xl px-4 py-3 text-text-primary placeholder-text-secondary/50 focus:outline-none focus:border-brand-cyan/50 focus:ring-1 focus:ring-brand-cyan/50 transition-all"
                         placeholder="How can we help?"
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <label htmlFor="message" className="text-sm font-medium text-gray-400 ml-1">
+                    <label htmlFor="message" className="text-sm font-medium text-text-secondary ml-1">
                         Message
                     </label>
                     <textarea
@@ -116,7 +116,7 @@ export const ContactForm = () => {
                         rows={4}
                         value={formData.message}
                         onChange={handleChange}
-                        className="w-full bg-brand-navy border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-cyan/50 focus:ring-1 focus:ring-brand-cyan/50 transition-all resize-none"
+                        className="w-full bg-bg-primary border border-border-default rounded-xl px-4 py-3 text-text-primary placeholder-text-secondary/50 focus:outline-none focus:border-brand-cyan/50 focus:ring-1 focus:ring-brand-cyan/50 transition-all resize-none"
                         placeholder="Tell us more about your inquiry..."
                     />
                 </div>
@@ -124,7 +124,7 @@ export const ContactForm = () => {
                 <button
                     type="submit"
                     disabled={status === 'submitting'}
-                    className="w-full bg-brand-cyan text-brand-navy font-bold py-4 rounded-xl hover:bg-brand-cyan-light transition-all hover:shadow-[0_0_20px_rgba(0,207,255,0.3)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+                    className="w-full bg-brand-cyan text-brand-navy font-bold py-4 rounded-xl hover:bg-brand-cyan-light transition-all hover:shadow-[0_0_20px_rgba(0,207,255,0.3)] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2 cursor-pointer"
                 >
                     {status === 'submitting' ? (
                         <>
