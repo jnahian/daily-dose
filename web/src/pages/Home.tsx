@@ -1,5 +1,5 @@
 import { Navbar } from '../components';
-import { Hero, Features, HowItWorks, Footer } from '../components/home';
+import { Hero, Features, HowItWorks, Contact, Footer } from '../components/home';
 
 export const meta = () => {
   return [
@@ -42,6 +42,7 @@ const Home = () => {
       <Hero />
       <Features />
       <HowItWorks />
+      <Contact />
       <Footer />
     </div>
   );

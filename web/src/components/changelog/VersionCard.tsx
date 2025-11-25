@@ -42,7 +42,7 @@ export const VersionCard = ({ version, date, isLatest, changes }: VersionCardPro
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <div
-            className={`px-4 py-2 rounded-lg font-bold text-xl ${isLatest ? 'bg-gradient-to-r from-brand-cyan to-brand-blue text-white' : 'bg-white/10 text-white'}`}
+            className={`px-4 py-2 rounded-lg font-bold text-xl ${isLatest ? 'bg-linear-to-r from-brand-cyan to-brand-blue text-white' : 'bg-white/10 text-white'}`}
           >
             v{version}
           </div>
