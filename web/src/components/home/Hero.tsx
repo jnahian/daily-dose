@@ -74,8 +74,8 @@ export const Hero = () => {
                 {/* Bot Message */}
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded bg-gradient-to-br from-brand-cyan to-brand-blue flex items-center justify-center text-white">
-                      <Slack size={20} />
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-cyan to-brand-blue flex items-center justify-center text-white">
+                      <img src="/logo.png" alt="Daily Dose" />
                     </div>
                   </div>
                   <div className="flex-1 space-y-1">
@@ -108,7 +108,7 @@ export const Hero = () => {
                   className="flex gap-4"
                 >
                   <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 font-bold">
+                    <div className="w-10 h-10 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 font-bold">
                       JD
                     </div>
                   </div>
