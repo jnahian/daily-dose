@@ -16,6 +16,7 @@ VITE_ADMIN_PASSWORD=your_secure_password
 ```
 
 **Default credentials** (if not set):
+
 - Username: `admin`
 - Password: `admin123`
 
@@ -31,6 +32,7 @@ VITE_ADMIN_PASSWORD=your_secure_password
 ### 3. User Experience
 
 **Login Screen:**
+
 - Clean, dark-themed authentication form
 - Username and password fields
 - Show/hide password toggle
@@ -38,6 +40,7 @@ VITE_ADMIN_PASSWORD=your_secure_password
 - Responsive design
 
 **Authenticated State:**
+
 - Full access to scripts documentation
 - Small logout button in bottom-left corner (desktop only)
 - Session maintained across page refreshes
@@ -52,6 +55,7 @@ VITE_ADMIN_PASSWORD=your_secure_password
 ### 5. Production Recommendations
 
 For production use, consider:
+
 - Implementing proper OAuth/SSO integration
 - Using a backend authentication service
 - Adding rate limiting for login attempts
@@ -70,6 +74,7 @@ For production use, consider:
 ## Development
 
 The authentication component is located at:
+
 - `src/components/auth/BasicAuth.tsx`
 
 To bypass authentication during development, you can temporarily modify the component or use the default credentials.
