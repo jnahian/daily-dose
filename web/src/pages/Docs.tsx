@@ -1,8 +1,29 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { DocsNavbar, DocsSidebar, ContentSection, ContentRenderer } from '../components/docs';
+import { Navbar } from '../components';
+import { DocsSidebar, ContentSection, ContentRenderer } from '../components/docs';
 import docsData from '../data/docs.json';
 import type { DocsData } from '../types/docs';
+
+export const meta = () => {
+    return [
+        { title: 'Documentation - Daily Dose | Slack Bot Setup Guide' },
+        { name: 'description', content: 'Daily Dose Documentation - Complete guide for setting up and using the Slack standup bot. Commands, setup instructions, and troubleshooting.' },
+        { name: 'keywords', content: 'daily dose docs, slack bot documentation, standup automation, team management guide' },
+        { name: 'author', content: 'Daily Dose' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: '/docs' },
+        { property: 'og:title', content: 'Daily Dose Documentation - Complete Setup Guide' },
+        { property: 'og:description', content: 'Comprehensive documentation for Daily Dose Slack bot including commands, setup instructions, and troubleshooting.' },
+        { property: 'og:image', content: '/logo.png' },
+        { property: 'twitter:card', content: 'summary_large_image' },
+        { property: 'twitter:url', content: '/docs' },
+        { property: 'twitter:title', content: 'Daily Dose Documentation - Complete Setup Guide' },
+        { property: 'twitter:description', content: 'Comprehensive documentation for Daily Dose Slack bot including commands, setup instructions, and troubleshooting.' },
+        { property: 'twitter:image', content: '/logo.png' },
+    ];
+};
+
 
 const Docs = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -12,7 +33,7 @@ const Docs = () => {
 
     return (
         <div className="min-h-screen bg-brand-navy text-white">
-            <DocsNavbar />
+            <Navbar />
 
             {/* Mobile menu button */}
             <button

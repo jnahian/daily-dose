@@ -1,9 +1,30 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { History, Github, Book, Check, AlertCircle, Wrench, Shield, AlertTriangle, Trash2 } from 'lucide-react';
-import { ChangelogNavbar, VersionCard, TableOfContents } from '../components/changelog';
+import { Navbar } from '../components';
+import { VersionCard, TableOfContents } from '../components/changelog';
 import changelogData from '../data/changelog.json';
 import type { ChangelogData } from '../types/changelog';
+
+export const meta = () => {
+    return [
+        { title: 'Changelog - Daily Dose | Release Notes & Version History' },
+        { name: 'description', content: 'Daily Dose Changelog - Track all updates, new features, and improvements to the Slack standup bot. Stay informed about the latest releases.' },
+        { name: 'keywords', content: 'daily dose changelog, release notes, version history, slack bot updates' },
+        { name: 'author', content: 'Daily Dose' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: '/changelog' },
+        { property: 'og:title', content: 'Daily Dose Changelog - Release Notes & Updates' },
+        { property: 'og:description', content: 'Track all updates, new features, and improvements to Daily Dose Slack bot. View complete version history.' },
+        { property: 'og:image', content: '/logo.png' },
+        { property: 'twitter:card', content: 'summary_large_image' },
+        { property: 'twitter:url', content: '/changelog' },
+        { property: 'twitter:title', content: 'Daily Dose Changelog - Release Notes & Updates' },
+        { property: 'twitter:description', content: 'Track all updates, new features, and improvements to Daily Dose Slack bot. View complete version history.' },
+        { property: 'twitter:image', content: '/logo.png' },
+    ];
+};
+
 
 const Changelog = () => {
     const data = changelogData as ChangelogData;
@@ -11,7 +32,7 @@ const Changelog = () => {
 
     return (
         <div className="min-h-screen bg-brand-navy text-white">
-            <ChangelogNavbar />
+            <Navbar />
 
             {/* Main content */}
             <main className="pt-16">

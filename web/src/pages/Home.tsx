@@ -1,83 +1,28 @@
-import React from 'react';
 import { Link } from 'react-router';
 import { motion } from 'framer-motion';
-import { ArrowRight, Slack, Menu, X } from 'lucide-react';
+import { ArrowRight, Slack } from 'lucide-react';
+import { Navbar } from '../components';
 import { LordIcon } from '../components/LordIcon';
 
-const Navbar = () => {
-    const [isOpen, setIsOpen] = React.useState(false);
-
-    const scrollToTop = (e: React.MouseEvent<HTMLAnchorElement>) => {
-        e.preventDefault();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        setIsOpen(false);
-    };
-
-    const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
-        e.preventDefault();
-        const element = document.getElementById(sectionId);
-        if (element) {
-            const offset = 80; // Account for fixed navbar height
-            const elementPosition = element.getBoundingClientRect().top;
-            const offsetPosition = elementPosition + window.pageYOffset - offset;
-
-            window.scrollTo({
-                top: offsetPosition,
-                behavior: 'smooth'
-            });
-        }
-        setIsOpen(false);
-    };
-
-    return (
-        <nav className="fixed w-full z-50 bg-brand-navy/80 backdrop-blur-md border-b border-white/10">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-16">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-gradient-to-tr from-brand-cyan to-brand-blue rounded-lg flex items-center justify-center">
-                            <span className="text-white font-bold text-xl">D</span>
-                        </div>
-                        <span className="text-white font-bold text-xl tracking-tight">Daily Dose</span>
-                    </div>
-
-                    <div className="hidden md:block">
-                        <div className="ml-10 flex items-baseline space-x-8">
-                            <a href="#" onClick={scrollToTop} className="text-gray-300 hover:text-brand-cyan px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer">Home</a>
-                            <a href="#features" onClick={(e) => scrollToSection(e, 'features')} className="text-gray-300 hover:text-brand-cyan px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer">Features</a>
-                            <a href="#how-it-works" onClick={(e) => scrollToSection(e, 'how-it-works')} className="text-gray-300 hover:text-brand-cyan px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer">How it Works</a>
-                            <Link to="/docs" className="text-gray-300 hover:text-brand-cyan px-3 py-2 rounded-md text-sm font-medium transition-colors">Documentation</Link>
-                        </div>
-                    </div>
-
-                    <div className="hidden md:block">
-                        <button className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 border border-white/10">
-                            <Slack size={16} />
-                            Add to Slack
-                        </button>
-                    </div>
-
-                    <div className="-mr-2 flex md:hidden">
-                        <button onClick={() => setIsOpen(!isOpen)} className="text-gray-400 hover:text-white p-2">
-                            {isOpen ? <X size={24} /> : <Menu size={24} />}
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Mobile menu */}
-            {isOpen && (
-                <div className="md:hidden bg-brand-navy border-b border-white/10">
-                    <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                        <a href="#" onClick={scrollToTop} className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium cursor-pointer">Home</a>
-                        <a href="#features" onClick={(e) => scrollToSection(e, 'features')} className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium cursor-pointer">Features</a>
-                        <a href="#how-it-works" onClick={(e) => scrollToSection(e, 'how-it-works')} className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium cursor-pointer">How it Works</a>
-                        <Link to="/docs" className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Documentation</Link>
-                    </div>
-                </div>
-            )}
-        </nav>
-    );
+export const meta = () => {
+    return [
+        { title: 'Daily Dose - Automate Your Team Standups | Slack Bot' },
+        { name: 'description', content: 'Daily Dose - Automate your team\'s daily standup meetings with our intelligent Slack bot. Save time, improve communication, and boost productivity.' },
+        { name: 'keywords', content: 'slack bot, daily standup, team productivity, automation, remote work' },
+        { name: 'author', content: 'Daily Dose' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: '' },
+        { property: 'og:title', content: 'Daily Dose - Automate Your Team Standups' },
+        { property: 'og:description', content: 'Intelligent Slack bot that automates daily standup meetings for better team communication and productivity.' },
+        { property: 'og:image', content: '/logo.png' },
+        { property: 'twitter:card', content: 'summary_large_image' },
+        { property: 'twitter:url', content: '' },
+        { property: 'twitter:title', content: 'Daily Dose - Automate Your Team Standups' },
+        { property: 'twitter:description', content: 'Intelligent Slack bot that automates daily standup meetings for better team communication and productivity.' },
+        { property: 'twitter:image', content: '/logo.png' },
+    ];
 };
+
 
 const Hero = () => {
     return (
@@ -357,9 +302,7 @@ const Footer = () => (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div className="col-span-1 md:col-span-2">
                     <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 bg-gradient-to-tr from-brand-cyan to-brand-blue rounded-lg flex items-center justify-center">
-                            <span className="text-white font-bold text-xl">D</span>
-                        </div>
+                        <img src="/logo.png" alt="Daily Dose Logo" className="w-8 h-8 rounded-lg" />
                         <span className="text-white font-bold text-xl tracking-tight">Daily Dose</span>
                     </div>
                     <p className="text-gray-400 max-w-xs">

@@ -1,11 +1,32 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router';
 import { Terminal, Database, Users, Play, Settings, CheckCircle, AlertCircle, Book, History } from 'lucide-react';
-import { ScriptsNavbar, ScriptsTOC, ScriptCard } from '../components/scripts';
+import { Navbar } from '../components';
+import { ScriptsTOC, ScriptCard } from '../components/scripts';
 import { CodeBlock } from '../components/docs';
 import { BasicAuth } from '../components/auth';
 import scriptsData from '../data/scripts.json';
 import type { ScriptsData } from '../types/scripts';
+
+export const meta = () => {
+    return [
+        { title: 'Scripts Documentation - Daily Dose | Admin Tools Guide' },
+        { name: 'description', content: 'Daily Dose Scripts Documentation - Complete guide for utility scripts and database operations. Administrative tools and automation scripts.' },
+        { name: 'keywords', content: 'daily dose scripts, automation scripts, database utilities, admin tools, team management scripts' },
+        { name: 'author', content: 'Daily Dose' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: '/scripts-docs' },
+        { property: 'og:title', content: 'Daily Dose Scripts Documentation - Admin Tools Guide' },
+        { property: 'og:description', content: 'Comprehensive documentation for Daily Dose administrative scripts including database operations, team management, and automation tools.' },
+        { property: 'og:image', content: '/logo.png' },
+        { property: 'twitter:card', content: 'summary_large_image' },
+        { property: 'twitter:url', content: '/scripts-docs' },
+        { property: 'twitter:title', content: 'Daily Dose Scripts Documentation - Admin Tools Guide' },
+        { property: 'twitter:description', content: 'Comprehensive documentation for Daily Dose administrative scripts including database operations, team management, and automation tools.' },
+        { property: 'twitter:image', content: '/logo.png' },
+    ];
+};
+
 
 const Scripts = () => {
     const data = scriptsData as ScriptsData;
@@ -21,7 +42,7 @@ const Scripts = () => {
     return (
         <BasicAuth>
             <div className="min-h-screen bg-brand-navy text-white">
-                <ScriptsNavbar />
+                <Navbar />
 
                 {/* Main content */}
                 <main className="pt-16">
