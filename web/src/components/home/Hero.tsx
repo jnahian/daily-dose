@@ -1,7 +1,6 @@
 import { Link } from 'react-router';
 import { motion } from 'framer-motion';
 import { ArrowRight, Slack } from 'lucide-react';
-import { LordIcon } from '../LordIcon';
 
 export const Hero = () => {
   return (
