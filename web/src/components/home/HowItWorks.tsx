@@ -1,3 +1,5 @@
+import { HowItWorksAnimation } from "./HowItWorksAnimation";
+
 interface StepProps {
     number: string;
     title: string;
@@ -52,44 +54,7 @@ export const HowItWorks = () => {
                     </div>
 
                     <div className="relative">
-                        <div className="absolute inset-0 bg-brand-cyan/10 blur-[80px] rounded-full" />
-                        <div className="bg-brand-navy border border-white/10 rounded-2xl p-6 relative shadow-2xl">
-                            {/* Mock Slack Interface */}
-                            <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
-                                <div className="w-3 h-3 rounded-full bg-red-500" />
-                                <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                                <div className="w-3 h-3 rounded-full bg-green-500" />
-                            </div>
-
-                            <div className="space-y-4">
-                                <div className="flex gap-3">
-                                    <div className="w-10 h-10 rounded bg-brand-cyan flex items-center justify-center text-brand-navy font-bold">D</div>
-                                    <div>
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="font-bold text-white">Daily Dose</span>
-                                            <span className="text-xs text-gray-500">APP 9:30 AM</span>
-                                        </div>
-                                        <div className="bg-brand-navy-light p-3 rounded-lg border-l-4 border-brand-cyan mt-1 text-sm text-gray-300">
-                                            It's time for the <b>Engineering</b> standup! 🚀<br />
-                                            Please submit your updates.
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-3">
-                                    <div className="w-10 h-10 rounded bg-gray-600" />
-                                    <div>
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="font-bold text-white">Sarah</span>
-                                            <span className="text-xs text-gray-500">9:32 AM</span>
-                                        </div>
-                                        <div className="text-gray-300 text-sm">
-                                            Submitted via Daily Dose
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <HowItWorksAnimation />
                     </div>
                 </div>
             </div>
