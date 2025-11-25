@@ -35,16 +35,19 @@ const getIcon = (type: ChangeItem['type']) => {
 
 export const VersionCard = ({ version, date, isLatest, changes }: VersionCardProps) => {
     return (
-        <div className={`bg-white rounded-xl shadow-lg p-8 mb-8 transition-all hover:-translate-y-1 hover:shadow-xl ${isLatest ? 'border-2 border-brand-cyan shadow-brand-cyan/20' : ''}`}>
+        <div
+            id={`version-${version}`}
+            className={`bg-brand-navy-light rounded-xl border p-8 mb-8 scroll-mt-24 ${isLatest ? 'border-brand-cyan shadow-lg shadow-brand-cyan/20' : 'border-white/10'}`}
+        >
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
-                    <div className={`px-4 py-2 rounded-lg font-bold text-xl ${isLatest ? 'bg-gradient-to-r from-brand-cyan to-brand-blue text-white' : 'bg-gray-800 text-white'}`}>
+                    <div className={`px-4 py-2 rounded-lg font-bold text-xl ${isLatest ? 'bg-gradient-to-r from-brand-cyan to-brand-blue text-white' : 'bg-white/10 text-white'}`}>
                         v{version}
                     </div>
-                    <span className="text-gray-500 text-sm">{date}</span>
+                    <span className="text-gray-400 text-sm">{date}</span>
                 </div>
                 {isLatest && (
-                    <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full uppercase tracking-wide">
+                    <span className="px-3 py-1 bg-green-500/20 text-green-400 text-xs font-semibold rounded-full uppercase tracking-wide border border-green-500/30">
                         Latest Release
                     </span>
                 )}
@@ -53,16 +56,16 @@ export const VersionCard = ({ version, date, isLatest, changes }: VersionCardPro
             <div className="space-y-6">
                 {changes.map((change, index) => (
                     <div key={index}>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
                             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${getBadgeStyles(change.type)}`}>
                                 {getIcon(change.type)}
                                 {change.type}
                             </span>
-                            {change.title && <span className="text-gray-700">{change.title}</span>}
+                            {change.title && <span className="text-gray-300">{change.title}</span>}
                         </h3>
                         <ul className="space-y-2 ml-4">
                             {change.items.map((item, itemIndex) => (
-                                <li key={itemIndex} className="text-gray-700 flex items-start gap-2">
+                                <li key={itemIndex} className="text-gray-300 flex items-start gap-2">
                                     <span className="text-brand-cyan mt-1">•</span>
                                     <span>{item}</span>
                                 </li>
