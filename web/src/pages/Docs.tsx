@@ -28,8 +28,35 @@ export const meta = () => {
 const Docs = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeSection, setActiveSection] = useState('getting-started');
+    const [searchQuery, setSearchQuery] = useState('');
 
     const data = docsData as DocsData;
+
+    const filteredSections = data.sections.map(section => {
+        const query = searchQuery.toLowerCase().trim();
+        if (!query) return section;
+
+        const sectionMatches = section.title.toLowerCase().includes(query);
+
+        // If section matches, include all subsections
+        if (sectionMatches) {
+            return section;
+        }
+
+        // Otherwise check for matching subsections
+        const matchingSubsections = section.subsections.filter(sub =>
+            sub.title.toLowerCase().includes(query)
+        );
+
+        if (matchingSubsections.length > 0) {
+            return {
+                ...section,
+                subsections: matchingSubsections
+            };
+        }
+
+        return null;
+    }).filter((section): section is typeof data.sections[0] => section !== null);
 
     return (
         <div className="min-h-screen bg-brand-navy text-white">
@@ -48,6 +75,8 @@ const Docs = () => {
                 setIsOpen={setSidebarOpen}
                 activeSection={activeSection}
                 setActiveSection={setActiveSection}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
             />
 
             {/* Main content */}
@@ -62,20 +91,26 @@ const Docs = () => {
                     </div>
 
                     {/* Render sections from JSON */}
-                    {data.sections.map((section) => (
-                        <ContentSection key={section.id} id={section.id} title={section.title}>
-                            {section.description && (
-                                <p className="text-gray-300 mb-6">{section.description}</p>
-                            )}
+                    {filteredSections.length > 0 ? (
+                        filteredSections.map((section) => (
+                            <ContentSection key={section.id} id={section.id} title={section.title}>
+                                {section.description && (
+                                    <p className="text-gray-300 mb-6">{section.description}</p>
+                                )}
 
-                            {section.subsections.map((subsection) => (
-                                <div key={subsection.id} id={subsection.id} className="mt-8">
-                                    <h3 className="text-2xl font-bold text-white mb-4">{subsection.title}</h3>
-                                    <ContentRenderer content={subsection.content} />
-                                </div>
-                            ))}
-                        </ContentSection>
-                    ))}
+                                {section.subsections.map((subsection) => (
+                                    <div key={subsection.id} id={subsection.id} className="mt-8">
+                                        <h3 className="text-2xl font-bold text-white mb-4">{subsection.title}</h3>
+                                        <ContentRenderer content={subsection.content} />
+                                    </div>
+                                ))}
+                            </ContentSection>
+                        ))
+                    ) : (
+                        <div className="text-center py-12">
+                            <p className="text-xl text-gray-400">No results found for "{searchQuery}"</p>
+                        </div>
+                    )}
                 </div>
             </main>
         </div>

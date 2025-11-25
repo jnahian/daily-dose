@@ -23,8 +23,11 @@ interface DocsSidebarProps {
     setIsOpen: (open: boolean) => void;
     activeSection: string;
     setActiveSection: (section: string) => void;
+    searchQuery: string;
+    setSearchQuery: (query: string) => void;
 }
 
+import { useMemo } from 'react';
 import docsData from '../../data/docs.json';
 
 const SECTION_ICONS: Record<string, React.ElementType> = {
@@ -41,17 +44,53 @@ export const DocsSidebar = ({
     isOpen,
     setIsOpen,
     activeSection,
-    setActiveSection
+    setActiveSection,
+    searchQuery,
+    setSearchQuery
 }: DocsSidebarProps) => {
-    const navItems: NavItem[] = docsData.sections.map(section => ({
-        id: section.id,
-        title: section.title,
-        icon: SECTION_ICONS[section.id] || Book, // Fallback icon
-        subsections: section.subsections?.map(sub => ({
-            id: sub.id,
-            title: sub.title
-        }))
-    }));
+
+    const navItems = useMemo(() => {
+        const query = searchQuery.toLowerCase().trim();
+
+        if (!query) {
+            return docsData.sections.map(section => ({
+                id: section.id,
+                title: section.title,
+                icon: SECTION_ICONS[section.id] || Book,
+                subsections: section.subsections
+            }));
+        }
+
+        return docsData.sections.map((section): NavItem | null => {
+            const sectionMatches = section.title.toLowerCase().includes(query);
+
+            // If section matches, include all subsections
+            if (sectionMatches) {
+                return {
+                    id: section.id,
+                    title: section.title,
+                    icon: SECTION_ICONS[section.id] || Book,
+                    subsections: section.subsections
+                };
+            }
+
+            // Otherwise check for matching subsections
+            const matchingSubsections = section.subsections?.filter(sub =>
+                sub.title.toLowerCase().includes(query)
+            );
+
+            if (matchingSubsections && matchingSubsections.length > 0) {
+                return {
+                    id: section.id,
+                    title: section.title,
+                    icon: SECTION_ICONS[section.id] || Book,
+                    subsections: matchingSubsections
+                };
+            }
+
+            return null;
+        }).filter((item): item is NavItem => item !== null);
+    }, [searchQuery]);
 
     const scrollToSection = (sectionId: string) => {
         setActiveSection(sectionId);
@@ -93,6 +132,8 @@ export const DocsSidebar = ({
                         <input
                             type="text"
                             placeholder="Search docs..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full bg-brand-navy border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-cyan/50 transition-colors"
                         />
                     </div>
