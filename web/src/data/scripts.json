@@ -134,6 +134,81 @@
                         "This script uses upsert operations, so it's safe to run multiple times",
                         "Ensure your Slack workspace ID and user IDs are correct before running"
                     ]
+                },
+                {
+                    "id": "add-org-admin",
+                    "name": "addOrgAdmin.js",
+                    "icon": "user-shield",
+                    "iconColor": "text-blue-500",
+                    "purpose": "Adds a new organization admin user by fetching their data from Slack and creating/updating their database records. This script automatically retrieves user information from Slack using their user ID and assigns them the ADMIN role in the organization.",
+                    "usageNote": {
+                        "type": "success",
+                        "title": "Use Case",
+                        "description": "Perfect for quickly adding new administrators to your organization without manual data entry. The script handles all user data fetching and database operations automatically."
+                    },
+                    "examples": [
+                        {
+                            "code": "# Add admin to workspace's organization (auto-detects from Slack)\nnode scripts/addOrgAdmin.js U1234567890\n\n# Add admin to specific organization by name\nnode scripts/addOrgAdmin.js U1234567890 \"Startise\"\n\n# Alternative: Use npm script\nnpm run org:add-admin U1234567890\nnpm run org:add-admin U1234567890 \"Startise\"\n\n# Get help\nnode scripts/addOrgAdmin.js --help"
+                        }
+                    ],
+                    "parameters": [
+                        {
+                            "name": "slack-user-id",
+                            "type": "String",
+                            "required": true,
+                            "description": "Slack user ID (format: U1234567890) of the user to add as admin"
+                        },
+                        {
+                            "name": "organization-name",
+                            "type": "String (Optional)",
+                            "required": false,
+                            "description": "Organization name. If not provided, auto-detects from Slack workspace"
+                        }
+                    ],
+                    "features": [
+                        {
+                            "title": "Slack Data Fetching",
+                            "items": [
+                                "Fetches user's real name",
+                                "Retrieves username",
+                                "Gets email address",
+                                "Determines timezone",
+                                "Validates user exists in Slack"
+                            ]
+                        },
+                        {
+                            "title": "Database Operations",
+                            "items": [
+                                "Creates/updates user record",
+                                "Links to organization",
+                                "Assigns ADMIN role",
+                                "Sets active status",
+                                "Uses upsert for safety"
+                            ]
+                        }
+                    ],
+                    "outputInfo": [
+                        "User data fetched from Slack (name, username, email, timezone)",
+                        "Organization information (name and ID)",
+                        "User creation/update confirmation",
+                        "Admin role assignment confirmation",
+                        "Complete summary with all relevant IDs"
+                    ],
+                    "prerequisites": [
+                        "Requires valid SLACK_BOT_TOKEN in environment variables",
+                        "User must exist in the Slack workspace",
+                        "Script uses upsert operations - safe to run multiple times",
+                        "If organization name not provided, creates/finds org from Slack workspace",
+                        "ADMIN role grants significant permissions - use carefully"
+                    ],
+                    "additionalInfo": {
+                        "title": "Finding Slack User IDs",
+                        "steps": [
+                            "Click on the user's profile in Slack",
+                            "Click \"More\" → \"Copy member ID\"",
+                            "Or use the viewSlackTeamInfo.js script to list all users"
+                        ]
+                    }
                 }
             ]
         },
