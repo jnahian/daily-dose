@@ -25,81 +25,33 @@ interface DocsSidebarProps {
     setActiveSection: (section: string) => void;
 }
 
+import docsData from '../../data/docs.json';
+
+const SECTION_ICONS: Record<string, React.ElementType> = {
+    'getting-started': Book,
+    'slash-commands': SquareSlash,
+    'features': Zap,
+    'configuration': Settings,
+    'troubleshooting': Wrench,
+    'faq': HelpCircle,
+    'support': LifeBuoy
+};
+
 export const DocsSidebar = ({
     isOpen,
     setIsOpen,
     activeSection,
     setActiveSection
 }: DocsSidebarProps) => {
-    const navItems: NavItem[] = [
-        {
-            id: 'getting-started',
-            title: 'Getting Started',
-            icon: Book,
-            subsections: [
-                { id: 'overview', title: 'Overview' },
-                { id: 'installation', title: 'Installation' },
-                { id: 'first-steps', title: 'First Steps' },
-            ]
-        },
-        {
-            id: 'slash-commands',
-            title: 'Slash Commands',
-            icon: SquareSlash,
-            subsections: [
-                { id: 'standup-commands', title: 'Standup Commands' },
-                { id: 'team-commands', title: 'Team Management' },
-                { id: 'leave-commands', title: 'Leave Management' },
-                { id: 'holiday-commands', title: 'Holiday Management' },
-                { id: 'workdays-commands', title: 'Work Days' },
-                { id: 'admin-commands', title: 'Admin Commands' },
-            ]
-        },
-        {
-            id: 'features',
-            title: 'Features',
-            icon: Zap,
-            subsections: [
-                { id: 'automated-reminders', title: 'Automated Reminders' },
-                { id: 'timezone-support', title: 'Timezone Support' },
-                { id: 'notifications', title: 'Admin Notifications' },
-            ]
-        },
-        {
-            id: 'configuration',
-            title: 'Configuration',
-            icon: Settings,
-            subsections: [
-                { id: 'team-setup', title: 'Team Setup' },
-                { id: 'work-days', title: 'Work Days' },
-                { id: 'holidays', title: 'Holidays' },
-            ]
-        },
-        {
-            id: 'troubleshooting',
-            title: 'Troubleshooting',
-            icon: Wrench,
-            subsections: [
-                { id: 'common-issues', title: 'Common Issues' },
-            ]
-        },
-        {
-            id: 'faq',
-            title: 'FAQ',
-            icon: HelpCircle,
-            subsections: [
-                { id: 'general-questions', title: 'General Questions' },
-            ]
-        },
-        {
-            id: 'support',
-            title: 'Support',
-            icon: LifeBuoy,
-            subsections: [
-                { id: 'get-help', title: 'Getting Help' },
-            ]
-        },
-    ];
+    const navItems: NavItem[] = docsData.sections.map(section => ({
+        id: section.id,
+        title: section.title,
+        icon: SECTION_ICONS[section.id] || Book, // Fallback icon
+        subsections: section.subsections?.map(sub => ({
+            id: sub.id,
+            title: sub.title
+        }))
+    }));
 
     const scrollToSection = (sectionId: string) => {
         setActiveSection(sectionId);
