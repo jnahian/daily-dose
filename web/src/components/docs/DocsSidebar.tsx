@@ -1,9 +1,20 @@
 import React from 'react';
-import { Search, ChevronRight } from 'lucide-react';
+import {
+    Search,
+    ChevronRight,
+    Book,
+    Zap,
+    Settings,
+    Wrench,
+    HelpCircle,
+    LifeBuoy,
+    SquareSlash
+} from 'lucide-react';
 
 interface NavItem {
     id: string;
     title: string;
+    icon: React.ElementType;
     subsections?: { id: string; title: string }[];
 }
 
@@ -24,6 +35,7 @@ export const DocsSidebar = ({
         {
             id: 'getting-started',
             title: 'Getting Started',
+            icon: Book,
             subsections: [
                 { id: 'overview', title: 'Overview' },
                 { id: 'installation', title: 'Installation' },
@@ -33,6 +45,7 @@ export const DocsSidebar = ({
         {
             id: 'slash-commands',
             title: 'Slash Commands',
+            icon: SquareSlash,
             subsections: [
                 { id: 'standup-commands', title: 'Standup Commands' },
                 { id: 'team-commands', title: 'Team Management' },
@@ -45,6 +58,7 @@ export const DocsSidebar = ({
         {
             id: 'features',
             title: 'Features',
+            icon: Zap,
             subsections: [
                 { id: 'automated-reminders', title: 'Automated Reminders' },
                 { id: 'timezone-support', title: 'Timezone Support' },
@@ -54,6 +68,7 @@ export const DocsSidebar = ({
         {
             id: 'configuration',
             title: 'Configuration',
+            icon: Settings,
             subsections: [
                 { id: 'team-setup', title: 'Team Setup' },
                 { id: 'work-days', title: 'Work Days' },
@@ -63,6 +78,7 @@ export const DocsSidebar = ({
         {
             id: 'troubleshooting',
             title: 'Troubleshooting',
+            icon: Wrench,
             subsections: [
                 { id: 'common-issues', title: 'Common Issues' },
             ]
@@ -70,6 +86,7 @@ export const DocsSidebar = ({
         {
             id: 'faq',
             title: 'FAQ',
+            icon: HelpCircle,
             subsections: [
                 { id: 'general-questions', title: 'General Questions' },
             ]
@@ -77,6 +94,7 @@ export const DocsSidebar = ({
         {
             id: 'support',
             title: 'Support',
+            icon: LifeBuoy,
             subsections: [
                 { id: 'get-help', title: 'Getting Help' },
             ]
@@ -134,10 +152,11 @@ export const DocsSidebar = ({
                                 <button
                                     onClick={() => scrollToSection(item.id)}
                                     className={`
-                    w-full text-left font-semibold text-sm mb-2 transition-colors
+                    w-full text-left font-semibold text-sm mb-2 transition-colors flex items-center gap-2
                     ${activeSection === item.id ? 'text-brand-cyan' : 'text-white hover:text-brand-cyan'}
                   `}
                                 >
+                                    <item.icon size={18} />
                                     {item.title}
                                 </button>
                                 {item.subsections && (
