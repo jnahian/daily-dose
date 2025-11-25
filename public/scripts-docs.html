@@ -1391,16 +1391,29 @@ npm run slack:info</code></pre>
                     <p class="text-gray-600 mb-4">
                         Manages Slack app manifests through the API, allowing you to create new apps or update existing
                         ones. This script reads your local manifest configuration and applies it to your Slack app
-                        programmatically.
+                        programmatically. The app ID is always read from the SLACK_APP_ID environment variable.
                     </p>
 
-                    <div class="warning-box p-4 rounded-lg">
+                    <div class="warning-box p-4 rounded-lg mb-4">
                         <div class="flex items-start gap-3">
                             <i class="fas fa-exclamation-triangle text-yellow-600 mt-1"></i>
                             <div>
                                 <h4 class="font-semibold mb-2">⚠️ Critical Configuration</h4>
                                 <p>This script modifies your Slack app settings. Always test changes in development
                                     before applying to production.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-box p-4 rounded-lg">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-info-circle text-blue-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-semibold mb-2">🔒 Security Note</h4>
+                                <p>The app ID is ALWAYS read from <code
+                                        class="bg-blue-50 px-2 py-1 rounded">SLACK_APP_ID</code>
+                                    in your .env file and cannot be overridden via command-line parameters for security
+                                    reasons.</p>
                             </div>
                         </div>
                     </div>
@@ -1413,14 +1426,14 @@ npm run slack:info</code></pre>
                             class="copy-button absolute top-2 right-2 bg-gray-700 text-white px-2 py-1 rounded text-xs">
                             Copy
                         </button>
-                        <pre class="font-mono text-sm"><code># Update existing app manifest
-node scripts/updateSlackManifest.js --app-id A1234567890
+                        <pre class="font-mono text-sm"><code># Update existing app (uses SLACK_APP_ID from .env)
+node scripts/updateSlackManifest.js
 
 # Create a new app from manifest
 node scripts/updateSlackManifest.js --create
 
 # Preview changes without applying (dry run)
-node scripts/updateSlackManifest.js --app-id A1234567890 --dry-run
+node scripts/updateSlackManifest.js --dry-run
 
 # Get help and see all options
 node scripts/updateSlackManifest.js --help
@@ -1445,13 +1458,8 @@ npm run manifest:dry-run</code></pre>
                             </thead>
                             <tbody class="text-gray-600">
                                 <tr class="border-b">
-                                    <td class="py-2 font-mono">--app-id &lt;id&gt;</td>
-                                    <td class="py-2">Slack app ID for updating existing apps</td>
-                                    <td class="py-2">For updates</td>
-                                </tr>
-                                <tr class="border-b">
                                     <td class="py-2 font-mono">--create</td>
-                                    <td class="py-2">Create a new app instead of updating</td>
+                                    <td class="py-2">Create a new app instead of updating existing one</td>
                                     <td class="py-2">For new apps</td>
                                 </tr>
                                 <tr class="border-b">
@@ -1470,25 +1478,36 @@ npm run manifest:dry-run</code></pre>
                 </div>
 
                 <div class="bg-white p-6 rounded-lg border">
-                    <h3 class="text-lg font-semibold mb-4">Prerequisites</h3>
+                    <h3 class="text-lg font-semibold mb-4">Required Environment Variables</h3>
                     <div class="space-y-3">
                         <div class="flex items-start gap-3">
-                            <i class="fas fa-file-code text-blue-500 mt-1"></i>
-                            <span><strong>Manifest File:</strong> Requires <code
-                                    class="bg-gray-100 px-2 py-1 rounded">slack-app-manifest.json</code> in project
-                                root</span>
+                            <i class="fas fa-key text-blue-500 mt-1"></i>
+                            <span><strong>SLACK_USER_TOKEN:</strong> App configuration token
+                                <code class="bg-gray-100 px-2 py-1 rounded">xoxe.xoxp-...</code>
+                                (preferred for manifest API)</span>
                         </div>
                         <div class="flex items-start gap-3">
-                            <i class="fas fa-key text-green-500 mt-1"></i>
-                            <span><strong>Tokens:</strong> Needs <code
-                                    class="bg-gray-100 px-2 py-1 rounded">SLACK_USER_TOKEN</code> or <code
-                                    class="bg-gray-100 px-2 py-1 rounded">SLACK_BOT_TOKEN</code> in environment</span>
+                            <i class="fas fa-sync-alt text-green-500 mt-1"></i>
+                            <span><strong>SLACK_USER_REFRESH_TOKEN:</strong> Refresh token
+                                <code class="bg-gray-100 px-2 py-1 rounded">xoxe-...</code>
+                                for automatic token renewal</span>
                         </div>
                         <div class="flex items-start gap-3">
-                            <i class="fas fa-shield-alt text-purple-500 mt-1"></i>
-                            <span><strong>Permissions:</strong> Token must have <code
-                                    class="bg-gray-100 px-2 py-1 rounded">apps:write</code> scope for manifest
-                                management</span>
+                            <i class="fas fa-id-card text-purple-500 mt-1"></i>
+                            <span><strong>SLACK_APP_ID:</strong> Your Slack app ID
+                                <code class="bg-gray-100 px-2 py-1 rounded">A1234567890</code>
+                                (required for updates, not for --create)</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-cog text-orange-500 mt-1"></i>
+                            <span><strong>SLACK_CLIENT_ID & SLACK_CLIENT_SECRET:</strong> Required when using refresh
+                                token</span>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-file-code text-indigo-500 mt-1"></i>
+                            <span><strong>Manifest File:</strong> Requires
+                                <code class="bg-gray-100 px-2 py-1 rounded">slack-app-manifest.json</code>
+                                in project root</span>
                         </div>
                     </div>
                 </div>
