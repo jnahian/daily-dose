@@ -110,6 +110,12 @@ jobs:
             # Run database migrations
             npx prisma db push
 
+            # Build React app
+            cd web
+            npm ci
+            npm run build
+            cd ..
+
             # Check if manifest-related files have changed
             echo "🔍 Checking for manifest-related changes..."
             PREV_TAG=$(git describe --tags --abbrev=0 ${{ steps.version.outputs.tag }}^ 2>/dev/null || echo "")
