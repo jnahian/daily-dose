@@ -5,7 +5,6 @@ const prisma = require("./config/prisma");
 const { setupCommands } = require("./commands");
 const { setupWorkflows } = require("./workflows");
 const schedulerService = require("./services/schedulerService");
-const { basicAuth } = require("./middleware/basicAuth");
 
 const receiver = new ExpressReceiver({
   signingSecret: process.env.SLACK_SIGNING_SECRET
@@ -23,36 +22,22 @@ setupWorkflows(app);
 // Initialize scheduler
 schedulerService.initialize(app);
 
-// Serve static files from public directory
-receiver.app.use(require('express').static(path.join(__dirname, '../public')));
-
-// Landing page route
-receiver.app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/index.html'));
-});
-
-// Documentation page route
-receiver.app.get('/docs', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/docs.html'));
-});
-
-// Changelog page route
-receiver.app.get('/changelog', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/changelog.html'));
-});
-
-// Protected scripts documentation route
-receiver.app.get('/scripts-docs', basicAuth, (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/scripts-docs.html'));
-});
-
-// Health check endpoint
+// Health check endpoint - must be before static files to avoid SPA fallback
 receiver.app.get('/health', (req, res) => {
   res.status(200).json({
     status: "healthy",
     timestamp: new Date().toISOString(),
     service: "daily-dose",
   });
+});
+
+// Serve static files from web/dist directory (React SPA)
+const express = require('express');
+receiver.app.use(express.static(path.join(__dirname, '../web/dist')));
+
+// SPA fallback - serve index.html for all other routes (client-side routing)
+receiver.app.use((req, res) => {
+  res.sendFile(path.join(__dirname, '../web/dist/index.html'));
 });
 
 // Basic health check
