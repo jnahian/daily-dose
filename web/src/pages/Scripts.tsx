@@ -70,16 +70,16 @@ const Scripts = () => {
         <Navbar />
 
         {/* Main content */}
-        <main className="pt-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <main className="pt-16 overflow-x-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-12">
             {/* Header */}
             <div className="mb-12">
-              <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-8 rounded-xl mb-8">
-                <h1 className="text-5xl font-bold text-white mb-4 flex items-center gap-3">
-                  <Terminal size={48} />
+              <div className="bg-linear-to-r from-purple-600 to-blue-600 p-6 md:p-8 rounded-xl mb-8">
+                <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 flex items-center gap-3">
+                  <Terminal className="w-8 h-8 md:w-12 md:h-12" />
                   Scripts Overview
                 </h1>
-                <p className="text-xl text-white/90 mb-6">{data.overview.description}</p>
+                <p className="text-base md:text-xl text-white/90 mb-6">{data.overview.description}</p>
                 <div className="flex items-center gap-4 flex-wrap">
                   <Link
                     to="/docs"
@@ -118,13 +118,13 @@ const Scripts = () => {
                   return (
                     <div
                       key={index}
-                      className="bg-bg-surface border border-border-default p-6 rounded-lg"
+                      className="bg-bg-surface border border-border-default p-4 md:p-6 rounded-lg"
                     >
-                      <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                      <h3 className="text-base md:text-lg font-semibold mb-3 flex items-center gap-2">
                         <Icon size={20} className={category.iconColor} />
                         <span className="text-text-primary">{category.title}</span>
                       </h3>
-                      <p className="text-text-secondary mb-4">{category.description}</p>
+                      <p className="text-sm md:text-base text-text-secondary mb-4">{category.description}</p>
                       <ul className="text-sm text-text-secondary space-y-1">
                         {category.highlights.map((highlight, hIndex) => (
                           <li key={hIndex}>• {highlight}</li>
@@ -138,7 +138,7 @@ const Scripts = () => {
 
             {/* Prerequisites */}
             <section className="mb-12">
-              <h2 className="text-3xl font-bold text-text-primary mb-6 flex items-center gap-2">
+              <h2 className="text-2xl md:text-3xl font-bold text-text-primary mb-6 flex items-center gap-2">
                 <CheckCircle size={32} className="text-blue-500" />
                 Prerequisites
               </h2>
@@ -186,10 +186,10 @@ const Scripts = () => {
             {/* Scripts Grid with TOC */}
             <div className="grid lg:grid-cols-[1fr_300px] gap-8">
               {/* Scripts */}
-              <div>
+              <div className="min-w-0">
                 {data.categories.map((category) => (
                   <section key={category.id} className="mb-12">
-                    <h2 className="text-3xl font-bold text-text-primary mb-6 flex items-center gap-2">
+                    <h2 className="text-2xl md:text-3xl font-bold text-text-primary mb-6 flex items-center gap-2">
                       {React.createElement(iconMap[category.icon] || Database, {
                         size: 32,
                         className: category.iconColor,

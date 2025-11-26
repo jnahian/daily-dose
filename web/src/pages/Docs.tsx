@@ -90,7 +90,7 @@ const Docs = () => {
       {/* Container for sidebar and content */}
       <div className="pt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-8">
+          <div className="flex md:gap-8">
             <DocsSidebar
               isOpen={sidebarOpen}
               setIsOpen={setSidebarOpen}
@@ -101,7 +101,7 @@ const Docs = () => {
             />
 
             {/* Main content */}
-            <main className="flex-1 min-w-0 py-12">
+            <main className="flex-1 min-w-0 py-6 md:py-12">
               {/* Header */}
               <div className="mb-12">
                 <h1 className="text-5xl font-bold text-text-primary mb-4">Documentation</h1>

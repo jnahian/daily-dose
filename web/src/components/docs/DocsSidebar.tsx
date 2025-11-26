@@ -119,18 +119,18 @@ export const DocsSidebar = ({
         />
       )}
 
-      <div className="border-r border-border-default">
+      <div className="md:border-r md:border-border-default">
         {/* Sidebar */}
         <aside
           className={`
-        w-64 overflow-y-auto
+        w-64 overflow-y-auto bg-bg-primary
         fixed top-16 left-0 h-[calc(100vh-4rem)] z-40
         transform transition-transform duration-300
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0 md:h-auto md:max-h-[calc(100vh-4rem)] md:sticky md:top-20 md:shrink-0 md:border-0
       `}
         >
-          <div className="py-6 pr-6">
+          <div className="py-6 px-6 md:pl-0 md:pr-6">
             {/* Search */}
             <div className="relative mb-6">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />

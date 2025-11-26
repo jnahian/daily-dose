@@ -1,7 +1,16 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router';
-import { Terminal, History, Book, Slack, Menu, X } from 'lucide-react';
+import { Terminal, History, Book, Slack, Menu, X, Home as HomeIcon, Network } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
+
+// Define menu structure
+interface MenuItem {
+  label: string;
+  path?: string;
+  icon: React.ReactNode;
+  submenu?: { label: string; path: string; icon?: React.ReactNode }[];
+  scrollTo?: string;
+}
 
 export const Navbar = () => {
   const location = useLocation();
@@ -10,27 +19,76 @@ export const Navbar = () => {
 
   // Determine page type
   const isScriptsPage = currentPath.includes('/scripts');
-  const isDocsPage = currentPath.includes('/docs');
-  const isChangelogPage = currentPath.includes('/changelog');
-  const isHomePage = currentPath === '/';
 
-  // Scroll functions for home page
-  const scrollToTop = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Menu items configuration
+  const menuItems: MenuItem[] = [
+    {
+      label: 'Home',
+      path: '/',
+      icon: <HomeIcon size={18} />,
+      submenu: [
+        { label: 'Features', path: '/#features', icon: <Book size={18} /> },
+        { label: 'How It Works', path: '/#how-it-works', icon: <Network size={18} /> },
+        { label: 'Documentation', path: '/docs', icon: <Book size={18} /> },
+      ],
+    },
+    {
+      label: 'Documentation',
+      path: '/docs',
+      icon: <Book size={18} />,
+      submenu: [
+        { label: 'Documentation', path: '/docs', icon: <Book size={18} /> },
+        { label: 'Changelog', path: '/changelog', icon: <History size={18} /> },
+        { label: 'Scripts', path: '/scripts', icon: <Terminal size={18} /> },
+      ],
+    },
+    {
+      label: 'Changelog',
+      path: '/changelog',
+      icon: <History size={18} />,
+      submenu: [
+        { label: 'Documentation', path: '/docs', icon: <Book size={18} /> },
+        { label: 'Changelog', path: '/changelog', icon: <History size={18} /> },
+        { label: 'Scripts', path: '/scripts', icon: <Terminal size={18} /> },
+      ],
+    },
+    {
+      label: 'Scripts',
+      path: '/scripts',
+      icon: <Terminal size={18} />,
+      submenu: [
+        { label: 'Documentation', path: '/docs', icon: <Book size={18} /> },
+        { label: 'Changelog', path: '/changelog', icon: <History size={18} /> },
+        { label: 'Scripts', path: '/scripts', icon: <Terminal size={18} /> },
+      ],
+    },
+  ];
+
+  // Find active menu item to determine submenu
+  const activeMenuItem = menuItems.find(item =>
+    item.path === '/' ? currentPath === '/' : currentPath.includes(item.path!)
+  ) || menuItems[0];
+
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
     setIsOpen(false);
+    if (path.includes('#')) {
+      const [basePath, hash] = path.split('#');
+      if (basePath === '/' && currentPath === '/') {
+        e.preventDefault();
+        const element = document.getElementById(hash);
+        if (element) {
+          const offset = 80;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - offset;
+          window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+        }
+      }
+    }
   };
 
-  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
-    e.preventDefault();
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const offset = 80;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
-      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-    }
-    setIsOpen(false);
+  const isActive = (path: string) => {
+    if (path === '/') return currentPath === '/';
+    return currentPath.includes(path);
   };
 
   return (
@@ -40,99 +98,30 @@ export const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <img src="/logo.png" alt="Daily Dose Logo" className="w-8 h-8 rounded-lg" />
-            <div>
-              <span className="text-text-primary font-bold text-xl tracking-tight">Daily Dose</span>
-              {isScriptsPage && <span className="text-text-secondary text-sm ml-2">Scripts Docs</span>}
-            </div>
+            <span className="text-text-primary font-bold text-xl tracking-tight">Daily Dose</span>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-4">
-            {/* Home Page Navigation */}
-            {isHomePage && (
-              <>
-                <div className="flex items-baseline space-x-8 mr-4">
-                  <a
-                    href="#"
-                    onClick={scrollToTop}
-                    className="text-text-secondary hover:text-brand-cyan px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
-                  >
-                    Home
-                  </a>
-                  <a
-                    href="#features"
-                    onClick={(e) => scrollToSection(e, 'features')}
-                    className="text-text-secondary hover:text-brand-cyan px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
-                  >
-                    Features
-                  </a>
-                  <a
-                    href="#how-it-works"
-                    onClick={(e) => scrollToSection(e, 'how-it-works')}
-                    className="text-text-secondary hover:text-brand-cyan px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer"
-                  >
-                    How it Works
-                  </a>
-                  <Link
-                    to="/docs"
-                    className="text-text-secondary hover:text-brand-cyan px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                  >
-                    Documentation
-                  </Link>
-                </div>
-                <button className="bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-cyan px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 border border-brand-blue/20">
-                  <Slack size={16} />
-                  Add to Slack
-                </button>
-              </>
-            )}
-
-            {/* Scripts Page */}
-            {isScriptsPage && (
-              <>
-                <span className="px-3 py-1 text-xs font-medium bg-red-500/20 text-red-400 rounded-full border border-red-500/30">
-                  🔐 Admin Only
-                </span>
+            <div className="flex items-center gap-2">
+              {activeMenuItem.submenu?.map((item) => (
                 <Link
-                  to="/docs"
-                  className="text-text-secondary hover:text-text-primary transition-colors flex items-center gap-2"
+                  key={item.label}
+                  to={item.path}
+                  onClick={(e) => handleLinkClick(e, item.path)}
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${isActive(item.path) ? 'text-brand-cyan' : 'text-text-secondary hover:text-brand-cyan'
+                    }`}
                 >
-                  <Book size={18} />
-                  <span className="hidden sm:inline">Documentation</span>
+                  {item.icon}
+                  {item.label}
                 </Link>
-              </>
-            )}
+              ))}
+            </div>
 
-            {/* Docs Page */}
-            {isDocsPage && (
-              <>
-                <Link
-                  to="/scripts"
-                  className="text-text-secondary hover:text-text-primary transition-colors flex items-center gap-2"
-                >
-                  <Terminal size={18} />
-                  <span className="hidden sm:inline">Scripts</span>
-                </Link>
-                <Link
-                  to="/changelog"
-                  className="text-text-secondary hover:text-text-primary transition-colors flex items-center gap-2"
-                >
-                  <History size={18} />
-                  <span className="hidden sm:inline">Changelog</span>
-                </Link>
-              </>
-            )}
-
-            {/* Changelog Page */}
-            {isChangelogPage && (
-              <Link
-                to="/docs"
-                className="text-text-secondary hover:text-text-primary transition-colors flex items-center gap-2"
-              >
-                <Book size={18} />
-                <span className="hidden sm:inline">Documentation</span>
-              </Link>
-            )}
+            <button className="bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-cyan px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 border border-brand-blue/20">
+              <Slack size={16} />
+              Add to Slack
+            </button>
 
             <div className="ml-2 pl-2 border-l border-border-default">
               <ThemeToggle />
@@ -142,49 +131,32 @@ export const Navbar = () => {
           {/* Mobile Menu Button */}
           <div className="flex items-center gap-4 md:hidden">
             <ThemeToggle />
-            {isHomePage && (
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="text-text-secondary hover:text-text-primary p-2"
-              >
-                {isOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
-            )}
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="text-text-secondary hover:text-text-primary p-2"
+            >
+              {isOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu (Home Page Only) */}
-      {isHomePage && isOpen && (
+      {/* Mobile Menu */}
+      {isOpen && (
         <div className="md:hidden bg-bg-primary border-b border-border-default">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <a
-              href="#"
-              onClick={scrollToTop}
-              className="text-text-secondary hover:text-text-primary block px-3 py-2 rounded-md text-base font-medium cursor-pointer"
-            >
-              Home
-            </a>
-            <a
-              href="#features"
-              onClick={(e) => scrollToSection(e, 'features')}
-              className="text-text-secondary hover:text-text-primary block px-3 py-2 rounded-md text-base font-medium cursor-pointer"
-            >
-              Features
-            </a>
-            <a
-              href="#how-it-works"
-              onClick={(e) => scrollToSection(e, 'how-it-works')}
-              className="text-text-secondary hover:text-text-primary block px-3 py-2 rounded-md text-base font-medium cursor-pointer"
-            >
-              How it Works
-            </a>
-            <Link
-              to="/docs"
-              className="text-text-secondary hover:text-text-primary block px-3 py-2 rounded-md text-base font-medium"
-            >
-              Documentation
-            </Link>
+            {activeMenuItem.submenu?.map((item) => (
+              <Link
+                key={item.label}
+                to={item.path}
+                onClick={(e) => handleLinkClick(e, item.path)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium ${isActive(item.path) ? 'text-brand-cyan' : 'text-text-secondary hover:text-text-primary'
+                  }`}
+              >
+                {item.icon}
+                {item.label}
+              </Link>
+            ))}
           </div>
         </div>
       )}

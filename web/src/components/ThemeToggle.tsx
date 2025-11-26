@@ -16,13 +16,29 @@ export function ThemeToggle() {
     }
 
     return (
-        <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-full p-1">
+        <div className="flex items-center gap-1 border rounded-full p-1" style={{
+            backgroundColor: 'var(--bg-surface)',
+            borderColor: 'var(--border-default)'
+        }}>
             <button
                 onClick={() => setTheme('light')}
                 className={`p-1.5 rounded-full transition-all ${theme === 'light'
-                        ? 'bg-white text-brand-navy shadow-sm'
-                        : 'text-gray-400 hover:text-white'
+                    ? 'bg-white text-brand-navy shadow-sm'
+                    : ''
                     }`}
+                style={theme !== 'light' ? {
+                    color: 'var(--text-secondary)'
+                } : {}}
+                onMouseEnter={(e) => {
+                    if (theme !== 'light') {
+                        e.currentTarget.style.color = 'var(--text-primary)';
+                    }
+                }}
+                onMouseLeave={(e) => {
+                    if (theme !== 'light') {
+                        e.currentTarget.style.color = 'var(--text-secondary)';
+                    }
+                }}
                 aria-label="Light mode"
             >
                 <Sun size={14} />
@@ -30,9 +46,22 @@ export function ThemeToggle() {
             <button
                 onClick={() => setTheme('system')}
                 className={`p-1.5 rounded-full transition-all ${theme === 'system'
-                        ? 'bg-white text-brand-navy shadow-sm'
-                        : 'text-gray-400 hover:text-white'
+                    ? 'bg-white text-brand-navy shadow-sm'
+                    : ''
                     }`}
+                style={theme !== 'system' ? {
+                    color: 'var(--text-secondary)'
+                } : {}}
+                onMouseEnter={(e) => {
+                    if (theme !== 'system') {
+                        e.currentTarget.style.color = 'var(--text-primary)';
+                    }
+                }}
+                onMouseLeave={(e) => {
+                    if (theme !== 'system') {
+                        e.currentTarget.style.color = 'var(--text-secondary)';
+                    }
+                }}
                 aria-label="System theme"
             >
                 <Laptop size={14} />
@@ -40,9 +69,22 @@ export function ThemeToggle() {
             <button
                 onClick={() => setTheme('dark')}
                 className={`p-1.5 rounded-full transition-all ${theme === 'dark'
-                        ? 'bg-white text-brand-navy shadow-sm'
-                        : 'text-gray-400 hover:text-white'
+                    ? 'bg-white text-brand-navy shadow-sm'
+                    : ''
                     }`}
+                style={theme !== 'dark' ? {
+                    color: 'var(--text-secondary)'
+                } : {}}
+                onMouseEnter={(e) => {
+                    if (theme !== 'dark') {
+                        e.currentTarget.style.color = 'var(--text-primary)';
+                    }
+                }}
+                onMouseLeave={(e) => {
+                    if (theme !== 'dark') {
+                        e.currentTarget.style.color = 'var(--text-secondary)';
+                    }
+                }}
                 aria-label="Dark mode"
             >
                 <Moon size={14} />
