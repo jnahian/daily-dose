@@ -11,7 +11,6 @@ import {
   AlertTriangle,
   Trash2,
 } from 'lucide-react';
-import { Navbar } from '../components';
 import { VersionCard, TableOfContents } from '../components/changelog';
 import changelogData from '../data/changelog.json';
 import type { ChangelogData } from '../types/changelog';
@@ -56,7 +55,6 @@ const Changelog = () => {
 
   return (
     <div className="min-h-screen bg-bg-primary text-text-primary transition-colors duration-300">
-      <Navbar />
 
       {/* Main content */}
       <main className="pt-16">

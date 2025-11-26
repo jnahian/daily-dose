@@ -18,7 +18,7 @@ export const Navbar = () => {
   const [isOpen, setIsOpen] = React.useState(false);
 
   // Determine page type
-  const isScriptsPage = currentPath.includes('/scripts');
+
 
   // Menu items configuration
   const menuItems: MenuItem[] = [

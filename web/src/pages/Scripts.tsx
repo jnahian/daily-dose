@@ -11,7 +11,6 @@ import {
   Book,
   History,
 } from 'lucide-react';
-import { Navbar } from '../components';
 import { ScriptsTOC, ScriptCard } from '../components/scripts';
 import { CodeBlock } from '../components/docs';
 import { BasicAuth } from '../components/auth';
@@ -67,7 +66,6 @@ const Scripts = () => {
   return (
     <BasicAuth>
       <div className="min-h-screen bg-bg-primary text-text-primary transition-colors duration-300">
-        <Navbar />
 
         {/* Main content */}
         <main className="pt-16 overflow-x-hidden">

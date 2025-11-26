@@ -1,4 +1,3 @@
-import { Navbar } from '../components';
 import { Hero, Features, HowItWorks, Contact, Footer } from '../components/home';
 
 export const meta = () => {
@@ -38,7 +37,6 @@ export const meta = () => {
 const Home = () => {
   return (
     <div className="min-h-screen bg-bg-primary text-text-primary selection:bg-brand-cyan/30 transition-colors duration-300">
-      <Navbar />
       <Hero />
       <Features />
       <HowItWorks />

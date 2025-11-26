@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { Navbar } from '../components';
 import { DocsSidebar, ContentSection, ContentRenderer } from '../components/docs';
 import docsData from '../data/docs.json';
 import type { DocsData } from '../types/docs';
@@ -77,7 +76,6 @@ const Docs = () => {
 
   return (
     <div className="min-h-screen bg-bg-primary text-text-primary transition-colors duration-300">
-      <Navbar />
 
       {/* Mobile menu button */}
       <button
