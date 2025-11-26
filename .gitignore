@@ -4,3 +4,5 @@ node_modules
 /generated/prisma
 .DS_Store
 .vscode
+web/dist
+web/node_modules
