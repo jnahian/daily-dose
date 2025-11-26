@@ -1,9 +1,62 @@
 {
   "versions": [
     {
-      "version": "1.3.0",
-      "date": "2025-01-09",
+      "version": "1.4.0",
+      "date": "2025-11-26",
       "isLatest": true,
+      "changes": [
+        {
+          "type": "added",
+          "title": "React Web Application",
+          "items": [
+            "Home page with hero section, features, and how it works",
+            "Comprehensive documentation with search functionality",
+            "Changelog page with version history",
+            "Contact form with functional form submission",
+            "Theme toggle for dark/light mode support",
+            "Lazy loading for pages with loading fallbacks",
+            "Global page transitions and scroll-to-top functionality"
+          ]
+        },
+        {
+          "type": "added",
+          "title": "Developer Tools & Infrastructure",
+          "items": [
+            "GitHub issue and pull request templates",
+            "Organization administrator management script (addOrgAdmin.js)",
+            "Documentation search functionality",
+            "Lucide icons integration for UI components",
+            "Enhanced responsiveness with sticky sidebar"
+          ]
+        },
+        {
+          "type": "changed",
+          "title": "Architecture & Infrastructure",
+          "items": [
+            "Removed legacy static HTML routes and basicAuth middleware",
+            "Replaced multiple static routes with single-page application (SPA)",
+            "Refactored documentation sidebar navigation to use external docs.json",
+            "Updated Node.js version requirement to 20.19+ or 22.12+",
+            "Improved Slack manifest update script with better error handling",
+            "Enhanced Tailwind CSS configuration and styling",
+            "Restructured UI components for theme-aware styling"
+          ]
+        },
+        {
+          "type": "removed",
+          "title": "Deprecated",
+          "items": [
+            "Web frontend application static files",
+            "Legacy HTML routes and basic auth middleware",
+            "Unnecessary console log statements"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.3.0",
+      "date": "2025-11-20",
+      "isLatest": false,
       "changes": [
         {
           "type": "added",

@@ -5,7 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.4.0] - 2025-11-26
+
+### Added
+
+- React-based web application with modern UI
+  - Home page with hero section, features, and how it works
+  - Comprehensive documentation with search functionality
+  - Changelog page with version history
+  - Contact form with functional form submission
+  - Theme toggle for dark/light mode support
+  - Lazy loading for pages with loading fallbacks
+  - Global page transitions and scroll-to-top functionality
+- GitHub issue and pull request templates for better issue tracking
+- Organization administrator management script (`addOrgAdmin.js`)
+- Documentation search functionality to filter navigation and content
+- Lucide icons integration for UI components
+- Enhanced responsiveness across all pages with sticky sidebar
+
+### Changed
+
+- Removed legacy static HTML routes and `basicAuth` middleware
+- Replaced multiple static routes with single-page application (SPA)
+- Refactored documentation sidebar navigation to use external `docs.json`
+- Updated Node.js version requirement to 20.19+ or 22.12+
+- Improved Slack manifest update script with better error handling
+- Enhanced Tailwind CSS configuration and styling
+- Restructured UI components for theme-aware styling
+
+### Removed
+
+- Web frontend application static files (migrated to React)
+- Legacy HTML routes and basic auth middleware
+- Unnecessary console log statements
 
 ## [1.3.0] - 2025-11-20
 
@@ -159,7 +191,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/jnahian/daily-dose/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/jnahian/daily-dose/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/jnahian/daily-dose/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/jnahian/daily-dose/compare/v1.0.2...v1.1.0
