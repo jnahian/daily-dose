@@ -1,0 +1,169 @@
+{
+  "versions": [
+    {
+      "version": "1.3.0",
+      "date": "2025-01-09",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Manual Standup Trigger Commands",
+          "items": [
+            "/dd-standup-remind [team-name] - Send standup reminders to team members",
+            "/dd-standup-post [YYYY-MM-DD] [team-name] - Post standup summary for specific date",
+            "/dd-standup-preview [YYYY-MM-DD] [team-name] - Preview standup summary (ephemeral)",
+            "/dd-standup-followup [team-name] - Send followup reminders to non-responders"
+          ]
+        },
+        {
+          "type": "added",
+          "title": "Permission System",
+          "items": [
+            "Role-based access control with permissionHelper.js utility",
+            "isOrganizationOwner(), isTeamAdmin(), and canManageTeam() functions",
+            "Context-aware team resolution in teamHelper.js",
+            "Admins can run commands from team channel without specifying team name",
+            "Owners must specify team name when running from any location",
+            "resolveTeamFromContext() function for automatic team detection",
+            "parseCommandArguments() for flexible date and team name parsing"
+          ]
+        },
+        {
+          "type": "added",
+          "title": "Block Helper Functions",
+          "items": [
+            "createCommandSuccessBlocks() - Success messages with details",
+            "createCommandErrorBlocks() - Error messages with suggestions",
+            "createPermissionDeniedBlocks() - Permission error messages",
+            "createStandupPreviewHeaderBlocks() - Preview header formatting",
+            "createNoDataBlocks() - No data available messages"
+          ]
+        },
+        {
+          "type": "added",
+          "title": "Documentation & Logging",
+          "items": [
+            "Comprehensive audit logging for all admin actions",
+            "User stories and implementation plan documentation"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "date": "2025-01-09",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "changed",
+          "title": "Late Standup Submissions",
+          "items": [
+            "Late submissions now create full standup posts when no parent message exists",
+            "First late submission creates a complete standup post with all sections",
+            "Subsequent late submissions are added as threaded replies",
+            "Applies to both /dd-standup submissions and /dd-standup-update updates",
+            "New postStandupOnDemand() method in StandupService"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2025-01-02",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Admin Leave Management",
+          "items": [
+            "/dd-leave-set-member - Set leave for any team member (admin only)",
+            "/dd-leave-cancel-member - Cancel team member's leave (admin only)",
+            "/dd-leave-list-member - List team member's upcoming leaves (admin only)",
+            "isTeamAdmin() method in TeamService",
+            "getUserTeams() method in TeamService",
+            "setMemberLeave(), cancelMemberLeave(), and listMemberLeaves() methods in UserService",
+            "Support for @mentions in admin leave commands",
+            "Smart team detection for single-team admins",
+            "Comprehensive permission checks for admin leave operations"
+          ]
+        },
+        {
+          "type": "added",
+          "title": "Deployment & Versioning",
+          "items": [
+            "Slack app manifest auto-update during deployment",
+            "Release workflow separating version bump from tag creation",
+            "Admin leave management documentation in README"
+          ]
+        },
+        {
+          "type": "changed",
+          "title": "Documentation & Workflows",
+          "items": [
+            "Leave management section in README reorganized",
+            "Slack manifest updated with new admin leave commands",
+            "Version commands now only bump version without creating tags",
+            "Release command creates tags and triggers deployment",
+            "Manifest update script always uses SLACK_APP_ID from environment"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.0.2",
+      "date": "2025-11-02",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Version Management",
+          "items": [
+            "Git-based package versioning with SemVer policy",
+            "Automated deployment on version tag push",
+            "Version management scripts (patch, minor, major)",
+            "Pre-version checks for clean git state",
+            "GitHub Actions workflow for version releases",
+            "Changelog page with version history",
+            "CHANGELOG.md for tracking version history"
+          ]
+        },
+        {
+          "type": "changed",
+          "title": "Standup Logic Improvements",
+          "items": [
+            "Standup posting logic to skip when no eligible members exist",
+            "Standup messages exclude mention=off members from display"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "date": "2025-11-02",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Initial Release",
+          "items": [
+            "Automated daily standup reminders",
+            "Team management commands",
+            "Leave tracking system",
+            "Timezone-aware scheduling",
+            "Work day configuration",
+            "Standup response collection via modals",
+            "Team standup summaries",
+            "Late submission threading",
+            "User preference management",
+            "Admin role management",
+            "Multi-tenant organization support",
+            "PostgreSQL database with Prisma ORM",
+            "PM2 process management",
+            "Health check endpoint",
+            "Comprehensive documentation"
+          ]
+        }
+      ]
+    }
+  ]
+}

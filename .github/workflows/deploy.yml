@@ -44,7 +44,7 @@ jobs:
             # Pull latest changes
             git pull origin main
 
-            # Install dependencies
+            # Install root dependencies
             npm ci
 
             # Generate Prisma client
@@ -52,6 +52,12 @@ jobs:
 
             # Run database migrations
             npx prisma db push
+
+            # Build React app
+            cd web
+            npm ci
+            npm run build
+            cd ..
 
             # Start/restart the application with PM2
             pm2 start ecosystem.config.js --env production || pm2 restart DAILY_DOSE_BOT
