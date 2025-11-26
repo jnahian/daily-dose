@@ -103,8 +103,6 @@ class SlackManifestManager {
 
     const data = await response.json();
 
-    console.log("data", data);
-
     if (!data.ok) {
       throw new Error(`Token refresh failed: ${data.error}`);
     }
