@@ -83,6 +83,8 @@ export const Navbar = () => {
           window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
         }
       }
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -96,7 +98,10 @@ export const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
+          <Link
+            to="/"
+            onClick={(e) => handleLinkClick(e, '/')}
+            className="flex items-center gap-2">
             <img src="/logo.png" alt="Daily Dose Logo" className="w-8 h-8 rounded-lg" />
             <span className="text-text-primary font-bold text-xl tracking-tight">Daily Dose</span>
           </Link>

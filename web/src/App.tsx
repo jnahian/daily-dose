@@ -1,13 +1,17 @@
+import { Suspense, lazy } from 'react';
 import { Routes, Route, useLocation } from 'react-router';
 import { AnimatePresence } from 'framer-motion';
-import Home from './pages/Home';
-import Docs from './pages/Docs';
-import Changelog from './pages/Changelog';
-import Scripts from './pages/Scripts';
 import { ThemeProvider } from './context/ThemeContext';
 import PageTransition from './components/PageTransition';
 import { Navbar } from './components/Navbar';
 import ScrollToTop from './components/ScrollToTop';
+import Loading from './components/Loading';
+
+// Lazy load pages
+const Home = lazy(() => import('./pages/Home'));
+const Docs = lazy(() => import('./pages/Docs'));
+const Changelog = lazy(() => import('./pages/Changelog'));
+const Scripts = lazy(() => import('./pages/Scripts'));
 
 function App() {
   const location = useLocation();
@@ -17,12 +21,14 @@ function App() {
       <ScrollToTop />
       <Navbar />
       <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<PageTransition><Home /></PageTransition>} />
-          <Route path="/docs" element={<PageTransition><Docs /></PageTransition>} />
-          <Route path="/changelog" element={<PageTransition><Changelog /></PageTransition>} />
-          <Route path="/scripts" element={<PageTransition><Scripts /></PageTransition>} />
-        </Routes>
+        <Suspense fallback={<Loading />}>
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+            <Route path="/docs" element={<PageTransition><Docs /></PageTransition>} />
+            <Route path="/changelog" element={<PageTransition><Changelog /></PageTransition>} />
+            <Route path="/scripts" element={<PageTransition><Scripts /></PageTransition>} />
+          </Routes>
+        </Suspense>
       </AnimatePresence>
     </ThemeProvider>
   );
