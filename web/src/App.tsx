@@ -12,6 +12,9 @@ const Home = lazy(() => import('./pages/Home'));
 const Docs = lazy(() => import('./pages/Docs'));
 const Changelog = lazy(() => import('./pages/Changelog'));
 const Scripts = lazy(() => import('./pages/Scripts'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('./pages/TermsOfService'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
 
 function App() {
   const location = useLocation();
@@ -27,6 +30,9 @@ function App() {
             <Route path="/docs" element={<PageTransition><Docs /></PageTransition>} />
             <Route path="/changelog" element={<PageTransition><Changelog /></PageTransition>} />
             <Route path="/scripts" element={<PageTransition><Scripts /></PageTransition>} />
+            <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
+            <Route path="/terms" element={<PageTransition><TermsOfService /></PageTransition>} />
+            <Route path="/contact" element={<PageTransition><ContactPage /></PageTransition>} />
           </Routes>
         </Suspense>
       </AnimatePresence>
