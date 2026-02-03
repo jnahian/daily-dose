@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2025-02-03
+
+### Changed
+
+- Updated project dependencies to latest versions
+- Enhanced CLAUDE.md with comprehensive project documentation
+  - Added utility scripts section with admin, team, and debug commands
+  - Documented Web Frontend (React SPA) development workflow and build commands
+  - Expanded Architecture Overview with detailed service descriptions
+  - Enhanced Database Schema section with multi-tenant design patterns
+  - Documented Slack Integration including Block Kit UI and markdown guidelines
+  - Added Web Frontend Architecture section covering React, routing, styling, and theme system
+  - Expanded Environment Configuration with categorized variable descriptions
+  - Added Development Notes section with frontend workflow and conventions
+- Improved command documentation with better clarity and examples
+  - Refined `/dd-standup-reminder` command syntax and parameter requirements
+  - Updated standup submission examples with correct field names
+  - Added "Smart Prefilling" note explaining automatic pre-population
+  - Enhanced "Channel-Based Commands" note with context-aware operation details
+  - Clarified `/dd-team-update` notifications parameter with examples
+  - Expanded leave management documentation with admin-only commands
+  - Enhanced holiday management section with organization-wide clarification
+- Clarified notification system behavior in documentation
+  - Added comprehensive Notification System section explaining `receiveNotifications` behavior
+  - Documented that `notify=off` disables ALL notifications (reminders + admin submission alerts)
+  - Clarified `notify` parameter controls both standup reminders and admin submission notifications
+  - Added use cases for team admins wanting to reduce notification noise
+  - Updated web documentation (docs.json) with corrected command examples
+
+### Removed
+
+- Removed non-existent "view preferences" command examples from documentation
+
+### Fixed
+
+- Corrected preferences command implementation to match documented behavior
+
 ## [1.4.0] - 2025-11-26
 
 ### Added
@@ -191,7 +228,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.4.1...HEAD
+[1.4.1]: https://github.com/jnahian/daily-dose/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/jnahian/daily-dose/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/jnahian/daily-dose/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/jnahian/daily-dose/compare/v1.1.0...v1.2.0
