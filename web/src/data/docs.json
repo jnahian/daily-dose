@@ -173,14 +173,14 @@
             },
             {
               "type": "command",
-              "command": "/dd-standup-reminder [team-name] [mention=on/off] [notify=on/off]",
-              "description": "Control your standup reminder preferences. Manage whether you receive reminder notifications (notify) and whether you appear in the 'not responded' list (mention). At least one parameter must be provided.",
+              "command": "/dd-standup-reminder [team-name] mention=on/off notify=on/off",
+              "description": "Control your standup reminder preferences. Manage whether you receive reminder notifications (notify) and whether you appear in the 'not responded' list (mention). At least one parameter (mention or notify) is required. Team name is optional when run in team channel.",
               "examples": [
-                "# Check current settings\n/dd-standup-reminder",
-                "# Hide from non-responded list\n/dd-standup-reminder mention=off",
-                "# Stop reminder notifications\n/dd-standup-reminder notify=off",
-                "# Disable both\n/dd-standup-reminder mention=off notify=off",
-                "# For specific team\n/dd-standup-reminder Engineering notify=on mention=off"
+                "# Hide from non-responded list (in team channel)\n/dd-standup-reminder mention=off",
+                "# Stop reminder notifications (in team channel)\n/dd-standup-reminder notify=off",
+                "# Disable both (in team channel)\n/dd-standup-reminder mention=off notify=off",
+                "# Re-enable all reminders\n/dd-standup-reminder mention=on notify=on",
+                "# For specific team from any channel\n/dd-standup-reminder Engineering notify=on mention=off"
               ]
             },
             {
@@ -194,6 +194,11 @@
                 "🎯 Today's Tasks - What you plan to work on today",
                 "⚠️ Blockers - Any obstacles or help needed (optional)"
               ]
+            },
+            {
+              "type": "note",
+              "title": "💡 Smart Prefilling",
+              "value": "When submitting a new standup, the 'Last Working Day's Tasks' field is automatically pre-filled with your previous standup's 'Today's Tasks', making it quick to update what you actually accomplished."
             }
           ]
         },
@@ -203,8 +208,8 @@
           "content": [
             {
               "type": "note",
-              "title": "Channel-Based Commands",
-              "value": "Most team commands now support optional team names. When no team name is provided, the bot will automatically look for a team associated with the current Slack channel."
+              "title": "💡 Channel-Based Commands",
+              "value": "Most team commands support context-aware operation. When no team name is provided, the bot automatically detects the team associated with the current Slack channel. This makes commands faster and more intuitive when working from your team's channel. You can always specify a team name explicitly to manage teams from any channel."
             },
             {
               "type": "command",
@@ -252,12 +257,13 @@
             {
               "type": "command",
               "command": "/dd-team-update [team-name] [parameters]",
-              "description": "Update team settings (admin only). Available parameters: name=NewName, standup=HH:MM, posting=HH:MM, notifications=true/false",
+              "description": "Update team settings (admin only). Available parameters: name=NewName, standup=HH:MM, posting=HH:MM, notifications=true/false. The notifications parameter controls whether team admins receive DM notifications when members submit standups.",
               "examples": [
                 "# Update team in current channel\n/dd-team-update standup=09:00",
                 "# Update specific team\n/dd-team-update Engineering standup=09:00",
                 "# Multiple parameters\n/dd-team-update standup=09:00 posting=10:30",
-                "# Change team name\n/dd-team-update Engineering name=\"Engineering Team\""
+                "# Change team name\n/dd-team-update Engineering name=\"Engineering Team\"",
+                "# Disable admin notifications\n/dd-team-update Engineering notifications=false"
               ]
             }
           ]
@@ -266,6 +272,11 @@
           "id": "leave-commands",
           "title": "Leave Management",
           "content": [
+            {
+              "type": "note",
+              "title": "Personal Leave Management",
+              "value": "All team members can manage their own leave dates. Leave automatically excludes you from standup reminders and marks you as 'On Leave' in team summaries."
+            },
             {
               "type": "command",
               "command": "/dd-leave-set <start-date> [end-date] [reason]",
@@ -284,8 +295,41 @@
             {
               "type": "command",
               "command": "/dd-leave-cancel <leave-id>",
-              "description": "Cancel a scheduled leave.",
-              "examples": ["/dd-leave-cancel 123"]
+              "description": "Cancel a scheduled leave. Use the leave ID from the list command.",
+              "examples": ["/dd-leave-cancel abc123"]
+            },
+            {
+              "type": "warning",
+              "title": "⚠️ Admin Leave Management",
+              "value": "Team admins can manage leave for any member in their teams. These commands require admin permissions."
+            },
+            {
+              "type": "command",
+              "command": "/dd-leave-set-member @user [team-name] <start-date> [end-date] [reason]",
+              "description": "Set leave for a team member (admin only). Team name is required if admin is in multiple teams.",
+              "examples": [
+                "# Single day leave for member\n/dd-leave-set-member @john 2024-12-25 Holiday",
+                "# With team name\n/dd-leave-set-member @john Engineering 2024-12-25 Holiday",
+                "# Date range\n/dd-leave-set-member @john Engineering 2024-12-25 2024-12-26 Holiday break"
+              ]
+            },
+            {
+              "type": "command",
+              "command": "/dd-leave-list-member @user [team-name]",
+              "description": "View a team member's leaves (admin only). Team name is required if admin is in multiple teams.",
+              "examples": [
+                "# List member leaves\n/dd-leave-list-member @john",
+                "# With team name\n/dd-leave-list-member @john Engineering"
+              ]
+            },
+            {
+              "type": "command",
+              "command": "/dd-leave-cancel-member @user <leave-id> [team-name]",
+              "description": "Cancel a team member's leave (admin only). Team name is required if admin is in multiple teams.",
+              "examples": [
+                "# Cancel member leave\n/dd-leave-cancel-member @john abc123",
+                "# With team name\n/dd-leave-cancel-member @john abc123 Engineering"
+              ]
             }
           ]
         },
@@ -296,28 +340,45 @@
             {
               "type": "warning",
               "title": "⚠️ Admin Only",
-              "value": "Holiday management commands require admin or organization owner permissions."
+              "value": "Holiday management commands require admin or organization owner permissions. Holidays automatically skip standup reminders for all team members organization-wide."
             },
             {
               "type": "command",
-              "command": "/dd-holiday-set <date> <name>",
-              "description": "Set an organization-wide holiday. Automatically skips standup reminders for all team members.",
+              "command": "/dd-holiday-set <start-date> [end-date] [name]",
+              "description": "Set an organization-wide holiday or holiday range. Automatically skips standup reminders for all team members.",
               "examples": [
-                "# Set a holiday\n/dd-holiday-set 2024-12-25 Christmas Day",
+                "# Set a single day holiday\n/dd-holiday-set 2024-12-25 Christmas Day",
+                "# Set a holiday range\n/dd-holiday-set 2024-12-24 2024-12-26 Christmas Holiday",
                 "# Set New Year\n/dd-holiday-set 2024-01-01 New Year's Day"
               ]
             },
             {
               "type": "command",
-              "command": "/dd-holiday-list",
-              "description": "View all organization holidays.",
-              "examples": ["/dd-holiday-list"]
+              "command": "/dd-holiday-list [year] [year-month] [start-date] [end-date]",
+              "description": "View organization holidays. Optionally filter by year, month, or date range.",
+              "examples": [
+                "# List all holidays\n/dd-holiday-list",
+                "# List holidays for specific year\n/dd-holiday-list 2024",
+                "# List holidays for specific month\n/dd-holiday-list 2024-12",
+                "# List holidays in date range\n/dd-holiday-list 2024-12-01 2024-12-31"
+              ]
             },
             {
               "type": "command",
-              "command": "/dd-holiday-remove <holiday-id>",
-              "description": "Remove a holiday.",
-              "examples": ["/dd-holiday-remove 123"]
+              "command": "/dd-holiday-update <date> <new-name>",
+              "description": "Update an existing holiday's name.",
+              "examples": [
+                "# Update holiday name\n/dd-holiday-update 2024-12-25 Christmas Day Updated"
+              ]
+            },
+            {
+              "type": "command",
+              "command": "/dd-holiday-delete <start-date> [end-date]",
+              "description": "Delete a holiday or holiday range.",
+              "examples": [
+                "# Delete single day holiday\n/dd-holiday-delete 2024-12-25",
+                "# Delete holiday range\n/dd-holiday-delete 2024-12-24 2024-12-26"
+              ]
             }
           ]
         },
@@ -555,7 +616,8 @@
               "items": [
                 "Check your work days configuration with `/dd-workdays-show`",
                 "Verify you're not on leave with `/dd-leave-list`",
-                "Check reminder preferences with `/dd-standup-reminder`",
+                "Check if today is an organization holiday with `/dd-holiday-list`",
+                "Verify reminder notifications are enabled with `/dd-standup-reminder notify=on`",
                 "Ensure you're a member of the team with `/dd-team-members`"
               ]
             },
@@ -605,7 +667,7 @@
             },
             {
               "type": "text",
-              "value": "**Can I edit my standup after submitting?**\n\nYes! Use `/dd-standup-update` to modify your submission. Updates before posting time will be included in the main post, updates after will be added as thread replies."
+              "value": "**Can I edit my standup after submitting?**\n\nYes! Use `/dd-standup-update` to modify your submission for any date. The form will open pre-filled with your existing data. Updates made before the team's posting time are included in the main summary. Updates made after posting time are automatically added as thread replies to the standup post."
             },
             {
               "type": "text",
