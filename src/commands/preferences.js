@@ -58,7 +58,7 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
     // Validate that at least one of mention or notify is provided
     if (mentionParam === undefined && notifyParam === undefined) {
       await updateResponse({
-        text: "❌ You must specify at least one parameter: `mention=on/off` or `notify=on/off`\n\nUsage examples:\n- `/dd-standup-reminder mention=off` - Stop being mentioned in non-responded list\n- `/dd-standup-reminder notify=off` - Stop receiving reminder notifications\n- `/dd-standup-reminder TeamName mention=on notify=off` - Be mentioned but don't receive notifications\n- `/dd-standup-reminder mention=on notify=on` - Enable all reminders",
+        text: "❌ You must specify at least one parameter: `mention=on/off` or `notify=on/off`\n\nUsage examples:\n- `/dd-standup-reminder mention=off` - Stop being mentioned in non-responded list\n- `/dd-standup-reminder notify=off` - Stop receiving reminders AND admin submission notifications\n- `/dd-standup-reminder TeamName mention=on notify=off` - Be mentioned but don't receive notifications\n- `/dd-standup-reminder mention=on notify=on` - Enable all notifications",
       });
       return;
     }
@@ -108,7 +108,7 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
     if (notifyParam !== undefined) {
       updates.receiveNotifications = notifyParam === "on";
       const notifyStatus = notifyParam === "on" ? "enabled" : "disabled";
-      statusMessages.push(`Reminder notifications: *${notifyStatus}*`);
+      statusMessages.push(`Notifications (reminders + team submissions): *${notifyStatus}*`);
     }
 
     // Update preferences
@@ -128,12 +128,12 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
     await updateResponse({
       blocks: [
         createSectionBlock(
-          `*🔔 Standup Reminder Preferences Updated for ${teamName}*\n\n` +
+          `*🔔 Standup Preferences Updated for ${teamName}*\n\n` +
           statusMessages.join("\n") +
           `\n\n*Current Settings:*\n` +
           `• Mentions in non-responded list: *${currentMentionStatus}*\n` +
-          `• Reminder notifications: *${currentNotifyStatus}*\n\n` +
-          `*Note:* You can still submit standups regardless of these settings.`
+          `• Notifications (reminders + submissions): *${currentNotifyStatus}*\n\n` +
+          `*Note:* When notifications are disabled, you won't receive standup reminders or admin notifications about team member submissions. You can still submit standups manually.`
         )
       ],
     });

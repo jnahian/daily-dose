@@ -174,14 +174,19 @@
             {
               "type": "command",
               "command": "/dd-standup-reminder [team-name] mention=on/off notify=on/off",
-              "description": "Control your standup reminder preferences. Manage whether you receive reminder notifications (notify) and whether you appear in the 'not responded' list (mention). At least one parameter (mention or notify) is required. Team name is optional when run in team channel.",
+              "description": "Control your standup preferences per team. The 'mention' parameter controls whether you appear in the 'not responded' list. The 'notify' parameter controls ALL notifications: standup reminders AND admin notifications about team member submissions (if you're an admin). At least one parameter is required.",
               "examples": [
-                "# Hide from non-responded list (in team channel)\n/dd-standup-reminder mention=off",
-                "# Stop reminder notifications (in team channel)\n/dd-standup-reminder notify=off",
-                "# Disable both (in team channel)\n/dd-standup-reminder mention=off notify=off",
-                "# Re-enable all reminders\n/dd-standup-reminder mention=on notify=on",
-                "# For specific team from any channel\n/dd-standup-reminder Engineering notify=on mention=off"
+                "# Hide from non-responded list\n/dd-standup-reminder mention=off",
+                "# Stop ALL notifications (reminders + admin submission alerts)\n/dd-standup-reminder notify=off",
+                "# Disable both mentions and notifications\n/dd-standup-reminder mention=off notify=off",
+                "# Re-enable all notifications\n/dd-standup-reminder mention=on notify=on",
+                "# For specific team from any channel\n/dd-standup-reminder Engineering notify=off"
               ]
+            },
+            {
+              "type": "note",
+              "title": "💡 For Team Admins",
+              "value": "If you're a team admin and want to stop receiving notifications when team members submit standups, use `/dd-standup-reminder notify=off`. This will disable admin submission notifications while still allowing you to submit standups manually."
             },
             {
               "type": "text",

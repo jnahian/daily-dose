@@ -145,16 +145,16 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
   - **Name-based with date**: `/dd-standup-update Engineering 2024-12-20` (updates specific date for specific team)
 - `/dd-standup-reminder [team-name] mention=on/off notify=on/off` - Control reminder and mention preferences
   - **Channel-based operation** (when no team name provided):
-    - `/dd-standup-reminder` - View current preferences for team in current channel
     - `/dd-standup-reminder mention=off` - Opt out of "not responded" list for team in current channel
-    - `/dd-standup-reminder notify=off` - Disable reminder notifications for team in current channel
+    - `/dd-standup-reminder notify=off` - Disable ALL notifications (reminders + admin submission alerts) for team in current channel
     - `/dd-standup-reminder mention=on notify=on` - Enable both preferences for team in current channel
   - **Cross-channel operation** (when team name provided):
-    - `/dd-standup-reminder Engineering` - View preferences for specific team
     - `/dd-standup-reminder Engineering mention=off` - Opt out from specific team "not responded" list
-    - `/dd-standup-reminder Engineering notify=off` - Disable reminder notifications for specific team
+    - `/dd-standup-reminder Engineering notify=off` - Disable ALL notifications for specific team
     - `/dd-standup-reminder Engineering mention=on notify=on` - Enable both preferences for specific team
-  - **Parameters**: At least one parameter required (mention=on/off controls visibility in "not responded" list, notify=on/off controls reminder notifications)
+  - **Parameters**: At least one parameter required
+    - `mention=on/off` - Controls visibility in "not responded" list
+    - `notify=on/off` - Controls ALL notifications: standup reminders AND admin notifications about team member submissions (if you're an admin)
 - The bot also sends automatic DM reminders with interactive buttons
 
 ### 🔧 Manual Standup Trigger Commands ⚠️ (Admin/Owner Only)
@@ -527,13 +527,10 @@ You can control both your visibility in the "Not Responded" section of team stan
 When used without a team name, the command operates on the team associated with the current Slack channel:
 
 ```bash
-# Check your current preferences for team in current channel
-/dd-standup-reminder
-
 # Opt out from appearing in "Not Responded" list for current channel team
 /dd-standup-reminder mention=off
 
-# Disable reminder notifications for current channel team
+# Disable ALL notifications (reminders + admin submission alerts) for current channel team
 /dd-standup-reminder notify=off
 
 # Configure both preferences for current channel team
@@ -545,13 +542,10 @@ When used without a team name, the command operates on the team associated with 
 When a team name is provided, the command works from any channel:
 
 ```bash
-# Check your current preferences for specific team
-/dd-standup-reminder Engineering
-
 # Opt out from appearing in "Not Responded" list for specific team
 /dd-standup-reminder Engineering mention=off
 
-# Disable reminder notifications for specific team
+# Disable ALL notifications for specific team
 /dd-standup-reminder Engineering notify=off
 
 # Configure both preferences for specific team
@@ -563,32 +557,42 @@ When a team name is provided, the command works from any channel:
 The command requires at least one of the following parameters:
 
 - **mention=on/off**: Controls whether you appear in the "Not Responded" list when you haven't submitted
-- **notify=on/off**: Controls whether you receive DM reminder notifications
+- **notify=on/off**: Controls whether you receive ALL notifications:
+  - Standup reminder DMs (for regular members)
+  - Admin notifications when team members submit standups (for team admins)
 - You can use one or both parameters in a single command
 - Parameters can be combined: `/dd-standup-reminder mention=off notify=on`
 
 ### How It Works
 
-- **Mention Setting**:
+- **Mention Setting** (`mention=on/off`):
   - **mention=on (Default)**: You appear in the "Not Responded" list if you don't submit a standup
   - **mention=off**: You won't appear in the "Not Responded" list, but can still submit standups normally
-- **Notify Setting**:
-  - **notify=on (Default)**: You receive DM reminders at the team's standup time
-  - **notify=off**: You won't receive DM reminders, but can still submit standups manually
+- **Notify Setting** (`notify=on/off`):
+  - **notify=on (Default)**: You receive:
+    - DM reminders at the team's standup time (for regular members)
+    - Admin notifications when team members submit standups (for team admins)
+  - **notify=off**: You won't receive:
+    - DM standup reminders (you can still submit standups manually)
+    - Admin notifications about team member submissions (for team admins)
 - **Independent Controls**: Both settings work independently - you can disable mentions but keep notifications, or vice versa
 - **Per-Team Setting**: These preferences are set individually for each team you're part of
 - **Team Membership Required**: You must be a member of the team to modify your preferences
 - **Real-time Updates**: Changes take effect immediately for future standup summaries and reminders
 
+**💡 For Team Admins:** If you want to stop receiving notifications every time a team member submits their standup, use `/dd-standup-reminder notify=off`. This is especially useful for large teams with high submission volumes.
+
 ### Use Cases
 
 This feature is useful for:
+- **Team admins** who want to reduce notification noise from team member submissions (use `notify=off`)
 - **Part-time team members** who don't submit daily but contribute occasionally
 - **Consultants or contractors** with irregular schedules
 - **Team leads or managers** who participate optionally in standups
 - **Cross-functional members** who only contribute when relevant
 - **Team members with varying availability** who want to reduce notification pressure
 - **Members transitioning between teams** who need flexible participation levels
+- **Admins of large teams** who receive too many submission notifications throughout the day
 
 ### Common Error Scenarios
 
@@ -620,21 +624,27 @@ This feature is useful for:
 
 ### Example Workflows
 
-**Scenario 1: Working from team channel**
+**Scenario 1: Team admin wants to stop submission notifications**
+```bash
+# You're a team admin receiving too many notifications about member submissions
+/dd-standup-reminder notify=off              # Disable ALL notifications (reminders + submissions)
+# Now you won't receive notifications when team members submit standups
+# You can still manually check standup summaries in the team channel
+```
+
+**Scenario 2: Working from team channel**
 ```bash
 # You're in the #engineering channel where the Engineering team is configured
-/dd-standup-reminder                        # Check current preferences for Engineering team
 /dd-standup-reminder mention=off            # Opt out of "not responded" list for Engineering team
-/dd-standup-reminder notify=off             # Disable reminder notifications for Engineering team
+/dd-standup-reminder notify=off             # Disable ALL notifications for Engineering team
 /dd-standup-reminder mention=on notify=on   # Re-enable both preferences for Engineering team
 ```
 
-**Scenario 2: Working from different channel**
+**Scenario 3: Working from different channel**
 ```bash
 # You're in #general but want to manage Marketing team preferences
-/dd-standup-reminder Marketing              # Check preferences for Marketing team
 /dd-standup-reminder Marketing mention=off  # Opt out of Marketing team "not responded" list
-/dd-standup-reminder Marketing notify=off   # Disable Marketing team reminders
+/dd-standup-reminder Marketing notify=off   # Disable ALL notifications for Marketing team
 ```
 
 **Scenario 3: Managing multiple teams with different needs**

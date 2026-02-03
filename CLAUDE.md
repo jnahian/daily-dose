@@ -180,6 +180,14 @@ Uses node-cron for:
 - Use blockHelper functions for consistent UI
 - Test block rendering in Slack (especially mentions, links, formatting)
 
+**Notification System:**
+- `TeamMember.receiveNotifications` controls ALL notifications for a user:
+  - Standup reminder DMs (though admins are excluded from reminders by role)
+  - Admin notifications about team member submissions (notificationService)
+- Use `/dd-standup-reminder notify=on/off` to toggle this setting
+- Admin submission notifications sent via `notificationService.notifyAdminsOfStandupSubmission()`
+- Admins are automatically filtered out of standup reminders in schedulerService
+
 ### Permission System
 The application implements a role-based permission system for administrative commands:
 - **Organization Owners**: Users who created the organization (have access to all teams)
