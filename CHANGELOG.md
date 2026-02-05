@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.2] - 2026-02-05
+
+### Fixed
+
+- Fixed holiday system database schema mismatch causing runtime errors
+  - Updated Holiday model to use `organization_id` instead of `country` field
+  - Changed unique constraint from `date_country` to `organization_id_date`
+  - Updated `dateHelper.js` to query holidays by organization
+  - Updated `holiday.js` commands (set, update, delete, list) to use organization-scoped holidays
+  - Regenerated Prisma client to sync with database schema
+  - Resolved "The column `holidays.country` does not exist" error in scheduler service
+
+### Changed
+
+- Holiday system is now fully organization-scoped instead of country-based
+  - Each organization manages its own holidays independently
+  - Holiday queries now require organization context
+  - Added `description` and `updated_at` fields to Holiday model
+
 ## [1.4.1] - 2025-02-03
 
 ### Changed
@@ -228,7 +247,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.4.1...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.4.2...HEAD
+[1.4.2]: https://github.com/jnahian/daily-dose/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/jnahian/daily-dose/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/jnahian/daily-dose/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/jnahian/daily-dose/compare/v1.2.0...v1.3.0

@@ -1,9 +1,38 @@
 {
   "versions": [
     {
+      "version": "1.4.2",
+      "date": "2026-02-05",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "fixed",
+          "title": "Holiday System Database Schema Fix",
+          "items": [
+            "Fixed runtime error: 'The column holidays.country does not exist'",
+            "Updated Holiday model to use organization_id instead of country field",
+            "Changed unique constraint from date_country to organization_id_date",
+            "Updated dateHelper.js to query holidays by organization",
+            "Updated holiday.js commands (set, update, delete, list) to use organization-scoped holidays",
+            "Regenerated Prisma client to sync with database schema"
+          ]
+        },
+        {
+          "type": "changed",
+          "title": "Holiday System Architecture",
+          "items": [
+            "Holiday system is now fully organization-scoped instead of country-based",
+            "Each organization manages its own holidays independently",
+            "Holiday queries now require organization context",
+            "Added description and updated_at fields to Holiday model"
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.4.1",
       "date": "2025-02-03",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "changed",
