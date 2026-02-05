@@ -1,6 +1,39 @@
 {
   "versions": [
     {
+      "version": "Unreleased",
+      "date": "TBD",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Bulk Operations for Standup Automation",
+          "items": [
+            "Added --all flag to triggerStandup.js for reminder and followup commands",
+            "Added --all flag to sendManualStandup.js for post and remind commands",
+            "Interactive confirmation prompts before bulk operations",
+            "Table preview showing all teams to be processed",
+            "Only processes teams with active members",
+            "Summary statistics with success/skipped/failed counts",
+            "Sequential processing to avoid rate limits",
+            "Comprehensive error handling for individual team failures"
+          ]
+        },
+        {
+          "type": "changed",
+          "title": "Enhanced Standup Automation Scripts",
+          "items": [
+            "npm run standup:trigger -- reminder --all (send reminders to all active teams)",
+            "npm run standup:trigger -- followup --all (send followups to all active teams)",
+            "npm run standup:post -- post --all (post standups for all active teams)",
+            "npm run standup:post -- post --all --date YYYY-MM-DD (bulk post for specific date)",
+            "npm run standup:post -- post --all --dry-run (preview bulk posts)",
+            "npm run standup:post -- remind --all (send reminders to all active teams)"
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.4.2",
       "date": "2026-02-05",
       "isLatest": true,

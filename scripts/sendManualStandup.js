@@ -10,6 +10,7 @@ const timezone = require("dayjs/plugin/timezone");
 const { getUserLogIdentifier, getUserMention } = require("../src/utils/userHelper");
 const { formatTime12Hour } = require("../src/utils/dateHelper");
 const { createSectionBlock, createButton, createActionsBlock } = require("../src/utils/blockHelper");
+const readline = require("readline");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -20,6 +21,21 @@ const app = new App({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
   socketMode: false,
 });
+
+// Helper function to prompt for confirmation
+async function confirmAction(message) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise((resolve) => {
+    rl.question(`${message} (yes/no): `, (answer) => {
+      rl.close();
+      resolve(answer.toLowerCase() === "yes" || answer.toLowerCase() === "y");
+    });
+  });
+}
 
 async function sendTroubleshootingMessage(team, channelError) {
   const troubleshootingBlocks = [
@@ -487,6 +503,267 @@ async function sendTroubleshootingSteps(teamName) {
   }
 }
 
+async function postAllTeamsStandups(options = {}) {
+  try {
+    const targetDate = options.date ? dayjs(options.date) : dayjs();
+    const dateStr = targetDate.format("YYYY-MM-DD");
+    const actionType = options.dryRun ? "Preview standups" : "Post standups";
+
+    console.log(`🚀 Preparing to ${actionType.toLowerCase()} for all active teams...\n`);
+    console.log(`📅 Target date: ${dateStr}\n`);
+
+    // Get all active teams with at least one active member
+    const teams = await prisma.team.findMany({
+      where: {
+        isActive: true,
+        members: {
+          some: {
+            isActive: true,
+          },
+        },
+      },
+      include: {
+        organization: true,
+        _count: {
+          select: {
+            members: {
+              where: { isActive: true },
+            },
+          },
+        },
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+
+    if (teams.length === 0) {
+      console.log("⚠️  No active teams with active members found.");
+      return;
+    }
+
+    // Display teams that will receive standup posts
+    console.log(`📋 Found ${teams.length} active team(s) with active members:\n`);
+    const tableData = teams.map((team) => ({
+      "Team Name": team.name,
+      "Active Members": team._count.members,
+      Channel: team.slackChannelId,
+      Timezone: team.timezone,
+    }));
+    console.table(tableData);
+
+    // Ask for confirmation
+    console.log(`\n⚠️  This will ${actionType.toLowerCase()} for ${teams.length} team(s) on ${dateStr}.`);
+    const confirmed = await confirmAction("Do you want to proceed?");
+
+    if (!confirmed) {
+      console.log("❌ Operation cancelled by user.");
+      return;
+    }
+
+    console.log(`\n🚀 Starting to ${actionType.toLowerCase()}...\n`);
+
+    let successCount = 0;
+    let failureCount = 0;
+    let skippedCount = 0;
+
+    // Process each team
+    for (const team of teams) {
+      try {
+        console.log(`\n📤 Processing team: ${team.name}`);
+
+        const teamTargetDate = dayjs(targetDate).tz(team.timezone);
+
+        if (options.dryRun) {
+          // Dry run: just show preview
+          const responses = await standupService.getTeamResponses(
+            team.id,
+            teamTargetDate.toDate()
+          );
+          const lateResponses = await standupService.getLateResponses(
+            team.id,
+            teamTargetDate.toDate()
+          );
+          const allMembers = await standupService.getActiveMembers(
+            team.id,
+            teamTargetDate.toDate()
+          );
+
+          const membersOnLeave = await prisma.teamMember.findMany({
+            where: {
+              teamId: team.id,
+              isActive: true,
+              user: {
+                leaves: {
+                  some: {
+                    startDate: { lte: teamTargetDate.toDate() },
+                    endDate: { gte: teamTargetDate.toDate() },
+                  },
+                },
+              },
+            },
+            include: {
+              user: true,
+            },
+          });
+
+          const respondedUserIds = new Set(responses.map((r) => r.userId));
+          const leaveUserIds = new Set(membersOnLeave.map((m) => m.userId));
+
+          const notSubmitted = allMembers
+            .filter(
+              (m) => !respondedUserIds.has(m.userId) && !leaveUserIds.has(m.userId)
+            )
+            .map((m) => ({
+              slackUserId: m.user.slackUserId,
+              user: m.user,
+              onLeave: false,
+            }));
+
+          console.log(`   📊 Stats: ${responses.length} responses, ${lateResponses.length} late, ${notSubmitted.length} pending`);
+
+          if (
+            responses.length === 0 &&
+            lateResponses.length === 0 &&
+            notSubmitted.length === 0
+          ) {
+            console.log(`   ⚠️  No standup data found. Skipping.`);
+            skippedCount++;
+          } else {
+            console.log(`   ✅ Preview available`);
+            successCount++;
+          }
+        } else {
+          // Actually post the standup
+          const result = await standupService.postTeamStandup(
+            team,
+            teamTargetDate.toDate(),
+            app
+          );
+
+          if (result) {
+            successCount++;
+            console.log(`   ✅ Successfully posted to ${team.name}`);
+          } else {
+            skippedCount++;
+            console.log(`   ⚠️  No data to post for ${team.name}`);
+          }
+        }
+      } catch (error) {
+        failureCount++;
+        console.error(`   ❌ Failed for ${team.name}: ${error.message}`);
+      }
+    }
+
+    // Summary
+    console.log(`\n${"=".repeat(60)}`);
+    console.log(`📊 Summary:`);
+    console.log(`   - Total teams: ${teams.length}`);
+    console.log(`   - Successful: ${successCount}`);
+    console.log(`   - Skipped (no data): ${skippedCount}`);
+    console.log(`   - Failed: ${failureCount}`);
+    console.log(`${"=".repeat(60)}\n`);
+
+    if (failureCount > 0) {
+      console.log("⚠️  Some teams failed. Check logs above.");
+    } else if (successCount > 0) {
+      console.log(`✅ All ${actionType.toLowerCase()} completed successfully!`);
+    }
+  } catch (error) {
+    console.error("❌ Error posting standups for all teams:", error.message);
+    process.exit(1);
+  }
+}
+
+async function remindAllTeams() {
+  try {
+    console.log(`🚀 Preparing to send standup reminders to all active teams...\n`);
+
+    // Get all active teams with at least one active member
+    const teams = await prisma.team.findMany({
+      where: {
+        isActive: true,
+        members: {
+          some: {
+            isActive: true,
+          },
+        },
+      },
+      include: {
+        organization: true,
+        _count: {
+          select: {
+            members: {
+              where: { isActive: true },
+            },
+          },
+        },
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+
+    if (teams.length === 0) {
+      console.log("⚠️  No active teams with active members found.");
+      return;
+    }
+
+    // Display teams
+    console.log(`📋 Found ${teams.length} active team(s) with active members:\n`);
+    const tableData = teams.map((team) => ({
+      "Team Name": team.name,
+      "Active Members": team._count.members,
+      Channel: team.slackChannelId,
+      Timezone: team.timezone,
+    }));
+    console.table(tableData);
+
+    // Ask for confirmation
+    console.log(`\n⚠️  This will send standup reminders to ${teams.length} team(s).`);
+    const confirmed = await confirmAction("Do you want to proceed?");
+
+    if (!confirmed) {
+      console.log("❌ Operation cancelled by user.");
+      return;
+    }
+
+    console.log(`\n🚀 Starting to send reminders...\n`);
+
+    let successCount = 0;
+    let failureCount = 0;
+
+    // Process each team
+    for (const team of teams) {
+      try {
+        console.log(`\n📤 Processing team: ${team.name}`);
+        await sendStandupReminders(team.name);
+        successCount++;
+      } catch (error) {
+        failureCount++;
+        console.error(`   ❌ Failed for ${team.name}: ${error.message}`);
+      }
+    }
+
+    // Summary
+    console.log(`\n${"=".repeat(60)}`);
+    console.log(`📊 Summary:`);
+    console.log(`   - Total teams: ${teams.length}`);
+    console.log(`   - Successful: ${successCount}`);
+    console.log(`   - Failed: ${failureCount}`);
+    console.log(`${"=".repeat(60)}\n`);
+
+    if (failureCount > 0) {
+      console.log("⚠️  Some teams failed to receive reminders. Check logs above.");
+    } else {
+      console.log(`✅ All reminders sent successfully!`);
+    }
+  } catch (error) {
+    console.error("❌ Error sending reminders to all teams:", error.message);
+    process.exit(1);
+  }
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const command = args[0];
@@ -496,25 +773,36 @@ async function main() {
 📊 Manual Standup Script
 
 Usage:
-  node src/scripts/sendManualStandup.js <command> [options]
+  node scripts/sendManualStandup.js <command> [options]
 
 Commands:
-  list                                    - List all active teams with channel status
-  post "<teamName>"                       - Post standup summary for team (includes late responses)
-  post "<teamName>" --date YYYY-MM-DD    - Post standup for specific date (includes late responses)
-  post "<teamName>" --dry-run             - Preview message without sending (shows late responses)
-  remind "<teamName>"                     - Send standup reminders to team members
-  troubleshoot "<teamName>"               - Send troubleshooting steps to team members
+  list                                      - List all active teams with channel status
+  post "<teamName>"                         - Post standup summary for specific team
+  post "<teamName>" --date YYYY-MM-DD      - Post standup for specific date
+  post "<teamName>" --dry-run               - Preview message without sending
+  post --all                                - Post standups for all active teams (with confirmation)
+  post --all --date YYYY-MM-DD             - Post standups for all teams on specific date
+  post --all --dry-run                      - Preview standups for all teams
+  remind "<teamName>"                       - Send standup reminders to specific team
+  remind --all                              - Send reminders to all active teams (with confirmation)
+  troubleshoot "<teamName>"                 - Send troubleshooting steps to team members
 
 Examples:
-  node src/scripts/sendManualStandup.js list
-  node src/scripts/sendManualStandup.js post "Engineering Team"
-  node src/scripts/sendManualStandup.js post "Marketing Team" --date 2025-01-15
-  node src/scripts/sendManualStandup.js post "Product Team" --dry-run
-  node src/scripts/sendManualStandup.js remind "Engineering Team"
-  node src/scripts/sendManualStandup.js troubleshoot "Engineering Team"
+  node scripts/sendManualStandup.js list
+  node scripts/sendManualStandup.js post "Engineering Team"
+  node scripts/sendManualStandup.js post "Marketing Team" --date 2025-01-15
+  node scripts/sendManualStandup.js post "Product Team" --dry-run
+  node scripts/sendManualStandup.js post --all
+  node scripts/sendManualStandup.js post --all --date 2025-01-15
+  node scripts/sendManualStandup.js post --all --dry-run
+  node scripts/sendManualStandup.js remind "Engineering Team"
+  node scripts/sendManualStandup.js remind --all
+  node scripts/sendManualStandup.js troubleshoot "Engineering Team"
 
-Note: Use quotes around team names that contain spaces
+Note:
+  - Use quotes around team names that contain spaces
+  - --all flag will prompt for confirmation before sending
+  - Only teams with active members will be processed
     `);
     process.exit(0);
   }
@@ -526,35 +814,59 @@ Note: Use quotes around team names that contain spaces
         break;
 
       case "post": {
-        const teamName = args[1];
-        if (!teamName) {
-          console.error("❌ Team name is required for post command");
-          process.exit(1);
-        }
+        // Check if --all flag is provided
+        if (args[1] === "--all") {
+          const options = {};
 
-        const options = {};
-
-        // Parse additional options
-        for (let i = 2; i < args.length; i++) {
-          if (args[i] === "--date" && args[i + 1]) {
-            options.date = args[i + 1];
-            i++; // Skip next arg as it's the date value
-          } else if (args[i] === "--dry-run") {
-            options.dryRun = true;
+          // Parse additional options
+          for (let i = 2; i < args.length; i++) {
+            if (args[i] === "--date" && args[i + 1]) {
+              options.date = args[i + 1];
+              i++; // Skip next arg as it's the date value
+            } else if (args[i] === "--dry-run") {
+              options.dryRun = true;
+            }
           }
-        }
 
-        await sendManualStandup(teamName, options);
+          await postAllTeamsStandups(options);
+        } else {
+          const teamName = args[1];
+          if (!teamName) {
+            console.error("❌ Team name is required for post command");
+            console.log("Use --all to post to all teams, or provide a team name");
+            process.exit(1);
+          }
+
+          const options = {};
+
+          // Parse additional options
+          for (let i = 2; i < args.length; i++) {
+            if (args[i] === "--date" && args[i + 1]) {
+              options.date = args[i + 1];
+              i++; // Skip next arg as it's the date value
+            } else if (args[i] === "--dry-run") {
+              options.dryRun = true;
+            }
+          }
+
+          await sendManualStandup(teamName, options);
+        }
         break;
       }
 
       case "remind": {
-        const teamName = args[1];
-        if (!teamName) {
-          console.error("❌ Team name is required for remind command");
-          process.exit(1);
+        // Check if --all flag is provided
+        if (args[1] === "--all") {
+          await remindAllTeams();
+        } else {
+          const teamName = args[1];
+          if (!teamName) {
+            console.error("❌ Team name is required for remind command");
+            console.log("Use --all to send to all teams, or provide a team name");
+            process.exit(1);
+          }
+          await sendStandupReminders(teamName);
         }
-        await sendStandupReminders(teamName);
         break;
       }
 

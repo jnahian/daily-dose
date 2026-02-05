@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Bulk operations support for standup automation scripts
+  - `triggerStandup.js` now supports `--all` flag for reminder and followup commands
+  - `sendManualStandup.js` now supports `--all` flag for post and remind commands
+  - Interactive confirmation prompts before bulk operations
+  - Table preview showing all teams to be processed
+  - Only processes teams with active members
+  - Summary statistics with success/skipped/failed counts
+  - Sequential processing to avoid rate limits
+  - Comprehensive error handling for individual team failures
+
+### Changed
+
+- Enhanced standup automation scripts with bulk operation capabilities
+  - `npm run standup:trigger -- reminder --all` - Send reminders to all active teams
+  - `npm run standup:trigger -- followup --all` - Send followups to all active teams
+  - `npm run standup:post -- post --all` - Post standups for all active teams
+  - `npm run standup:post -- post --all --date YYYY-MM-DD` - Bulk post for specific date
+  - `npm run standup:post -- post --all --dry-run` - Preview bulk posts
+  - `npm run standup:post -- remind --all` - Send reminders to all active teams
+
 ## [1.4.2] - 2026-02-05
 
 ### Fixed

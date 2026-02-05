@@ -21,8 +21,17 @@ Daily Dose is a Slack bot that automates daily standup meetings for teams. Built
 ### Utility Scripts
 - `npm run seed` - Seed organization data
 - `npm run org:add-admin` - Add organization admin
-- `npm run standup:trigger` - Manually trigger standup reminders
+- `npm run standup:trigger` - Manually trigger standup reminders/followups
+  - Supports specific team: `node scripts/triggerStandup.js reminder "Team Name"`
+  - Supports all teams: `node scripts/triggerStandup.js reminder --all` (with confirmation)
+  - Followup reminders: `node scripts/triggerStandup.js followup "Team Name"` or `followup --all`
 - `npm run standup:post` - Send manual standup posts
+  - Post for specific team: `node scripts/sendManualStandup.js post "Team Name"`
+  - Post for all teams: `node scripts/sendManualStandup.js post --all` (with confirmation)
+  - Supports `--date YYYY-MM-DD` for specific dates
+  - Supports `--dry-run` for previewing without sending
+  - Remind specific team: `node scripts/sendManualStandup.js remind "Team Name"`
+  - Remind all teams: `node scripts/sendManualStandup.js remind --all` (with confirmation)
 - `npm run slack:info` - View Slack team information
 - `npm run team:members [team-name] [date]` - Check active team members and reminder eligibility
 - `npm run team:promote` - Promote team member to admin
