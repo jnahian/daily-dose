@@ -101,18 +101,20 @@ async function setHoliday({ command, ack, respond, client }) {
       try {
         const holiday = await prisma.holiday.upsert({
           where: {
-            date_country: {
+            organization_id_date: {
+              organization_id: org.id,
               date: currentDate.toDate(),
-              country: "US",
             },
           },
           update: {
             name: holidayName || `Holiday ${currentDate.format("YYYY-MM-DD")}`,
+            updated_at: new Date(),
           },
           create: {
+            organization_id: org.id,
             date: currentDate.toDate(),
             name: holidayName || `Holiday ${currentDate.format("YYYY-MM-DD")}`,
-            country: "US",
+            updated_at: new Date(),
           },
         });
         holidayRecords.push(holiday);
@@ -209,9 +211,9 @@ async function updateHoliday({ command, ack, respond, client }) {
     // Check if holiday exists
     const existingHoliday = await prisma.holiday.findUnique({
       where: {
-        date_country: {
+        organization_id_date: {
+          organization_id: org.id,
           date: date.toDate(),
-          country: "US",
         },
       },
     });
@@ -226,13 +228,14 @@ async function updateHoliday({ command, ack, respond, client }) {
     // Update holiday
     const updatedHoliday = await prisma.holiday.update({
       where: {
-        date_country: {
+        organization_id_date: {
+          organization_id: org.id,
           date: date.toDate(),
-          country: "US",
         },
       },
       data: {
         name: newName,
+        updated_at: new Date(),
       },
     });
 
@@ -327,8 +330,8 @@ async function deleteHoliday({ command, ack, respond, client }) {
       try {
         const deleteResult = await prisma.holiday.deleteMany({
           where: {
+            organization_id: org.id,
             date: currentDate.toDate(),
-            country: "US",
           },
         });
         deletedCount += deleteResult.count;
@@ -493,11 +496,11 @@ async function listHolidays({ command, ack, respond, client }) {
     // Query holidays from database
     const holidays = await prisma.holiday.findMany({
       where: {
+        organization_id: org.id,
         date: {
           gte: startDate.toDate(),
           lte: endDate.toDate(),
         },
-        country: "US",
       },
       orderBy: {
         date: "asc",
