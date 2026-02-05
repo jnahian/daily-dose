@@ -56,6 +56,32 @@ Daily Dose is a Slack bot that automates daily standup meetings for teams. Built
 - `npm run version:check` - Check version and git status
 - `npm run release` - Tag and push release
 
+### Changelog Management
+**Two separate changelog files serve different purposes:**
+
+1. **CHANGELOG.md** - Development reference only
+   - Technical details for developers
+   - All implementation details (file names, function names, code changes)
+   - Database schema changes and technical fixes
+   - Complete audit trail of all changes
+   - Follows Keep a Changelog format
+   - Not visible to end users
+
+2. **web/src/data/changelog.json** - User-facing changelog
+   - Displayed on the web application changelog page
+   - Written for end users (non-technical)
+   - Focus on user-visible features and improvements
+   - Highlight benefits and use cases, not implementation details
+   - Use plain language, avoid technical jargon
+   - Emphasize what users can do, not how it works internally
+   - Include only changes that matter to users
+
+**When to update each:**
+- Always update CHANGELOG.md for all changes
+- Only update changelog.json for user-visible features, major fixes, or improvements
+- Skip technical refactors, dependency updates, internal fixes from changelog.json
+- For changelog.json, rewrite technical changes in user-friendly language
+
 ## Architecture Overview
 
 ### Core Structure

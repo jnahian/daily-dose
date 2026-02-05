@@ -7,28 +7,22 @@
       "changes": [
         {
           "type": "added",
-          "title": "Bulk Operations for Standup Automation",
+          "title": "Bulk Standup Management",
           "items": [
-            "Added --all flag to triggerStandup.js for reminder and followup commands",
-            "Added --all flag to sendManualStandup.js for post and remind commands",
-            "Interactive confirmation prompts before bulk operations",
-            "Table preview showing all teams to be processed",
-            "Only processes teams with active members",
-            "Summary statistics with success/skipped/failed counts",
-            "Sequential processing to avoid rate limits",
-            "Comprehensive error handling for individual team failures"
+            "Send standup reminders to all teams at once with a single command",
+            "Post standup summaries for all teams simultaneously",
+            "Safety confirmation prompt before bulk operations",
+            "Preview which teams will be affected before proceeding",
+            "Detailed success and failure reports for each team"
           ]
         },
         {
           "type": "changed",
-          "title": "Enhanced Standup Automation Scripts",
+          "title": "Improved Administrative Tools",
           "items": [
-            "npm run standup:trigger -- reminder --all (send reminders to all active teams)",
-            "npm run standup:trigger -- followup --all (send followups to all active teams)",
-            "npm run standup:post -- post --all (post standups for all active teams)",
-            "npm run standup:post -- post --all --date YYYY-MM-DD (bulk post for specific date)",
-            "npm run standup:post -- post --all --dry-run (preview bulk posts)",
-            "npm run standup:post -- remind --all (send reminders to all active teams)"
+            "Administrators can now manage standups across all teams more efficiently",
+            "Better error handling ensures operations continue even if one team fails",
+            "Preview mode allows testing before sending actual messages"
           ]
         }
       ]
@@ -40,24 +34,19 @@
       "changes": [
         {
           "type": "fixed",
-          "title": "Holiday System Database Schema Fix",
+          "title": "Holiday System Improvements",
           "items": [
-            "Fixed runtime error: 'The column holidays.country does not exist'",
-            "Updated Holiday model to use organization_id instead of country field",
-            "Changed unique constraint from date_country to organization_id_date",
-            "Updated dateHelper.js to query holidays by organization",
-            "Updated holiday.js commands (set, update, delete, list) to use organization-scoped holidays",
-            "Regenerated Prisma client to sync with database schema"
+            "Fixed an issue preventing holiday schedules from working correctly",
+            "Resolved errors that were blocking standup automation during holidays"
           ]
         },
         {
           "type": "changed",
-          "title": "Holiday System Architecture",
+          "title": "Organization-Specific Holidays",
           "items": [
-            "Holiday system is now fully organization-scoped instead of country-based",
-            "Each organization manages its own holidays independently",
-            "Holiday queries now require organization context",
-            "Added description and updated_at fields to Holiday model"
+            "Each organization can now manage its own holiday schedule independently",
+            "Holidays are no longer shared across different workspaces",
+            "Better support for teams in different countries and regions"
           ]
         }
       ]
@@ -69,62 +58,19 @@
       "changes": [
         {
           "type": "changed",
-          "title": "Documentation Improvements",
+          "title": "Better Notification Controls",
           "items": [
-            "Enhanced CLAUDE.md with comprehensive project documentation",
-            "Added utility scripts section with admin, team, and debug commands",
-            "Documented Web Frontend (React SPA) development workflow and build commands",
-            "Expanded Architecture Overview with detailed service descriptions",
-            "Enhanced Database Schema section with multi-tenant design patterns",
-            "Documented Slack Integration including Block Kit UI and markdown guidelines",
-            "Added Web Frontend Architecture section covering React, routing, styling, and theme system",
-            "Expanded Environment Configuration with categorized variable descriptions",
-            "Added Development Notes section with frontend workflow and conventions"
-          ]
-        },
-        {
-          "type": "changed",
-          "title": "Command Documentation",
-          "items": [
-            "Refined /dd-standup-reminder command syntax and parameter requirements",
-            "Updated standup submission examples with correct field names",
-            "Added 'Smart Prefilling' note explaining automatic pre-population",
-            "Enhanced 'Channel-Based Commands' note with context-aware operation details",
-            "Clarified /dd-team-update notifications parameter with examples",
-            "Expanded leave management documentation with admin-only commands",
-            "Enhanced holiday management section with organization-wide clarification"
-          ]
-        },
-        {
-          "type": "changed",
-          "title": "Notification System Clarification",
-          "items": [
-            "Added comprehensive Notification System section explaining receiveNotifications behavior",
-            "Documented that notify=off disables ALL notifications (reminders + admin submission alerts)",
-            "Clarified notify parameter controls both standup reminders and admin submission notifications",
-            "Added use cases for team admins wanting to reduce notification noise",
-            "Updated web documentation (docs.json) with corrected command examples"
-          ]
-        },
-        {
-          "type": "changed",
-          "title": "Dependencies",
-          "items": [
-            "Updated project dependencies to latest versions"
-          ]
-        },
-        {
-          "type": "removed",
-          "title": "Documentation Cleanup",
-          "items": [
-            "Removed non-existent 'view preferences' command examples from documentation"
+            "Team admins can now turn off all standup notifications if they prefer",
+            "Clearer documentation on how notification settings work",
+            "Better control over when you receive reminders and alerts"
           ]
         },
         {
           "type": "fixed",
           "title": "Bug Fixes",
           "items": [
-            "Corrected preferences command implementation to match documented behavior"
+            "Fixed preferences command to work as documented",
+            "Improved command documentation accuracy"
           ]
         }
       ]
@@ -189,44 +135,21 @@
       "changes": [
         {
           "type": "added",
-          "title": "Manual Standup Trigger Commands",
+          "title": "Manual Standup Controls",
           "items": [
-            "/dd-standup-remind [team-name] - Send standup reminders to team members",
-            "/dd-standup-post [YYYY-MM-DD] [team-name] - Post standup summary for specific date",
-            "/dd-standup-preview [YYYY-MM-DD] [team-name] - Preview standup summary (ephemeral)",
-            "/dd-standup-followup [team-name] - Send followup reminders to non-responders"
+            "Send standup reminders manually anytime, not just at scheduled times",
+            "Post standup summaries for any past date",
+            "Preview standup summaries before posting them to the channel",
+            "Send follow-up reminders to team members who haven't responded yet"
           ]
         },
         {
           "type": "added",
-          "title": "Permission System",
+          "title": "Smarter Permissions",
           "items": [
-            "Role-based access control with permissionHelper.js utility",
-            "isOrganizationOwner(), isTeamAdmin(), and canManageTeam() functions",
-            "Context-aware team resolution in teamHelper.js",
-            "Admins can run commands from team channel without specifying team name",
-            "Owners must specify team name when running from any location",
-            "resolveTeamFromContext() function for automatic team detection",
-            "parseCommandArguments() for flexible date and team name parsing"
-          ]
-        },
-        {
-          "type": "added",
-          "title": "Block Helper Functions",
-          "items": [
-            "createCommandSuccessBlocks() - Success messages with details",
-            "createCommandErrorBlocks() - Error messages with suggestions",
-            "createPermissionDeniedBlocks() - Permission error messages",
-            "createStandupPreviewHeaderBlocks() - Preview header formatting",
-            "createNoDataBlocks() - No data available messages"
-          ]
-        },
-        {
-          "type": "added",
-          "title": "Documentation & Logging",
-          "items": [
-            "Comprehensive audit logging for all admin actions",
-            "User stories and implementation plan documentation"
+            "Team admins can now manage their teams more easily",
+            "Commands are context-aware - no need to specify team name when you're already in the team channel",
+            "Better error messages when you don't have permission to perform an action"
           ]
         }
       ]
@@ -238,13 +161,11 @@
       "changes": [
         {
           "type": "changed",
-          "title": "Late Standup Submissions",
+          "title": "Better Late Submission Handling",
           "items": [
-            "Late submissions now create full standup posts when no parent message exists",
-            "First late submission creates a complete standup post with all sections",
-            "Subsequent late submissions are added as threaded replies",
-            "Applies to both /dd-standup submissions and /dd-standup-update updates",
-            "New postStandupOnDemand() method in StandupService"
+            "Late standup submissions now appear in the channel even if no summary was posted yet",
+            "Your late submission won't be lost - it creates a new post if needed",
+            "Multiple late submissions are neatly organized in a thread"
           ]
         }
       ]
@@ -258,35 +179,10 @@
           "type": "added",
           "title": "Admin Leave Management",
           "items": [
-            "/dd-leave-set-member - Set leave for any team member (admin only)",
-            "/dd-leave-cancel-member - Cancel team member's leave (admin only)",
-            "/dd-leave-list-member - List team member's upcoming leaves (admin only)",
-            "isTeamAdmin() method in TeamService",
-            "getUserTeams() method in TeamService",
-            "setMemberLeave(), cancelMemberLeave(), and listMemberLeaves() methods in UserService",
-            "Support for @mentions in admin leave commands",
-            "Smart team detection for single-team admins",
-            "Comprehensive permission checks for admin leave operations"
-          ]
-        },
-        {
-          "type": "added",
-          "title": "Deployment & Versioning",
-          "items": [
-            "Slack app manifest auto-update during deployment",
-            "Release workflow separating version bump from tag creation",
-            "Admin leave management documentation in README"
-          ]
-        },
-        {
-          "type": "changed",
-          "title": "Documentation & Workflows",
-          "items": [
-            "Leave management section in README reorganized",
-            "Slack manifest updated with new admin leave commands",
-            "Version commands now only bump version without creating tags",
-            "Release command creates tags and triggers deployment",
-            "Manifest update script always uses SLACK_APP_ID from environment"
+            "Team admins can now set leave for team members",
+            "Manage leaves for your entire team from Slack",
+            "Use @mentions to quickly set someone's leave status",
+            "View all upcoming leaves for your team members"
           ]
         }
       ]
@@ -297,24 +193,12 @@
       "isLatest": false,
       "changes": [
         {
-          "type": "added",
-          "title": "Version Management",
-          "items": [
-            "Git-based package versioning with SemVer policy",
-            "Automated deployment on version tag push",
-            "Version management scripts (patch, minor, major)",
-            "Pre-version checks for clean git state",
-            "GitHub Actions workflow for version releases",
-            "Changelog page with version history",
-            "CHANGELOG.md for tracking version history"
-          ]
-        },
-        {
           "type": "changed",
-          "title": "Standup Logic Improvements",
+          "title": "Smarter Standup Posting",
           "items": [
-            "Standup posting logic to skip when no eligible members exist",
-            "Standup messages exclude mention=off members from display"
+            "Bot now skips posting if no one on the team is available",
+            "Team members who opt out of mentions won't be shown in 'not responded' lists",
+            "Cleaner standup summaries with better formatting"
           ]
         }
       ]
