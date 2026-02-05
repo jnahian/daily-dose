@@ -1,9 +1,9 @@
 {
   "versions": [
     {
-      "version": "Unreleased",
-      "date": "TBD",
-      "isLatest": false,
+      "version": "1.4.3",
+      "date": "2026-02-05",
+      "isLatest": true,
       "changes": [
         {
           "type": "added",
@@ -30,7 +30,7 @@
     {
       "version": "1.4.2",
       "date": "2026-02-05",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "fixed",
