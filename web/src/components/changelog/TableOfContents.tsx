@@ -1,5 +1,6 @@
 
 import { ChevronRight } from 'lucide-react';
+import { formatDate } from '../../utils/dateUtils';
 
 interface TableOfContentsProps {
   versions: Array<{ version: string; date: string }>;
@@ -46,7 +47,7 @@ export const TableOfContents = ({
             />
             <div className="flex-1">
               <div className="font-semibold">v{version.version}</div>
-              <div className="text-xs opacity-75">{version.date}</div>
+              <div className="text-xs opacity-75">{formatDate(version.date)}</div>
             </div>
           </button>
         ))}
