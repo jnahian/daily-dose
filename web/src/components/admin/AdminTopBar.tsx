@@ -41,7 +41,7 @@ export function AdminTopBar() {
       <div className="flex items-center gap-3">
         <span className="text-sm text-white/60">{user?.name}</span>
         <button
-          onClick={adminLogout}
+          onClick={() => adminLogout()}
           className="flex items-center gap-1.5 text-sm text-white/40 hover:text-white/80 transition-colors"
         >
           <LogOut size={14} />
