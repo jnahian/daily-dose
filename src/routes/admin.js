@@ -177,4 +177,335 @@ router.post('/auth/logout', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/admin/organizations — super admin only
+router.get('/organizations', requireAuth, requireSuperAdmin, async (req, res) => {
+  try {
+    const orgs = await prisma.organization.findMany({
+      include: { _count: { select: { teams: true, members: true } } },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(orgs.map(o => ({
+      id: o.id,
+      name: o.name,
+      slackWorkspaceId: o.slackWorkspaceId,
+      isActive: o.isActive,
+      teamCount: o._count.teams,
+      memberCount: o._count.members,
+      createdAt: o.createdAt
+    })));
+  } catch (err) {
+    console.error('GET /organizations error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PATCH /api/admin/organizations/:id/toggle — super admin only
+router.patch('/organizations/:id/toggle', requireAuth, requireSuperAdmin, async (req, res) => {
+  try {
+    const org = await prisma.organization.findUnique({ where: { id: req.params.id } });
+    if (!org) return res.status(404).json({ error: 'Not found' });
+    const updated = await prisma.organization.update({
+      where: { id: req.params.id },
+      data: { isActive: !org.isActive }
+    });
+    res.json({ id: updated.id, isActive: updated.isActive });
+  } catch (err) {
+    console.error('PATCH /organizations/:id/toggle error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/admin/stats
+router.get('/stats', requireAuth, async (req, res) => {
+  try {
+    const { orgId } = req.query;
+    if (req.isSuperAdmin && !orgId) {
+      const [orgCount, teamCount, userCount, todayStandups] = await Promise.all([
+        prisma.organization.count(),
+        prisma.team.count(),
+        prisma.user.count(),
+        prisma.standupResponse.count({
+          where: { standupDate: new Date(new Date().setHours(0, 0, 0, 0)) }
+        })
+      ]);
+      return res.json({ orgCount, teamCount, userCount, todayStandups });
+    }
+    const targetOrgId = orgId;
+    const [teamCount, memberCount, todayResponses, totalMembers] = await Promise.all([
+      prisma.team.count({ where: { organizationId: targetOrgId } }),
+      prisma.organizationMember.count({ where: { organizationId: targetOrgId, isActive: true } }),
+      prisma.standupResponse.count({
+        where: { standupDate: new Date(new Date().setHours(0, 0, 0, 0)), team: { organizationId: targetOrgId } }
+      }),
+      prisma.teamMember.count({ where: { team: { organizationId: targetOrgId }, isActive: true } })
+    ]);
+    res.json({
+      teamCount,
+      memberCount,
+      todayCompletionRate: totalMembers > 0 ? Math.round((todayResponses / totalMembers) * 100) : 0
+    });
+  } catch (err) {
+    console.error('GET /stats error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/admin/teams?orgId=
+router.get('/teams', requireAuth, async (req, res) => {
+  try {
+    const { orgId } = req.query;
+    const teams = await prisma.team.findMany({
+      where: { organizationId: orgId },
+      include: { _count: { select: { members: true } } },
+      orderBy: { name: 'asc' }
+    });
+    res.json(teams.map(t => ({
+      id: t.id,
+      name: t.name,
+      slackChannelId: t.slackChannelId,
+      standupTime: t.standupTime,
+      postingTime: t.postingTime,
+      timezone: t.timezone,
+      isActive: t.isActive,
+      memberCount: t._count.members
+    })));
+  } catch (err) {
+    console.error('GET /teams error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PUT /api/admin/teams/:id
+router.put('/teams/:id', requireAuth, async (req, res) => {
+  try {
+    const { standupTime, postingTime, timezone, isActive } = req.body;
+    const updated = await prisma.team.update({
+      where: { id: req.params.id },
+      data: { standupTime, postingTime, timezone, isActive }
+    });
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /teams/:id error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/admin/members?orgId=
+router.get('/members', requireAuth, async (req, res) => {
+  try {
+    const { orgId, role } = req.query;
+    const members = await prisma.organizationMember.findMany({
+      where: { organizationId: orgId, ...(role ? { role } : {}), isActive: true },
+      include: {
+        user: {
+          include: {
+            teamMemberships: {
+              where: { team: { organizationId: orgId }, isActive: true },
+              include: { team: { select: { id: true, name: true } } }
+            },
+            standupResponses: {
+              orderBy: { standupDate: 'desc' },
+              take: 1,
+              select: { standupDate: true }
+            }
+          }
+        }
+      },
+      orderBy: { joinedAt: 'desc' }
+    });
+    res.json(members.map(m => ({
+      id: m.id,
+      userId: m.userId,
+      slackUserId: m.user.slackUserId,
+      name: m.user.username || m.user.slackUserId,
+      role: m.role,
+      teams: m.user.teamMemberships.map(tm => ({ id: tm.team.id, name: tm.team.name })),
+      receiveNotifications: m.user.teamMemberships[0]?.receiveNotifications ?? true,
+      lastStandupDate: m.user.standupResponses[0]?.standupDate ?? null,
+      joinedAt: m.joinedAt
+    })));
+  } catch (err) {
+    console.error('GET /members error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/admin/holidays?orgId=
+router.get('/holidays', requireAuth, async (req, res) => {
+  try {
+    const { orgId } = req.query;
+    const holidays = await prisma.holiday.findMany({
+      where: { organization_id: orgId },
+      orderBy: { date: 'asc' }
+    });
+    res.json(holidays);
+  } catch (err) {
+    console.error('GET /holidays error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/admin/holidays
+router.post('/holidays', requireAuth, async (req, res) => {
+  try {
+    const { orgId, name, date, description } = req.body;
+    const holiday = await prisma.holiday.create({
+      data: {
+        id: crypto.randomUUID(),
+        organization_id: orgId,
+        name,
+        date: new Date(date),
+        description
+      }
+    });
+    res.json(holiday);
+  } catch (err) {
+    console.error('POST /holidays error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PUT /api/admin/holidays/:id
+router.put('/holidays/:id', requireAuth, async (req, res) => {
+  try {
+    const { name, date, description } = req.body;
+    const updated = await prisma.holiday.update({
+      where: { id: req.params.id },
+      data: { name, date: new Date(date), description }
+    });
+    res.json(updated);
+  } catch (err) {
+    console.error('PUT /holidays/:id error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// DELETE /api/admin/holidays/:id
+router.delete('/holidays/:id', requireAuth, async (req, res) => {
+  try {
+    await prisma.holiday.delete({ where: { id: req.params.id } });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('DELETE /holidays/:id error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/admin/standups?orgId=&startDate=&endDate=
+router.get('/standups', requireAuth, async (req, res) => {
+  try {
+    const { orgId, startDate, endDate } = req.query;
+    const posts = await prisma.standupPost.findMany({
+      where: {
+        team: { organizationId: orgId },
+        standupDate: {
+          gte: new Date(startDate || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)),
+          lte: new Date(endDate || new Date())
+        }
+      },
+      include: {
+        team: { select: { id: true, name: true } },
+        _count: { select: { responses: true } }
+      },
+      orderBy: { standupDate: 'desc' }
+    });
+    const teamMemberCounts = await prisma.teamMember.groupBy({
+      by: ['teamId'],
+      where: { team: { organizationId: orgId }, isActive: true },
+      _count: { id: true }
+    });
+    const countMap = Object.fromEntries(teamMemberCounts.map(t => [t.teamId, t._count.id]));
+    res.json(posts.map(p => ({
+      id: p.id,
+      teamId: p.team.id,
+      teamName: p.team.name,
+      standupDate: p.standupDate,
+      submittedCount: p._count.responses,
+      totalMembers: countMap[p.team.id] || 0,
+      postedAt: p.postedAt
+    })));
+  } catch (err) {
+    console.error('GET /standups error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/admin/standups/:teamId/:date
+router.get('/standups/:teamId/:date', requireAuth, async (req, res) => {
+  try {
+    const { teamId, date } = req.params;
+    const responses = await prisma.standupResponse.findMany({
+      where: { teamId, standupDate: new Date(date) },
+      include: { user: { select: { slackUserId: true, username: true } } },
+      orderBy: { submittedAt: 'asc' }
+    });
+    res.json(responses.map(r => ({
+      id: r.id,
+      user: { slackUserId: r.user.slackUserId, name: r.user.username || r.user.slackUserId },
+      yesterdayTasks: r.yesterdayTasks,
+      todayTasks: r.todayTasks,
+      blockers: r.blockers,
+      hasBlockers: r.hasBlockers,
+      isLate: r.isLate,
+      submittedAt: r.submittedAt
+    })));
+  } catch (err) {
+    console.error('GET /standups/:teamId/:date error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/admin/scheduler?orgId=
+router.get('/scheduler', requireAuth, async (req, res) => {
+  try {
+    const schedulerService = require('../services/schedulerService');
+    const { orgId } = req.query;
+    const teams = await prisma.team.findMany({
+      where: { organizationId: orgId, isActive: true },
+      select: { id: true, name: true, standupTime: true, postingTime: true, timezone: true }
+    });
+    const jobs = schedulerService.scheduledJobs || new Map();
+    const teamNameSlug = (name) => name.toLowerCase().replace(/\s+/g, '-');
+    res.json(teams.map(t => ({
+      teamId: t.id,
+      teamName: t.name,
+      standupTime: t.standupTime,
+      postingTime: t.postingTime,
+      timezone: t.timezone,
+      reminderJobActive: jobs.has(`dd-${teamNameSlug(t.name)}`),
+      postJobActive: jobs.has(`posting-${t.id}`)
+    })));
+  } catch (err) {
+    console.error('GET /scheduler error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/admin/activity?orgId=&limit=50
+router.get('/activity', requireAuth, async (req, res) => {
+  try {
+    const { orgId, limit = '50' } = req.query;
+    const responses = await prisma.standupResponse.findMany({
+      where: { team: { organizationId: orgId } },
+      include: {
+        user: { select: { slackUserId: true, username: true } },
+        team: { select: { name: true } }
+      },
+      orderBy: { submittedAt: 'desc' },
+      take: parseInt(limit, 10)
+    });
+    res.json(responses.map(r => ({
+      type: 'standup_submitted',
+      user: r.user.username || r.user.slackUserId,
+      team: r.team.name,
+      date: r.standupDate,
+      isLate: r.isLate,
+      timestamp: r.submittedAt
+    })));
+  } catch (err) {
+    console.error('GET /activity error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = { router, requireAuth, requireSuperAdmin };
