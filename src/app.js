@@ -31,6 +31,13 @@ receiver.app.get('/health', (req, res) => {
   });
 });
 
+const cookieParser = require('cookie-parser');
+const { router: adminRouter } = require('./routes/admin');
+
+receiver.app.use(cookieParser());
+receiver.app.use(express.json());
+receiver.app.use('/api/admin', adminRouter);
+
 // Serve static files from web/dist directory (React SPA)
 const express = require('express');
 receiver.app.use(express.static(path.join(__dirname, '../web/dist')));
