@@ -75,7 +75,7 @@ router.get('/me', requireAuth, async (req, res) => {
 // GET /api/admin/auth/slack — initiate OAuth
 router.get('/auth/slack', (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
-  res.cookie('oauth_state', state, { httpOnly: true, maxAge: 10 * 60 * 1000 });
+  res.cookie('oauth_state', state, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 10 * 60 * 1000 });
 
   const params = new URLSearchParams({
     client_id: process.env.SLACK_CLIENT_ID,
@@ -99,6 +99,8 @@ router.get('/auth/callback', async (req, res) => {
   res.clearCookie('oauth_state');
 
   try {
+    if (!code) return res.redirect('/admin/login?error=oauth_denied');
+
     const slack = new WebClient();
     const result = await slack.oauth.v2.access({
       client_id: process.env.SLACK_CLIENT_ID,
@@ -107,10 +109,15 @@ router.get('/auth/callback', async (req, res) => {
       redirect_uri: process.env.ADMIN_OAUTH_REDIRECT_URI
     });
 
+    if (!result.ok) throw new Error(`Slack OAuth error: ${result.error}`);
+
     const userToken = result.authed_user?.access_token;
+    if (!userToken) throw new Error('No user access token in OAuth response');
+
     const userClient = new WebClient(userToken);
     const identity = await userClient.users.identity();
     const slackUserId = identity.user?.id;
+    if (!slackUserId) throw new Error('Could not get Slack user ID from identity');
 
     let user = await prisma.user.findUnique({ where: { slackUserId } });
     if (!user) {
