@@ -45,6 +45,9 @@ export default function AdminHolidays() {
       if (res.ok) {
         const created = await res.json();
         setHolidays(prev => [...prev, created].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+        setModal(null);
+      } else {
+        console.error('Failed to save holiday');
       }
     } else if (modal === 'edit' && selected) {
       const res = await fetch(`/api/admin/holidays/${selected.id}`, {
@@ -55,9 +58,11 @@ export default function AdminHolidays() {
       if (res.ok) {
         const updated = await res.json();
         setHolidays(prev => prev.map(h => h.id === selected.id ? updated : h));
+        setModal(null);
+      } else {
+        console.error('Failed to save holiday');
       }
     }
-    setModal(null);
   };
 
   const confirmDelete = async () => {
@@ -66,30 +71,6 @@ export default function AdminHolidays() {
     if (res.ok) setHolidays(prev => prev.filter(h => h.id !== selected.id));
     setModal(null);
   };
-
-  const FormFields = () => (
-    <div className="space-y-4">
-      {[
-        { key: 'name', label: 'Name', type: 'text' },
-        { key: 'date', label: 'Date', type: 'date' },
-        { key: 'description', label: 'Description (optional)', type: 'text' }
-      ].map(({ key, label, type }) => (
-        <div key={key}>
-          <label className="block text-xs text-white/50 mb-1">{label}</label>
-          <input
-            type={type}
-            value={form[key as keyof typeof form]}
-            onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-            className="w-full bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00CFFF]/50"
-          />
-        </div>
-      ))}
-      <div className="flex justify-end gap-3 pt-2">
-        <button onClick={() => setModal(null)} className="px-4 py-2 text-sm text-white/50 hover:text-white transition-colors">Cancel</button>
-        <button onClick={save} className="px-4 py-2 text-sm bg-[#00CFFF] text-black font-medium rounded-lg hover:bg-[#00CFFF]/90 transition-colors">Save</button>
-      </div>
-    </div>
-  );
 
   return (
     <div>
@@ -119,8 +100,52 @@ export default function AdminHolidays() {
         emptyMessage="No holidays found."
       />
 
-      <AdminModal isOpen={modal === 'add'} onClose={() => setModal(null)} title="Add Holiday"><FormFields /></AdminModal>
-      <AdminModal isOpen={modal === 'edit'} onClose={() => setModal(null)} title="Edit Holiday"><FormFields /></AdminModal>
+      <AdminModal isOpen={modal === 'add'} onClose={() => setModal(null)} title="Add Holiday">
+        <div className="space-y-4">
+          {[
+            { key: 'name', label: 'Name', type: 'text' },
+            { key: 'date', label: 'Date', type: 'date' },
+            { key: 'description', label: 'Description (optional)', type: 'text' }
+          ].map(({ key, label, type }) => (
+            <div key={key}>
+              <label className="block text-xs text-white/50 mb-1">{label}</label>
+              <input
+                type={type}
+                value={form[key as keyof typeof form]}
+                onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+                className="w-full bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00CFFF]/50"
+              />
+            </div>
+          ))}
+          <div className="flex justify-end gap-3 pt-2">
+            <button onClick={() => setModal(null)} className="px-4 py-2 text-sm text-white/50 hover:text-white transition-colors">Cancel</button>
+            <button onClick={save} className="px-4 py-2 text-sm bg-[#00CFFF] text-black font-medium rounded-lg hover:bg-[#00CFFF]/90 transition-colors">Save</button>
+          </div>
+        </div>
+      </AdminModal>
+      <AdminModal isOpen={modal === 'edit'} onClose={() => setModal(null)} title="Edit Holiday">
+        <div className="space-y-4">
+          {[
+            { key: 'name', label: 'Name', type: 'text' },
+            { key: 'date', label: 'Date', type: 'date' },
+            { key: 'description', label: 'Description (optional)', type: 'text' }
+          ].map(({ key, label, type }) => (
+            <div key={key}>
+              <label className="block text-xs text-white/50 mb-1">{label}</label>
+              <input
+                type={type}
+                value={form[key as keyof typeof form]}
+                onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+                className="w-full bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00CFFF]/50"
+              />
+            </div>
+          ))}
+          <div className="flex justify-end gap-3 pt-2">
+            <button onClick={() => setModal(null)} className="px-4 py-2 text-sm text-white/50 hover:text-white transition-colors">Cancel</button>
+            <button onClick={save} className="px-4 py-2 text-sm bg-[#00CFFF] text-black font-medium rounded-lg hover:bg-[#00CFFF]/90 transition-colors">Save</button>
+          </div>
+        </div>
+      </AdminModal>
       <AdminModal isOpen={modal === 'delete'} onClose={() => setModal(null)} title="Delete Holiday">
         <p className="text-sm text-white/70 mb-6">
           Delete <span className="text-white font-medium">{selected?.name}</span>? This cannot be undone.

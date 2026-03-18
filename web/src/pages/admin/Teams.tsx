@@ -43,8 +43,10 @@ export default function AdminTeams() {
     });
     if (res.ok) {
       setTeams(prev => prev.map(t => t.id === editTeam.id ? { ...t, ...form } : t));
+      setEditTeam(null);
+    } else {
+      console.error('Failed to save team');
     }
-    setEditTeam(null);
   };
 
   return (
