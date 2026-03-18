@@ -8,77 +8,72 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// Organization model
 model Organization {
-  id                String                @id @default(uuid())
-  name              String                @unique
-  slackWorkspaceId  String?               @unique @map("slack_workspace_id")
+  id                 String               @id @default(uuid())
+  name               String               @unique
+  slackWorkspaceId   String?              @unique @map("slack_workspace_id")
   slackWorkspaceName String?              @map("slack_workspace_name")
-  defaultTimezone   String                @default("America/New_York") @map("default_timezone")
-  settings          Json                  @default("{}")
-  isActive          Boolean               @default(true) @map("is_active")
-  createdAt         DateTime              @default(now()) @map("created_at")
-  updatedAt         DateTime              @updatedAt @map("updated_at")
-
-  teams             Team[]
-  members           OrganizationMember[]
+  defaultTimezone    String               @default("America/New_York") @map("default_timezone")
+  settings           Json                 @default("{}")
+  isActive           Boolean              @default(true) @map("is_active")
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
+  holidays           Holiday[]
+  members            OrganizationMember[]
+  teams              Team[]
 
   @@map("organizations")
 }
 
-// Team model
 model Team {
-  id              String              @id @default(uuid())
-  organizationId  String              @map("organization_id")
-  name            String
-  slackChannelId  String              @unique @map("slack_channel_id")
-  standupTime     String              @map("standup_time")
-  postingTime     String              @map("posting_time")
-  timezone        String              @default("America/New_York")
-  isActive        Boolean             @default(true) @map("is_active")
-  createdAt       DateTime            @default(now()) @map("created_at")
-  updatedAt       DateTime            @updatedAt @map("updated_at")
-
-  organization    Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  members         TeamMember[]
+  id               String            @id @default(uuid())
+  organizationId   String            @map("organization_id")
+  name             String
+  slackChannelId   String            @unique @map("slack_channel_id")
+  standupTime      String            @map("standup_time")
+  postingTime      String            @map("posting_time")
+  timezone         String            @default("America/New_York")
+  isActive         Boolean           @default(true) @map("is_active")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  standupPosts     StandupPost[]
   standupResponses StandupResponse[]
-  standupPosts    StandupPost[]
+  members          TeamMember[]
+  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, name])
   @@index([organizationId])
   @@map("teams")
 }
 
-// User model
 model User {
-  id              String                @id @default(uuid())
-  slackUserId     String                @unique @map("slack_user_id")
-  username        String?
-  email           String?
-  name            String?
-  timezone        String                @default("America/New_York")
-  workDays        Json?                 @map("work_days") // [1,2,3,4,5] for Mon-Fri, null uses org default
-  createdAt       DateTime              @default(now()) @map("created_at")
-
-  organizations   OrganizationMember[]
-  teams           TeamMember[]
-  leaves          Leave[]
+  id               String               @id @default(uuid())
+  slackUserId      String               @unique @map("slack_user_id")
+  email            String?
+  name             String?
+  timezone         String               @default("America/New_York")
+  workDays         Json?                @map("work_days")
+  createdAt        DateTime             @default(now()) @map("created_at")
+  username         String?
+  leaves           Leave[]
+  organizations    OrganizationMember[]
+  sessions         sessions[]
   standupResponses StandupResponse[]
+  super_admins     super_admins?
+  teams            TeamMember[]
 
   @@map("users")
 }
 
-// Organization Member junction table
 model OrganizationMember {
-  id              String        @id @default(uuid())
-  organizationId  String        @map("organization_id")
-  userId          String        @map("user_id")
-  role            OrgRole       @default(MEMBER)
-  isActive        Boolean       @default(true) @map("is_active")
-  joinedAt        DateTime      @default(now()) @map("joined_at")
-
-  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String       @id @default(uuid())
+  organizationId String       @map("organization_id")
+  userId         String       @map("user_id")
+  role           OrgRole      @default(MEMBER)
+  isActive       Boolean      @default(true) @map("is_active")
+  joinedAt       DateTime     @default(now()) @map("joined_at")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, userId])
   @@index([organizationId])
@@ -86,19 +81,17 @@ model OrganizationMember {
   @@map("organization_members")
 }
 
-// Team Member junction table
 model TeamMember {
-  id                      String      @id @default(uuid())
-  teamId                  String      @map("team_id")
-  userId                  String      @map("user_id")
-  role                    TeamRole    @default(MEMBER)
-  isActive                Boolean     @default(true) @map("is_active")
-  receiveNotifications    Boolean     @default(true) @map("receive_notifications")
-  hideFromNotResponded    Boolean     @default(false) @map("hide_from_not_responded")
-  joinedAt                DateTime    @default(now()) @map("joined_at")
-
-  team      Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   String   @id @default(uuid())
+  teamId               String   @map("team_id")
+  userId               String   @map("user_id")
+  role                 TeamRole @default(MEMBER)
+  isActive             Boolean  @default(true) @map("is_active")
+  joinedAt             DateTime @default(now()) @map("joined_at")
+  receiveNotifications Boolean  @default(true) @map("receive_notifications")
+  hideFromNotResponded Boolean  @default(false) @map("hide_from_not_responded")
+  team                 Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, userId])
   @@index([teamId])
@@ -106,70 +99,94 @@ model TeamMember {
   @@map("team_members")
 }
 
-// Leave model
 model Leave {
-  id        String    @id @default(uuid())
-  userId    String    @map("user_id")
-  startDate DateTime  @db.Date @map("start_date")
-  endDate   DateTime  @db.Date @map("end_date")
-  reason    String?   @db.VarChar(500)
-  createdAt DateTime  @default(now()) @map("created_at")
-
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  startDate DateTime @map("start_date") @db.Date
+  endDate   DateTime @map("end_date") @db.Date
+  reason    String?  @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, startDate, endDate])
   @@map("leaves")
 }
 
-// Standup Response model
 model StandupResponse {
-  id              String    @id @default(uuid())
-  teamId          String    @map("team_id")
-  userId          String    @map("user_id")
-  standupDate     DateTime  @db.Date @map("standup_date")
-  yesterdayTasks  String?   @map("yesterday_tasks") @db.Text
-  todayTasks      String?   @map("today_tasks") @db.Text
-  blockers        String?   @db.Text
-  hasBlockers     Boolean   @default(false) @map("has_blockers")
-  submittedAt     DateTime  @default(now()) @map("submitted_at")
-  isLate          Boolean   @default(false) @map("is_late")
-
-  team            Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String   @id @default(uuid())
+  teamId         String   @map("team_id")
+  userId         String   @map("user_id")
+  standupDate    DateTime @map("standup_date") @db.Date
+  yesterdayTasks String?  @map("yesterday_tasks")
+  todayTasks     String?  @map("today_tasks")
+  blockers       String?
+  hasBlockers    Boolean  @default(false) @map("has_blockers")
+  submittedAt    DateTime @default(now()) @map("submitted_at")
+  isLate         Boolean  @default(false) @map("is_late")
+  team           Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, userId, standupDate])
   @@index([standupDate])
   @@map("standup_responses")
 }
 
-// Standup Post model
 model StandupPost {
-  id              String    @id @default(uuid())
-  teamId          String    @map("team_id")
-  standupDate     DateTime  @db.Date @map("standup_date")
-  slackMessageTs  String?   @map("slack_message_ts")
-  channelId       String?   @map("channel_id")
-  postedAt        DateTime  @default(now()) @map("posted_at")
-
-  team            Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  id             String   @id @default(uuid())
+  teamId         String   @map("team_id")
+  standupDate    DateTime @map("standup_date") @db.Date
+  slackMessageTs String?  @map("slack_message_ts")
+  channelId      String?  @map("channel_id")
+  postedAt       DateTime @default(now()) @map("posted_at")
+  team           Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, standupDate])
   @@map("standup_posts")
 }
 
-// Holiday model
 model Holiday {
-  id        String    @id @default(uuid())
-  date      DateTime  @db.Date
-  name      String?   @db.VarChar(255)
-  country   String    @default("US") @db.VarChar(100)
-  createdAt DateTime  @default(now()) @map("created_at")
+  id              String       @id @default(uuid())
+  date            DateTime     @db.Date
+  name            String       @db.VarChar(255)
+  createdAt       DateTime     @default(now()) @map("created_at")
+  organization_id String
+  updated_at      DateTime
+  description     String?
+  organizations   Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
 
-  @@unique([date, country])
+  @@unique([organization_id, date])
+  @@index([date])
+  @@index([organization_id])
   @@map("holidays")
 }
 
-// Enums
+model sessions {
+  id         String   @id
+  user_id    String
+  token      String   @unique
+  expires_at DateTime
+  ip_address String?
+  user_agent String?
+  created_at DateTime @default(now())
+  users      User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([expires_at])
+  @@index([token])
+  @@index([user_id])
+}
+
+model super_admins {
+  id         String    @id
+  user_id    String    @unique
+  granted_by String?
+  granted_at DateTime  @default(now())
+  revoked_at DateTime?
+  notes      String?
+  users      User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+}
+
 enum OrgRole {
   OWNER
   ADMIN

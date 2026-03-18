@@ -5,6 +5,86 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.3] - 2026-02-05
+
+### Added
+
+- Bulk operations support for standup automation scripts
+  - `triggerStandup.js` now supports `--all` flag for reminder and followup commands
+  - `sendManualStandup.js` now supports `--all` flag for post and remind commands
+  - Interactive confirmation prompts before bulk operations
+  - Table preview showing all teams to be processed
+  - Only processes teams with active members
+  - Summary statistics with success/skipped/failed counts
+  - Sequential processing to avoid rate limits
+  - Comprehensive error handling for individual team failures
+
+### Changed
+
+- Enhanced standup automation scripts with bulk operation capabilities
+  - `npm run standup:trigger -- reminder --all` - Send reminders to all active teams
+  - `npm run standup:trigger -- followup --all` - Send followups to all active teams
+  - `npm run standup:post -- post --all` - Post standups for all active teams
+  - `npm run standup:post -- post --all --date YYYY-MM-DD` - Bulk post for specific date
+  - `npm run standup:post -- post --all --dry-run` - Preview bulk posts
+  - `npm run standup:post -- remind --all` - Send reminders to all active teams
+
+## [1.4.2] - 2026-02-05
+
+### Fixed
+
+- Fixed holiday system database schema mismatch causing runtime errors
+  - Updated Holiday model to use `organization_id` instead of `country` field
+  - Changed unique constraint from `date_country` to `organization_id_date`
+  - Updated `dateHelper.js` to query holidays by organization
+  - Updated `holiday.js` commands (set, update, delete, list) to use organization-scoped holidays
+  - Regenerated Prisma client to sync with database schema
+  - Resolved "The column `holidays.country` does not exist" error in scheduler service
+
+### Changed
+
+- Holiday system is now fully organization-scoped instead of country-based
+  - Each organization manages its own holidays independently
+  - Holiday queries now require organization context
+  - Added `description` and `updated_at` fields to Holiday model
+
+## [1.4.1] - 2025-02-03
+
+### Changed
+
+- Updated project dependencies to latest versions
+- Enhanced CLAUDE.md with comprehensive project documentation
+  - Added utility scripts section with admin, team, and debug commands
+  - Documented Web Frontend (React SPA) development workflow and build commands
+  - Expanded Architecture Overview with detailed service descriptions
+  - Enhanced Database Schema section with multi-tenant design patterns
+  - Documented Slack Integration including Block Kit UI and markdown guidelines
+  - Added Web Frontend Architecture section covering React, routing, styling, and theme system
+  - Expanded Environment Configuration with categorized variable descriptions
+  - Added Development Notes section with frontend workflow and conventions
+- Improved command documentation with better clarity and examples
+  - Refined `/dd-standup-reminder` command syntax and parameter requirements
+  - Updated standup submission examples with correct field names
+  - Added "Smart Prefilling" note explaining automatic pre-population
+  - Enhanced "Channel-Based Commands" note with context-aware operation details
+  - Clarified `/dd-team-update` notifications parameter with examples
+  - Expanded leave management documentation with admin-only commands
+  - Enhanced holiday management section with organization-wide clarification
+- Clarified notification system behavior in documentation
+  - Added comprehensive Notification System section explaining `receiveNotifications` behavior
+  - Documented that `notify=off` disables ALL notifications (reminders + admin submission alerts)
+  - Clarified `notify` parameter controls both standup reminders and admin submission notifications
+  - Added use cases for team admins wanting to reduce notification noise
+  - Updated web documentation (docs.json) with corrected command examples
+
+### Removed
+
+- Removed non-existent "view preferences" command examples from documentation
+
+### Fixed
+
+- Corrected preferences command implementation to match documented behavior
+
 ## [1.4.0] - 2025-11-26
 
 ### Added
@@ -191,7 +271,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.4.2...HEAD
+[1.4.2]: https://github.com/jnahian/daily-dose/compare/v1.4.1...v1.4.2
+[1.4.1]: https://github.com/jnahian/daily-dose/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/jnahian/daily-dose/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/jnahian/daily-dose/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/jnahian/daily-dose/compare/v1.1.0...v1.2.0

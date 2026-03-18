@@ -611,15 +611,11 @@ This feature is useful for:
 
 # Error: No parameters provided
 /dd-standup-reminder Engineering
-# Response: "ℹ️ Current preferences for Engineering team: mention=on, notify=on" (shows current status)
+# Response: "❌ You must specify at least one parameter: mention=on/off or notify=on/off"
 
 # Error: Invalid parameter format
 /dd-standup-reminder Engineering maybe=off
 # Response: "❌ Invalid parameter 'maybe=off'. Use mention=on/off or notify=on/off"
-
-# Error: Missing parameters when updating
-/dd-standup-reminder
-# Response: "ℹ️ Current preferences for [TeamName]: mention=on, notify=on" (shows current status)
 ```
 
 ### Example Workflows
@@ -647,16 +643,15 @@ This feature is useful for:
 /dd-standup-reminder Marketing notify=off   # Disable ALL notifications for Marketing team
 ```
 
-**Scenario 3: Managing multiple teams with different needs**
+**Scenario 4: Managing multiple teams with different needs**
 ```bash
-# Check and modify preferences for different teams
-/dd-standup-reminder Engineering                    # Check Engineering team preferences
+# Modify preferences for different teams
 /dd-standup-reminder Marketing mention=off          # Opt out of Marketing mentions but keep notifications
-/dd-standup-reminder DevOps notify=off              # Disable DevOps reminders but stay in mention list
+/dd-standup-reminder DevOps notify=off              # Disable DevOps notifications but stay in mention list
 /dd-standup-reminder QA mention=off notify=off      # Completely opt out of QA team reminders and mentions
 ```
 
-**Scenario 4: Part-time team member setup**
+**Scenario 5: Part-time team member setup**
 ```bash
 # Configure for part-time participation - no reminders but can submit when needed
 /dd-standup-reminder Engineering mention=off notify=off  # Remove from mentions and disable reminders
@@ -880,8 +875,8 @@ Team admins can manage leave for any member in their teams. This is useful for:
 - **Configure Reminder Preferences**: Use `/dd-standup-reminder` to manage your mention and notification settings
   - **Channel-based**: Run `/dd-standup-reminder mention=off notify=off` from your team's channel for quick access
   - **Cross-channel**: Use `/dd-standup-reminder TeamName mention=off notify=off` from anywhere when managing multiple teams
-  - **Check status first**: Always run `/dd-standup-reminder` or `/dd-standup-reminder TeamName` to see current settings
   - **Flexible control**: Set mention and notify preferences independently based on your participation level
+  - **Admin notifications**: Team admins can use `notify=off` to stop receiving notifications about team member submissions
 
 ### For Team Admins
 

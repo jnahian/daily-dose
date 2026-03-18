@@ -1,9 +1,84 @@
 {
   "versions": [
     {
+      "version": "1.4.3",
+      "date": "2026-02-05",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Bulk Standup Management",
+          "items": [
+            "Send standup reminders to all teams at once with a single command",
+            "Post standup summaries for all teams simultaneously",
+            "Safety confirmation prompt before bulk operations",
+            "Preview which teams will be affected before proceeding",
+            "Detailed success and failure reports for each team"
+          ]
+        },
+        {
+          "type": "changed",
+          "title": "Improved Administrative Tools",
+          "items": [
+            "Administrators can now manage standups across all teams more efficiently",
+            "Better error handling ensures operations continue even if one team fails",
+            "Preview mode allows testing before sending actual messages"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.4.2",
+      "date": "2026-02-05",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "fixed",
+          "title": "Holiday System Improvements",
+          "items": [
+            "Fixed an issue preventing holiday schedules from working correctly",
+            "Resolved errors that were blocking standup automation during holidays"
+          ]
+        },
+        {
+          "type": "changed",
+          "title": "Organization-Specific Holidays",
+          "items": [
+            "Each organization can now manage its own holiday schedule independently",
+            "Holidays are no longer shared across different workspaces",
+            "Better support for teams in different countries and regions"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.4.1",
+      "date": "2025-02-03",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "changed",
+          "title": "Better Notification Controls",
+          "items": [
+            "Team admins can now turn off all standup notifications if they prefer",
+            "Clearer documentation on how notification settings work",
+            "Better control over when you receive reminders and alerts"
+          ]
+        },
+        {
+          "type": "fixed",
+          "title": "Bug Fixes",
+          "items": [
+            "Fixed preferences command to work as documented",
+            "Improved command documentation accuracy"
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.4.0",
       "date": "2025-11-26",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "added",
@@ -60,44 +135,21 @@
       "changes": [
         {
           "type": "added",
-          "title": "Manual Standup Trigger Commands",
+          "title": "Manual Standup Controls",
           "items": [
-            "/dd-standup-remind [team-name] - Send standup reminders to team members",
-            "/dd-standup-post [YYYY-MM-DD] [team-name] - Post standup summary for specific date",
-            "/dd-standup-preview [YYYY-MM-DD] [team-name] - Preview standup summary (ephemeral)",
-            "/dd-standup-followup [team-name] - Send followup reminders to non-responders"
+            "Send standup reminders manually anytime, not just at scheduled times",
+            "Post standup summaries for any past date",
+            "Preview standup summaries before posting them to the channel",
+            "Send follow-up reminders to team members who haven't responded yet"
           ]
         },
         {
           "type": "added",
-          "title": "Permission System",
+          "title": "Smarter Permissions",
           "items": [
-            "Role-based access control with permissionHelper.js utility",
-            "isOrganizationOwner(), isTeamAdmin(), and canManageTeam() functions",
-            "Context-aware team resolution in teamHelper.js",
-            "Admins can run commands from team channel without specifying team name",
-            "Owners must specify team name when running from any location",
-            "resolveTeamFromContext() function for automatic team detection",
-            "parseCommandArguments() for flexible date and team name parsing"
-          ]
-        },
-        {
-          "type": "added",
-          "title": "Block Helper Functions",
-          "items": [
-            "createCommandSuccessBlocks() - Success messages with details",
-            "createCommandErrorBlocks() - Error messages with suggestions",
-            "createPermissionDeniedBlocks() - Permission error messages",
-            "createStandupPreviewHeaderBlocks() - Preview header formatting",
-            "createNoDataBlocks() - No data available messages"
-          ]
-        },
-        {
-          "type": "added",
-          "title": "Documentation & Logging",
-          "items": [
-            "Comprehensive audit logging for all admin actions",
-            "User stories and implementation plan documentation"
+            "Team admins can now manage their teams more easily",
+            "Commands are context-aware - no need to specify team name when you're already in the team channel",
+            "Better error messages when you don't have permission to perform an action"
           ]
         }
       ]
@@ -109,13 +161,11 @@
       "changes": [
         {
           "type": "changed",
-          "title": "Late Standup Submissions",
+          "title": "Better Late Submission Handling",
           "items": [
-            "Late submissions now create full standup posts when no parent message exists",
-            "First late submission creates a complete standup post with all sections",
-            "Subsequent late submissions are added as threaded replies",
-            "Applies to both /dd-standup submissions and /dd-standup-update updates",
-            "New postStandupOnDemand() method in StandupService"
+            "Late standup submissions now appear in the channel even if no summary was posted yet",
+            "Your late submission won't be lost - it creates a new post if needed",
+            "Multiple late submissions are neatly organized in a thread"
           ]
         }
       ]
@@ -129,35 +179,10 @@
           "type": "added",
           "title": "Admin Leave Management",
           "items": [
-            "/dd-leave-set-member - Set leave for any team member (admin only)",
-            "/dd-leave-cancel-member - Cancel team member's leave (admin only)",
-            "/dd-leave-list-member - List team member's upcoming leaves (admin only)",
-            "isTeamAdmin() method in TeamService",
-            "getUserTeams() method in TeamService",
-            "setMemberLeave(), cancelMemberLeave(), and listMemberLeaves() methods in UserService",
-            "Support for @mentions in admin leave commands",
-            "Smart team detection for single-team admins",
-            "Comprehensive permission checks for admin leave operations"
-          ]
-        },
-        {
-          "type": "added",
-          "title": "Deployment & Versioning",
-          "items": [
-            "Slack app manifest auto-update during deployment",
-            "Release workflow separating version bump from tag creation",
-            "Admin leave management documentation in README"
-          ]
-        },
-        {
-          "type": "changed",
-          "title": "Documentation & Workflows",
-          "items": [
-            "Leave management section in README reorganized",
-            "Slack manifest updated with new admin leave commands",
-            "Version commands now only bump version without creating tags",
-            "Release command creates tags and triggers deployment",
-            "Manifest update script always uses SLACK_APP_ID from environment"
+            "Team admins can now set leave for team members",
+            "Manage leaves for your entire team from Slack",
+            "Use @mentions to quickly set someone's leave status",
+            "View all upcoming leaves for your team members"
           ]
         }
       ]
@@ -168,24 +193,12 @@
       "isLatest": false,
       "changes": [
         {
-          "type": "added",
-          "title": "Version Management",
-          "items": [
-            "Git-based package versioning with SemVer policy",
-            "Automated deployment on version tag push",
-            "Version management scripts (patch, minor, major)",
-            "Pre-version checks for clean git state",
-            "GitHub Actions workflow for version releases",
-            "Changelog page with version history",
-            "CHANGELOG.md for tracking version history"
-          ]
-        },
-        {
           "type": "changed",
-          "title": "Standup Logic Improvements",
+          "title": "Smarter Standup Posting",
           "items": [
-            "Standup posting logic to skip when no eligible members exist",
-            "Standup messages exclude mention=off members from display"
+            "Bot now skips posting if no one on the team is available",
+            "Team members who opt out of mentions won't be shown in 'not responded' lists",
+            "Cleaner standup summaries with better formatting"
           ]
         }
       ]

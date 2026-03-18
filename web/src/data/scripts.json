@@ -301,22 +301,60 @@
           "name": "triggerStandup.js",
           "icon": "play",
           "iconColor": "text-purple-500",
-          "purpose": "Manually triggers standup reminders for a specific team outside of the normal scheduled time. Useful for testing, makeup standups, or when the regular scheduler has issues.",
+          "purpose": "Manually triggers standup reminders or followup reminders for specific teams or all active teams. Supports bulk operations with confirmation prompts. Useful for testing, makeup standups, or when the regular scheduler has issues.",
           "usageNote": {
             "type": "info",
-            "title": "Manual Override",
-            "description": "Bypasses the regular scheduling system and sends reminders immediately to eligible team members."
+            "title": "Manual Override with Bulk Support",
+            "description": "Bypasses the regular scheduling system and sends reminders immediately to eligible team members. Use --all flag to send to all active teams at once."
           },
           "examples": [
             {
-              "code": "# Trigger standup for specific team\nnode scripts/triggerStandup.js \"TeamName\"\n\n# Alternative: Use npm script\nnpm run standup:trigger \"TeamName\""
+              "code": "# List all active teams\nnode scripts/triggerStandup.js list\n\n# Send standup reminder to specific team\nnode scripts/triggerStandup.js reminder \"TeamName\"\n\n# Send standup reminders to ALL active teams (with confirmation)\nnode scripts/triggerStandup.js reminder --all\n\n# Send followup reminder to specific team\nnode scripts/triggerStandup.js followup \"TeamName\"\n\n# Send followup reminders to ALL active teams (with confirmation)\nnode scripts/triggerStandup.js followup --all\n\n# Alternative: Use npm script\nnpm run standup:trigger -- reminder \"TeamName\"\nnpm run standup:trigger -- reminder --all\nnpm run standup:trigger -- followup --all"
+            }
+          ],
+          "parameters": [
+            {
+              "name": "command",
+              "type": "String",
+              "required": true,
+              "description": "Command to execute: 'list', 'reminder', or 'followup'"
+            },
+            {
+              "name": "teamName or --all",
+              "type": "String or Flag",
+              "required": true,
+              "description": "Team name (with quotes if contains spaces) or --all flag to process all active teams"
+            }
+          ],
+          "features": [
+            {
+              "title": "Bulk Operations",
+              "items": [
+                "Send reminders to all active teams at once",
+                "Interactive confirmation prompt before sending",
+                "Table preview of all teams that will receive reminders",
+                "Only processes teams with active members",
+                "Summary statistics after completion"
+              ]
+            },
+            {
+              "title": "Error Handling",
+              "items": [
+                "Continues processing other teams if one fails",
+                "Detailed error reporting for each team",
+                "Success/failure counts in summary",
+                "Sequential processing to avoid rate limits"
+              ]
             }
           ],
           "whatItDoes": [
-            "Finds the team by name (case insensitive exact match)",
+            "Finds the team by name (case insensitive exact match) or fetches all active teams",
+            "Displays table of teams to be processed (when using --all)",
+            "Prompts for confirmation before sending to multiple teams",
             "Initializes the scheduler service with Slack app instance",
             "Determines eligible team members (not on leave, working day)",
-            "Sends DM reminders with standup modal to each eligible member"
+            "Sends DM reminders with standup modal to each eligible member",
+            "Provides summary of successful and failed operations"
           ]
         },
         {
@@ -324,32 +362,55 @@
           "name": "sendManualStandup.js",
           "icon": "paper-plane",
           "iconColor": "text-orange-500",
-          "purpose": "Manually posts standup summaries to team channels for any date and time. This comprehensive script can handle various scenarios including late posts, date-specific summaries, and troubleshooting channel access issues.",
+          "purpose": "Manually posts standup summaries to team channels or sends reminders for any date and time. Supports bulk operations for all teams with confirmation prompts. This comprehensive script can handle various scenarios including late posts, date-specific summaries, and troubleshooting channel access issues.",
           "usageNote": {
             "type": "success",
             "title": "Most Powerful Script",
-            "description": "This is the most feature-rich script, capable of handling edge cases and providing detailed troubleshooting information."
+            "description": "This is the most feature-rich script, capable of handling edge cases, bulk operations, and providing detailed troubleshooting information."
           },
           "examples": [
             {
-              "code": "# Post today's standup for specific team\nnode scripts/sendManualStandup.js \"TeamName\"\n\n# Post standup for specific date\nnode scripts/sendManualStandup.js \"TeamName\" 2025-09-10\n\n# Post to all teams for today\nnode scripts/sendManualStandup.js\n\n# Post to all teams for specific date\nnode scripts/sendManualStandup.js \"\" 2025-09-10\n\n# Alternative: Use npm script\nnpm run standup:post \"TeamName\" \"2025-09-10\""
+              "code": "# List all active teams with channel status\nnode scripts/sendManualStandup.js list\n\n# Post today's standup for specific team\nnode scripts/sendManualStandup.js post \"TeamName\"\n\n# Post standup for specific date\nnode scripts/sendManualStandup.js post \"TeamName\" --date 2025-09-10\n\n# Preview without posting (dry run)\nnode scripts/sendManualStandup.js post \"TeamName\" --dry-run\n\n# Post standups for ALL active teams (with confirmation)\nnode scripts/sendManualStandup.js post --all\n\n# Post standups for all teams on specific date\nnode scripts/sendManualStandup.js post --all --date 2025-09-10\n\n# Preview standups for all teams\nnode scripts/sendManualStandup.js post --all --dry-run\n\n# Send reminders to specific team\nnode scripts/sendManualStandup.js remind \"TeamName\"\n\n# Send reminders to ALL active teams (with confirmation)\nnode scripts/sendManualStandup.js remind --all\n\n# Troubleshoot channel access\nnode scripts/sendManualStandup.js troubleshoot \"TeamName\"\n\n# Alternative: Use npm script\nnpm run standup:post -- post \"TeamName\"\nnpm run standup:post -- post --all\nnpm run standup:post -- remind --all"
             }
           ],
           "parameters": [
             {
-              "name": "teamName",
-              "type": "String (Optional)",
-              "required": false,
-              "description": "Team name (exact match, case insensitive). If empty, processes all active teams."
+              "name": "command",
+              "type": "String",
+              "required": true,
+              "description": "Command to execute: 'list', 'post', 'remind', or 'troubleshoot'"
             },
             {
-              "name": "date",
+              "name": "teamName or --all",
+              "type": "String or Flag",
+              "required": false,
+              "description": "Team name (with quotes if contains spaces) or --all flag to process all active teams"
+            },
+            {
+              "name": "--date",
               "type": "String (Optional)",
               "required": false,
-              "description": "Date in YYYY-MM-DD format. Defaults to today."
+              "description": "Date in YYYY-MM-DD format. Defaults to today. Works with both single team and --all."
+            },
+            {
+              "name": "--dry-run",
+              "type": "Boolean (Optional)",
+              "required": false,
+              "description": "Preview message without sending. Works with both single team and --all."
             }
           ],
           "features": [
+            {
+              "title": "Bulk Operations",
+              "items": [
+                "Post standups to all active teams at once",
+                "Send reminders to all teams simultaneously",
+                "Interactive confirmation prompt before bulk operations",
+                "Table preview of all teams to be processed",
+                "Only processes teams with active members",
+                "Summary statistics with success/skipped/failed counts"
+              ]
+            },
             {
               "title": "Channel Access Troubleshooting",
               "items": [
@@ -365,7 +426,8 @@
                 "Any date in YYYY-MM-DD format",
                 "Automatic timezone conversion",
                 "Historical standup posting",
-                "Future date validation"
+                "Future date validation",
+                "Works with both single team and --all flag"
               ]
             },
             {
@@ -378,12 +440,21 @@
               ]
             },
             {
+              "title": "Preview Mode (Dry Run)",
+              "items": [
+                "Preview messages without sending",
+                "Works with single team or all teams",
+                "Shows exact message format",
+                "Validates data before posting"
+              ]
+            },
+            {
               "title": "Error Recovery",
               "items": [
                 "Graceful failure handling",
-                "Detailed error reporting",
-                "Alternative messaging paths",
-                "Admin notification system"
+                "Continues processing other teams if one fails",
+                "Detailed error reporting per team",
+                "Sequential processing to avoid rate limits"
               ]
             }
           ]

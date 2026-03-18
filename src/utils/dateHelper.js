@@ -36,6 +36,7 @@ async function isWorkingDay(date, organizationId, userId = null) {
   // Check holidays
   const holiday = await prisma.holiday.findFirst({
     where: {
+      organization_id: organizationId,
       date: {
         gte: dt.startOf("day").toDate(),
         lte: dt.endOf("day").toDate(),
