@@ -43,6 +43,26 @@ async function requireSuperAdmin(req, res, next) {
   }
 }
 
+// Helper: verify caller has access to the given orgId (super admin or org OWNER/ADMIN)
+async function verifyOrgAccess(req, res, orgId) {
+  if (!orgId) {
+    res.status(400).json({ error: 'orgId is required' });
+    return false;
+  }
+  // Super admins can access any org
+  const sa = await prisma.super_admins.findUnique({ where: { user_id: req.adminUser.id } });
+  if (sa && !sa.revoked_at) return true;
+  // Check org membership
+  const membership = await prisma.organizationMember.findFirst({
+    where: { userId: req.adminUser.id, organizationId: orgId, role: { in: ['OWNER', 'ADMIN'] }, isActive: true }
+  });
+  if (!membership) {
+    res.status(403).json({ error: 'Forbidden' });
+    return false;
+  }
+  return true;
+}
+
 // GET /api/admin/me
 router.get('/me', requireAuth, async (req, res) => {
   try {
@@ -219,7 +239,9 @@ router.patch('/organizations/:id/toggle', requireAuth, requireSuperAdmin, async 
 router.get('/stats', requireAuth, async (req, res) => {
   try {
     const { orgId } = req.query;
-    if (req.isSuperAdmin && !orgId) {
+    const sa = await prisma.super_admins.findUnique({ where: { user_id: req.adminUser.id } });
+    const isSuperAdmin = !!(sa && !sa.revoked_at);
+    if (isSuperAdmin && !orgId) {
       const [orgCount, teamCount, userCount, todayStandups] = await Promise.all([
         prisma.organization.count(),
         prisma.team.count(),
@@ -230,6 +252,8 @@ router.get('/stats', requireAuth, async (req, res) => {
       ]);
       return res.json({ orgCount, teamCount, userCount, todayStandups });
     }
+    const allowed = await verifyOrgAccess(req, res, orgId);
+    if (!allowed) return;
     const targetOrgId = orgId;
     const [teamCount, memberCount, todayResponses, totalMembers] = await Promise.all([
       prisma.team.count({ where: { organizationId: targetOrgId } }),
@@ -254,6 +278,8 @@ router.get('/stats', requireAuth, async (req, res) => {
 router.get('/teams', requireAuth, async (req, res) => {
   try {
     const { orgId } = req.query;
+    const allowed = await verifyOrgAccess(req, res, orgId);
+    if (!allowed) return;
     const teams = await prisma.team.findMany({
       where: { organizationId: orgId },
       include: { _count: { select: { members: true } } },
@@ -278,6 +304,11 @@ router.get('/teams', requireAuth, async (req, res) => {
 // PUT /api/admin/teams/:id
 router.put('/teams/:id', requireAuth, async (req, res) => {
   try {
+    // Verify team belongs to an org the caller has access to
+    const team = await prisma.team.findUnique({ where: { id: req.params.id }, select: { organizationId: true } });
+    if (!team) return res.status(404).json({ error: 'Not found' });
+    const allowed = await verifyOrgAccess(req, res, team.organizationId);
+    if (!allowed) return;
     const { standupTime, postingTime, timezone, isActive } = req.body;
     const updated = await prisma.team.update({
       where: { id: req.params.id },
@@ -294,6 +325,8 @@ router.put('/teams/:id', requireAuth, async (req, res) => {
 router.get('/members', requireAuth, async (req, res) => {
   try {
     const { orgId, role } = req.query;
+    const allowed = await verifyOrgAccess(req, res, orgId);
+    if (!allowed) return;
     const members = await prisma.organizationMember.findMany({
       where: { organizationId: orgId, ...(role ? { role } : {}), isActive: true },
       include: {
@@ -334,6 +367,8 @@ router.get('/members', requireAuth, async (req, res) => {
 router.get('/holidays', requireAuth, async (req, res) => {
   try {
     const { orgId } = req.query;
+    const allowed = await verifyOrgAccess(req, res, orgId);
+    if (!allowed) return;
     const holidays = await prisma.holiday.findMany({
       where: { organization_id: orgId },
       orderBy: { date: 'asc' }
@@ -349,6 +384,8 @@ router.get('/holidays', requireAuth, async (req, res) => {
 router.post('/holidays', requireAuth, async (req, res) => {
   try {
     const { orgId, name, date, description } = req.body;
+    const allowed = await verifyOrgAccess(req, res, orgId);
+    if (!allowed) return;
     const holiday = await prisma.holiday.create({
       data: {
         id: crypto.randomUUID(),
@@ -368,6 +405,10 @@ router.post('/holidays', requireAuth, async (req, res) => {
 // PUT /api/admin/holidays/:id
 router.put('/holidays/:id', requireAuth, async (req, res) => {
   try {
+    const holiday = await prisma.holiday.findUnique({ where: { id: req.params.id }, select: { organization_id: true } });
+    if (!holiday) return res.status(404).json({ error: 'Not found' });
+    const allowed = await verifyOrgAccess(req, res, holiday.organization_id);
+    if (!allowed) return;
     const { name, date, description } = req.body;
     const updated = await prisma.holiday.update({
       where: { id: req.params.id },
@@ -383,6 +424,10 @@ router.put('/holidays/:id', requireAuth, async (req, res) => {
 // DELETE /api/admin/holidays/:id
 router.delete('/holidays/:id', requireAuth, async (req, res) => {
   try {
+    const holiday = await prisma.holiday.findUnique({ where: { id: req.params.id }, select: { organization_id: true } });
+    if (!holiday) return res.status(404).json({ error: 'Not found' });
+    const allowed = await verifyOrgAccess(req, res, holiday.organization_id);
+    if (!allowed) return;
     await prisma.holiday.delete({ where: { id: req.params.id } });
     res.json({ ok: true });
   } catch (err) {
@@ -395,6 +440,8 @@ router.delete('/holidays/:id', requireAuth, async (req, res) => {
 router.get('/standups', requireAuth, async (req, res) => {
   try {
     const { orgId, startDate, endDate } = req.query;
+    const allowed = await verifyOrgAccess(req, res, orgId);
+    if (!allowed) return;
     const posts = await prisma.standupPost.findMany({
       where: {
         team: { organizationId: orgId },
@@ -434,6 +481,10 @@ router.get('/standups', requireAuth, async (req, res) => {
 router.get('/standups/:teamId/:date', requireAuth, async (req, res) => {
   try {
     const { teamId, date } = req.params;
+    const team = await prisma.team.findUnique({ where: { id: teamId }, select: { organizationId: true } });
+    if (!team) return res.status(404).json({ error: 'Not found' });
+    const allowed = await verifyOrgAccess(req, res, team.organizationId);
+    if (!allowed) return;
     const responses = await prisma.standupResponse.findMany({
       where: { teamId, standupDate: new Date(date) },
       include: { user: { select: { slackUserId: true, username: true } } },
@@ -460,6 +511,8 @@ router.get('/scheduler', requireAuth, async (req, res) => {
   try {
     const schedulerService = require('../services/schedulerService');
     const { orgId } = req.query;
+    const allowed = await verifyOrgAccess(req, res, orgId);
+    if (!allowed) return;
     const teams = await prisma.team.findMany({
       where: { organizationId: orgId, isActive: true },
       select: { id: true, name: true, standupTime: true, postingTime: true, timezone: true }
@@ -485,6 +538,8 @@ router.get('/scheduler', requireAuth, async (req, res) => {
 router.get('/activity', requireAuth, async (req, res) => {
   try {
     const { orgId, limit = '50' } = req.query;
+    const allowed = await verifyOrgAccess(req, res, orgId);
+    if (!allowed) return;
     const responses = await prisma.standupResponse.findMany({
       where: { team: { organizationId: orgId } },
       include: {
@@ -492,7 +547,7 @@ router.get('/activity', requireAuth, async (req, res) => {
         team: { select: { name: true } }
       },
       orderBy: { submittedAt: 'desc' },
-      take: parseInt(limit, 10)
+      take: Math.min(parseInt(limit, 10) || 50, 200)
     });
     res.json(responses.map(r => ({
       type: 'standup_submitted',
