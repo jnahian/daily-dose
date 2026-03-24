@@ -18,6 +18,7 @@ model Organization {
   isActive           Boolean              @default(true) @map("is_active")
   createdAt          DateTime             @default(now()) @map("created_at")
   updatedAt          DateTime             @updatedAt @map("updated_at")
+  deletedAt          DateTime?            @map("deleted_at")
   holidays           Holiday[]
   members            OrganizationMember[]
   teams              Team[]
@@ -36,6 +37,7 @@ model Team {
   isActive         Boolean           @default(true) @map("is_active")
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
+  deletedAt        DateTime?         @map("deleted_at")
   standupPosts     StandupPost[]
   standupResponses StandupResponse[]
   members          TeamMember[]
@@ -54,6 +56,7 @@ model User {
   timezone         String               @default("America/New_York")
   workDays         Json?                @map("work_days")
   createdAt        DateTime             @default(now()) @map("created_at")
+  deletedAt        DateTime?            @map("deleted_at")
   username         String?
   leaves           Leave[]
   organizations    OrganizationMember[]
@@ -72,6 +75,7 @@ model OrganizationMember {
   role           OrgRole      @default(MEMBER)
   isActive       Boolean      @default(true) @map("is_active")
   joinedAt       DateTime     @default(now()) @map("joined_at")
+  deletedAt      DateTime?    @map("deleted_at")
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -90,6 +94,7 @@ model TeamMember {
   joinedAt             DateTime @default(now()) @map("joined_at")
   receiveNotifications Boolean  @default(true) @map("receive_notifications")
   hideFromNotResponded Boolean  @default(false) @map("hide_from_not_responded")
+  deletedAt            DateTime? @map("deleted_at")
   team                 Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -105,8 +110,9 @@ model Leave {
   startDate DateTime @map("start_date") @db.Date
   endDate   DateTime @map("end_date") @db.Date
   reason    String?  @db.VarChar(500)
-  createdAt DateTime @default(now()) @map("created_at")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now()) @map("created_at")
+  deletedAt DateTime? @map("deleted_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, startDate, endDate])
   @@map("leaves")
@@ -121,9 +127,10 @@ model StandupResponse {
   todayTasks     String?  @map("today_tasks")
   blockers       String?
   hasBlockers    Boolean  @default(false) @map("has_blockers")
-  submittedAt    DateTime @default(now()) @map("submitted_at")
-  isLate         Boolean  @default(false) @map("is_late")
-  team           Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  submittedAt    DateTime  @default(now()) @map("submitted_at")
+  deletedAt      DateTime? @map("deleted_at")
+  isLate         Boolean   @default(false) @map("is_late")
+  team           Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, userId, standupDate])
@@ -137,8 +144,9 @@ model StandupPost {
   standupDate    DateTime @map("standup_date") @db.Date
   slackMessageTs String?  @map("slack_message_ts")
   channelId      String?  @map("channel_id")
-  postedAt       DateTime @default(now()) @map("posted_at")
-  team           Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  postedAt       DateTime  @default(now()) @map("posted_at")
+  deletedAt      DateTime? @map("deleted_at")
+  team           Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, standupDate])
   @@map("standup_posts")
@@ -151,6 +159,7 @@ model Holiday {
   createdAt       DateTime     @default(now()) @map("created_at")
   organization_id String
   updated_at      DateTime
+  deletedAt       DateTime?    @map("deleted_at")
   description     String?
   organizations   Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
 
