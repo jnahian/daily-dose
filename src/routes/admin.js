@@ -214,6 +214,8 @@ router.get('/organizations', requireAuth, requireSuperAdmin, async (req, res) =>
       id: o.id,
       name: o.name,
       slackWorkspaceId: o.slackWorkspaceId,
+      slackWorkspaceName: o.slackWorkspaceName,
+      defaultTimezone: o.defaultTimezone,
       isActive: o.isActive,
       teamCount: o._count.teams,
       memberCount: o._count.members,
@@ -237,6 +239,63 @@ router.patch('/organizations/:id/toggle', requireAuth, requireSuperAdmin, async 
     res.json({ id: updated.id, isActive: updated.isActive });
   } catch (err) {
     console.error('PATCH /organizations/:id/toggle error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/admin/organizations — super admin only
+router.post('/organizations', requireAuth, requireSuperAdmin, async (req, res) => {
+  try {
+    const { name, slackWorkspaceId, slackWorkspaceName, defaultTimezone } = req.body;
+    if (!name?.trim()) return res.status(400).json({ error: 'Name is required' });
+    const org = await prisma.organization.create({
+      data: {
+        name: name.trim(),
+        slackWorkspaceId: slackWorkspaceId?.trim() || null,
+        slackWorkspaceName: slackWorkspaceName?.trim() || null,
+        defaultTimezone: defaultTimezone?.trim() || 'America/New_York',
+      }
+    });
+    res.status(201).json({ id: org.id, name: org.name, slackWorkspaceId: org.slackWorkspaceId, slackWorkspaceName: org.slackWorkspaceName, defaultTimezone: org.defaultTimezone, isActive: org.isActive, teamCount: 0, memberCount: 0, createdAt: org.createdAt });
+  } catch (err) {
+    if (err.code === 'P2002') return res.status(409).json({ error: 'Name or workspace ID already exists' });
+    console.error('POST /organizations error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PUT /api/admin/organizations/:id — super admin only
+router.put('/organizations/:id', requireAuth, requireSuperAdmin, async (req, res) => {
+  try {
+    const { name, slackWorkspaceId, slackWorkspaceName, defaultTimezone, isActive } = req.body;
+    if (!name?.trim()) return res.status(400).json({ error: 'Name is required' });
+    const updated = await prisma.organization.update({
+      where: { id: req.params.id },
+      data: {
+        name: name.trim(),
+        slackWorkspaceId: slackWorkspaceId?.trim() || null,
+        slackWorkspaceName: slackWorkspaceName?.trim() || null,
+        defaultTimezone: defaultTimezone?.trim() || 'America/New_York',
+        isActive: typeof isActive === 'boolean' ? isActive : true,
+      }
+    });
+    res.json({ id: updated.id, name: updated.name, slackWorkspaceId: updated.slackWorkspaceId, slackWorkspaceName: updated.slackWorkspaceName, defaultTimezone: updated.defaultTimezone, isActive: updated.isActive });
+  } catch (err) {
+    if (err.code === 'P2002') return res.status(409).json({ error: 'Name or workspace ID already exists' });
+    if (err.code === 'P2025') return res.status(404).json({ error: 'Not found' });
+    console.error('PUT /organizations/:id error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// DELETE /api/admin/organizations/:id — super admin only
+router.delete('/organizations/:id', requireAuth, requireSuperAdmin, async (req, res) => {
+  try {
+    await prisma.organization.delete({ where: { id: req.params.id } });
+    res.status(204).end();
+  } catch (err) {
+    if (err.code === 'P2025') return res.status(404).json({ error: 'Not found' });
+    console.error('DELETE /organizations/:id error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -365,6 +424,81 @@ router.get('/members', requireAuth, async (req, res) => {
     })));
   } catch (err) {
     console.error('GET /members error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/admin/members — add user to org
+router.post('/members', requireAuth, async (req, res) => {
+  try {
+    const { slackUserId, orgId, role } = req.body;
+    if (!slackUserId?.trim() || !orgId) return res.status(400).json({ error: 'slackUserId and orgId are required' });
+    const validRoles = ['OWNER', 'ADMIN', 'MEMBER'];
+    if (role && !validRoles.includes(role)) return res.status(400).json({ error: 'Invalid role' });
+    const allowed = await verifyOrgAccess(req, res, orgId);
+    if (!allowed) return;
+    const user = await prisma.user.findUnique({ where: { slackUserId: slackUserId.trim() } });
+    if (!user) return res.status(404).json({ error: 'User not found. They must sign in to the bot first.' });
+    const existing = await prisma.organizationMember.findUnique({
+      where: { organizationId_userId: { organizationId: orgId, userId: user.id } }
+    });
+    let member;
+    if (existing) {
+      member = await prisma.organizationMember.update({
+        where: { id: existing.id },
+        data: { role: role || 'MEMBER', isActive: true }
+      });
+    } else {
+      member = await prisma.organizationMember.create({
+        data: { organizationId: orgId, userId: user.id, role: role || 'MEMBER', isActive: true }
+      });
+    }
+    res.status(201).json({
+      id: member.id,
+      userId: user.id,
+      slackUserId: user.slackUserId,
+      name: user.username || user.slackUserId,
+      role: member.role,
+      teams: [],
+      receiveNotifications: true,
+      lastStandupDate: null,
+      joinedAt: member.joinedAt
+    });
+  } catch (err) {
+    console.error('POST /members error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PUT /api/admin/members/:id — change role
+router.put('/members/:id', requireAuth, async (req, res) => {
+  try {
+    const { role } = req.body;
+    const validRoles = ['OWNER', 'ADMIN', 'MEMBER'];
+    if (!role || !validRoles.includes(role)) return res.status(400).json({ error: 'Invalid role' });
+    const member = await prisma.organizationMember.findUnique({ where: { id: req.params.id } });
+    if (!member) return res.status(404).json({ error: 'Not found' });
+    const allowed = await verifyOrgAccess(req, res, member.organizationId);
+    if (!allowed) return;
+    const updated = await prisma.organizationMember.update({ where: { id: req.params.id }, data: { role } });
+    res.json({ id: updated.id, role: updated.role });
+  } catch (err) {
+    console.error('PUT /members/:id error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// DELETE /api/admin/members/:id — remove from org
+router.delete('/members/:id', requireAuth, async (req, res) => {
+  try {
+    const member = await prisma.organizationMember.findUnique({ where: { id: req.params.id } });
+    if (!member) return res.status(404).json({ error: 'Not found' });
+    const allowed = await verifyOrgAccess(req, res, member.organizationId);
+    if (!allowed) return;
+    await prisma.organizationMember.update({ where: { id: req.params.id }, data: { isActive: false } });
+    res.status(204).end();
+  } catch (err) {
+    console.error('DELETE /members/:id error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
