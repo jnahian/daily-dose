@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../config/prisma');
 const { WebClient } = require('@slack/web-api');
+const slackClient = new WebClient(process.env.BOT_TOKEN);
 const crypto = require('crypto');
 
 // In-memory OAuth state store (state → expiry timestamp)
@@ -65,6 +66,22 @@ async function verifyOrgAccess(req, res, orgId) {
     return false;
   }
   return true;
+}
+
+async function resolveChannelId(channelName) {
+  const name = channelName.replace(/^#/, '').toLowerCase();
+  let cursor;
+  do {
+    const result = await slackClient.conversations.list({
+      limit: 200,
+      types: 'public_channel,private_channel',
+      ...(cursor ? { cursor } : {})
+    });
+    const match = result.channels.find(c => c.name === name);
+    if (match) return match.id;
+    cursor = result.response_metadata?.next_cursor;
+  } while (cursor);
+  return null;
 }
 
 // GET /api/admin/me
@@ -382,6 +399,52 @@ router.put('/teams/:id', requireAuth, async (req, res) => {
     res.json(updated);
   } catch (err) {
     console.error('PUT /teams/:id error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/admin/teams
+router.post('/teams', requireAuth, async (req, res) => {
+  try {
+    const { orgId, name, channelName, standupTime, postingTime, timezone } = req.body;
+    if (!orgId || !name || !channelName || !standupTime || !postingTime || !timezone) {
+      return res.status(400).json({ error: 'orgId, name, channelName, standupTime, postingTime, and timezone are required.' });
+    }
+    const allowed = await verifyOrgAccess(req, res, orgId);
+    if (!allowed) return;
+
+    const slackChannelId = await resolveChannelId(channelName);
+    if (!slackChannelId) {
+      return res.status(400).json({ error: `Channel "${channelName}" not found in Slack workspace.` });
+    }
+
+    const team = await prisma.team.create({
+      data: {
+        organizationId: orgId,
+        name: name.trim(),
+        slackChannelId,
+        standupTime,
+        postingTime,
+        timezone,
+      },
+      include: { _count: { select: { members: true } } }
+    });
+
+    res.status(201).json({
+      id: team.id,
+      name: team.name,
+      slackChannelId: team.slackChannelId,
+      standupTime: team.standupTime,
+      postingTime: team.postingTime,
+      timezone: team.timezone,
+      isActive: team.isActive,
+      memberCount: team._count.members
+    });
+  } catch (err) {
+    if (err.code === 'P2002') {
+      return res.status(409).json({ error: 'A team with this channel already exists.' });
+    }
+    console.error('POST /teams error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
