@@ -502,12 +502,12 @@ router.get('/members', requireAuth, async (req, res) => {
     const allowed = await verifyOrgAccess(req, res, orgId);
     if (!allowed) return;
     const members = await prisma.organizationMember.findMany({
-      where: { organizationId: orgId, ...(role ? { role } : {}), isActive: true },
+      where: { organizationId: orgId, ...(role ? { role } : {}), isActive: true, deletedAt: null },
       include: {
         user: {
           include: {
             teamMemberships: {
-              where: { team: { organizationId: orgId }, isActive: true },
+              where: { team: { organizationId: orgId }, isActive: true, deletedAt: null },
               include: { team: { select: { id: true, name: true } } }
             },
             standupResponses: {
@@ -526,7 +526,7 @@ router.get('/members', requireAuth, async (req, res) => {
       slackUserId: m.user.slackUserId,
       name: m.user.username || m.user.slackUserId,
       role: m.role,
-      teams: m.user.teamMemberships.map(tm => ({ id: tm.team.id, name: tm.team.name })),
+      teams: m.user.teamMemberships.map(tm => ({ teamMemberId: tm.id, id: tm.team.id, name: tm.team.name })),
       receiveNotifications: m.user.teamMemberships[0]?.receiveNotifications ?? true,
       lastStandupDate: m.user.standupResponses[0]?.standupDate ?? null,
       joinedAt: m.joinedAt
@@ -604,7 +604,7 @@ router.delete('/members/:id', requireAuth, async (req, res) => {
     if (!member) return res.status(404).json({ error: 'Not found' });
     const allowed = await verifyOrgAccess(req, res, member.organizationId);
     if (!allowed) return;
-    await prisma.organizationMember.update({ where: { id: req.params.id }, data: { isActive: false } });
+    await prisma.organizationMember.update({ where: { id: req.params.id }, data: { deletedAt: new Date() } });
     res.status(204).end();
   } catch (err) {
     console.error('DELETE /members/:id error:', err.message);
