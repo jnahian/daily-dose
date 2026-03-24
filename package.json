@@ -8,8 +8,11 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon --ignore 'logs/' --ignore 'temp/' src/app.js",
+    "dev:web": "cd web && npm run dev",
+    "dev:all": "concurrently --names \"bot,web,tunnel\" --prefix-colors \"cyan,magenta,yellow\" \"npm run dev\" \"npm run dev:web\" \"ngrok start --config ./ngrok.yml daily-dose-dev\"",
     "seed": "node scripts/seedOrg.js",
     "org:add-admin": "node scripts/addOrgAdmin.js",
+    "super-admin:add": "node scripts/addSuperAdmin.js",
     "manifest:create": "node scripts/updateSlackManifest.js --create",
     "manifest:update": "node scripts/updateSlackManifest.js",
     "manifest:dry-run": "node scripts/updateSlackManifest.js --dry-run",
@@ -47,6 +50,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
+    "concurrently": "^9.2.1",
     "eslint": "^9.34.0",
     "nodemon": "^3.1.10",
     "prisma": "^6.15.0",
