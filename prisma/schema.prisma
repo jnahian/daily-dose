@@ -91,10 +91,10 @@ model TeamMember {
   userId               String   @map("user_id")
   role                 TeamRole @default(MEMBER)
   isActive             Boolean  @default(true) @map("is_active")
-  joinedAt             DateTime @default(now()) @map("joined_at")
-  receiveNotifications Boolean  @default(true) @map("receive_notifications")
-  hideFromNotResponded Boolean  @default(false) @map("hide_from_not_responded")
+  joinedAt             DateTime  @default(now()) @map("joined_at")
   deletedAt            DateTime? @map("deleted_at")
+  receiveNotifications Boolean   @default(true) @map("receive_notifications")
+  hideFromNotResponded Boolean   @default(false) @map("hide_from_not_responded")
   team                 Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
