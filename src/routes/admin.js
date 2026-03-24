@@ -363,7 +363,7 @@ router.get('/teams', requireAuth, async (req, res) => {
     const allowed = await verifyOrgAccess(req, res, orgId);
     if (!allowed) return;
     const teams = await prisma.team.findMany({
-      where: { organizationId: orgId },
+      where: { organizationId: orgId, deletedAt: null },
       include: { _count: { select: { members: true } } },
       orderBy: { name: 'asc' }
     });
@@ -387,8 +387,8 @@ router.get('/teams', requireAuth, async (req, res) => {
 router.put('/teams/:id', requireAuth, async (req, res) => {
   try {
     // Verify team belongs to an org the caller has access to
-    const team = await prisma.team.findUnique({ where: { id: req.params.id }, select: { organizationId: true } });
-    if (!team) return res.status(404).json({ error: 'Not found' });
+    const team = await prisma.team.findUnique({ where: { id: req.params.id }, select: { organizationId: true, deletedAt: true } });
+    if (!team || team.deletedAt) return res.status(404).json({ error: 'Not found' });
     const allowed = await verifyOrgAccess(req, res, team.organizationId);
     if (!allowed) return;
     const { standupTime, postingTime, timezone, isActive } = req.body;
@@ -445,6 +445,28 @@ router.post('/teams', requireAuth, async (req, res) => {
       return res.status(409).json({ error: 'A team with this channel already exists.' });
     }
     console.error('POST /teams error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// DELETE /api/admin/teams/:id
+router.delete('/teams/:id', requireAuth, async (req, res) => {
+  try {
+    const team = await prisma.team.findUnique({
+      where: { id: req.params.id },
+      select: { organizationId: true, deletedAt: true }
+    });
+    if (!team || team.deletedAt) return res.status(404).json({ error: 'Not found' });
+    const allowed = await verifyOrgAccess(req, res, team.organizationId);
+    if (!allowed) return;
+
+    await prisma.team.update({
+      where: { id: req.params.id },
+      data: { deletedAt: new Date() }
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /teams/:id error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
