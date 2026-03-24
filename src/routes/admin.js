@@ -326,7 +326,7 @@ router.get('/stats', requireAuth, async (req, res) => {
     if (isSuperAdmin && !orgId) {
       const [orgCount, teamCount, userCount, todayStandups] = await Promise.all([
         prisma.organization.count(),
-        prisma.team.count(),
+        prisma.team.count({ where: { deletedAt: null } }),
         prisma.user.count(),
         prisma.standupResponse.count({
           where: { standupDate: new Date(new Date().setHours(0, 0, 0, 0)) }
@@ -338,7 +338,7 @@ router.get('/stats', requireAuth, async (req, res) => {
     if (!allowed) return;
     const targetOrgId = orgId;
     const [teamCount, memberCount, todayResponses, totalMembers] = await Promise.all([
-      prisma.team.count({ where: { organizationId: targetOrgId } }),
+      prisma.team.count({ where: { organizationId: targetOrgId, deletedAt: null } }),
       prisma.organizationMember.count({ where: { organizationId: targetOrgId, isActive: true } }),
       prisma.standupResponse.count({
         where: { standupDate: new Date(new Date().setHours(0, 0, 0, 0)), team: { organizationId: targetOrgId } }
@@ -395,7 +395,7 @@ router.put('/teams/:id', requireAuth, async (req, res) => {
     const updated = await prisma.team.update({
       where: { id: req.params.id },
       data: {
-        ...(name !== undefined && { name: name.trim() }),
+        ...(name !== undefined && name.trim() && { name: name.trim() }),
         ...(standupTime !== undefined && { standupTime }),
         ...(postingTime !== undefined && { postingTime }),
         ...(timezone !== undefined && { timezone }),
@@ -432,6 +432,14 @@ router.post('/teams', requireAuth, async (req, res) => {
     const slackChannelId = await resolveChannelId(channelName);
     if (!slackChannelId) {
       return res.status(400).json({ error: `Channel "${channelName}" not found in Slack workspace.` });
+    }
+
+    // Check if a soft-deleted team already occupies this channel
+    const existingDeleted = await prisma.team.findFirst({
+      where: { slackChannelId, deletedAt: { not: null } }
+    });
+    if (existingDeleted) {
+      return res.status(409).json({ error: `A deleted team already exists for this channel. Please contact support to restore it.` });
     }
 
     const team = await prisma.team.create({
