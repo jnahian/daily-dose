@@ -5,6 +5,10 @@ const prisma = require('../config/prisma');
 const { WebClient } = require('@slack/web-api');
 const crypto = require('crypto');
 
+// In-memory OAuth state store (state → expiry timestamp)
+const oauthStates = new Map();
+const OAUTH_STATE_TTL = 10 * 60 * 1000; // 10 minutes
+
 // Middleware: verify session cookie
 async function requireAuth(req, res, next) {
   const token = req.cookies?.admin_session;
@@ -95,11 +99,11 @@ router.get('/me', requireAuth, async (req, res) => {
 // GET /api/admin/auth/slack — initiate OAuth
 router.get('/auth/slack', (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
-  res.cookie('oauth_state', state, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 10 * 60 * 1000 });
+  oauthStates.set(state, Date.now() + OAUTH_STATE_TTL);
 
   const params = new URLSearchParams({
     client_id: process.env.SLACK_CLIENT_ID,
-    scope: 'identity.basic,identity.avatar',
+    user_scope: 'identity.basic,identity.email',
     redirect_uri: process.env.ADMIN_OAUTH_REDIRECT_URI,
     state
   });
@@ -110,13 +114,14 @@ router.get('/auth/slack', (req, res) => {
 // GET /api/admin/auth/callback — handle OAuth callback
 router.get('/auth/callback', async (req, res) => {
   const { code, state } = req.query;
-  const savedState = req.cookies?.oauth_state;
+  const expiry = oauthStates.get(state);
 
-  if (!state || state !== savedState) {
+  if (!state || !expiry || Date.now() > expiry) {
+    oauthStates.delete(state);
     return res.redirect('/admin/login?error=invalid_state');
   }
 
-  res.clearCookie('oauth_state');
+  oauthStates.delete(state);
 
   try {
     if (!code) return res.redirect('/admin/login?error=oauth_denied');
@@ -177,7 +182,8 @@ router.get('/auth/callback', async (req, res) => {
       sameSite: 'lax'
     });
 
-    res.redirect('/admin/dashboard');
+    const appUrl = process.env.APP_URL || '';
+    res.redirect(`${appUrl}/admin/dashboard`);
   } catch (err) {
     console.error('OAuth callback error:', err);
     res.redirect('/admin/login?error=oauth_failed');
