@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Users } from 'lucide-react';
 import { DataTable } from '../../components/admin/DataTable';
 import { StatusBadge } from '../../components/admin/StatusBadge';
 import { AdminModal } from '../../components/admin/AdminModal';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
+
+interface Team {
+  id: string;
+  name: string;
+}
 
 interface Member {
   id: string;
@@ -12,7 +17,7 @@ interface Member {
   slackUserId: string;
   name: string;
   role: string;
-  teams: { id: string; name: string }[];
+  teams: { teamMemberId: string; id: string; name: string }[];
   receiveNotifications: boolean;
   lastStandupDate: string | null;
   joinedAt: string;
@@ -22,6 +27,7 @@ type ModalState =
   | { type: 'add'; orgId: string }
   | { type: 'role'; member: Member }
   | { type: 'delete'; member: Member }
+  | { type: 'manageTeams'; member: Member }
   | null;
 
 const ROLES = ['MEMBER', 'ADMIN', 'OWNER'] as const;
@@ -35,6 +41,10 @@ export default function AdminMembers() {
   const [selectedRole, setSelectedRole] = useState<string>('MEMBER');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [addTeamId, setAddTeamId] = useState('');
+  const [addTeamRole, setAddTeamRole] = useState<'MEMBER' | 'ADMIN'>('MEMBER');
+  const [managingMember, setManagingMember] = useState<Member | null>(null);
 
   const effectiveOrgId = (location.state as { orgId?: string } | null)?.orgId || activeOrgId;
 
@@ -64,6 +74,17 @@ export default function AdminMembers() {
     setSelectedRole(member.role);
     setError('');
     setModal({ type: 'role', member });
+  };
+
+  const openManageTeams = async (member: Member) => {
+    setError('');
+    setAddTeamId('');
+    setAddTeamRole('MEMBER');
+    setManagingMember(member);
+    setModal({ type: 'manageTeams', member });
+    if (!effectiveOrgId) return;
+    const res = await fetch(`/api/admin/teams?orgId=${effectiveOrgId}`, { credentials: 'include' });
+    if (res.ok) setTeams(await res.json());
   };
 
   const handleAdd = async () => {
@@ -117,6 +138,43 @@ export default function AdminMembers() {
     setModal(null);
   };
 
+  const handleAddToTeam = async () => {
+    if (!addTeamId) { setError('Please select a team.'); return; }
+    if (!managingMember) return;
+    setSaving(true);
+    setError('');
+    const res = await fetch('/api/admin/team-members', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ userId: managingMember.userId, teamId: addTeamId, role: addTeamRole }),
+    });
+    setSaving(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || 'Failed to add to team.');
+      return;
+    }
+    const added = await res.json();
+    const updatedMember = { ...managingMember, teams: [...managingMember.teams, added] };
+    setManagingMember(updatedMember);
+    setMembers(prev => prev.map(m => m.id === managingMember.id ? updatedMember : m));
+    setAddTeamId('');
+    setAddTeamRole('MEMBER');
+  };
+
+  const handleRemoveFromTeam = async (teamMemberId: string) => {
+    if (!managingMember) return;
+    setSaving(true);
+    setError('');
+    const res = await fetch(`/api/admin/team-members/${teamMemberId}`, { method: 'DELETE', credentials: 'include' });
+    setSaving(false);
+    if (!res.ok) { setError('Failed to remove from team.'); return; }
+    const updatedMember = { ...managingMember, teams: managingMember.teams.filter(t => t.teamMemberId !== teamMemberId) };
+    setManagingMember(updatedMember);
+    setMembers(prev => prev.map(m => m.id === managingMember.id ? updatedMember : m));
+  };
+
   const roleVariant = (role: string) =>
     role === 'OWNER' ? 'owner' : role === 'ADMIN' ? 'admin' : 'member';
 
@@ -155,6 +213,13 @@ export default function AdminMembers() {
             key: 'actions', label: '',
             render: (m) => (
               <div className="flex items-center gap-3">
+                <button
+                  onClick={(e) => { e.stopPropagation(); openManageTeams(m); }}
+                  className="text-white/40 hover:text-green-400 transition-colors"
+                  title="Manage teams"
+                >
+                  <Users size={14} />
+                </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); openRoleEdit(m); }}
                   className="text-white/40 hover:text-[#00CFFF] transition-colors"
@@ -256,6 +321,79 @@ export default function AdminMembers() {
               className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
             >
               {saving ? 'Removing…' : 'Remove'}
+            </button>
+          </div>
+        </div>
+      </AdminModal>
+
+      {/* Manage Teams Modal */}
+      <AdminModal
+        isOpen={modal?.type === 'manageTeams'}
+        onClose={() => { setModal(null); setManagingMember(null); }}
+        title={`Manage Teams — ${managingMember?.name ?? ''}`}
+      >
+        <div className="space-y-4">
+          <div>
+            <p className="text-xs text-white/50 mb-2">Current Teams</p>
+            {managingMember?.teams.length === 0 ? (
+              <p className="text-sm text-white/30">Not in any teams.</p>
+            ) : (
+              <div className="space-y-2">
+                {managingMember?.teams.map(t => (
+                  <div key={t.teamMemberId} className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2">
+                    <span className="text-sm text-white">{t.name}</span>
+                    <button
+                      onClick={() => handleRemoveFromTeam(t.teamMemberId)}
+                      disabled={saving}
+                      className="text-xs text-red-400 hover:text-red-300 transition-colors disabled:opacity-50"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="border-t border-white/10 pt-4">
+            <p className="text-xs text-white/50 mb-2">Add to Team</p>
+            <div className="flex gap-2">
+              <select
+                className="flex-1 bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00CFFF]/50"
+                value={addTeamId}
+                onChange={e => setAddTeamId(e.target.value)}
+              >
+                <option value="">Select team…</option>
+                {teams
+                  .filter(t => !managingMember?.teams.some(mt => mt.id === t.id))
+                  .map(t => <option key={t.id} value={t.id}>{t.name}</option>)
+                }
+              </select>
+              <select
+                className="bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00CFFF]/50"
+                value={addTeamRole}
+                onChange={e => setAddTeamRole(e.target.value as 'MEMBER' | 'ADMIN')}
+              >
+                <option value="MEMBER">MEMBER</option>
+                <option value="ADMIN">ADMIN</option>
+              </select>
+              <button
+                onClick={handleAddToTeam}
+                disabled={saving || !addTeamId}
+                className="px-3 py-2 bg-[#00CFFF] hover:bg-[#00CFFF]/90 text-black text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+              >
+                {saving ? '…' : 'Add'}
+              </button>
+            </div>
+          </div>
+
+          {error && <p className="text-red-400 text-xs">{error}</p>}
+          <div className="flex justify-end pt-1">
+            <button
+              onClick={() => { setModal(null); setManagingMember(null); }}
+              className="px-4 py-2 text-sm text-white/50 hover:text-white transition-colors"
+            >
+              Done
             </button>
           </div>
         </div>
