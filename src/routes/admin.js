@@ -612,6 +612,72 @@ router.delete('/members/:id', requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/admin/team-members — add user to a team
+router.post('/team-members', requireAuth, async (req, res) => {
+  try {
+    const { userId, teamId, role } = req.body;
+    if (!userId || !teamId) return res.status(400).json({ error: 'userId and teamId are required.' });
+    const validRoles = ['ADMIN', 'MEMBER'];
+    if (role && !validRoles.includes(role)) return res.status(400).json({ error: 'Invalid role. Must be ADMIN or MEMBER.' });
+
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      select: { organizationId: true, deletedAt: true, name: true }
+    });
+    if (!team || team.deletedAt) return res.status(404).json({ error: 'Team not found.' });
+    const allowed = await verifyOrgAccess(req, res, team.organizationId);
+    if (!allowed) return;
+
+    const existing = await prisma.teamMember.findUnique({
+      where: { teamId_userId: { teamId, userId } }
+    });
+
+    let teamMember;
+    if (existing) {
+      teamMember = await prisma.teamMember.update({
+        where: { id: existing.id },
+        data: { role: role || 'MEMBER', isActive: true, deletedAt: null }
+      });
+    } else {
+      teamMember = await prisma.teamMember.create({
+        data: { teamId, userId, role: role || 'MEMBER', isActive: true }
+      });
+    }
+
+    res.status(201).json({
+      teamMemberId: teamMember.id,
+      id: teamId,
+      name: team.name,
+      role: teamMember.role
+    });
+  } catch (err) {
+    console.error('POST /team-members error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// DELETE /api/admin/team-members/:id — remove user from a team (soft delete)
+router.delete('/team-members/:id', requireAuth, async (req, res) => {
+  try {
+    const teamMember = await prisma.teamMember.findUnique({
+      where: { id: req.params.id },
+      include: { team: { select: { organizationId: true } } }
+    });
+    if (!teamMember || teamMember.deletedAt) return res.status(404).json({ error: 'Not found' });
+    const allowed = await verifyOrgAccess(req, res, teamMember.team.organizationId);
+    if (!allowed) return;
+
+    await prisma.teamMember.update({
+      where: { id: req.params.id },
+      data: { deletedAt: new Date() }
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('DELETE /team-members/:id error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // GET /api/admin/holidays?orgId=
 router.get('/holidays', requireAuth, async (req, res) => {
   try {
