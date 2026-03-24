@@ -18,9 +18,12 @@ export function AdminSidebar() {
 
   return (
     <aside className="w-56 bg-[#0d1117] border-r border-white/10 flex flex-col h-screen sticky top-0">
-      <div className="px-4 py-5 border-b border-white/10">
-        <span className="text-[#00CFFF] font-bold text-lg tracking-tight">Daily Dose</span>
-        <span className="text-white/40 text-xs ml-2">Admin</span>
+      <div className="px-4 py-5 border-b border-white/10 flex items-center gap-3">
+        <img src="/logo.png" alt="Daily Dose" className="w-8 h-8 rounded-lg shrink-0" />
+        <div>
+          <span className="text-[#00CFFF] font-bold text-sm tracking-tight">Daily Dose</span>
+          <span className="text-white/40 text-xs ml-1">Admin</span>
+        </div>
       </div>
       <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
         {navItems

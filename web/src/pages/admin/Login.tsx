@@ -14,6 +14,7 @@ export default function AdminLogin() {
     <div className="min-h-screen bg-[#0a0f16] flex items-center justify-center p-4">
       <div className="bg-[#161b22] border border-white/10 rounded-2xl p-8 w-full max-w-sm text-center">
         <div className="mb-6">
+          <img src="/logo.png" alt="Daily Dose" className="w-16 h-16 mx-auto mb-3 rounded-2xl" />
           <span className="text-[#00CFFF] font-bold text-2xl">Daily Dose</span>
           <p className="text-white/40 text-sm mt-1">Admin Dashboard</p>
         </div>
