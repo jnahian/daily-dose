@@ -391,12 +391,28 @@ router.put('/teams/:id', requireAuth, async (req, res) => {
     if (!team || team.deletedAt) return res.status(404).json({ error: 'Not found' });
     const allowed = await verifyOrgAccess(req, res, team.organizationId);
     if (!allowed) return;
-    const { standupTime, postingTime, timezone, isActive } = req.body;
+    const { name, standupTime, postingTime, timezone, isActive } = req.body;
     const updated = await prisma.team.update({
       where: { id: req.params.id },
-      data: { standupTime, postingTime, timezone, isActive }
+      data: {
+        ...(name !== undefined && { name: name.trim() }),
+        ...(standupTime !== undefined && { standupTime }),
+        ...(postingTime !== undefined && { postingTime }),
+        ...(timezone !== undefined && { timezone }),
+        ...(isActive !== undefined && { isActive }),
+      },
+      include: { _count: { select: { members: true } } }
     });
-    res.json(updated);
+    res.json({
+      id: updated.id,
+      name: updated.name,
+      slackChannelId: updated.slackChannelId,
+      standupTime: updated.standupTime,
+      postingTime: updated.postingTime,
+      timezone: updated.timezone,
+      isActive: updated.isActive,
+      memberCount: updated._count.members
+    });
   } catch (err) {
     console.error('PUT /teams/:id error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
