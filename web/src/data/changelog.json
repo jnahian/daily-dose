@@ -1,9 +1,35 @@
 {
   "versions": [
     {
+      "version": "1.4.4",
+      "date": "2026-03-18",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Web Application Enhancements",
+          "items": [
+            "Added favicon and app icons for better branding across all devices",
+            "Progressive Web App (PWA) support with manifest file",
+            "iOS home screen icon support for a native app-like experience",
+            "Multiple icon sizes for optimal display on any device"
+          ]
+        },
+        {
+          "type": "added",
+          "title": "Development Tools",
+          "items": [
+            "Docker Compose configuration for easier local development setup",
+            "Git Town configuration for streamlined branch management",
+            "Environment setup examples for admin configuration"
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.4.3",
       "date": "2026-02-05",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "added",
