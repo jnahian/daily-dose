@@ -1,6 +1,7 @@
 
 import { Check, AlertCircle, Wrench, Shield, AlertTriangle, Trash2 } from 'lucide-react';
 import type { ChangeItem } from '../../types/changelog';
+import { formatDate } from '../../utils/dateUtils';
 
 interface VersionCardProps {
   version: string;
@@ -46,7 +47,7 @@ export const VersionCard = ({ version, date, isLatest, changes }: VersionCardPro
           >
             v{version}
           </div>
-          <span className="text-text-secondary text-sm">{date}</span>
+          <span className="text-text-secondary text-sm">{formatDate(date)}</span>
         </div>
         {isLatest && (
           <span className="px-3 py-1 bg-green-500/20 text-green-400 text-xs font-semibold rounded-full uppercase tracking-wide border border-green-500/30">

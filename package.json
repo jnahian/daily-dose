@@ -1,6 +1,6 @@
 {
   "name": "daily-dose",
-  "version": "1.4.0",
+  "version": "1.4.3",
   "main": "index.js",
   "directories": {
     "doc": "docs"
@@ -8,8 +8,12 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon --ignore 'logs/' --ignore 'temp/' src/app.js",
+    "dev:web": "cd web && npm run dev",
+    "dev:watch": "cd web && npx vite build --watch",
+    "dev:all": "concurrently --names \"bot,watch,tunnel\" --prefix-colors \"cyan,magenta,yellow\" \"npm run dev\" \"npm run dev:watch\" \"ngrok start --config ./ngrok.yml daily-dose-dev\"",
     "seed": "node scripts/seedOrg.js",
     "org:add-admin": "node scripts/addOrgAdmin.js",
+    "super-admin:add": "node scripts/addSuperAdmin.js",
     "manifest:create": "node scripts/updateSlackManifest.js --create",
     "manifest:update": "node scripts/updateSlackManifest.js",
     "manifest:dry-run": "node scripts/updateSlackManifest.js --dry-run",
@@ -20,11 +24,12 @@
     "team:promote": "node scripts/promoteTeamMember.js",
     "debug:scheduler": "node scripts/debugScheduler.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "version:patch": "npm version patch --no-git-tag-version -m '🔖 Release v%s' && git add package.json && git commit -m '🔖 Bump version to v'$(node -p \"require('./package.json').version\")",
-    "version:minor": "npm version minor --no-git-tag-version -m '🔖 Release v%s' && git add package.json && git commit -m '🔖 Bump version to v'$(node -p \"require('./package.json').version\")",
-    "version:major": "npm version major --no-git-tag-version -m '🔖 Release v%s' && git add package.json && git commit -m '🔖 Bump version to v'$(node -p \"require('./package.json').version\")",
+    "version:patch": "npm version patch --no-git-tag-version",
+    "version:minor": "npm version minor --no-git-tag-version",
+    "version:major": "npm version major --no-git-tag-version",
     "version:check": "node scripts/checkVersion.js",
     "preversion": "npm run version:check && git diff --exit-code",
+    "postversion": "git add package.json package-lock.json && git commit -m '🔖 Bump version to v'$(node -p \"require('./package.json').version\")",
     "release": "git tag v$(node -p \"require('./package.json').version\") && git push && git push --tags"
   },
   "keywords": [
@@ -39,12 +44,14 @@
   "dependencies": {
     "@prisma/client": "^6.15.0",
     "@slack/bolt": "^4.4.0",
+    "cookie-parser": "^1.4.7",
     "dayjs": "^1.11.18",
     "dotenv": "^17.2.2",
     "node-cron": "^4.2.1"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
+    "concurrently": "^9.2.1",
     "eslint": "^9.34.0",
     "nodemon": "^3.1.10",
     "prisma": "^6.15.0",

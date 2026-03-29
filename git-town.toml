@@ -1,0 +1,8 @@
+# See https://www.git-town.com/configuration-file for details
+
+[branches]
+main = "main"
+perennials = ["dev"]
+
+[hosting]
+forge-type = "github"

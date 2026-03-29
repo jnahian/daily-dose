@@ -1,3 +1,5 @@
+import { formatCurrentDate } from '../utils/dateUtils';
+
 export const meta = () => {
   return [
     { title: 'Terms of Service - Daily Dose | Slack Bot' },
@@ -29,7 +31,7 @@ const TermsOfService = () => {
         <h1 className="text-4xl font-bold mb-8">Terms of Service</h1>
         <div className="prose prose-invert max-w-none">
           <p className="text-text-secondary mb-6">
-            Last updated: {new Date().toLocaleDateString()}
+            Last updated: {formatCurrentDate()}
           </p>
 
           <section className="mb-8">

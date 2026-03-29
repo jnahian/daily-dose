@@ -31,8 +31,15 @@ receiver.app.get('/health', (req, res) => {
   });
 });
 
-// Serve static files from web/dist directory (React SPA)
 const express = require('express');
+const cookieParser = require('cookie-parser');
+const { router: adminRouter } = require('./routes/admin');
+
+receiver.app.use(cookieParser());
+receiver.app.use(express.json());
+receiver.app.use('/api/admin', adminRouter);
+
+// Serve static files from web/dist directory (React SPA)
 receiver.app.use(express.static(path.join(__dirname, '../web/dist')));
 
 // SPA fallback - serve index.html for all other routes (client-side routing)
