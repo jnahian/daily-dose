@@ -1,9 +1,24 @@
 {
   "versions": [
     {
-      "version": "1.4.5",
+      "version": "1.4.6",
       "date": "2026-03-30",
       "isLatest": true,
+      "changes": [
+        {
+          "type": "changed",
+          "title": "GitHub Repository Link",
+          "items": [
+            "The 'Add to Slack' button now links to the GitHub repository",
+            "Easily access the source code directly from the homepage"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.4.5",
+      "date": "2026-03-30",
+      "isLatest": false,
       "changes": [
         {
           "type": "fixed",
