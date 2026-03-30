@@ -61,9 +61,10 @@ cd daily-dose
 # 2. Install dependencies
 npm install
 
-# 3. Copy and fill in environment variables
-cp .env.example .env
-# Edit .env with your Slack tokens and database URL
+# 3. Set up environment variables
+# Create a .env file — see DEPLOYMENT.md for all required variables
+touch .env
+# Fill in your Slack tokens and database URL
 
 # 4. Generate Prisma client and push schema
 npx prisma generate
@@ -112,7 +113,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) format:
 type(scope): brief description
 ```
 
-**Types:** `feat`, `fix`, `docs`, `refactor`, `style`, `chore`
+**Types:** `feat`, `fix`, `docs`, `refactor`, `style`, `test`, `chore`
 
 **Examples:**
 ```
@@ -123,7 +124,7 @@ docs(readme): update command reference
 
 - Keep the subject line under 72 characters
 - Use the imperative mood ("add" not "added")
-- Focus on *why*, not *what*
+- Where possible, focus on *why*, not just *what*
 
 ---
 
