@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import { motion } from 'framer-motion';
-import { ArrowRight, Slack } from 'lucide-react';
+import { ArrowRight, Github } from 'lucide-react';
 
 export const Hero = () => {
   return (
@@ -33,10 +33,15 @@ export const Hero = () => {
                 meeting fatigue.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center">
-                <button className="px-8 py-4 bg-gradient-to-r from-brand-cyan to-brand-blue rounded-full text-white font-bold text-lg hover:shadow-[0_0_20px_rgba(0,207,255,0.5)] transition-all transform hover:-translate-y-1 flex items-center gap-2 cursor-pointer">
-                  <Slack size={20} />
-                  Add to Slack
-                </button>
+                <a
+                  href="https://github.com/jnahian/daily-dose"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-8 py-4 bg-gradient-to-r from-brand-cyan to-brand-blue rounded-full text-white font-bold text-lg hover:shadow-[0_0_20px_rgba(0,207,255,0.5)] transition-all transform hover:-translate-y-1 flex items-center gap-2 cursor-pointer"
+                >
+                  <Github size={20} />
+                  View on GitHub
+                </a>
                 <Link
                   to="/docs"
                   className="px-8 py-4 bg-bg-surface border border-border-default rounded-full text-text-primary font-semibold hover:bg-bg-surface/80 transition-all flex items-center gap-2"

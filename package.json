@@ -37,6 +37,10 @@
   "author": "Sh Julkar Naen Nahian",
   "license": "ISC",
   "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jnahian/daily-dose"
+  },
   "dependencies": {
     "@prisma/client": "^6.15.0",
     "@slack/bolt": "^4.4.0",

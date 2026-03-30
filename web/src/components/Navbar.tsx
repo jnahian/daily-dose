@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router';
-import { Terminal, History, Book, Slack, Menu, X, Home as HomeIcon, Network } from 'lucide-react';
+import { Terminal, History, Book, Github, Menu, X, Home as HomeIcon, Network } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 
 // Define menu structure
@@ -123,10 +123,14 @@ export const Navbar = () => {
               ))}
             </div>
 
-            <button className="bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-cyan px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 border border-brand-blue/20">
-              <Slack size={16} />
-              Add to Slack
-            </button>
+            <a
+              href="https://github.com/jnahian/daily-dose"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-cyan px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 border border-brand-blue/20">
+              <Github size={16} />
+              GitHub
+            </a>
 
             <div className="ml-2 pl-2 border-l border-border-default">
               <ThemeToggle />
