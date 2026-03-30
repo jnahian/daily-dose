@@ -169,6 +169,7 @@ class SchedulerService {
 
         await this.app.client.chat.postMessage({
           channel: member.user.slackUserId,
+          text: randomMessage,
           blocks: [
             createSectionBlock(randomMessage),
             createSectionBlock(`*Team:* ${team.name}`),
@@ -221,6 +222,7 @@ class SchedulerService {
 
         await this.app.client.chat.postMessage({
           channel: member.user.slackUserId,
+          text: randomFollowupMessage,
           blocks: [
             createSectionBlock(randomFollowupMessage),
             createSectionBlock(`*Team:* ${team.name}`),
