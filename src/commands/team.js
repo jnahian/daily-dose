@@ -6,7 +6,7 @@ const { formatTime12Hour } = require("../utils/dateHelper");
 const { createSectionBlock } = require("../utils/blockHelper");
 
 async function createTeam({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Creating team...",
@@ -78,7 +78,7 @@ async function createTeam({ command, ack, respond, client }) {
 }
 
 async function joinTeam({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Joining team...",
@@ -130,7 +130,7 @@ async function joinTeam({ command, ack, respond, client }) {
 }
 
 async function leaveTeam({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Leaving team...",
@@ -176,7 +176,7 @@ async function leaveTeam({ command, ack, respond, client }) {
 }
 
 async function listTeams({ command, ack, respond }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Loading teams...",
@@ -219,7 +219,7 @@ async function listTeams({ command, ack, respond }) {
 }
 
 async function listMembers({ command, ack, respond }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Loading team members...",
@@ -287,7 +287,7 @@ async function listMembers({ command, ack, respond }) {
 }
 
 async function updateTeam({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Updating team...",

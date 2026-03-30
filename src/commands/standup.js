@@ -34,7 +34,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 async function submitManual({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Loading standup form...",
@@ -336,7 +336,7 @@ async function handleStandupSubmission({ ack, body, view, client }) {
 }
 
 async function updateStandup({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Loading standup update...",
@@ -629,7 +629,7 @@ async function handleStandupUpdateSubmission({ ack, body, view, client }) {
  * Usage: /dd-standup-remind [team-name]
  */
 async function sendReminders({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Sending standup reminders...",
@@ -718,7 +718,7 @@ async function sendReminders({ command, ack, respond, client }) {
  * Usage: /dd-standup-post [date] [team-name]
  */
 async function postStandup({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Posting standup summary...",
@@ -852,7 +852,7 @@ async function postStandup({ command, ack, respond, client }) {
  * Usage: /dd-standup-preview [date] [team-name]
  */
 async function previewStandup({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Generating standup preview...",
@@ -1032,7 +1032,7 @@ async function previewStandup({ command, ack, respond, client }) {
  * Usage: /dd-standup-followup [team-name]
  */
 async function sendFollowupReminders({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Sending followup reminders...",

@@ -3,7 +3,7 @@ const { ackWithProcessing } = require("../utils/commandHelper");
 const { createSectionBlock } = require("../utils/blockHelper");
 
 async function toggleStandupReminder({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Updating standup reminder preferences...",

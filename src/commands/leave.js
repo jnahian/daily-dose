@@ -7,7 +7,7 @@ const { createSectionBlock } = require("../utils/blockHelper");
 const permissionHelper = require("../utils/permissionHelper");
 
 async function setLeave({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Setting leave...",
@@ -82,7 +82,7 @@ async function setLeave({ command, ack, respond, client }) {
 }
 
 async function cancelLeave({ command, ack, respond }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Cancelling leave...",
@@ -112,7 +112,7 @@ async function cancelLeave({ command, ack, respond }) {
 }
 
 async function listLeaves({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Loading leaves...",
@@ -176,7 +176,7 @@ async function listLeaves({ command, ack, respond, client }) {
 }
 
 async function setWorkDays({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Setting work days...",
@@ -232,7 +232,7 @@ async function setWorkDays({ command, ack, respond, client }) {
 }
 
 async function showWorkDays({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Loading work days...",
@@ -306,7 +306,7 @@ async function showWorkDays({ command, ack, respond, client }) {
 }
 
 async function setMemberLeave({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Setting member leave...",
@@ -510,7 +510,7 @@ async function setMemberLeave({ command, ack, respond, client }) {
 }
 
 async function cancelMemberLeave({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Cancelling member leave...",
@@ -663,7 +663,7 @@ async function cancelMemberLeave({ command, ack, respond, client }) {
 }
 
 async function listMemberLeaves({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Loading member leaves...",

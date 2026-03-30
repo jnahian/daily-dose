@@ -5,7 +5,7 @@ const { createSectionBlock } = require("../utils/blockHelper");
 const dayjs = require("dayjs");
 
 async function setHoliday({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Setting holiday...",
@@ -155,7 +155,7 @@ async function setHoliday({ command, ack, respond, client }) {
 }
 
 async function updateHoliday({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Updating holiday...",
@@ -251,7 +251,7 @@ async function updateHoliday({ command, ack, respond, client }) {
 }
 
 async function deleteHoliday({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Deleting holiday...",
@@ -373,7 +373,7 @@ async function deleteHoliday({ command, ack, respond, client }) {
 }
 
 async function listHolidays({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Fetching holidays...",
