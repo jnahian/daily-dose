@@ -7,6 +7,7 @@ This guide covers the setup and deployment of the Daily Dose bot to a Hetzner VP
 - [Slack App Setup](#slack-app-setup)
 - [Database Setup (Supabase)](#database-setup-supabase)
 - [Environment Variables Reference](#environment-variables-reference)
+- [Prerequisites](#prerequisites)
 - [VPS Initial Setup](#vps-initial-setup)
 - [SSH Key Setup](#ssh-key-setup)
 - [Firewall Configuration](#firewall-configuration)
@@ -46,9 +47,9 @@ This guide covers the setup and deployment of the Daily Dose bot to a Hetzner VP
 |-------|---------|
 | `channels:read` | Resolve channel names |
 
-### 4. Enable Socket Mode
+### 4. Disable Socket Mode
 
-Daily Dose does **not** use Socket Mode — it uses HTTP endpoints. Make sure **Socket Mode is off** in your app settings.
+Daily Dose uses HTTP endpoints, not Socket Mode. Make sure **Socket Mode is off** in your app settings (Features → Socket Mode).
 
 ### 5. Collect Your Tokens
 
@@ -58,7 +59,6 @@ After installing the app to your workspace, collect:
 |-------|-----------------|
 | `SLACK_BOT_TOKEN` | OAuth & Permissions → Bot User OAuth Token (`xoxb-...`) |
 | `SLACK_SIGNING_SECRET` | Basic Information → Signing Secret |
-| `SLACK_APP_TOKEN` | Basic Information → App-Level Tokens (create one with `connections:write`) |
 | `SLACK_USER_TOKEN` | OAuth & Permissions → User OAuth Token (`xoxp-...`) |
 
 ---
@@ -89,13 +89,13 @@ This creates all tables defined in `prisma/schema.prisma`.
 
 ## Environment Variables Reference
 
-Copy `.env.example` to `.env` and fill in the values below.
+Create a `.env` file at the project root and fill in the values below.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `SLACK_BOT_TOKEN` | Yes | Bot OAuth token (`xoxb-...`) |
 | `SLACK_SIGNING_SECRET` | Yes | Slack app signing secret |
-| `SLACK_APP_TOKEN` | Yes | App-level token (`xapp-...`) |
+| `SLACK_APP_TOKEN` | No | App-level token — not required for HTTP mode |
 | `SLACK_USER_TOKEN` | Yes | User OAuth token (`xoxp-...`) |
 | `DATABASE_URL` | Yes | Supabase pooled connection URL |
 | `DIRECT_URL` | Yes | Supabase direct connection URL |
@@ -256,7 +256,7 @@ sudo certbot --nginx -d your-domain.com
 
 Update your `.env`:
 
-```env
+```
 APP_URL=https://your-domain.com
 ```
 
