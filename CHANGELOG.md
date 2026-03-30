@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.5] - 2026-03-30
+
+### Fixed
+
+- Fixed all slash commands failing with "app did not respond" error in production
+  - `ackWithProcessing` now properly awaits `ack()` as required by Bolt v4
+  - Without `await`, the HTTP acknowledgment to Slack was not guaranteed to send within the 3-second window
+  - Affected all `/dd-*` commands across team, leave, standup, holiday, and preferences modules
+- Added missing `text` fallback argument to `chat.postMessage` calls in standup and followup reminders
+  - Required by Slack for push notifications and screen reader accessibility
+
 ## [1.4.4] - 2026-03-18
 
 ### Added

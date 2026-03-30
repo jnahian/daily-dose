@@ -1,9 +1,24 @@
 {
   "versions": [
     {
+      "version": "1.4.5",
+      "date": "2026-03-30",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "fixed",
+          "title": "Slash Commands Now Work Reliably",
+          "items": [
+            "Fixed a critical issue where all /dd-* slash commands failed with 'app did not respond'",
+            "Commands now respond immediately and consistently in all environments"
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.4.4",
       "date": "2026-03-18",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "added",
