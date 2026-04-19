@@ -23,6 +23,8 @@ const {
   createButton,
   createActionsBlock,
   createSectionBlock,
+  createFieldsBlock,
+  createDividerBlock,
   createCommandSuccessBlocks,
   createCommandErrorBlocks,
   createPermissionDeniedBlocks,
@@ -1119,6 +1121,153 @@ async function sendFollowupReminders({ command, ack, respond, client }) {
   }
 }
 
+async function showHistory({ command, ack, respond }) {
+  const updateResponse = await ackWithProcessing(
+    ack,
+    respond,
+    "Loading your standup history...",
+    command
+  );
+
+  try {
+    const args = (command.text || "").trim().split(/\s+/).filter(Boolean);
+
+    if (args.length > 2) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          "Too many arguments",
+          [
+            "Usage: `/dd-standup-history [start-date] [end-date]`",
+            "Dates must be in YYYY-MM-DD format",
+          ]
+        ),
+      });
+      return;
+    }
+
+    for (const arg of args) {
+      const validation = validateDateFormat(arg);
+      if (!validation.isValid) {
+        await updateResponse({
+          blocks: createCommandErrorBlocks(validation.error, [
+            "Use format: YYYY-MM-DD (e.g., 2025-01-15)",
+          ]),
+        });
+        return;
+      }
+    }
+
+    let startDate;
+    let endDate;
+    let rangeLabel;
+
+    if (args.length === 0) {
+      const lastDate = await standupService.getUserLastSubmissionDate(
+        command.user_id
+      );
+
+      if (!lastDate) {
+        await updateResponse({
+          blocks: createNoDataBlocks("standup submissions"),
+        });
+        return;
+      }
+
+      startDate = dayjs(lastDate).format("YYYY-MM-DD");
+      endDate = startDate;
+      rangeLabel = `last submitted day (${dayjs(lastDate).format("MMM DD, YYYY")})`;
+    } else if (args.length === 1) {
+      startDate = args[0];
+      endDate = args[0];
+      rangeLabel = dayjs(startDate).format("MMM DD, YYYY");
+    } else {
+      const [first, second] = args;
+      if (dayjs(first).isAfter(dayjs(second))) {
+        startDate = second;
+        endDate = first;
+      } else {
+        startDate = first;
+        endDate = second;
+      }
+      rangeLabel = `${dayjs(startDate).format("MMM DD, YYYY")} – ${dayjs(endDate).format("MMM DD, YYYY")}`;
+    }
+
+    const responses = await standupService.getUserStandupHistory(
+      command.user_id,
+      startDate,
+      endDate
+    );
+
+    if (responses.length === 0) {
+      await updateResponse({
+        blocks: createNoDataBlocks("your standup submissions", rangeLabel),
+      });
+      return;
+    }
+
+    const blocks = [
+      {
+        type: "header",
+        text: {
+          type: "plain_text",
+          text: `📚 Your Standup History`,
+          emoji: true,
+        },
+      },
+      createSectionBlock(`*Range:* ${rangeLabel}  •  *Entries:* ${responses.length}`),
+      createDividerBlock(),
+    ];
+
+    for (const response of responses) {
+      const dateStr = dayjs(response.standupDate).format("ddd, MMM DD, YYYY");
+      const lateTag = response.isLate ? "  🕐 _late_" : "";
+      blocks.push(
+        createSectionBlock(`*🗓️ ${dateStr}  •  #${response.team.name}*${lateTag}`)
+      );
+
+      const fields = [];
+      if (response.yesterdayTasks) {
+        fields.push({
+          type: "mrkdwn",
+          text: `*📄 Last Working Day*\n${response.yesterdayTasks}`,
+        });
+      }
+      if (response.todayTasks) {
+        fields.push({
+          type: "mrkdwn",
+          text: `*🎯 Today*\n${response.todayTasks}`,
+        });
+      }
+      if (fields.length > 0) {
+        blocks.push(createFieldsBlock(fields));
+      }
+
+      if (response.blockers && response.blockers.trim()) {
+        blocks.push({
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: `⚠️ *Blocker:* _${response.blockers}_`,
+            },
+          ],
+        });
+      }
+
+      blocks.push(createDividerBlock());
+    }
+
+    await updateResponse({ blocks });
+  } catch (error) {
+    console.error("Error in showHistory command:", error);
+    await updateResponse({
+      blocks: createCommandErrorBlocks(
+        `Failed to load standup history: ${error.message}`
+      ),
+    });
+  }
+}
+
 module.exports = {
   submitManual,
   openStandupModal,
@@ -1129,4 +1278,5 @@ module.exports = {
   postStandup,
   previewStandup,
   sendFollowupReminders,
+  showHistory,
 };

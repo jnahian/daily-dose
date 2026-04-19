@@ -129,6 +129,9 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
 /dd-standup-update MyTeam       # Update today's standup for specific team
 /dd-standup-update 2024-12-20   # Update standup for specific date (team in current channel)
 /dd-standup-update MyTeam 2024-12-20  # Update standup for specific date and team
+/dd-standup-history             # View your submissions from your last submitted day
+/dd-standup-history 2024-12-20  # View your submissions for a specific date
+/dd-standup-history 2024-12-15 2024-12-20  # View your submissions across a date range
 ```
 
 ## ⚡ Slash Commands
@@ -143,6 +146,11 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
   - **Channel-based with date**: `/dd-standup-update 2024-12-20` (updates specific date for team in current channel)
   - **Name-based**: `/dd-standup-update Engineering` (updates today's standup for specific team)
   - **Name-based with date**: `/dd-standup-update Engineering 2024-12-20` (updates specific date for specific team)
+- `/dd-standup-history [start-date] [end-date]` - View your own submitted standups across all your teams (ephemeral)
+  - **No arguments**: shows your submissions from your last submitted day
+  - **Single date**: `/dd-standup-history 2024-12-20` (shows your submissions for that date)
+  - **Date range**: `/dd-standup-history 2024-12-15 2024-12-20` (inclusive range, order-independent)
+  - Dates must be in `YYYY-MM-DD` format
 - `/dd-standup-reminder [team-name] mention=on/off notify=on/off` - Control reminder and mention preferences
   - **Channel-based operation** (when no team name provided):
     - `/dd-standup-reminder mention=off` - Opt out of "not responded" list for team in current channel

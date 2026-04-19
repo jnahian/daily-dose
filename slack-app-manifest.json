@@ -121,6 +121,13 @@
                 "should_escape": false
             },
             {
+                "command": "/dd-standup-history",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "View your submitted standups across all teams",
+                "usage_hint": "[start-date] [end-date]",
+                "should_escape": false
+            },
+            {
                 "command": "/dd-standup-remind",
                 "url": "{{APP_URL}}/slack/events",
                 "description": "Send standup reminders to team members (admin/owner)",

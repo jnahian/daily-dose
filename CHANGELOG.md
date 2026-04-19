@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- New `/dd-standup-history [start-date] [end-date]` slash command for members to view their own submitted standups across all their teams
+  - No arguments: returns submissions from the user's last submitted day
+  - Single date (`YYYY-MM-DD`): returns that day's submissions
+  - Two dates: inclusive date range (order-independent)
+  - Response is ephemeral; entries grouped by date with team name, yesterday/today/blockers, and late marker
+- `standupService.getUserStandupHistory(slackUserId, startDate, endDate)` — fetches the user's responses across teams within a date range, ordered by date desc
+- `standupService.getUserLastSubmissionDate(slackUserId)` — returns the most recent `standupDate` the user has submitted
+- Registered `/dd-standup-history` in `src/commands/index.js` and `slack-app-manifest.json`
+
 ## [1.4.6] - 2026-03-30
 
 ### Changed

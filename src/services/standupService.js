@@ -219,6 +219,50 @@ class StandupService {
     }
   }
 
+  async getUserStandupHistory(slackUserId, startDate, endDate) {
+    const user = await prisma.user.findUnique({
+      where: { slackUserId },
+    });
+
+    if (!user) return [];
+
+    const start = dayjs(startDate).startOf("day").toDate();
+    const end = dayjs(endDate).endOf("day").toDate();
+
+    return await prisma.standupResponse.findMany({
+      where: {
+        userId: user.id,
+        standupDate: {
+          gte: start,
+          lte: end,
+        },
+      },
+      include: {
+        team: true,
+      },
+      orderBy: [
+        { standupDate: "desc" },
+        { submittedAt: "asc" },
+      ],
+    });
+  }
+
+  async getUserLastSubmissionDate(slackUserId) {
+    const user = await prisma.user.findUnique({
+      where: { slackUserId },
+    });
+
+    if (!user) return null;
+
+    const last = await prisma.standupResponse.findFirst({
+      where: { userId: user.id },
+      orderBy: { standupDate: "desc" },
+      select: { standupDate: true },
+    });
+
+    return last?.standupDate || null;
+  }
+
   async formatStandupMessage(
     responses,
     notSubmitted,
