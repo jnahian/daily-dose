@@ -1,9 +1,26 @@
 {
   "versions": [
     {
+      "version": "1.5.0",
+      "date": "2026-04-30",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "added",
+          "title": "View Your Standup History",
+          "items": [
+            "New `/dd-standup-history` command lets you privately review your own standup submissions across all your teams",
+            "Run with no arguments to see your most recent submitted day",
+            "Pass a single date (`/dd-standup-history 2024-12-20`) to see that day, or two dates for a range",
+            "Date order doesn't matter — the bot figures it out"
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.4.6",
       "date": "2026-03-30",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "changed",
