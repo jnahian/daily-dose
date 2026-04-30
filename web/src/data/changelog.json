@@ -1,9 +1,32 @@
 {
   "versions": [
     {
-      "version": "1.5.0",
+      "version": "1.5.1",
       "date": "2026-04-30",
       "isLatest": true,
+      "changes": [
+        {
+          "type": "fixed",
+          "title": "`/dd-standup` No Longer Errors in DMs",
+          "items": [
+            "Running `/dd-standup` without a team name in a DM with the bot (or in a non-team channel) used to return a 500 error if you were on more than five teams",
+            "Now it shows a clean usage hint listing your available teams"
+          ]
+        },
+        {
+          "type": "changed",
+          "title": "Cleaner Error Messages Across All Commands",
+          "items": [
+            "All slash-command error responses now share a consistent format: a primary message plus bulleted suggestions",
+            "Affects usage hints, validation errors, and 'team not found' messages across team, leave, holiday, standup, and preferences commands"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.5.0",
+      "date": "2026-04-30",
+      "isLatest": false,
       "changes": [
         {
           "type": "added",
