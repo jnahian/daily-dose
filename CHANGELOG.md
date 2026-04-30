@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed `/dd-standup` returning a 500 error when run without a team name in a DM with the bot or in a non-team channel
+  - Previously the no-team fallback rendered `createTeamSelectionBlocks`, which builds a Slack `actions` block with one button per team and exceeds Slack's 5-element-per-actions-block limit when the user belongs to 6+ teams
+  - Replaced the team-selection fallback in `submitManual` (`src/commands/standup.js`) with a `createCommandErrorBlocks` usage hint listing the user's available teams
+- Removed unused `createTeamSelectionBlocks` import from `src/commands/standup.js`
+
+### Changed
+
+- Normalized all slash-command error responses across `standup.js`, `team.js`, `leave.js`, `holiday.js`, and `preferences.js` to use `createCommandErrorBlocks` instead of plain `text:` responses
+  - Replaces inline `❌ ...` strings with structured blocks (primary message + bulleted suggestions)
+  - Affects usage hints, "team not found" / "no team in channel" branches, validation errors, and generic catch-block fallbacks
+  - Interactive transports left untouched: `ack({text})` for action handlers, modal block content inside `client.views.update`, and `client.chat.postMessage` direct DMs
+
+### Documentation
+
+- Added `/dd-standup-history` entry to `web/src/data/docs.json` Standup Commands section so it surfaces on the `/docs` page (matching its existing presence in `README.md` and `slack-app-manifest.json`)
+- Added v1.5.0 user-facing entry to `web/src/data/changelog.json` and demoted v1.4.6 from `isLatest`
+- Trimmed `CLAUDE.md` from 556 to ~300 lines: removed the generic "Software Development Best Practices" section (KISS/DRY/YAGNI, naming, error-handling, git, React advice) and replaced with a focused "Project-Specific Conventions" section
+  - Added "Deployment & Infrastructure" pointers (`DEPLOYMENT.md`, `docker-compose.yml`, `ecosystem.config.js`, `slack-app-manifest.json`)
+  - Documented the recurring Cloudflare DNS-only requirement for Slack endpoints under Slack Integration
+  - Listed `/dd-standup-history` in the Manual Standup Trigger Commands section
+  - Noted empty `admin/` and `test/` placeholder directories
+- Removed `GEMINI.md` (was a symlink to `CLAUDE.md`); project standardizes on `CLAUDE.md`
+
+## [1.5.0] - 2026-04-30
+
 ### Added
 
 - New `/dd-standup-history [start-date] [end-date]` slash command for members to view their own submitted standups across all their teams
@@ -321,7 +348,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.4.4...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/jnahian/daily-dose/compare/v1.4.6...v1.5.0
+[1.4.6]: https://github.com/jnahian/daily-dose/compare/v1.4.5...v1.4.6
+[1.4.5]: https://github.com/jnahian/daily-dose/compare/v1.4.4...v1.4.5
 [1.4.4]: https://github.com/jnahian/daily-dose/compare/v1.4.3...v1.4.4
 [1.4.3]: https://github.com/jnahian/daily-dose/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/jnahian/daily-dose/compare/v1.4.1...v1.4.2
