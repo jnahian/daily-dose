@@ -125,6 +125,7 @@ Multi-tenant design with Organizations → Teams → Users hierarchy:
 - Automated posting to team channels with formatting
 - Block Kit UI components defined in `src/utils/blockHelper.js`
 - All blocks must follow formatting guidelines from `docs/slack-markdown-guidelines.md`
+- **Cloudflare gotcha**: Slack endpoints must be DNS-only on Cloudflare (proxy disabled). Cloudflare's edge buffering breaks Slack's 3-second ack window and causes recurring `/dd-*` command timeouts. See `DEPLOYMENT.md`.
 
 ### Web Frontend Architecture
 - **Framework**: React 19 with TypeScript and Vite
@@ -231,11 +232,12 @@ The application implements a role-based permission system for administrative com
 - **Context-Aware Commands**: Automatically resolve team from channel for admins, require explicit team name for owners
 
 ### Manual Standup Trigger Commands (Admin/Owner)
-Four new slash commands allow manual control of automated standup operations:
+Slash commands for manual control of automated standup operations:
 - `/dd-standup-remind [team-name]` - Manually send standup reminders to all active team members
 - `/dd-standup-post [date] [team-name]` - Post standup summary for any date (includes late responses)
 - `/dd-standup-preview [date] [team-name]` - Preview standup summary as ephemeral message before posting
 - `/dd-standup-followup [team-name]` - Send followup reminders to members who haven't responded
+- `/dd-standup-history` - View own standup submission history
 
 **Implementation Details:**
 - Commands use context-aware team resolution via `teamHelper.js`
@@ -267,291 +269,30 @@ No automated tests currently configured - manual testing via Slack interactions 
 - Verify scheduler jobs with `npm run debug:scheduler`
 - Check team member eligibility with `npm run team:members`
 - Test web frontend locally with `cd web && npm run dev`
+- The `test/` directory exists but is empty — no test runner is wired up.
 
-## Software Development Best Practices
+### Deployment & Infrastructure
+- **`DEPLOYMENT.md`** is authoritative for production setup (Hetzner VPS, Nginx, GitHub Actions, Supabase, Slack app config). Read it before changing infra-touching code.
+- **`docker-compose.yml`** — local containerized stack.
+- **`ecosystem.config.js`** — PM2 process config used in production.
+- **`slack-app-manifest.json`** — committed Slack app manifest; managed via `npm run manifest:*` scripts.
+- **Cloudflare**: keep Slack-facing DNS records DNS-only (orange cloud OFF). Proxy buffering breaks the 3-second ack window — recurring source of `/dd-*` timeouts.
 
-### Code Quality Principles
+### Repository Layout Notes
+- **`admin/`** — empty placeholder directory.
+- **`CONTRIBUTING.md`** — contributor workflow and conventions.
+- **`docs/`** — design plans, user stories, and the canonical `slack-markdown-guidelines.md`.
 
-**KISS (Keep It Simple, Stupid)**
-- Write simple, straightforward code that's easy to understand
-- Avoid unnecessary complexity and over-engineering
-- Three similar lines of code is better than a premature abstraction
-- Don't add features, refactoring, or "improvements" beyond what was asked
+## Project-Specific Conventions
 
-**DRY (Don't Repeat Yourself)**
-- Extract repeated logic into reusable functions or utilities
-- Keep utility functions in appropriate helper files (`src/utils/`)
-- Use shared constants instead of magic numbers/strings
+These are non-obvious rules specific to this codebase. Generic engineering practices are intentionally omitted.
 
-**YAGNI (You Aren't Gonna Need It)**
-- Don't design for hypothetical future requirements
-- Only build what's needed for current requirements
-- Don't add configuration options or flexibility that aren't requested
-- No feature flags or backwards-compatibility shims unless absolutely necessary
+- **Notification flag semantics**: `TeamMember.receiveNotifications` controls *all* notifications for a user (reminder DMs *and* admin submission notifications). `TeamMember.hideFromNotResponded` hides a user from the "not responded" list in posted summaries. Toggle via `/dd-standup-reminder notify=on/off`. Admins are additionally filtered out of standup reminders by role in `schedulerService`.
+- **Permission checks**: always go through `permissionHelper.isTeamAdmin()` / `isOrgOwner()`. Admins resolve team from current channel; owners must pass team name explicitly.
+- **Block Kit**: every block must live in `src/utils/blockHelper.js` — never inline blocks at call sites. Follow `docs/slack-markdown-guidelines.md` for formatting (mentions, links, rich_text).
+- **Bulk Slack operations**: process teams sequentially, not in parallel — Slack rate-limits at ~1 req/sec/channel.
+- **Date handling**: use dayjs with team timezone; check `dateHelper.isWorkDay()` and the `Holiday` table before sending reminders.
+- **Rich text from modals**: use `messageHelper.extractPlainText()` or `convertRichTextToSlack()` — don't read modal values directly.
+- **Two changelogs, two audiences**: `CHANGELOG.md` is the technical audit trail (always updated); `web/src/data/changelog.json` is user-facing (only user-visible changes, plain language).
 
-**Single Responsibility Principle**
-- Each function should do one thing well
-- Each service should handle one domain area
-- Separate business logic from presentation logic
-
-### Naming Conventions
-
-**Files and Directories**
-- Use camelCase for JavaScript files: `userHelper.js`, `standupService.js`
-- Use PascalCase for React components: `VersionCard.tsx`, `Changelog.tsx`
-- Use kebab-case for scripts: `check-team-members.js`, `trigger-standup.js`
-- Group related files in directories by feature/domain
-
-**Variables and Functions**
-- Use camelCase for variables and functions: `teamName`, `getUserData()`
-- Use descriptive names that explain purpose: `isWorkingDay()` not `check()`
-- Boolean variables should start with `is`, `has`, `can`, `should`: `isActive`, `hasPermission`
-- Use verb prefixes for functions: `get`, `set`, `create`, `update`, `delete`, `fetch`, `send`
-
-**Constants**
-- Use UPPER_SNAKE_CASE for true constants: `DEFAULT_TIMEZONE`, `MAX_RETRIES`
-- Use descriptive names over abbreviations: `ORGANIZATION_ROLE` not `ORG_R`
-
-**Database Models**
-- Use PascalCase for Prisma models: `Organization`, `TeamMember`, `StandupResponse`
-- Use camelCase for fields: `slackUserId`, `createdAt`, `isActive`
-
-### Error Handling Patterns
-
-**Always Handle Errors Gracefully**
-```javascript
-// Good: Specific error handling with user-friendly messages
-try {
-  const result = await someOperation();
-  return result;
-} catch (error) {
-  console.error("Failed to perform operation:", error.message);
-  throw new Error("Unable to complete the request. Please try again.");
-}
-
-// Bad: Silent failures or generic errors
-try {
-  const result = await someOperation();
-  return result;
-} catch (error) {
-  // Silent failure - user never knows what happened
-}
-```
-
-**Fail Fast**
-- Validate inputs at the beginning of functions
-- Return early for error conditions
-- Don't nest error handling deeply
-
-**Log Meaningful Context**
-```javascript
-// Good: Contextual logging
-console.error(`Failed to send reminder to user ${userId} in team ${teamName}:`, error.message);
-
-// Bad: Generic logging
-console.error("Error:", error);
-```
-
-### Security Best Practices
-
-**Input Validation**
-- Always validate user inputs (Slack user IDs, team names, dates)
-- Use Prisma's type safety to prevent SQL injection
-- Sanitize text content before displaying in Slack messages
-
-**Prevent Command Injection**
-- Never use `eval()` or `Function()` constructor
-- Don't execute shell commands with user input without validation
-- Use parameterized queries (Prisma handles this automatically)
-
-**Authentication & Authorization**
-- Always check permissions before admin operations
-- Use `permissionHelper` for consistent permission checks
-- Never trust client-side data for authorization decisions
-
-**Secrets Management**
-- Keep all secrets in `.env` file (never commit)
-- Never log sensitive data (tokens, passwords, API keys)
-- Use environment variables for configuration
-
-**Common Vulnerabilities to Avoid**
-- XSS: Escape user input in Slack messages
-- SQL Injection: Use Prisma ORM (parameterized queries)
-- Command Injection: Validate inputs, avoid shell execution with user data
-- Rate Limiting: Respect Slack API rate limits, use sequential processing for bulk operations
-
-### Performance Considerations
-
-**Database Queries**
-- Use Prisma `select` to fetch only needed fields
-- Use `include` judiciously (avoid N+1 queries)
-- Add indexes for frequently queried fields
-- Use pagination for large result sets
-
-**Slack API Usage**
-- Respect rate limits (1 request per second per channel)
-- Use bulk operations when available
-- Process teams sequentially for bulk operations to avoid rate limits
-- Cache Slack API responses when appropriate
-
-**Async/Await Best Practices**
-- Always await async operations
-- Use `Promise.all()` for independent parallel operations
-- Use sequential processing when operations depend on each other
-- Handle errors properly in async functions
-
-### Code Organization
-
-**Service Layer Pattern**
-```javascript
-// Services contain business logic
-// src/services/standupService.js
-async function getActiveMembers(teamId, date) {
-  // Business logic here
-}
-
-// Commands handle user interaction
-// src/commands/standup.js
-async function standupCommand({ command, ack, respond }) {
-  // Parse input, call service, format response
-}
-```
-
-**Separation of Concerns**
-- Commands: Parse input, validate, call services, format response
-- Services: Business logic, data operations
-- Utils: Reusable helper functions
-- Workflows: Handle interactive components (buttons, modals)
-
-**File Organization**
-- Keep files focused (< 500 lines ideally)
-- Group related functionality in directories
-- Use index.js for clean exports when appropriate
-
-### Git Commit Best Practices
-
-**Commit Message Format**
-```
-type(scope): brief description
-
-Detailed explanation if needed
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
-```
-
-**Types:**
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `refactor`: Code refactoring
-- `style`: Formatting changes
-- `test`: Adding tests
-- `chore`: Maintenance tasks
-
-**Examples:**
-```
-feat(standup): add bulk operations for all teams
-fix(holiday): resolve database schema mismatch error
-docs(readme): update command documentation
-refactor(utils): extract date formatting to helper
-```
-
-**Commit Guidelines**
-- Write clear, descriptive commit messages
-- Focus on "why" rather than "what"
-- Keep commits atomic (one logical change per commit)
-- Don't commit broken code
-- Don't commit sensitive data or credentials
-
-### API Design Patterns
-
-**Function Signatures**
-```javascript
-// Good: Clear parameters, return values
-async function sendStandupReminders(team, date = new Date()) {
-  // Implementation
-  return { successCount, failureCount };
-}
-
-// Bad: Unclear parameters, no return value documentation
-async function send(t, d) {
-  // Implementation
-}
-```
-
-**Error Handling**
-```javascript
-// Good: Specific error types
-if (!team) {
-  throw new Error(`Team "${teamName}" not found`);
-}
-
-// Bad: Generic errors
-if (!team) {
-  throw new Error("Error");
-}
-```
-
-### Documentation Standards
-
-**Function Documentation**
-```javascript
-/**
- * Sends standup reminders to active team members
- * @param {Object} team - Team object with id, name, and timezone
- * @param {Date} date - Date to check for eligibility (default: today)
- * @returns {Promise<{successCount: number, failureCount: number}>}
- */
-async function sendStandupReminders(team, date = new Date()) {
-  // Implementation
-}
-```
-
-**Code Comments**
-- Explain "why" not "what" (code should be self-documenting)
-- Document complex algorithms or business rules
-- Add TODO/FIXME comments for known issues
-- Keep comments up-to-date with code changes
-
-**README Updates**
-- Document all user-facing features
-- Provide usage examples
-- Keep command reference current
-- Document environment variables
-
-### React/Frontend Best Practices
-
-**Component Structure**
-- One component per file
-- Keep components focused and reusable
-- Use TypeScript for type safety
-- Extract complex logic to custom hooks
-
-**State Management**
-- Use React Context for theme, auth
-- Keep state close to where it's used
-- Avoid prop drilling (use context when needed)
-
-**Performance**
-- Use React.memo() for expensive components
-- Lazy load routes with React.lazy()
-- Optimize images and assets
-
-### Avoid Common Pitfalls
-
-**Don't:**
-- Add error handling for impossible scenarios
-- Create helpers for one-time operations
-- Add comments to unchanged code
-- Add docstrings/type annotations to code you didn't write
-- Use backwards-compatibility hacks for unused code
-- Make changes beyond what was requested
-- Over-engineer simple solutions
-
-**Do:**
-- Keep solutions minimal and focused
-- Remove unused code completely (don't comment it out)
-- Trust internal code and framework guarantees
-- Only validate at system boundaries (user input, external APIs)
-- Make reversible changes when possible
 - Ask for confirmation before risky operations
