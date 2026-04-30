@@ -1,7 +1,10 @@
 const prisma = require("../config/prisma");
 const userService = require("../services/userService");
 const { ackWithProcessing } = require("../utils/commandHelper");
-const { createSectionBlock } = require("../utils/blockHelper");
+const {
+  createSectionBlock,
+  createCommandErrorBlocks,
+} = require("../utils/blockHelper");
 const dayjs = require("dayjs");
 
 async function setHoliday({ command, ack, respond, client }) {
@@ -23,7 +26,9 @@ async function setHoliday({ command, ack, respond, client }) {
 
     if (!org) {
       await updateResponse({
-        text: "❌ You must belong to an organization to manage holidays",
+        blocks: createCommandErrorBlocks(
+          "You must belong to an organization to manage holidays"
+        ),
       });
       return;
     }
@@ -31,7 +36,9 @@ async function setHoliday({ command, ack, respond, client }) {
     const canManage = await userService.canCreateTeam(user.id, org.id);
     if (!canManage) {
       await updateResponse({
-        text: "❌ You need admin permissions to manage holidays",
+        blocks: createCommandErrorBlocks(
+          "You need admin permissions to manage holidays"
+        ),
       });
       return;
     }
@@ -44,7 +51,13 @@ async function setHoliday({ command, ack, respond, client }) {
 
     if (args.length < 1 || !args[0]) {
       await updateResponse({
-        text: "❌ Usage: `/dd-holiday-set YYYY-MM-DD [YYYY-MM-DD] [name]`\nExamples:\n- `/dd-holiday-set 2024-12-25 Christmas Day`\n- `/dd-holiday-set 2024-12-24 2024-12-26 Christmas Holiday`",
+        blocks: createCommandErrorBlocks(
+          "Usage: `/dd-holiday-set YYYY-MM-DD [YYYY-MM-DD] [name]`",
+          [
+            "`/dd-holiday-set 2024-12-25 Christmas Day`",
+            "`/dd-holiday-set 2024-12-24 2024-12-26 Christmas Holiday`",
+          ]
+        ),
       });
       return;
     }
@@ -70,7 +83,9 @@ async function setHoliday({ command, ack, respond, client }) {
     const startDate = dayjs(startDateStr, "YYYY-MM-DD", true);
     if (!startDate.isValid()) {
       await updateResponse({
-        text: `❌ Invalid start date format: ${startDateStr}. Use YYYY-MM-DD format.`,
+        blocks: createCommandErrorBlocks(
+          `Invalid start date format: ${startDateStr}. Use YYYY-MM-DD format.`
+        ),
       });
       return;
     }
@@ -80,14 +95,18 @@ async function setHoliday({ command, ack, respond, client }) {
       endDate = dayjs(endDateStr, "YYYY-MM-DD", true);
       if (!endDate.isValid()) {
         await updateResponse({
-          text: `❌ Invalid end date format: ${endDateStr}. Use YYYY-MM-DD format.`,
+          blocks: createCommandErrorBlocks(
+            `Invalid end date format: ${endDateStr}. Use YYYY-MM-DD format.`
+          ),
         });
         return;
       }
 
       if (endDate.isBefore(startDate)) {
         await updateResponse({
-          text: "❌ End date cannot be before start date",
+          blocks: createCommandErrorBlocks(
+            "End date cannot be before start date"
+          ),
         });
         return;
       }
@@ -130,7 +149,9 @@ async function setHoliday({ command, ack, respond, client }) {
 
     if (holidayRecords.length === 0) {
       await updateResponse({
-        text: "❌ Failed to create any holiday records",
+        blocks: createCommandErrorBlocks(
+          "Failed to create any holiday records"
+        ),
       });
       return;
     }
@@ -149,7 +170,7 @@ async function setHoliday({ command, ack, respond, client }) {
   } catch (error) {
     console.error("Error setting holiday:", error);
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
     });
   }
 }
@@ -173,7 +194,9 @@ async function updateHoliday({ command, ack, respond, client }) {
 
     if (!org) {
       await updateResponse({
-        text: "❌ You must belong to an organization to manage holidays",
+        blocks: createCommandErrorBlocks(
+          "You must belong to an organization to manage holidays"
+        ),
       });
       return;
     }
@@ -181,7 +204,9 @@ async function updateHoliday({ command, ack, respond, client }) {
     const canManage = await userService.canCreateTeam(user.id, org.id);
     if (!canManage) {
       await updateResponse({
-        text: "❌ You need admin permissions to manage holidays",
+        blocks: createCommandErrorBlocks(
+          "You need admin permissions to manage holidays"
+        ),
       });
       return;
     }
@@ -191,7 +216,10 @@ async function updateHoliday({ command, ack, respond, client }) {
 
     if (args.length < 2 || !args[0] || !args[1]) {
       await updateResponse({
-        text: "❌ Usage: `/dd-holiday-update YYYY-MM-DD new name`\nExample: `/dd-holiday-update 2024-12-25 Christmas Day Updated`",
+        blocks: createCommandErrorBlocks(
+          "Usage: `/dd-holiday-update YYYY-MM-DD new name`",
+          ["Example: `/dd-holiday-update 2024-12-25 Christmas Day Updated`"]
+        ),
       });
       return;
     }
@@ -203,7 +231,9 @@ async function updateHoliday({ command, ack, respond, client }) {
     const date = dayjs(dateStr, "YYYY-MM-DD", true);
     if (!date.isValid()) {
       await updateResponse({
-        text: `❌ Invalid date format: ${dateStr}. Use YYYY-MM-DD format.`,
+        blocks: createCommandErrorBlocks(
+          `Invalid date format: ${dateStr}. Use YYYY-MM-DD format.`
+        ),
       });
       return;
     }
@@ -220,7 +250,7 @@ async function updateHoliday({ command, ack, respond, client }) {
 
     if (!existingHoliday) {
       await updateResponse({
-        text: `❌ No holiday found for ${dateStr}`,
+        blocks: createCommandErrorBlocks(`No holiday found for ${dateStr}`),
       });
       return;
     }
@@ -245,7 +275,7 @@ async function updateHoliday({ command, ack, respond, client }) {
   } catch (error) {
     console.error("Error updating holiday:", error);
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
     });
   }
 }
@@ -269,7 +299,9 @@ async function deleteHoliday({ command, ack, respond, client }) {
 
     if (!org) {
       await updateResponse({
-        text: "❌ You must belong to an organization to manage holidays",
+        blocks: createCommandErrorBlocks(
+          "You must belong to an organization to manage holidays"
+        ),
       });
       return;
     }
@@ -277,7 +309,9 @@ async function deleteHoliday({ command, ack, respond, client }) {
     const canManage = await userService.canCreateTeam(user.id, org.id);
     if (!canManage) {
       await updateResponse({
-        text: "❌ You need admin permissions to manage holidays",
+        blocks: createCommandErrorBlocks(
+          "You need admin permissions to manage holidays"
+        ),
       });
       return;
     }
@@ -287,7 +321,13 @@ async function deleteHoliday({ command, ack, respond, client }) {
 
     if (args.length < 1 || !args[0]) {
       await updateResponse({
-        text: "❌ Usage: `/dd-holiday-delete YYYY-MM-DD [YYYY-MM-DD]`\nExamples:\n- `/dd-holiday-delete 2024-12-25`\n- `/dd-holiday-delete 2024-12-24 2024-12-26`",
+        blocks: createCommandErrorBlocks(
+          "Usage: `/dd-holiday-delete YYYY-MM-DD [YYYY-MM-DD]`",
+          [
+            "`/dd-holiday-delete 2024-12-25`",
+            "`/dd-holiday-delete 2024-12-24 2024-12-26`",
+          ]
+        ),
       });
       return;
     }
@@ -299,7 +339,9 @@ async function deleteHoliday({ command, ack, respond, client }) {
     const startDate = dayjs(startDateStr, "YYYY-MM-DD", true);
     if (!startDate.isValid()) {
       await updateResponse({
-        text: `❌ Invalid start date format: ${startDateStr}. Use YYYY-MM-DD format.`,
+        blocks: createCommandErrorBlocks(
+          `Invalid start date format: ${startDateStr}. Use YYYY-MM-DD format.`
+        ),
       });
       return;
     }
@@ -309,14 +351,18 @@ async function deleteHoliday({ command, ack, respond, client }) {
       endDate = dayjs(endDateStr, "YYYY-MM-DD", true);
       if (!endDate.isValid()) {
         await updateResponse({
-          text: `❌ Invalid end date format: ${endDateStr}. Use YYYY-MM-DD format.`,
+          blocks: createCommandErrorBlocks(
+            `Invalid end date format: ${endDateStr}. Use YYYY-MM-DD format.`
+          ),
         });
         return;
       }
 
       if (endDate.isBefore(startDate)) {
         await updateResponse({
-          text: "❌ End date cannot be before start date",
+          blocks: createCommandErrorBlocks(
+            "End date cannot be before start date"
+          ),
         });
         return;
       }
@@ -350,7 +396,7 @@ async function deleteHoliday({ command, ack, respond, client }) {
         ? `${startDateStr} to ${endDateStr}`
         : startDateStr;
       await updateResponse({
-        text: `❌ No holidays found for ${dateRange}`,
+        blocks: createCommandErrorBlocks(`No holidays found for ${dateRange}`),
       });
       return;
     }
@@ -367,7 +413,7 @@ async function deleteHoliday({ command, ack, respond, client }) {
   } catch (error) {
     console.error("Error deleting holiday:", error);
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
     });
   }
 }
@@ -391,7 +437,9 @@ async function listHolidays({ command, ack, respond, client }) {
 
     if (!org) {
       await updateResponse({
-        text: "❌ You must belong to an organization to view holidays",
+        blocks: createCommandErrorBlocks(
+          "You must belong to an organization to view holidays"
+        ),
       });
       return;
     }
@@ -441,7 +489,9 @@ async function listHolidays({ command, ack, respond, client }) {
         const date = dayjs(arg, "YYYY-MM-DD", true);
         if (!date.isValid()) {
           await updateResponse({
-            text: `❌ Invalid date format: ${arg}. Use YYYY-MM-DD format.`,
+            blocks: createCommandErrorBlocks(
+              `Invalid date format: ${arg}. Use YYYY-MM-DD format.`
+            ),
           });
           return;
         }
@@ -450,7 +500,15 @@ async function listHolidays({ command, ack, respond, client }) {
         titleSuffix = ` for ${date.format("YYYY-MM-DD")}`;
       } else {
         await updateResponse({
-          text: "❌ Usage: `/dd-holiday-list [YYYY|YYYY-MM|YYYY-MM-DD] [YYYY-MM-DD]`\nExamples:\n- `/dd-holiday-list` - upcoming holidays\n- `/dd-holiday-list 2024` - holidays for 2024\n- `/dd-holiday-list 2024-12` - holidays for December 2024\n- `/dd-holiday-list 2024-12-01 2024-12-31` - holidays in date range",
+          blocks: createCommandErrorBlocks(
+            "Usage: `/dd-holiday-list [YYYY|YYYY-MM|YYYY-MM-DD] [YYYY-MM-DD]`",
+            [
+              "`/dd-holiday-list` — upcoming holidays",
+              "`/dd-holiday-list 2024` — holidays for 2024",
+              "`/dd-holiday-list 2024-12` — holidays for December 2024",
+              "`/dd-holiday-list 2024-12-01 2024-12-31` — holidays in date range",
+            ]
+          ),
         });
         return;
       }
@@ -464,21 +522,27 @@ async function listHolidays({ command, ack, respond, client }) {
 
       if (!start.isValid()) {
         await updateResponse({
-          text: `❌ Invalid start date format: ${startDateStr}. Use YYYY-MM-DD format.`,
+          blocks: createCommandErrorBlocks(
+            `Invalid start date format: ${startDateStr}. Use YYYY-MM-DD format.`
+          ),
         });
         return;
       }
 
       if (!end.isValid()) {
         await updateResponse({
-          text: `❌ Invalid end date format: ${endDateStr}. Use YYYY-MM-DD format.`,
+          blocks: createCommandErrorBlocks(
+            `Invalid end date format: ${endDateStr}. Use YYYY-MM-DD format.`
+          ),
         });
         return;
       }
 
       if (end.isBefore(start)) {
         await updateResponse({
-          text: "❌ End date cannot be before start date",
+          blocks: createCommandErrorBlocks(
+            "End date cannot be before start date"
+          ),
         });
         return;
       }
@@ -488,7 +552,15 @@ async function listHolidays({ command, ack, respond, client }) {
       titleSuffix = ` from ${startDateStr} to ${endDateStr}`;
     } else {
       await updateResponse({
-        text: "❌ Usage: `/dd-holiday-list [YYYY|YYYY-MM|YYYY-MM-DD] [YYYY-MM-DD]`\nExamples:\n- `/dd-holiday-list` - upcoming holidays\n- `/dd-holiday-list 2024` - holidays for 2024\n- `/dd-holiday-list 2024-12` - holidays for December 2024\n- `/dd-holiday-list 2024-12-01 2024-12-31` - holidays in date range",
+        blocks: createCommandErrorBlocks(
+          "Usage: `/dd-holiday-list [YYYY|YYYY-MM|YYYY-MM-DD] [YYYY-MM-DD]`",
+          [
+            "`/dd-holiday-list` — upcoming holidays",
+            "`/dd-holiday-list 2024` — holidays for 2024",
+            "`/dd-holiday-list 2024-12` — holidays for December 2024",
+            "`/dd-holiday-list 2024-12-01 2024-12-31` — holidays in date range",
+          ]
+        ),
       });
       return;
     }
@@ -534,7 +606,7 @@ async function listHolidays({ command, ack, respond, client }) {
   } catch (error) {
     console.error("Error listing holidays:", error);
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
     });
   }
 }

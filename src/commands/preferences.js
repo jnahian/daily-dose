@@ -1,6 +1,9 @@
 const teamService = require("../services/teamService");
 const { ackWithProcessing } = require("../utils/commandHelper");
-const { createSectionBlock } = require("../utils/blockHelper");
+const {
+  createSectionBlock,
+  createCommandErrorBlocks,
+} = require("../utils/blockHelper");
 
 async function toggleStandupReminder({ command, ack, respond, client }) {
   const updateResponse = await ackWithProcessing(
@@ -37,7 +40,9 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
       const mentionValue = args[mentionIndex].split("=")[1];
       if (mentionValue !== "on" && mentionValue !== "off") {
         await updateResponse({
-          text: "❌ Invalid mention parameter. Use `mention=on` or `mention=off`",
+          blocks: createCommandErrorBlocks(
+            "Invalid mention parameter. Use `mention=on` or `mention=off`"
+          ),
         });
         return;
       }
@@ -48,7 +53,9 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
       const notifyValue = args[notifyIndex].split("=")[1];
       if (notifyValue !== "on" && notifyValue !== "off") {
         await updateResponse({
-          text: "❌ Invalid notify parameter. Use `notify=on` or `notify=off`",
+          blocks: createCommandErrorBlocks(
+            "Invalid notify parameter. Use `notify=on` or `notify=off`"
+          ),
         });
         return;
       }
@@ -58,7 +65,15 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
     // Validate that at least one of mention or notify is provided
     if (mentionParam === undefined && notifyParam === undefined) {
       await updateResponse({
-        text: "❌ You must specify at least one parameter: `mention=on/off` or `notify=on/off`\n\nUsage examples:\n- `/dd-standup-reminder mention=off` - Stop being mentioned in non-responded list\n- `/dd-standup-reminder notify=off` - Stop receiving reminders AND admin submission notifications\n- `/dd-standup-reminder TeamName mention=on notify=off` - Be mentioned but don't receive notifications\n- `/dd-standup-reminder mention=on notify=on` - Enable all notifications",
+        blocks: createCommandErrorBlocks(
+          "You must specify at least one parameter: `mention=on/off` or `notify=on/off`",
+          [
+            "`/dd-standup-reminder mention=off` — stop being mentioned in non-responded list",
+            "`/dd-standup-reminder notify=off` — stop reminders and admin submission notifications",
+            "`/dd-standup-reminder TeamName mention=on notify=off`",
+            "`/dd-standup-reminder mention=on notify=on` — enable all notifications",
+          ]
+        ),
       });
       return;
     }
@@ -69,7 +84,7 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
       team = await teamService.findTeamByName(teamName);
       if (!team) {
         await updateResponse({
-          text: `❌ Team "${teamName}" not found`,
+          blocks: createCommandErrorBlocks(`Team "${teamName}" not found`),
         });
         return;
       }
@@ -78,7 +93,13 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
       team = await teamService.findTeamByChannel(command.channel_id);
       if (!team) {
         await updateResponse({
-          text: "❌ No team found in this channel. Please specify team name or run from team channel.\n\nUsage: `/dd-standup-reminder [TeamName] mention=on/off notify=on/off`",
+          blocks: createCommandErrorBlocks(
+            "No team found in this channel.",
+            [
+              "Usage: `/dd-standup-reminder [TeamName] mention=on/off notify=on/off`",
+              "Or run inside a team channel without the team name",
+            ]
+          ),
         });
         return;
       }
@@ -90,7 +111,9 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
 
     if (!membership) {
       await updateResponse({
-        text: `❌ You are not a member of team "${teamName}"`,
+        blocks: createCommandErrorBlocks(
+          `You are not a member of team "${teamName}"`
+        ),
       });
       return;
     }
@@ -139,7 +162,7 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
     });
   }
 }

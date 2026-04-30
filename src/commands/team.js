@@ -3,7 +3,10 @@ const schedulerService = require("../services/schedulerService");
 const { ackWithProcessing, getChannelName } = require("../utils/commandHelper");
 const { getDisplayName } = require("../utils/userHelper");
 const { formatTime12Hour } = require("../utils/dateHelper");
-const { createSectionBlock } = require("../utils/blockHelper");
+const {
+  createSectionBlock,
+  createCommandErrorBlocks,
+} = require("../utils/blockHelper");
 
 async function createTeam({ command, ack, respond, client }) {
   const updateResponse = await ackWithProcessing(
@@ -37,14 +40,26 @@ async function createTeam({ command, ack, respond, client }) {
       [name, standupTime, postingTime] = args;
     } else {
       await updateResponse({
-        text: "❌ Usage: `/dd-team-create [TeamName] HH:MM HH:MM`\nExamples:\n- `/dd-team-create 09:30 10:00` (uses channel name)\n- `/dd-team-create Engineering 09:30 10:00`",
+        blocks: createCommandErrorBlocks(
+          "Usage: `/dd-team-create [TeamName] HH:MM HH:MM`",
+          [
+            "`/dd-team-create 09:30 10:00` (uses channel name)",
+            "`/dd-team-create Engineering 09:30 10:00`",
+          ]
+        ),
       });
       return;
     }
 
     if (!standupTime || !postingTime) {
       await updateResponse({
-        text: "❌ Usage: `/dd-team-create [TeamName] HH:MM HH:MM`\nExamples:\n- `/dd-team-create 09:30 10:00` (uses channel name)\n- `/dd-team-create Engineering 09:30 10:00`",
+        blocks: createCommandErrorBlocks(
+          "Usage: `/dd-team-create [TeamName] HH:MM HH:MM`",
+          [
+            "`/dd-team-create 09:30 10:00` (uses channel name)",
+            "`/dd-team-create Engineering 09:30 10:00`",
+          ]
+        ),
       });
       return;
     }
@@ -72,7 +87,7 @@ async function createTeam({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
     });
   }
 }
@@ -95,7 +110,13 @@ async function joinTeam({ command, ack, respond, client }) {
 
       if (!team) {
         await updateResponse({
-          text: "❌ No team found in this channel. Usage: `/dd-team-join [TeamName]`\n- Run without team name to join the team in current channel\n- Or specify team name: `/dd-team-join Engineering`",
+          blocks: createCommandErrorBlocks(
+            "No team found in this channel.",
+            [
+              "Run `/dd-team-join [TeamName]` to join a specific team",
+              "Or run `/dd-team-join` inside a team channel",
+            ]
+          ),
         });
         return;
       }
@@ -105,7 +126,7 @@ async function joinTeam({ command, ack, respond, client }) {
 
       if (!team) {
         await updateResponse({
-          text: `❌ Team "${teamName}" not found`,
+          blocks: createCommandErrorBlocks(`Team "${teamName}" not found`),
         });
         return;
       }
@@ -124,7 +145,7 @@ async function joinTeam({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
     });
   }
 }
@@ -147,7 +168,13 @@ async function leaveTeam({ command, ack, respond, client }) {
 
       if (!team) {
         await updateResponse({
-          text: "❌ No team found in this channel. Usage: `/dd-team-leave [TeamName]`\n- Run without team name to leave the team in current channel\n- Or specify team name: `/dd-team-leave Engineering`",
+          blocks: createCommandErrorBlocks(
+            "No team found in this channel.",
+            [
+              "Run `/dd-team-leave [TeamName]` to leave a specific team",
+              "Or run `/dd-team-leave` inside a team channel",
+            ]
+          ),
         });
         return;
       }
@@ -157,7 +184,7 @@ async function leaveTeam({ command, ack, respond, client }) {
 
       if (!team) {
         await updateResponse({
-          text: `❌ Team "${teamName}" not found`,
+          blocks: createCommandErrorBlocks(`Team "${teamName}" not found`),
         });
         return;
       }
@@ -170,7 +197,7 @@ async function leaveTeam({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
     });
   }
 }
@@ -213,7 +240,7 @@ async function listTeams({ command, ack, respond }) {
     });
   } catch (error) {
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
     });
   }
 }
@@ -236,7 +263,13 @@ async function listMembers({ command, ack, respond }) {
 
       if (!team) {
         await updateResponse({
-          text: "❌ No team found in this channel. Usage: `/dd-team-members [TeamName]`\n- Run without team name to show members of the team in current channel\n- Or specify team name: `/dd-team-members Engineering`",
+          blocks: createCommandErrorBlocks(
+            "No team found in this channel.",
+            [
+              "Run `/dd-team-members [TeamName]` to view a specific team",
+              "Or run `/dd-team-members` inside a team channel",
+            ]
+          ),
         });
         return;
       }
@@ -246,7 +279,7 @@ async function listMembers({ command, ack, respond }) {
 
       if (!team) {
         await updateResponse({
-          text: `❌ Team "${teamName}" not found`,
+          blocks: createCommandErrorBlocks(`Team "${teamName}" not found`),
         });
         return;
       }
@@ -281,7 +314,7 @@ async function listMembers({ command, ack, respond }) {
     });
   } catch (error) {
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
     });
   }
 }
@@ -306,7 +339,14 @@ async function updateTeam({ command, ack, respond, client }) {
 
       if (!team) {
         await updateResponse({
-          text: "❌ No team found in this channel. Usage: `/dd-team-update [TeamName] [parameters]`\n- Run without team name to update the team in current channel\n- Or specify team name: `/dd-team-update Engineering standup=09:00`\n\nParameters: `name=NewName`, `standup=HH:MM`, `posting=HH:MM`, `notifications=true/false`",
+          blocks: createCommandErrorBlocks(
+            "No team found in this channel.",
+            [
+              "Usage: `/dd-team-update [TeamName] [parameters]`",
+              "Parameters: `name=NewName`, `standup=HH:MM`, `posting=HH:MM`, `notifications=true/false`",
+              "Example: `/dd-team-update Engineering standup=09:00`",
+            ]
+          ),
         });
         return;
       }
@@ -319,7 +359,10 @@ async function updateTeam({ command, ack, respond, client }) {
 
         if (!team) {
           await updateResponse({
-            text: "❌ No team found in this channel. Please provide team name: `/dd-team-update [TeamName] [parameters]`",
+            blocks: createCommandErrorBlocks(
+              "No team found in this channel.",
+              ["Provide team name: `/dd-team-update [TeamName] [parameters]`"]
+            ),
           });
           return;
         }
@@ -331,14 +374,20 @@ async function updateTeam({ command, ack, respond, client }) {
 
         if (!team) {
           await updateResponse({
-            text: `❌ Team "${teamName}" not found`,
+            blocks: createCommandErrorBlocks(`Team "${teamName}" not found`),
           });
           return;
         }
 
         if (args.length < 2) {
           await updateResponse({
-            text: "❌ Usage: `/dd-team-update [TeamName] [parameters]`\nParameters: `name=NewName`, `standup=HH:MM`, `posting=HH:MM`, `notifications=true/false`\nExample: `/dd-team-update Engineering standup=09:00 posting=10:30 notifications=false`",
+            blocks: createCommandErrorBlocks(
+              "Usage: `/dd-team-update [TeamName] [parameters]`",
+              [
+                "Parameters: `name=NewName`, `standup=HH:MM`, `posting=HH:MM`, `notifications=true/false`",
+                "Example: `/dd-team-update Engineering standup=09:00 posting=10:30 notifications=false`",
+              ]
+            ),
           });
           return;
         }
@@ -353,7 +402,9 @@ async function updateTeam({ command, ack, respond, client }) {
       const [key, value] = args[i].split("=");
       if (!key || !value) {
         await updateResponse({
-          text: `❌ Invalid parameter format: ${args[i]}. Use key=value format.`,
+          blocks: createCommandErrorBlocks(
+            `Invalid parameter format: ${args[i]}. Use key=value format.`
+          ),
         });
         return;
       }
@@ -374,7 +425,9 @@ async function updateTeam({ command, ack, respond, client }) {
         case "notifications":
           if (value !== "true" && value !== "false") {
             await updateResponse({
-              text: `❌ Invalid value for notifications: ${value}. Use true or false`,
+              blocks: createCommandErrorBlocks(
+                `Invalid value for notifications: ${value}. Use true or false`
+              ),
             });
             return;
           }
@@ -385,7 +438,9 @@ async function updateTeam({ command, ack, respond, client }) {
           break;
         default:
           await updateResponse({
-            text: `❌ Unknown parameter: ${key}. Valid parameters: name, standup, posting, notifications`,
+            blocks: createCommandErrorBlocks(
+              `Unknown parameter: ${key}. Valid parameters: name, standup, posting, notifications`
+            ),
           });
           return;
       }
@@ -393,7 +448,7 @@ async function updateTeam({ command, ack, respond, client }) {
 
     if (Object.keys(updateData).length === 0) {
       await updateResponse({
-        text: "❌ No valid updates provided",
+        blocks: createCommandErrorBlocks("No valid updates provided"),
       });
       return;
     }
@@ -413,7 +468,7 @@ async function updateTeam({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
     });
   }
 }
