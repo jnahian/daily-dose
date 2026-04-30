@@ -5,6 +5,85 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [1.5.1] - 2026-04-30
+
+### Fixed
+
+- Fixed `/dd-standup` returning a 500 error when run without a team name in a DM with the bot or in a non-team channel
+  - Previously the no-team fallback rendered `createTeamSelectionBlocks`, which builds a Slack `actions` block with one button per team and exceeds Slack's 5-element-per-actions-block limit when the user belongs to 6+ teams
+  - Replaced the team-selection fallback in `submitManual` (`src/commands/standup.js`) with a `createCommandErrorBlocks` usage hint listing the user's available teams
+- Removed unused `createTeamSelectionBlocks` import from `src/commands/standup.js`
+
+### Changed
+
+- Normalized all slash-command error responses across `standup.js`, `team.js`, `leave.js`, `holiday.js`, and `preferences.js` to use `createCommandErrorBlocks` instead of plain `text:` responses
+  - Replaces inline `❌ ...` strings with structured blocks (primary message + bulleted suggestions)
+  - Affects usage hints, "team not found" / "no team in channel" branches, validation errors, and generic catch-block fallbacks
+  - Interactive transports left untouched: `ack({text})` for action handlers, modal block content inside `client.views.update`, and `client.chat.postMessage` direct DMs
+
+### Documentation
+
+- Added `/dd-standup-history` entry to `web/src/data/docs.json` Standup Commands section so it surfaces on the `/docs` page (matching its existing presence in `README.md` and `slack-app-manifest.json`)
+- Added v1.5.0 user-facing entry to `web/src/data/changelog.json` and demoted v1.4.6 from `isLatest`
+- Trimmed `CLAUDE.md` from 556 to ~300 lines: removed the generic "Software Development Best Practices" section (KISS/DRY/YAGNI, naming, error-handling, git, React advice) and replaced with a focused "Project-Specific Conventions" section
+  - Added "Deployment & Infrastructure" pointers (`DEPLOYMENT.md`, `docker-compose.yml`, `ecosystem.config.js`, `slack-app-manifest.json`)
+  - Documented the recurring Cloudflare DNS-only requirement for Slack endpoints under Slack Integration
+  - Listed `/dd-standup-history` in the Manual Standup Trigger Commands section
+  - Noted empty `admin/` and `test/` placeholder directories
+- Removed `GEMINI.md` (was a symlink to `CLAUDE.md`); project standardizes on `CLAUDE.md`
+
+## [1.5.0] - 2026-04-30
+
+### Added
+
+- New `/dd-standup-history [start-date] [end-date]` slash command for members to view their own submitted standups across all their teams
+  - No arguments: returns submissions from the user's last submitted day
+  - Single date (`YYYY-MM-DD`): returns that day's submissions
+  - Two dates: inclusive date range (order-independent)
+  - Response is ephemeral; entries grouped by date with team name, yesterday/today/blockers, and late marker
+- `standupService.getUserStandupHistory(slackUserId, startDate, endDate)` — fetches the user's responses across teams within a date range, ordered by date desc
+- `standupService.getUserLastSubmissionDate(slackUserId)` — returns the most recent `standupDate` the user has submitted
+- Registered `/dd-standup-history` in `src/commands/index.js` and `slack-app-manifest.json`
+
+## [1.4.6] - 2026-03-30
+
+### Changed
+
+- Replaced "Add to Slack" buttons in Navbar and Hero with GitHub repository links
+- Added repository field to package.json
+
+## [1.4.5] - 2026-03-30
+
+### Fixed
+
+- Fixed all slash commands failing with "app did not respond" error in production
+  - `ackWithProcessing` now properly awaits `ack()` as required by Bolt v4
+  - Without `await`, the HTTP acknowledgment to Slack was not guaranteed to send within the 3-second window
+  - Affected all `/dd-*` commands across team, leave, standup, holiday, and preferences modules
+- Added missing `text` fallback argument to `chat.postMessage` calls in standup and followup reminders
+  - Required by Slack for push notifications and screen reader accessibility
+
+## [1.4.4] - 2026-03-18
+
+### Added
+
+- Web application favicon and PWA manifest assets
+  - Android Chrome icons (192x192 and 512x512 PNG)
+  - Apple touch icon for iOS home screen support
+  - Favicon in multiple formats (16x16, 32x32, and ICO)
+  - Site.webmanifest for Progressive Web App configuration
+  - Enables proper branding across browsers and devices
+- Git Town configuration file for branch and hosting setup
+- Admin configuration files for database and environment setup
+  - Docker Compose configuration for local development
+  - Environment variable examples for admin setup
+
+### Changed
+
+- Database schema migration (20260318061742)
+
 ## [1.4.3] - 2026-02-05
 
 ### Added
@@ -271,7 +350,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.4.2...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.5.1...HEAD
+[1.5.1]: https://github.com/jnahian/daily-dose/compare/v1.5.0...v1.5.1
+[1.5.0]: https://github.com/jnahian/daily-dose/compare/v1.4.6...v1.5.0
+[1.4.6]: https://github.com/jnahian/daily-dose/compare/v1.4.5...v1.4.6
+[1.4.5]: https://github.com/jnahian/daily-dose/compare/v1.4.4...v1.4.5
+[1.4.4]: https://github.com/jnahian/daily-dose/compare/v1.4.3...v1.4.4
+[1.4.3]: https://github.com/jnahian/daily-dose/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/jnahian/daily-dose/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/jnahian/daily-dose/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/jnahian/daily-dose/compare/v1.3.0...v1.4.0

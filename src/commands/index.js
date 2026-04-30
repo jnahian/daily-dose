@@ -9,6 +9,7 @@ function setupCommands(app) {
   // Standup commands (primary functionality) - wrapped with formatting removal middleware
   app.command("/dd-standup", stripFormatting(), standupCommands.submitManual);
   app.command("/dd-standup-update", stripFormatting(), standupCommands.updateStandup);
+  app.command("/dd-standup-history", stripFormatting(), standupCommands.showHistory);
 
   // Admin/Owner standup management commands - wrapped with formatting removal middleware
   app.command("/dd-standup-remind", stripFormatting(), standupCommands.sendReminders);

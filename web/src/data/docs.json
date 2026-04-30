@@ -184,6 +184,16 @@
               ]
             },
             {
+              "type": "command",
+              "command": "/dd-standup-history [start-date] [end-date]",
+              "description": "View your own standup submissions across all your teams (ephemeral message). With no arguments, shows your last submitted day. Pass a single date for that day, or two dates for an inclusive range (order-independent).",
+              "examples": [
+                "# Last submitted day across all your teams\n/dd-standup-history",
+                "# Specific date\n/dd-standup-history 2024-12-20",
+                "# Date range (inclusive, order-independent)\n/dd-standup-history 2024-12-15 2024-12-20"
+              ]
+            },
+            {
               "type": "note",
               "title": "💡 For Team Admins",
               "value": "If you're a team admin and want to stop receiving notifications when team members submit standups, use `/dd-standup-reminder notify=off`. This will disable admin submission notifications while still allowing you to submit standups manually."

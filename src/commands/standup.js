@@ -19,10 +19,11 @@ const {
 const {
   createStandupModal,
   createStandupUpdateModal,
-  createTeamSelectionBlocks,
   createButton,
   createActionsBlock,
   createSectionBlock,
+  createFieldsBlock,
+  createDividerBlock,
   createCommandSuccessBlocks,
   createCommandErrorBlocks,
   createPermissionDeniedBlocks,
@@ -34,7 +35,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 async function submitManual({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Loading standup form...",
@@ -47,7 +48,10 @@ async function submitManual({ command, ack, respond, client }) {
 
     if (teams.length === 0) {
       await updateResponse({
-        text: "❌ You're not a member of any teams. Join a team first with `/dd-team-join [TeamName]`",
+        blocks: createCommandErrorBlocks(
+          "You're not a member of any teams.",
+          ["Join a team first with `/dd-team-join [TeamName]`"]
+        ),
       });
       return;
     }
@@ -60,12 +64,16 @@ async function submitManual({ command, ack, respond, client }) {
       team = await teamService.findTeamByChannel(command.channel_id);
 
       if (!team) {
-        // Show team selection if no team found in channel
+        const teamList = teams.map((t) => t.name).join(", ");
         await updateResponse({
-          blocks: [
-            ...createTeamSelectionBlocks(teams, "select_team_standup"),
-            createSectionBlock("Usage: `/dd-standup [TeamName]`\n- Run without team name to submit standup for the team in current channel\n- Or specify team name: `/dd-standup Engineering`"),
-          ],
+          blocks: createCommandErrorBlocks(
+            "No team found in this channel.",
+            [
+              "Run `/dd-standup [TeamName]` to submit for a specific team",
+              "Or run `/dd-standup` inside a team channel",
+              `Your teams: ${teamList}`,
+            ]
+          ),
         });
         return;
       }
@@ -77,9 +85,9 @@ async function submitManual({ command, ack, respond, client }) {
 
       if (!team) {
         await updateResponse({
-          text: `❌ Team "${teamName}" not found. Available teams: ${teams
-            .map((t) => t.name)
-            .join(", ")}`,
+          blocks: createCommandErrorBlocks(`Team "${teamName}" not found`, [
+            `Available teams: ${teams.map((t) => t.name).join(", ")}`,
+          ]),
         });
         return;
       }
@@ -118,7 +126,7 @@ async function submitManual({ command, ack, respond, client }) {
   } catch (error) {
     console.error("Error in submitManual:", error);
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
     });
   }
 }
@@ -336,7 +344,7 @@ async function handleStandupSubmission({ ack, body, view, client }) {
 }
 
 async function updateStandup({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Loading standup update...",
@@ -352,7 +360,10 @@ async function updateStandup({ command, ack, respond, client }) {
 
     if (teams.length === 0) {
       await updateResponse({
-        text: "❌ You're not a member of any teams. Join a team first with `/dd-team-join [TeamName]`",
+        blocks: createCommandErrorBlocks(
+          "You're not a member of any teams.",
+          ["Join a team first with `/dd-team-join [TeamName]`"]
+        ),
       });
       return;
     }
@@ -369,7 +380,11 @@ async function updateStandup({ command, ack, respond, client }) {
       if (!targetTeam) {
         const teamList = teams.map((t) => t.name).join(", ");
         await updateResponse({
-          text: `❌ No team found in this channel. Usage: \`/dd-standup-update [TeamName] [YYYY-MM-DD]\`\n- Run without team name to update standup for the team in current channel\n- Or specify team name: \`/dd-standup-update Engineering\`\nAvailable teams: ${teamList}`,
+          blocks: createCommandErrorBlocks("No team found in this channel.", [
+            "Usage: `/dd-standup-update [TeamName] [YYYY-MM-DD]`",
+            "Or run inside a team channel without the team name",
+            `Your teams: ${teamList}`,
+          ]),
         });
         return;
       }
@@ -384,11 +399,14 @@ async function updateStandup({ command, ack, respond, client }) {
         
         if (!targetTeam) {
           await updateResponse({
-            text: "❌ No team found in this channel. Please provide team name: `/dd-standup-update [TeamName] [YYYY-MM-DD]`",
+            blocks: createCommandErrorBlocks(
+              "No team found in this channel.",
+              ["Provide team name: `/dd-standup-update [TeamName] [YYYY-MM-DD]`"]
+            ),
           });
           return;
         }
-        
+
         targetDate = args[0];
         startIndex = 1;
       } else {
@@ -400,9 +418,9 @@ async function updateStandup({ command, ack, respond, client }) {
 
         if (!targetTeam) {
           await updateResponse({
-            text: `❌ Team "${teamName}" not found. Available teams: ${teams
-              .map((t) => t.name)
-              .join(", ")}`,
+            blocks: createCommandErrorBlocks(`Team "${teamName}" not found`, [
+              `Available teams: ${teams.map((t) => t.name).join(", ")}`,
+            ]),
           });
           return;
         }
@@ -417,7 +435,10 @@ async function updateStandup({ command, ack, respond, client }) {
         targetDate = args[startIndex];
       } else {
         await updateResponse({
-          text: `❌ Invalid date format: ${args[startIndex]}. Use YYYY-MM-DD format.\nUsage: \`/dd-standup-update ${targetTeam.name} [YYYY-MM-DD]\``,
+          blocks: createCommandErrorBlocks(
+            `Invalid date format: ${args[startIndex]}. Use YYYY-MM-DD format.`,
+            [`Usage: \`/dd-standup-update ${targetTeam.name} [YYYY-MM-DD]\``]
+          ),
         });
         return;
       }
@@ -427,7 +448,9 @@ async function updateStandup({ command, ack, respond, client }) {
     const parsedDate = dayjs(targetDate, "YYYY-MM-DD", true);
     if (!parsedDate.isValid()) {
       await updateResponse({
-        text: `❌ Invalid date format: ${targetDate}. Use YYYY-MM-DD format.`,
+        blocks: createCommandErrorBlocks(
+          `Invalid date format: ${targetDate}. Use YYYY-MM-DD format.`
+        ),
       });
       return;
     }
@@ -469,13 +492,15 @@ async function updateStandup({ command, ack, respond, client }) {
     } catch (modalError) {
       console.error("Error opening update modal:", modalError);
       await updateResponse({
-        text: `❌ Error opening update form: ${modalError.message}`,
+        blocks: createCommandErrorBlocks(
+          `Error opening update form: ${modalError.message}`
+        ),
       });
     }
   } catch (error) {
     console.error("Error in standup update:", error);
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
     });
   }
 }
@@ -629,7 +654,7 @@ async function handleStandupUpdateSubmission({ ack, body, view, client }) {
  * Usage: /dd-standup-remind [team-name]
  */
 async function sendReminders({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Sending standup reminders...",
@@ -718,7 +743,7 @@ async function sendReminders({ command, ack, respond, client }) {
  * Usage: /dd-standup-post [date] [team-name]
  */
 async function postStandup({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Posting standup summary...",
@@ -852,7 +877,7 @@ async function postStandup({ command, ack, respond, client }) {
  * Usage: /dd-standup-preview [date] [team-name]
  */
 async function previewStandup({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Generating standup preview...",
@@ -1032,7 +1057,7 @@ async function previewStandup({ command, ack, respond, client }) {
  * Usage: /dd-standup-followup [team-name]
  */
 async function sendFollowupReminders({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Sending followup reminders...",
@@ -1119,6 +1144,153 @@ async function sendFollowupReminders({ command, ack, respond, client }) {
   }
 }
 
+async function showHistory({ command, ack, respond }) {
+  const updateResponse = await ackWithProcessing(
+    ack,
+    respond,
+    "Loading your standup history...",
+    command
+  );
+
+  try {
+    const args = (command.text || "").trim().split(/\s+/).filter(Boolean);
+
+    if (args.length > 2) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          "Too many arguments",
+          [
+            "Usage: `/dd-standup-history [start-date] [end-date]`",
+            "Dates must be in YYYY-MM-DD format",
+          ]
+        ),
+      });
+      return;
+    }
+
+    for (const arg of args) {
+      const validation = validateDateFormat(arg);
+      if (!validation.isValid) {
+        await updateResponse({
+          blocks: createCommandErrorBlocks(validation.error, [
+            "Use format: YYYY-MM-DD (e.g., 2025-01-15)",
+          ]),
+        });
+        return;
+      }
+    }
+
+    let startDate;
+    let endDate;
+    let rangeLabel;
+
+    if (args.length === 0) {
+      const lastDate = await standupService.getUserLastSubmissionDate(
+        command.user_id
+      );
+
+      if (!lastDate) {
+        await updateResponse({
+          blocks: createNoDataBlocks("standup submissions"),
+        });
+        return;
+      }
+
+      startDate = dayjs(lastDate).format("YYYY-MM-DD");
+      endDate = startDate;
+      rangeLabel = `last submitted day (${dayjs(lastDate).format("MMM DD, YYYY")})`;
+    } else if (args.length === 1) {
+      startDate = args[0];
+      endDate = args[0];
+      rangeLabel = dayjs(startDate).format("MMM DD, YYYY");
+    } else {
+      const [first, second] = args;
+      if (dayjs(first).isAfter(dayjs(second))) {
+        startDate = second;
+        endDate = first;
+      } else {
+        startDate = first;
+        endDate = second;
+      }
+      rangeLabel = `${dayjs(startDate).format("MMM DD, YYYY")} – ${dayjs(endDate).format("MMM DD, YYYY")}`;
+    }
+
+    const responses = await standupService.getUserStandupHistory(
+      command.user_id,
+      startDate,
+      endDate
+    );
+
+    if (responses.length === 0) {
+      await updateResponse({
+        blocks: createNoDataBlocks("your standup submissions", rangeLabel),
+      });
+      return;
+    }
+
+    const blocks = [
+      {
+        type: "header",
+        text: {
+          type: "plain_text",
+          text: `📚 Your Standup History`,
+          emoji: true,
+        },
+      },
+      createSectionBlock(`*Range:* ${rangeLabel}  •  *Entries:* ${responses.length}`),
+      createDividerBlock(),
+    ];
+
+    for (const response of responses) {
+      const dateStr = dayjs(response.standupDate).format("ddd, MMM DD, YYYY");
+      const lateTag = response.isLate ? "  🕐 _late_" : "";
+      blocks.push(
+        createSectionBlock(`*🗓️ ${dateStr}  •  #${response.team.name}*${lateTag}`)
+      );
+
+      const fields = [];
+      if (response.yesterdayTasks) {
+        fields.push({
+          type: "mrkdwn",
+          text: `*📄 Last Working Day*\n${response.yesterdayTasks}`,
+        });
+      }
+      if (response.todayTasks) {
+        fields.push({
+          type: "mrkdwn",
+          text: `*🎯 Today*\n${response.todayTasks}`,
+        });
+      }
+      if (fields.length > 0) {
+        blocks.push(createFieldsBlock(fields));
+      }
+
+      if (response.blockers && response.blockers.trim()) {
+        blocks.push({
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: `⚠️ *Blocker:* _${response.blockers}_`,
+            },
+          ],
+        });
+      }
+
+      blocks.push(createDividerBlock());
+    }
+
+    await updateResponse({ blocks });
+  } catch (error) {
+    console.error("Error in showHistory command:", error);
+    await updateResponse({
+      blocks: createCommandErrorBlocks(
+        `Failed to load standup history: ${error.message}`
+      ),
+    });
+  }
+}
+
 module.exports = {
   submitManual,
   openStandupModal,
@@ -1129,4 +1301,5 @@ module.exports = {
   postStandup,
   previewStandup,
   sendFollowupReminders,
+  showHistory,
 };

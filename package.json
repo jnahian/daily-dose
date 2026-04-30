@@ -1,6 +1,6 @@
 {
   "name": "daily-dose",
-  "version": "1.4.3",
+  "version": "1.5.1",
   "main": "index.js",
   "directories": {
     "doc": "docs"
@@ -39,8 +39,12 @@
     "reminder"
   ],
   "author": "Sh Julkar Naen Nahian",
-  "license": "ISC",
+  "license": "MIT",
   "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jnahian/daily-dose"
+  },
   "dependencies": {
     "@prisma/client": "^6.15.0",
     "@slack/bolt": "^4.4.0",

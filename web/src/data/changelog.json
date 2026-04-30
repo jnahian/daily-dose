@@ -1,9 +1,105 @@
 {
   "versions": [
     {
+      "version": "1.5.1",
+      "date": "2026-04-30",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "fixed",
+          "title": "`/dd-standup` No Longer Errors in DMs",
+          "items": [
+            "Running `/dd-standup` without a team name in a DM with the bot (or in a non-team channel) used to return a 500 error if you were on more than five teams",
+            "Now it shows a clean usage hint listing your available teams"
+          ]
+        },
+        {
+          "type": "changed",
+          "title": "Cleaner Error Messages Across All Commands",
+          "items": [
+            "All slash-command error responses now share a consistent format: a primary message plus bulleted suggestions",
+            "Affects usage hints, validation errors, and 'team not found' messages across team, leave, holiday, standup, and preferences commands"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.5.0",
+      "date": "2026-04-30",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "added",
+          "title": "View Your Standup History",
+          "items": [
+            "New `/dd-standup-history` command lets you privately review your own standup submissions across all your teams",
+            "Run with no arguments to see your most recent submitted day",
+            "Pass a single date (`/dd-standup-history 2024-12-20`) to see that day, or two dates for a range",
+            "Date order doesn't matter — the bot figures it out"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.4.6",
+      "date": "2026-03-30",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "changed",
+          "title": "GitHub Repository Link",
+          "items": [
+            "The 'Add to Slack' button now links to the GitHub repository",
+            "Easily access the source code directly from the homepage"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.4.5",
+      "date": "2026-03-30",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "fixed",
+          "title": "Slash Commands Now Work Reliably",
+          "items": [
+            "Fixed a critical issue where all /dd-* slash commands failed with 'app did not respond'",
+            "Commands now respond immediately and consistently in all environments"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.4.4",
+      "date": "2026-03-18",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Web Application Enhancements",
+          "items": [
+            "Added favicon and app icons for better branding across all devices",
+            "Progressive Web App (PWA) support with manifest file",
+            "iOS home screen icon support for a native app-like experience",
+            "Multiple icon sizes for optimal display on any device"
+          ]
+        },
+        {
+          "type": "added",
+          "title": "Development Tools",
+          "items": [
+            "Docker Compose configuration for easier local development setup",
+            "Git Town configuration for streamlined branch management",
+            "Environment setup examples for admin configuration"
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.4.3",
       "date": "2026-02-05",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "added",

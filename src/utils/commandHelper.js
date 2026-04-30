@@ -82,7 +82,7 @@ async function getChannelName(client, channelId) {
  * @param {Object} command - Slack command object (optional) to show command name
  * @returns {Function} updateResponse - Function to send the final response
  */
-function ackWithProcessing(
+async function ackWithProcessing(
   ack,
   respond,
   processingMessage = "⏳ Processing...",
@@ -97,7 +97,7 @@ function ackWithProcessing(
   }
 
   // Acknowledge immediately with processing message
-  ack({
+  await ack({
     text: message,
     response_type: "ephemeral",
   });
