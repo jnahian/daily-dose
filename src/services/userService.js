@@ -297,42 +297,48 @@ class UserService {
     }
 
     const orgTeams = await prisma.team.findMany({
-      where: { organizationId: adminOrg.id },
+      where: { organizationId: adminOrg.id, isActive: true },
       select: { id: true },
     });
     const teamIds = orgTeams.map((t) => t.id);
 
     if (!isActive) {
-      // Pre-check: suspending this user must not leave any team without an active admin
-      const adminMemberships = await prisma.teamMember.findMany({
+      // Pre-check: suspending this user must not leave any team without an active admin.
+      // Single aggregate query — count active admins per team where the target is an
+      // admin, then filter to teams with exactly one (which must be the target).
+      const adminTeams = await prisma.teamMember.findMany({
         where: {
           userId: targetUser.id,
           isActive: true,
           role: "ADMIN",
           teamId: { in: teamIds },
         },
-        include: { team: { select: { name: true } } },
+        select: { teamId: true, team: { select: { name: true } } },
       });
 
-      const orphanedTeams = [];
-      for (const m of adminMemberships) {
-        const otherActiveAdmins = await prisma.teamMember.count({
+      if (adminTeams.length > 0) {
+        const adminCounts = await prisma.teamMember.groupBy({
+          by: ["teamId"],
           where: {
-            teamId: m.teamId,
+            teamId: { in: adminTeams.map((m) => m.teamId) },
             role: "ADMIN",
             isActive: true,
-            userId: { not: targetUser.id },
           },
+          _count: { _all: true },
         });
-        if (otherActiveAdmins === 0) {
-          orphanedTeams.push(m.team.name);
-        }
-      }
 
-      if (orphanedTeams.length > 0) {
-        throw new Error(
-          `Cannot suspend this member — they are the only active admin of: ${orphanedTeams.join(", ")}. Promote another admin in those teams first.`
+        const countByTeam = new Map(
+          adminCounts.map((c) => [c.teamId, c._count._all])
         );
+        const orphanedTeams = adminTeams
+          .filter((m) => (countByTeam.get(m.teamId) || 0) <= 1)
+          .map((m) => m.team.name);
+
+        if (orphanedTeams.length > 0) {
+          throw new Error(
+            `Cannot suspend this member — they are the only active admin of: ${orphanedTeams.join(", ")}. Promote another admin in those teams first.`
+          );
+        }
       }
     }
 
