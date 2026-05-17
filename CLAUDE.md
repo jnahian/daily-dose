@@ -6,6 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Daily Dose is a Slack bot that automates daily standup meetings for teams. Built with Node.js, it uses Slack's Bolt framework, PostgreSQL/Supabase for data storage, and Prisma as the ORM.
 
+## Don't
+
+High-leverage footguns specific to this repo. Read before editing:
+- **Don't inline Block Kit** at call sites — every block lives in `src/utils/blockHelper.js`. See `docs/slack-markdown-guidelines.md`.
+- **Don't parallelize Slack calls across teams** — Slack rate-limits at ~1 req/sec/channel. Process teams sequentially.
+- **Don't proxy Slack endpoints through Cloudflare** — must be DNS-only (orange cloud OFF). Edge buffering breaks the 3-second ack window and is the recurring source of `/dd-*` timeouts. See `DEPLOYMENT.md`.
+- **Don't put internal refactors in `web/src/data/changelog.json`** — that file is user-facing. Internal changes go in `CHANGELOG.md` only.
+- **Don't read modal rich_text values directly** — use `messageHelper.extractPlainText()` or `convertRichTextToSlack()`.
+- **Don't bypass `permissionHelper`** — always check via `isTeamAdmin()` / `isOrgOwner()`. Admins resolve team from channel; owners must pass team name explicitly.
+
 ## Development Commands
 
 ### Core Operations
@@ -17,6 +27,8 @@ Daily Dose is a Slack bot that automates daily standup meetings for teams. Built
 - `npx prisma generate` - Generate Prisma client after schema changes
 - `npx prisma db push` - Push schema changes to database
 - `npx prisma studio` - Open Prisma database GUI
+
+**Migration policy:** `prisma/migrations/` is populated and committed — the repo uses real migrations, not pure `db push`. Confirm with the user before generating a new migration vs. pushing; don't mix the two workflows in the same change.
 
 ### Utility Scripts
 - `npm run seed` - Seed organization data
@@ -48,6 +60,8 @@ Daily Dose is a Slack bot that automates daily standup meetings for teams. Built
 - `cd web && npm run preview` - Preview production build
 - `cd web && npm run lint` - Lint frontend code
 - `cd web && npm run format` - Format frontend code with Prettier
+
+**Note:** There is no root-level lint script. ESLint is installed at the root but only the `web/` package has a wired-up `lint` command. Lint backend code manually with `npx eslint <path>` if needed.
 
 ### Version Management
 - `npm run version:patch` - Bump patch version (bug fixes)
@@ -282,6 +296,7 @@ No automated tests currently configured - manual testing via Slack interactions 
 - **`admin/`** — empty placeholder directory.
 - **`CONTRIBUTING.md`** — contributor workflow and conventions.
 - **`docs/`** — design plans, user stories, and the canonical `slack-markdown-guidelines.md`.
+- **`.code-notes/`** and **`.agent/`** — scratchpad directories for tool/agent notes; not part of production code. Treat as ignorable unless the user references them.
 
 ## Project-Specific Conventions
 
