@@ -458,7 +458,7 @@ class TeamService {
 
     if (!isTeamAdmin && !isOrgManager) {
       throw new Error(
-        "You need team admin or organization owner permissions for this action"
+        "You need team admin or organization owner/admin permissions for this action"
       );
     }
 
@@ -471,7 +471,7 @@ class TeamService {
     }
 
     if (targetUser.id === adminUser.id) {
-      throw new Error("You cannot suspend yourself");
+      throw new Error("You cannot change your own team membership status");
     }
 
     const targetMembership = await prisma.teamMember.findUnique({
@@ -482,6 +482,33 @@ class TeamService {
 
     if (!targetMembership) {
       throw new Error("Target user is not a member of this team");
+    }
+
+    const targetOrgMembership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: team.organizationId,
+          userId: targetUser.id,
+        },
+      },
+    });
+
+    // Block reactivating a team membership when the user is org-suspended
+    if (isActive && targetOrgMembership && !targetOrgMembership.isActive) {
+      throw new Error(
+        "This member is suspended from the organization. Use /dd-org-unsuspend first."
+      );
+    }
+
+    // Only org owners can change an org owner's team membership
+    if (
+      targetOrgMembership &&
+      targetOrgMembership.role === "OWNER" &&
+      (!orgMembership || orgMembership.role !== "OWNER")
+    ) {
+      throw new Error(
+        "Only organization owners can change an organization owner's team membership"
+      );
     }
 
     if (targetMembership.isActive === isActive) {

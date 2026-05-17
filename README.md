@@ -379,10 +379,11 @@ These commands allow team admins and organization owners to manually trigger sta
   - **Name-based**: `/dd-team-suspend @john Engineering` (suspends from a specific team)
   - Suspended members stop receiving reminders, are excluded from standup posts, and cannot submit standups for that team
 - `/dd-team-unsuspend @user [team-name]` - Reactivate a suspended team member ⚠️ **(team admin or org owner/admin)**
-- `/dd-org-suspend @user` - Permanently suspend a member across the entire organization ⚠️ **(org owner/admin only)**
+- `/dd-org-suspend @user` - Suspend a member across the entire organization ⚠️ **(org owner/admin only)**
   - Cascades the suspension to every team in the organization
+  - Blocked if the user is the only active admin of any team in the org
 - `/dd-org-unsuspend @user` - Reactivate a suspended organization member ⚠️ **(org owner/admin only)**
-  - Restores org membership and the user's team memberships within the organization
+  - Restores org membership only; use `/dd-team-unsuspend` to re-add the user to specific teams
 
 ### 🌴 Leave Management
 

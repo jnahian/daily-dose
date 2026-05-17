@@ -12,11 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Member suspension feature
   - `/dd-team-suspend @user [TeamName]` — team admin (or org owner/admin) can suspend a member from a single team; falls back to channel's team when no name given
   - `/dd-team-unsuspend @user [TeamName]` — reactivate a suspended team member
-  - `/dd-org-suspend @user` — org owner/admin suspends a member across the entire organization (cascades to all `TeamMember` rows in that org)
-  - `/dd-org-unsuspend @user` — reactivate org-wide; also reactivates the user's team memberships within the org
+  - `/dd-org-suspend @user` — org owner/admin suspends a member across the entire organization (cascades to currently-active `TeamMember` rows in that org)
+  - `/dd-org-unsuspend @user` — reactivates the user's `OrganizationMember` only; does **not** resurrect team memberships (admin must use `/dd-team-unsuspend` per team) to avoid silently re-adding users who had left or been team-suspended independently
   - Suspension is implemented by toggling `TeamMember.isActive` / `OrganizationMember.isActive` — no new schema or migration required
-  - Service layer: `teamService.setTeamMemberActive()` and `userService.setOrganizationMemberActive()` enforce permission checks and prevent self-suspension, suspending the only active team admin, or non-owners suspending an owner
-  - Org-level cascade wraps both updates in a Prisma transaction
+  - Service layer: `teamService.setTeamMemberActive()` and `userService.setOrganizationMemberActive()` enforce permission checks and prevent self-suspension, suspending the only active team admin (per-team and org-wide), non-owners changing an owner's status, and team-reactivating a user who is currently org-suspended
+  - Cascade and org-membership update wrapped in a Prisma transaction
   - Commands registered in `src/commands/index.js`; slash commands added to `slack-app-manifest.json`
 
 ## [1.5.1] - 2026-04-30

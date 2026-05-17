@@ -267,7 +267,7 @@ class UserService {
     }
 
     if (targetUser.id === adminUser.id) {
-      throw new Error("You cannot suspend yourself");
+      throw new Error("You cannot change your own organization membership status");
     }
 
     const targetOrgMembership = await prisma.organizationMember.findUnique({
@@ -283,9 +283,9 @@ class UserService {
       throw new Error("Target user is not a member of your organization");
     }
 
-    // Owners can only be suspended by other owners
+    // Owner status can only be changed by another owner
     if (targetOrgMembership.role === "OWNER" && adminOrgMembership.role !== "OWNER") {
-      throw new Error("Only organization owners can suspend another owner");
+      throw new Error("Only organization owners can change another owner's status");
     }
 
     if (targetOrgMembership.isActive === isActive) {
@@ -296,14 +296,51 @@ class UserService {
       );
     }
 
-    // Cascade: update org membership and all team memberships in this org
     const orgTeams = await prisma.team.findMany({
       where: { organizationId: adminOrg.id },
       select: { id: true },
     });
     const teamIds = orgTeams.map((t) => t.id);
 
-    const [orgUpdate, teamUpdate] = await prisma.$transaction([
+    if (!isActive) {
+      // Pre-check: suspending this user must not leave any team without an active admin
+      const adminMemberships = await prisma.teamMember.findMany({
+        where: {
+          userId: targetUser.id,
+          isActive: true,
+          role: "ADMIN",
+          teamId: { in: teamIds },
+        },
+        include: { team: { select: { name: true } } },
+      });
+
+      const orphanedTeams = [];
+      for (const m of adminMemberships) {
+        const otherActiveAdmins = await prisma.teamMember.count({
+          where: {
+            teamId: m.teamId,
+            role: "ADMIN",
+            isActive: true,
+            userId: { not: targetUser.id },
+          },
+        });
+        if (otherActiveAdmins === 0) {
+          orphanedTeams.push(m.team.name);
+        }
+      }
+
+      if (orphanedTeams.length > 0) {
+        throw new Error(
+          `Cannot suspend this member — they are the only active admin of: ${orphanedTeams.join(", ")}. Promote another admin in those teams first.`
+        );
+      }
+    }
+
+    // On suspend: deactivate all currently-active team memberships in this org.
+    // On unsuspend: reactivate the org membership only — do NOT resurrect team
+    // memberships that were left or team-suspended independently. Admin can
+    // use /dd-team-unsuspend per team to restore those.
+    const ops = [
       prisma.organizationMember.update({
         where: {
           organizationId_userId: {
@@ -313,19 +350,30 @@ class UserService {
         },
         data: { isActive },
       }),
-      prisma.teamMember.updateMany({
-        where: {
-          userId: targetUser.id,
-          teamId: { in: teamIds },
-        },
-        data: { isActive },
-      }),
-    ]);
+    ];
+
+    if (!isActive) {
+      ops.push(
+        prisma.teamMember.updateMany({
+          where: {
+            userId: targetUser.id,
+            teamId: { in: teamIds },
+            isActive: true,
+          },
+          data: { isActive: false },
+        })
+      );
+    }
+
+    const results = await prisma.$transaction(ops);
+    const orgUpdate = results[0];
+    const teamMembershipsUpdated = isActive ? 0 : results[1].count;
 
     return {
       organizationMember: orgUpdate,
-      teamMembershipsUpdated: teamUpdate.count,
+      teamMembershipsUpdated,
       organization: adminOrg,
+      cascadedTeams: !isActive,
     };
   }
 

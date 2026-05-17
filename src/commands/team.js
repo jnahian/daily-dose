@@ -622,12 +622,14 @@ async function handleOrgSuspension({ command, ack, respond, client, suspend }) {
       client
     );
 
+    const detail = suspend
+      ? `${result.teamMembershipsUpdated} active team membership(s) suspended.`
+      : `Use \`/dd-team-unsuspend @user [TeamName]\` to restore team memberships.`;
+
     await updateResponse({
       text: `✅ <@${targetSlackUserId}> has been ${verb} ${
         suspend ? "from" : "in"
-      } organization "${result.organization.name}". ${
-        result.teamMembershipsUpdated
-      } team membership(s) ${verb}.`,
+      } organization "${result.organization.name}". ${detail}`,
     });
   } catch (error) {
     await updateResponse({
