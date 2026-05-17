@@ -230,6 +230,105 @@ class UserService {
     });
   }
 
+  async setOrganizationMemberActive(adminSlackUserId, targetSlackUserId, isActive, slackClient = null) {
+    const adminUserData = await this.fetchSlackUserData(adminSlackUserId, slackClient);
+    const adminUser = await this.findOrCreateUser(adminSlackUserId, adminUserData);
+
+    const adminOrg = await this.getUserOrganization(adminSlackUserId);
+    if (!adminOrg) {
+      throw new Error("You must belong to an organization to manage members");
+    }
+
+    const adminOrgMembership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: adminOrg.id,
+          userId: adminUser.id,
+        },
+      },
+    });
+
+    if (
+      !adminOrgMembership ||
+      !adminOrgMembership.isActive ||
+      !["OWNER", "ADMIN"].includes(adminOrgMembership.role)
+    ) {
+      throw new Error(
+        "You need organization owner or admin permissions for this action"
+      );
+    }
+
+    const targetUser = await prisma.user.findUnique({
+      where: { slackUserId: targetSlackUserId },
+    });
+
+    if (!targetUser) {
+      throw new Error("Target user not found");
+    }
+
+    if (targetUser.id === adminUser.id) {
+      throw new Error("You cannot suspend yourself");
+    }
+
+    const targetOrgMembership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: adminOrg.id,
+          userId: targetUser.id,
+        },
+      },
+    });
+
+    if (!targetOrgMembership) {
+      throw new Error("Target user is not a member of your organization");
+    }
+
+    // Owners can only be suspended by other owners
+    if (targetOrgMembership.role === "OWNER" && adminOrgMembership.role !== "OWNER") {
+      throw new Error("Only organization owners can suspend another owner");
+    }
+
+    if (targetOrgMembership.isActive === isActive) {
+      throw new Error(
+        isActive
+          ? "Member is already active in this organization"
+          : "Member is already suspended from this organization"
+      );
+    }
+
+    // Cascade: update org membership and all team memberships in this org
+    const orgTeams = await prisma.team.findMany({
+      where: { organizationId: adminOrg.id },
+      select: { id: true },
+    });
+    const teamIds = orgTeams.map((t) => t.id);
+
+    const [orgUpdate, teamUpdate] = await prisma.$transaction([
+      prisma.organizationMember.update({
+        where: {
+          organizationId_userId: {
+            organizationId: adminOrg.id,
+            userId: targetUser.id,
+          },
+        },
+        data: { isActive },
+      }),
+      prisma.teamMember.updateMany({
+        where: {
+          userId: targetUser.id,
+          teamId: { in: teamIds },
+        },
+        data: { isActive },
+      }),
+    ]);
+
+    return {
+      organizationMember: orgUpdate,
+      teamMembershipsUpdated: teamUpdate.count,
+      organization: adminOrg,
+    };
+  }
+
   async setMemberLeave(targetSlackUserId, startDate, endDate, reason, slackClient = null) {
     const userData = await this.fetchSlackUserData(targetSlackUserId, slackClient);
     const user = await this.findOrCreateUser(targetSlackUserId, userData);

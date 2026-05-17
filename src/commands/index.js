@@ -24,6 +24,10 @@ function setupCommands(app) {
   app.command("/dd-team-members", stripFormatting(), teamCommands.listMembers);
   app.command("/dd-team-create", stripFormatting(), teamCommands.createTeam);
   app.command("/dd-team-update", stripFormatting(), teamCommands.updateTeam);
+  app.command("/dd-team-suspend", stripFormatting(), teamCommands.suspendTeamMember);
+  app.command("/dd-team-unsuspend", stripFormatting(), teamCommands.unsuspendTeamMember);
+  app.command("/dd-org-suspend", stripFormatting(), teamCommands.suspendOrgMember);
+  app.command("/dd-org-unsuspend", stripFormatting(), teamCommands.unsuspendOrgMember);
 
   // Leave management commands - wrapped with formatting removal middleware
   app.command("/dd-leave-list", stripFormatting(), leaveCommands.listLeaves);
