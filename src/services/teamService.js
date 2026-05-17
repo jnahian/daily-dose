@@ -654,6 +654,21 @@ class TeamService {
       throw new Error("Target user is not an active member of this team");
     }
 
+    const targetOrgMembership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: team.organizationId,
+          userId: targetUser.id,
+        },
+      },
+    });
+
+    if (targetOrgMembership?.role === "OWNER") {
+      throw new Error(
+        "Target user is the organization owner and cannot be promoted further"
+      );
+    }
+
     if (targetMembership.role === "ADMIN") {
       throw new Error("Target user is already a team admin");
     }
