@@ -1,4 +1,5 @@
 const teamService = require("../services/teamService");
+const userService = require("../services/userService");
 const schedulerService = require("../services/schedulerService");
 const { ackWithProcessing, getChannelName } = require("../utils/commandHelper");
 const { getDisplayName } = require("../utils/userHelper");
@@ -7,6 +8,12 @@ const {
   createSectionBlock,
   createCommandErrorBlocks,
 } = require("../utils/blockHelper");
+
+function parseUserMention(token) {
+  if (!token) return null;
+  const match = token.match(/<@([A-Z0-9]+)(\|[^>]+)?>/);
+  return match ? match[1] : null;
+}
 
 async function createTeam({ command, ack, respond, client }) {
   const updateResponse = await ackWithProcessing(
@@ -473,6 +480,164 @@ async function updateTeam({ command, ack, respond, client }) {
   }
 }
 
+async function suspendTeamMember({ command, ack, respond, client }) {
+  return handleTeamSuspension({ command, ack, respond, client, suspend: true });
+}
+
+async function unsuspendTeamMember({ command, ack, respond, client }) {
+  return handleTeamSuspension({ command, ack, respond, client, suspend: false });
+}
+
+async function handleTeamSuspension({ command, ack, respond, client, suspend }) {
+  const action = suspend ? "Suspending" : "Reactivating";
+  const verb = suspend ? "suspended" : "reactivated";
+  const cmdName = suspend ? "/dd-team-suspend" : "/dd-team-unsuspend";
+
+  const updateResponse = await ackWithProcessing(
+    ack,
+    respond,
+    `${action} team member...`,
+    command
+  );
+
+  try {
+    const parts = command.text.trim().split(/\s+/).filter(Boolean);
+
+    if (parts.length === 0) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          `Usage: \`${cmdName} @user [TeamName]\``,
+          [
+            `\`${cmdName} @john\` (uses current channel's team)`,
+            `\`${cmdName} @john Engineering\``,
+          ]
+        ),
+      });
+      return;
+    }
+
+    const targetSlackUserId = parseUserMention(parts[0]);
+    if (!targetSlackUserId) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          "Invalid user mention. Please use @mention format (e.g., @john)"
+        ),
+      });
+      return;
+    }
+
+    const teamName = parts.slice(1).join(" ").trim();
+    let team;
+    if (teamName) {
+      team = await teamService.findTeamByName(teamName);
+      if (!team) {
+        await updateResponse({
+          blocks: createCommandErrorBlocks(`Team "${teamName}" not found`),
+        });
+        return;
+      }
+    } else {
+      team = await teamService.findTeamByChannel(command.channel_id);
+      if (!team) {
+        await updateResponse({
+          blocks: createCommandErrorBlocks(
+            "No team found in this channel.",
+            [
+              `Run \`${cmdName} @user [TeamName]\` to target a specific team`,
+              `Or run \`${cmdName} @user\` inside a team channel`,
+            ]
+          ),
+        });
+        return;
+      }
+    }
+
+    await teamService.setTeamMemberActive(
+      command.user_id,
+      targetSlackUserId,
+      team.id,
+      !suspend,
+      client
+    );
+
+    await updateResponse({
+      text: `✅ <@${targetSlackUserId}> has been ${verb} ${
+        suspend ? "from" : "in"
+      } team "${team.name}".`,
+    });
+  } catch (error) {
+    await updateResponse({
+      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+    });
+  }
+}
+
+async function suspendOrgMember({ command, ack, respond, client }) {
+  return handleOrgSuspension({ command, ack, respond, client, suspend: true });
+}
+
+async function unsuspendOrgMember({ command, ack, respond, client }) {
+  return handleOrgSuspension({ command, ack, respond, client, suspend: false });
+}
+
+async function handleOrgSuspension({ command, ack, respond, client, suspend }) {
+  const action = suspend ? "Suspending" : "Reactivating";
+  const verb = suspend ? "suspended" : "reactivated";
+  const cmdName = suspend ? "/dd-org-suspend" : "/dd-org-unsuspend";
+
+  const updateResponse = await ackWithProcessing(
+    ack,
+    respond,
+    `${action} organization member...`,
+    command
+  );
+
+  try {
+    const parts = command.text.trim().split(/\s+/).filter(Boolean);
+
+    if (parts.length === 0) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          `Usage: \`${cmdName} @user\``,
+          [`\`${cmdName} @john\``]
+        ),
+      });
+      return;
+    }
+
+    const targetSlackUserId = parseUserMention(parts[0]);
+    if (!targetSlackUserId) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          "Invalid user mention. Please use @mention format (e.g., @john)"
+        ),
+      });
+      return;
+    }
+
+    const result = await userService.setOrganizationMemberActive(
+      command.user_id,
+      targetSlackUserId,
+      !suspend,
+      client
+    );
+
+    const detail = suspend
+      ? `${result.teamMembershipsUpdated} active team membership(s) suspended.`
+      : `Use \`/dd-team-unsuspend @user [TeamName]\` to restore team memberships.`;
+
+    await updateResponse({
+      text: `✅ <@${targetSlackUserId}> has been ${verb} ${
+        suspend ? "from" : "in"
+      } organization "${result.organization.name}". ${detail}`,
+    });
+  } catch (error) {
+    await updateResponse({
+      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+    });
+  }
+}
+
 module.exports = {
   createTeam,
   joinTeam,
@@ -480,4 +645,8 @@ module.exports = {
   listTeams,
   listMembers,
   updateTeam,
+  suspendTeamMember,
+  unsuspendTeamMember,
+  suspendOrgMember,
+  unsuspendOrgMember,
 };

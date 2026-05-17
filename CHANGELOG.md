@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Member suspension feature
+  - `/dd-team-suspend @user [TeamName]` — team admin (or org owner/admin) can suspend a member from a single team; falls back to channel's team when no name given
+  - `/dd-team-unsuspend @user [TeamName]` — reactivate a suspended team member
+  - `/dd-org-suspend @user` — org owner/admin suspends a member across the entire organization (cascades to currently-active `TeamMember` rows in that org)
+  - `/dd-org-unsuspend @user` — reactivates the user's `OrganizationMember` only; does **not** resurrect team memberships (admin must use `/dd-team-unsuspend` per team) to avoid silently re-adding users who had left or been team-suspended independently
+  - Suspension is implemented by toggling `TeamMember.isActive` / `OrganizationMember.isActive` — no new schema or migration required
+  - Service layer: `teamService.setTeamMemberActive()` and `userService.setOrganizationMemberActive()` enforce permission checks and prevent self-suspension, suspending the only active team admin (per-team and org-wide), non-owners changing an owner's status, and team-reactivating a user who is currently org-suspended
+  - Cascade and org-membership update wrapped in a Prisma transaction
+- Auto-suspension when a Slack workspace user is deactivated
+  - New `user_change` bot event subscription (`slack-app-manifest.json`)
+  - `src/events/index.js` handles the event; when `event.user.deleted === true` calls `userService.suspendUserSystemWide(slackUserId)` which deactivates every active `OrganizationMember` and `TeamMember` row for that user across all orgs
+  - System-triggered path bypasses admin-permission and sole-active-admin guards — the deactivated Slack user can no longer act, so suspension must apply regardless
+  - Idempotent (only touches `isActive: true` rows); no-op when the Slack user isn't in our DB
+  - Commands registered in `src/commands/index.js`; slash commands added to `slack-app-manifest.json`
+
 ## [1.5.1] - 2026-04-30
 
 ### Fixed

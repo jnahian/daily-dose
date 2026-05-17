@@ -4,6 +4,7 @@ const path = require("path");
 const prisma = require("./config/prisma");
 const { setupCommands } = require("./commands");
 const { setupWorkflows } = require("./workflows");
+const { setupEvents } = require("./events");
 const schedulerService = require("./services/schedulerService");
 
 const receiver = new ExpressReceiver({
@@ -18,6 +19,7 @@ const app = new App({
 // Setup commands and workflows
 setupCommands(app);
 setupWorkflows(app);
+setupEvents(app);
 
 // Initialize scheduler
 schedulerService.initialize(app);

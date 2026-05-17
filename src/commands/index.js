@@ -24,6 +24,12 @@ function setupCommands(app) {
   app.command("/dd-team-members", stripFormatting(), teamCommands.listMembers);
   app.command("/dd-team-create", stripFormatting(), teamCommands.createTeam);
   app.command("/dd-team-update", stripFormatting(), teamCommands.updateTeam);
+  // Suspension commands accept @mentions; skip stripFormatting so the raw
+  // <@U...|name> wrapper survives for parseUserMention.
+  app.command("/dd-team-suspend", teamCommands.suspendTeamMember);
+  app.command("/dd-team-unsuspend", teamCommands.unsuspendTeamMember);
+  app.command("/dd-org-suspend", teamCommands.suspendOrgMember);
+  app.command("/dd-org-unsuspend", teamCommands.unsuspendOrgMember);
 
   // Leave management commands - wrapped with formatting removal middleware
   app.command("/dd-leave-list", stripFormatting(), leaveCommands.listLeaves);
@@ -57,7 +63,9 @@ function setupCommands(app) {
   app.view("standup_modal", standupCommands.handleStandupSubmission);
   app.view("standup_update_modal", standupCommands.handleStandupUpdateSubmission);
 
-  console.log("✅ Commands registered with formatting removal middleware");
+  console.log(
+    "✅ Commands registered (most with stripFormatting; suspension commands keep raw mentions)"
+  );
 }
 
 module.exports = { setupCommands };

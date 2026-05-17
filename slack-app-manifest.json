@@ -53,6 +53,34 @@
                 "should_escape": false
             },
             {
+                "command": "/dd-team-suspend",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "Suspend a member from a team (admin only)",
+                "usage_hint": "@user [TeamName]",
+                "should_escape": false
+            },
+            {
+                "command": "/dd-team-unsuspend",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "Reactivate a suspended team member (admin only)",
+                "usage_hint": "@user [TeamName]",
+                "should_escape": false
+            },
+            {
+                "command": "/dd-org-suspend",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "Suspend a member from the entire organization (org owner/admin only)",
+                "usage_hint": "@user",
+                "should_escape": false
+            },
+            {
+                "command": "/dd-org-unsuspend",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "Reactivate a suspended organization member (org owner/admin only)",
+                "usage_hint": "@user",
+                "should_escape": false
+            },
+            {
                 "command": "/dd-leave-set",
                 "url": "{{APP_URL}}/slack/events",
                 "description": "Set leave dates to skip standup reminders",
@@ -221,7 +249,8 @@
                 "message.channels",
                 "message.groups",
                 "message.im",
-                "team_join"
+                "team_join",
+                "user_change"
             ]
         },
         "interactivity": {

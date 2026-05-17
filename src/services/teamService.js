@@ -414,6 +414,136 @@ class TeamService {
     return membership && membership.role === "ADMIN";
   }
 
+  async setTeamMemberActive(adminSlackUserId, targetSlackUserId, teamId, isActive, slackClient = null) {
+    const adminUserData = await userService.fetchSlackUserData(
+      adminSlackUserId,
+      slackClient
+    );
+    const adminUser = await userService.findOrCreateUser(
+      adminSlackUserId,
+      adminUserData
+    );
+
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      include: { organization: true },
+    });
+
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    // Permission: team admin or org owner/admin
+    const adminMembership = await prisma.teamMember.findUnique({
+      where: {
+        teamId_userId: { teamId, userId: adminUser.id },
+      },
+    });
+
+    const orgMembership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: team.organizationId,
+          userId: adminUser.id,
+        },
+      },
+    });
+
+    const isTeamAdmin =
+      adminMembership && adminMembership.isActive && adminMembership.role === "ADMIN";
+    const isOrgManager =
+      orgMembership &&
+      orgMembership.isActive &&
+      ["OWNER", "ADMIN"].includes(orgMembership.role);
+
+    if (!isTeamAdmin && !isOrgManager) {
+      throw new Error(
+        "You need team admin or organization owner/admin permissions for this action"
+      );
+    }
+
+    const targetUser = await prisma.user.findUnique({
+      where: { slackUserId: targetSlackUserId },
+    });
+
+    if (!targetUser) {
+      throw new Error("Target user not found");
+    }
+
+    if (targetUser.id === adminUser.id) {
+      throw new Error("You cannot change your own team membership status");
+    }
+
+    const targetMembership = await prisma.teamMember.findUnique({
+      where: {
+        teamId_userId: { teamId, userId: targetUser.id },
+      },
+    });
+
+    if (!targetMembership) {
+      throw new Error("Target user is not a member of this team");
+    }
+
+    const targetOrgMembership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: team.organizationId,
+          userId: targetUser.id,
+        },
+      },
+    });
+
+    // Block reactivating a team membership when the user is org-suspended
+    if (isActive && targetOrgMembership && !targetOrgMembership.isActive) {
+      throw new Error(
+        "This member is suspended from the organization. Use /dd-org-unsuspend first."
+      );
+    }
+
+    // Only org owners can change an org owner's team membership
+    if (
+      targetOrgMembership &&
+      targetOrgMembership.role === "OWNER" &&
+      (!orgMembership || orgMembership.role !== "OWNER")
+    ) {
+      throw new Error(
+        "Only organization owners can change an organization owner's team membership"
+      );
+    }
+
+    if (targetMembership.isActive === isActive) {
+      throw new Error(
+        isActive
+          ? "Member is already active in this team"
+          : "Member is already suspended from this team"
+      );
+    }
+
+    // Prevent removing the only active admin
+    if (!isActive && targetMembership.role === "ADMIN") {
+      const otherActiveAdmins = await prisma.teamMember.count({
+        where: {
+          teamId,
+          role: "ADMIN",
+          isActive: true,
+          userId: { not: targetUser.id },
+        },
+      });
+      if (otherActiveAdmins === 0) {
+        throw new Error(
+          "Cannot suspend the only active admin of this team. Promote another admin first."
+        );
+      }
+    }
+
+    return await prisma.teamMember.update({
+      where: {
+        teamId_userId: { teamId, userId: targetUser.id },
+      },
+      data: { isActive },
+    });
+  }
+
   async getUserTeams(slackUserId, slackClient = null) {
     const userData = await userService.fetchSlackUserData(slackUserId, slackClient);
     const user = await userService.findOrCreateUser(slackUserId, userData);
