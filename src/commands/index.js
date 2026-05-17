@@ -63,7 +63,9 @@ function setupCommands(app) {
   app.view("standup_modal", standupCommands.handleStandupSubmission);
   app.view("standup_update_modal", standupCommands.handleStandupUpdateSubmission);
 
-  console.log("✅ Commands registered with formatting removal middleware");
+  console.log(
+    "✅ Commands registered (most with stripFormatting; suspension commands keep raw mentions)"
+  );
 }
 
 module.exports = { setupCommands };
