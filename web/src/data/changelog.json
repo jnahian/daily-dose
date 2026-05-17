@@ -1,9 +1,27 @@
 {
   "versions": [
     {
+      "version": "1.6.0",
+      "date": "2026-05-17",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Suspend Inactive Members",
+          "items": [
+            "Team admins can now suspend a member from a single team with `/dd-team-suspend @user [team-name]` (and reactivate with `/dd-team-unsuspend`)",
+            "Organization owners and admins can suspend a member across the entire organization with `/dd-org-suspend @user` (reactivate with `/dd-org-unsuspend`)",
+            "Suspended members stop receiving standup reminders and are excluded from posted summaries",
+            "Daily Dose now automatically suspends members when they're deactivated in Slack — no manual cleanup needed",
+            "Safety guards prevent suspending the only active admin of a team or accidentally changing an organization owner's status"
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.5.1",
       "date": "2026-04-30",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "fixed",
