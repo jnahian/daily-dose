@@ -175,73 +175,10 @@ jobs:
         run: |
           echo "✅ Version ${{ needs.deploy.outputs.version }} deployed successfully!"
 
-  create-release:
-    name: Create GitHub Release
-    runs-on: ubuntu-latest
-    needs: [validate, deploy, health-check]
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Extract version info
-        id: version
-        run: |
-          TAG_NAME=${GITHUB_REF#refs/tags/}
-          VERSION=${TAG_NAME#v}
-          echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Extract changelog for this version
-        id: changelog
-        run: |
-          TAG_NAME=${{ steps.version.outputs.tag }}
-          VERSION=${{ steps.version.outputs.version }}
-
-          if [ -f CHANGELOG.md ]; then
-            # Extract changelog section for this version
-            # Match the version heading and extract content until the next version heading
-            CHANGELOG=$(awk "/## \[$VERSION\]/{flag=1; next} /## \[/{flag=0} flag" CHANGELOG.md)
-
-            if [ -z "$CHANGELOG" ]; then
-              echo "⚠️ No changelog entry found for version $VERSION"
-              CHANGELOG="## Release $TAG_NAME\n\nNo changelog entry found. Please update CHANGELOG.md."
-            else
-              # Add version header to the changelog
-              CHANGELOG="## Release $TAG_NAME\n\n$CHANGELOG"
-            fi
-          else
-            echo "⚠️ CHANGELOG.md not found"
-            CHANGELOG="## Release $TAG_NAME\n\nNo changelog available."
-          fi
-
-          # Write to output file to handle multiline
-          echo -e "$CHANGELOG" > /tmp/changelog.txt
-          echo "changelog_file=/tmp/changelog.txt" >> $GITHUB_OUTPUT
-
-          # Display what was extracted for debugging
-          echo "📋 Extracted changelog:"
-          cat /tmp/changelog.txt
-
-      - name: Create GitHub Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          release_name: Release ${{ steps.version.outputs.tag }}
-          body_path: ${{ steps.changelog.outputs.changelog_file }}
-          draft: false
-          prerelease: false
-
   notify:
     name: Send Deployment Notification
     runs-on: ubuntu-latest
-    needs: [validate, deploy, health-check, create-release]
+    needs: [validate, deploy, health-check]
     if: always()
 
     steps:
@@ -274,4 +211,3 @@ jobs:
           echo "- Validate: ${{ needs.validate.result }}"
           echo "- Deploy: ${{ needs.deploy.result }}"
           echo "- Health Check: ${{ needs.health-check.result }}"
-          echo "- Create Release: ${{ needs.create-release.result }}"
