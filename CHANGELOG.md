@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Suspension is implemented by toggling `TeamMember.isActive` / `OrganizationMember.isActive` — no new schema or migration required
   - Service layer: `teamService.setTeamMemberActive()` and `userService.setOrganizationMemberActive()` enforce permission checks and prevent self-suspension, suspending the only active team admin (per-team and org-wide), non-owners changing an owner's status, and team-reactivating a user who is currently org-suspended
   - Cascade and org-membership update wrapped in a Prisma transaction
+- Auto-suspension when a Slack workspace user is deactivated
+  - New `user_change` bot event subscription (`slack-app-manifest.json`)
+  - `src/events/index.js` handles the event; when `event.user.deleted === true` calls `userService.suspendUserSystemWide(slackUserId)` which deactivates every active `OrganizationMember` and `TeamMember` row for that user across all orgs
+  - System-triggered path bypasses admin-permission and sole-active-admin guards — the deactivated Slack user can no longer act, so suspension must apply regardless
+  - Idempotent (only touches `isActive: true` rows); no-op when the Slack user isn't in our DB
   - Commands registered in `src/commands/index.js`; slash commands added to `slack-app-manifest.json`
 
 ## [1.5.1] - 2026-04-30

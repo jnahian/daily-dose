@@ -249,7 +249,8 @@
                 "message.channels",
                 "message.groups",
                 "message.im",
-                "team_join"
+                "team_join",
+                "user_change"
             ]
         },
         "interactivity": {

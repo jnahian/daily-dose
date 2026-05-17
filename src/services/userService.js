@@ -377,6 +377,38 @@ class UserService {
     };
   }
 
+  // System-triggered suspension across every org/team the user belongs to.
+  // Used when Slack reports the workspace user as deactivated. Bypasses
+  // admin permission and sole-admin guards (the user no longer exists in
+  // Slack, so the team needs the suspension applied regardless).
+  async suspendUserSystemWide(slackUserId) {
+    const user = await prisma.user.findUnique({
+      where: { slackUserId },
+    });
+
+    if (!user) {
+      return { found: false };
+    }
+
+    const [orgUpdate, teamUpdate] = await prisma.$transaction([
+      prisma.organizationMember.updateMany({
+        where: { userId: user.id, isActive: true },
+        data: { isActive: false },
+      }),
+      prisma.teamMember.updateMany({
+        where: { userId: user.id, isActive: true },
+        data: { isActive: false },
+      }),
+    ]);
+
+    return {
+      found: true,
+      userId: user.id,
+      orgMembershipsSuspended: orgUpdate.count,
+      teamMembershipsSuspended: teamUpdate.count,
+    };
+  }
+
   async setMemberLeave(targetSlackUserId, startDate, endDate, reason, slackClient = null) {
     const userData = await this.fetchSlackUserData(targetSlackUserId, slackClient);
     const user = await this.findOrCreateUser(targetSlackUserId, userData);
