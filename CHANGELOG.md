@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `/dd-team-suspend`, `/dd-team-unsuspend`, `/dd-org-suspend`, and `/dd-org-unsuspend` now accept additional input formats so admins can target Slack users who have already been deactivated and can no longer be @-mentioned in chat:
+  - Raw Slack user ID (e.g., `U0123ABCD` / `W0123ABCD`) — globally unique, accepted without an org lookup
+  - Bare `@username` or `username` — resolved via the user's stored Slack `username` field, scoped to the admin's organization (since `User.username` is `String?` and not `@unique` in `schema.prisma`)
+  - The standard `<@U…|name>` mention token remains the primary path for active users
+- Added `userService.findUserByUsernameInOrg(username, organizationId)` and a `resolveTargetSlackUserId(token, organizationId)` helper in `src/commands/team.js` covering all three formats in priority order
+- `handleTeamSuspension` now resolves the team first so `team.organizationId` is available for the username lookup; `handleOrgSuspension` pre-fetches the admin's org via `userService.getUserOrganization`
+- Error message in `parseUserMention`'s "invalid mention" branch updated to list all three supported input formats
+
 ## [1.6.0] - 2026-05-17
 
 ### Added
