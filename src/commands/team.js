@@ -15,6 +15,34 @@ function parseUserMention(token) {
   return match ? match[1] : null;
 }
 
+// Resolve a slash-command target token to a Slack user ID. Tries, in order:
+//   1. Slack mention token `<@U123|name>` (active users autocompleted in chat)
+//   2. Raw Slack user ID `U0123ABCD` / `W0123ABCD` (globally unique)
+//   3. `@username` or `username` looked up against our DB, scoped to the
+//      admin's organization
+// (2) and (3) exist so admins can target users who've already been
+// deactivated in Slack and can no longer be @-mentioned.
+async function resolveTargetSlackUserId(token, organizationId) {
+  if (!token) return null;
+
+  const mentionId = parseUserMention(token);
+  if (mentionId) return mentionId;
+
+  if (/^[UW][A-Z0-9]{6,}$/i.test(token)) {
+    return token.toUpperCase();
+  }
+
+  if (!organizationId) return null;
+  const username = token.replace(/^@/, "").trim();
+  if (!username) return null;
+
+  const user = await userService.findUserByUsernameInOrg(
+    username,
+    organizationId
+  );
+  return user ? user.slackUserId : null;
+}
+
 async function createTeam({ command, ack, respond, client }) {
   const updateResponse = await ackWithProcessing(
     ack,
@@ -516,16 +544,6 @@ async function handleTeamSuspension({ command, ack, respond, client, suspend }) 
       return;
     }
 
-    const targetSlackUserId = parseUserMention(parts[0]);
-    if (!targetSlackUserId) {
-      await updateResponse({
-        blocks: createCommandErrorBlocks(
-          "Invalid user mention. Please use @mention format (e.g., @john)"
-        ),
-      });
-      return;
-    }
-
     const teamName = parts.slice(1).join(" ").trim();
     let team;
     if (teamName) {
@@ -550,6 +568,24 @@ async function handleTeamSuspension({ command, ack, respond, client, suspend }) 
         });
         return;
       }
+    }
+
+    const targetSlackUserId = await resolveTargetSlackUserId(
+      parts[0],
+      team.organizationId
+    );
+    if (!targetSlackUserId) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          "Could not resolve target user.",
+          [
+            "Use `@user` mention (e.g., `@john`)",
+            "Or pass the Slack user ID directly (e.g., `U0123ABCD`)",
+            "Or pass the username for already-deactivated users (e.g., `@john` or `john`)",
+          ]
+        ),
+      });
+      return;
     }
 
     await teamService.setTeamMemberActive(
@@ -605,11 +641,20 @@ async function handleOrgSuspension({ command, ack, respond, client, suspend }) {
       return;
     }
 
-    const targetSlackUserId = parseUserMention(parts[0]);
+    const adminOrg = await userService.getUserOrganization(command.user_id);
+    const targetSlackUserId = await resolveTargetSlackUserId(
+      parts[0],
+      adminOrg ? adminOrg.id : null
+    );
     if (!targetSlackUserId) {
       await updateResponse({
         blocks: createCommandErrorBlocks(
-          "Invalid user mention. Please use @mention format (e.g., @john)"
+          "Could not resolve target user.",
+          [
+            "Use `@user` mention (e.g., `@john`)",
+            "Or pass the Slack user ID directly (e.g., `U0123ABCD`)",
+            "Or pass the username for already-deactivated users (e.g., `@john` or `john`)",
+          ]
         ),
       });
       return;

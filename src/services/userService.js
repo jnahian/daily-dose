@@ -79,6 +79,22 @@ class UserService {
     return user.organizations[0].organization;
   }
 
+  // Look up a user by Slack username (without the leading @) within a given
+  // organization. Used to resolve targets for admin commands when the Slack
+  // user can no longer be @-mentioned (e.g., already deactivated in Slack).
+  // Username is not @unique in the schema, so we scope by org membership —
+  // Slack itself enforces username uniqueness per workspace.
+  async findUserByUsernameInOrg(username, organizationId) {
+    if (!username || !organizationId) return null;
+    return await prisma.user.findFirst({
+      where: {
+        username,
+        organizations: { some: { organizationId } },
+      },
+      select: { id: true, slackUserId: true, username: true },
+    });
+  }
+
   async canCreateTeam(userId, organizationId) {
     const membership = await prisma.organizationMember.findUnique({
       where: {
