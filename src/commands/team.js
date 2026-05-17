@@ -246,12 +246,16 @@ async function listTeams({ command, ack, respond }) {
   );
 
   try {
-    const teams = await teamService.listTeams(command.user_id);
+    const { teams, scope, organization } = await teamService.listTeamsForUser(
+      command.user_id
+    );
 
     if (teams.length === 0) {
-      await updateResponse({
-        text: "📋 No teams found in your organization",
-      });
+      const emptyText =
+        scope === "all"
+          ? "📋 No teams found in your organization"
+          : "📋 You are not a member of any teams in this organization";
+      await updateResponse({ text: emptyText });
       return;
     }
 
@@ -268,10 +272,13 @@ async function listTeams({ command, ack, respond }) {
       )
       .join("\n\n");
 
+    const heading =
+      scope === "all"
+        ? `*📋 Teams in ${organization.name}:*`
+        : `*📋 Your teams:*`;
+
     await updateResponse({
-      blocks: [
-        createSectionBlock(`*📋 Teams in your organization:*\n\n${teamList}`),
-      ],
+      blocks: [createSectionBlock(`${heading}\n\n${teamList}`)],
     });
   } catch (error) {
     await updateResponse({

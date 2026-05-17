@@ -154,6 +154,55 @@ class TeamService {
     });
   }
 
+  // Scoped variant for /dd-team-list: privileged users (org OWNER/ADMIN or
+  // active super admin) see every team in the org; regular members and team
+  // admins see only the teams they are an active member of. Returns the org
+  // so the command can use its name in the response heading.
+  async listTeamsForUser(slackUserId) {
+    const user = await prisma.user.findUnique({
+      where: { slackUserId },
+      include: {
+        super_admins: true,
+        organizations: {
+          where: { isActive: true },
+          include: { organization: true },
+        },
+      },
+    });
+
+    if (!user || user.organizations.length === 0) {
+      return { teams: [], scope: "own", organization: null };
+    }
+
+    const membership = user.organizations[0];
+    const organization = membership.organization;
+    const isSuperAdmin =
+      !!user.super_admins && user.super_admins.revoked_at === null;
+    const isOrgPrivileged = ["OWNER", "ADMIN"].includes(membership.role);
+    const seeAll = isSuperAdmin || isOrgPrivileged;
+
+    const teams = await prisma.team.findMany({
+      where: {
+        organizationId: organization.id,
+        isActive: true,
+        ...(seeAll
+          ? {}
+          : {
+              members: {
+                some: { userId: user.id, isActive: true },
+              },
+            }),
+      },
+      include: {
+        _count: {
+          select: { members: true },
+        },
+      },
+    });
+
+    return { teams, scope: seeAll ? "all" : "own", organization };
+  }
+
   async getTeamMembers(teamId) {
     return await prisma.teamMember.findMany({
       where: {
