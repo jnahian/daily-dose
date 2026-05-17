@@ -121,6 +121,8 @@ When you first interact with the bot, you'll be automatically added to your orga
 /dd-team-unsuspend @user [TeamName]   # Reactivate a suspended team member ⚠️ (admin only)
 /dd-org-suspend @user                 # Suspend member from entire organization ⚠️ (org owner/admin)
 /dd-org-unsuspend @user               # Reactivate suspended org member ⚠️ (org owner/admin)
+/dd-org-promote @user                 # Promote to organization admin ⚠️ (org owner/admin)
+/dd-org-promote @user Engineering     # Promote to team admin in a specific team ⚠️ (org owner/admin)
 ```
 
 ### 3. Submit Your Daily Standup
@@ -384,6 +386,11 @@ These commands allow team admins and organization owners to manually trigger sta
   - Blocked if the user is the only active admin of any team in the org
 - `/dd-org-unsuspend @user` - Reactivate a suspended organization member ⚠️ **(org owner/admin only)**
   - Restores org membership only; use `/dd-team-unsuspend` to re-add the user to specific teams
+- `/dd-org-promote @user [team-name]` - Promote a user to admin role ⚠️ **(org owner/admin only)**
+  - **Org scope**: `/dd-org-promote @john` (promotes to organization admin)
+  - **Team scope**: `/dd-org-promote @john Engineering` (promotes to team admin in a specific team)
+  - Target must already be an active member of the relevant scope
+  - Cannot promote yourself or an existing admin/owner
 
 ### 🌴 Leave Management
 

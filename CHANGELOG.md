@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `/dd-org-promote @user [TeamName]` — promotes a user to admin role (org owner/admin only)
+  - With no `TeamName`: promotes the target's `OrganizationMember.role` from `MEMBER` to `ADMIN` in the actor's organization
+  - With a `TeamName`: promotes the target's `TeamMember.role` from `MEMBER` to `ADMIN` in that team
+  - Permission gate: actor must have an active `OrganizationMember` with role `OWNER` or `ADMIN`; team-scope path checks the team's org, not the channel
+  - Guards: target must be an active member of the relevant scope (org or team); rejects self-promotion, already-admin targets, and org owners (already at the highest role)
+  - Service layer: added `userService.promoteOrganizationMember()` and `teamService.promoteTeamMember()`
+  - Accepts the same three target formats as the suspend commands (mention, raw Slack user ID, bare `@username`/`username`) via the existing `resolveTargetSlackUserId` helper
+  - Command registered without `stripFormatting` so `<@U…|name>` mention tokens survive for `parseUserMention`
+  - Slash command added to `slack-app-manifest.json`
+
 ## [1.6.1] - 2026-05-17
 
 ### Changed
