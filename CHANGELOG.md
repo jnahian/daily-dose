@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `/dd-team-list` is now scoped by role. Members and team admins see only the teams they are an active member of; org owners, org admins, and active super admins continue to see every team in the organization.
+  - Added `teamService.listTeamsForUser(slackUserId)` returning `{ teams, scope, organization }` — single `findUnique` on `User` with `super_admins` and active `organizations` includes, then a filtered `team.findMany` (privileged: all org teams; unprivileged: filtered via `members: { some: { userId, isActive: true } }`)
+  - "Privileged" = `OrganizationMember.role` in `OWNER`/`ADMIN`, or an active row in `super_admins` (no `revoked_at`)
+  - `/dd-team-list` heading now reads `Teams in <Org Name>:` for privileged users and `Your teams:` for regular members; empty-state message differs accordingly
+  - Existing `teamService.listTeams` left untouched; its callers in `src/commands/standup.js` use it for separate semantics
+
 ### Fixed
 
 - `/dd-team-suspend`, `/dd-team-unsuspend`, `/dd-org-suspend`, and `/dd-org-unsuspend` now accept additional input formats so admins can target Slack users who have already been deactivated and can no longer be @-mentioned in chat:

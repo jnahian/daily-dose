@@ -6,6 +6,15 @@
       "isLatest": true,
       "changes": [
         {
+          "type": "changed",
+          "title": "`/dd-team-list` Now Respects Your Role",
+          "items": [
+            "Members and team admins now see only the teams they belong to when running `/dd-team-list`",
+            "Organization owners, organization admins, and super admins continue to see every team in the organization",
+            "The response heading changes accordingly — \"Your teams:\" for members vs \"Teams in <Organization>:\" for admins"
+          ]
+        },
+        {
           "type": "added",
           "title": "Suspend Inactive Members",
           "items": [
