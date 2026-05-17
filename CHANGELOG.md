@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-05-17
+
 ### Changed
 
 - `/dd-team-list` is now scoped by role. Members and team admins see only the teams they are an active member of; org owners, org admins, and active super admins continue to see every team in the organization.
@@ -14,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - "Privileged" = `OrganizationMember.role` in `OWNER`/`ADMIN`, or an active row in `super_admins` (no `revoked_at`)
   - `/dd-team-list` heading now reads `Teams in <Org Name>:` for privileged users and `Your teams:` for regular members; empty-state message differs accordingly
   - Existing `teamService.listTeams` left untouched; its callers in `src/commands/standup.js` use it for separate semantics
+- Replaced the npm-script release flow with a Claude Code `/release` skill (`.claude/commands/release.md`). Removed `version:patch`, `version:minor`, `version:major`, `version:check`, `preversion`, `postversion`, and `release` scripts from `package.json` and deleted `scripts/checkVersion.js`. Removed the now-redundant `create-release` job from `.github/workflows/deploy-version.yml` — the skill creates the GitHub release before pushing the tag, so the in-workflow create would fail with "release exists"
 
 ### Fixed
 
@@ -387,7 +390,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.6.1...HEAD
+[1.6.1]: https://github.com/jnahian/daily-dose/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/jnahian/daily-dose/compare/v1.5.1...v1.6.0
 [1.5.1]: https://github.com/jnahian/daily-dose/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/jnahian/daily-dose/compare/v1.4.6...v1.5.0

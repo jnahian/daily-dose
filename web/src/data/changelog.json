@@ -1,7 +1,7 @@
 {
   "versions": [
     {
-      "version": "1.6.0",
+      "version": "1.6.1",
       "date": "2026-05-17",
       "isLatest": true,
       "changes": [
@@ -15,6 +15,20 @@
           ]
         },
         {
+          "type": "fixed",
+          "title": "Suspend Already-Deactivated Members",
+          "items": [
+            "Suspend commands now accept a Slack username or user ID, so admins can clean up members who were already deactivated in Slack and can no longer be @-mentioned"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.6.0",
+      "date": "2026-05-17",
+      "isLatest": false,
+      "changes": [
+        {
           "type": "added",
           "title": "Suspend Inactive Members",
           "items": [
@@ -22,7 +36,6 @@
             "Organization owners and admins can suspend a member across the entire organization with `/dd-org-suspend @user` (reactivate with `/dd-org-unsuspend`)",
             "Suspended members cannot submit standups, stop receiving reminders, and are excluded from posted summaries",
             "Daily Dose now automatically suspends members when they're deactivated in Slack — no manual cleanup needed",
-            "Suspend commands also accept a Slack username or user ID, so admins can clean up members who were already deactivated in Slack and can no longer be @-mentioned",
             "Safety guards prevent suspending the only active admin of a team or accidentally changing an organization owner's status"
           ]
         }
