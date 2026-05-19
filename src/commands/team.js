@@ -107,7 +107,7 @@ async function createTeam({ command, ack, respond, client }) {
       parsedPosting = parseTimeString(postingTime);
     } catch (err) {
       await updateResponse({
-        blocks: createCommandErrorBlocks(err.message),
+        blocks: createCommandErrorBlocks(sanitizeError(err)),
       });
       return;
     }
@@ -474,7 +474,7 @@ async function updateTeam({ command, ack, respond, client }) {
             updateData.standupTime = parseTimeString(value).normalized;
           } catch (err) {
             await updateResponse({
-              blocks: createCommandErrorBlocks(err.message),
+              blocks: createCommandErrorBlocks(sanitizeError(err)),
             });
             return;
           }
@@ -485,7 +485,7 @@ async function updateTeam({ command, ack, respond, client }) {
             updateData.postingTime = parseTimeString(value).normalized;
           } catch (err) {
             await updateResponse({
-              blocks: createCommandErrorBlocks(err.message),
+              blocks: createCommandErrorBlocks(sanitizeError(err)),
             });
             return;
           }

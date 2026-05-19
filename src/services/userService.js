@@ -272,7 +272,7 @@ class UserService {
       !adminOrgMembership.isActive ||
       !["OWNER", "ADMIN"].includes(adminOrgMembership.role)
     ) {
-      throw new Error(
+      throw new UserFacingError(
         "You need organization owner or admin permissions for this action"
       );
     }
@@ -282,11 +282,11 @@ class UserService {
     });
 
     if (!targetUser) {
-      throw new Error("Target user not found");
+      throw new UserFacingError("Target user not found");
     }
 
     if (targetUser.id === adminUser.id) {
-      throw new Error("You cannot promote yourself");
+      throw new UserFacingError("You cannot promote yourself");
     }
 
     const targetOrgMembership = await prisma.organizationMember.findUnique({
@@ -299,15 +299,15 @@ class UserService {
     });
 
     if (!targetOrgMembership || !targetOrgMembership.isActive) {
-      throw new Error("Target user is not an active member of your organization");
+      throw new UserFacingError("Target user is not an active member of your organization");
     }
 
     if (targetOrgMembership.role === "OWNER") {
-      throw new Error("Target user is the organization owner and cannot be promoted further");
+      throw new UserFacingError("Target user is the organization owner and cannot be promoted further");
     }
 
     if (targetOrgMembership.role === "ADMIN") {
-      throw new Error("Target user is already an organization admin");
+      throw new UserFacingError("Target user is already an organization admin");
     }
 
     const updated = await prisma.organizationMember.update({
@@ -333,7 +333,7 @@ class UserService {
 
     const adminOrg = await this.getUserOrganization(adminSlackUserId);
     if (!adminOrg) {
-      throw new Error("You must belong to an organization to manage members");
+      throw new UserFacingError("You must belong to an organization to manage members");
     }
 
     const adminOrgMembership = await prisma.organizationMember.findUnique({
@@ -350,7 +350,7 @@ class UserService {
       !adminOrgMembership.isActive ||
       !["OWNER", "ADMIN"].includes(adminOrgMembership.role)
     ) {
-      throw new Error(
+      throw new UserFacingError(
         "You need organization owner or admin permissions for this action"
       );
     }
@@ -360,11 +360,11 @@ class UserService {
     });
 
     if (!targetUser) {
-      throw new Error("Target user not found");
+      throw new UserFacingError("Target user not found");
     }
 
     if (targetUser.id === adminUser.id) {
-      throw new Error("You cannot change your own organization membership status");
+      throw new UserFacingError("You cannot change your own organization membership status");
     }
 
     const targetOrgMembership = await prisma.organizationMember.findUnique({
@@ -377,16 +377,16 @@ class UserService {
     });
 
     if (!targetOrgMembership) {
-      throw new Error("Target user is not a member of your organization");
+      throw new UserFacingError("Target user is not a member of your organization");
     }
 
     // Owner status can only be changed by another owner
     if (targetOrgMembership.role === "OWNER" && adminOrgMembership.role !== "OWNER") {
-      throw new Error("Only organization owners can change another owner's status");
+      throw new UserFacingError("Only organization owners can change another owner's status");
     }
 
     if (targetOrgMembership.isActive === isActive) {
-      throw new Error(
+      throw new UserFacingError(
         isActive
           ? "Member is already active in this organization"
           : "Member is already suspended from this organization"
@@ -432,7 +432,7 @@ class UserService {
           .map((m) => m.team.name);
 
         if (orphanedTeams.length > 0) {
-          throw new Error(
+          throw new UserFacingError(
             `Cannot suspend this member — they are the only active admin of: ${orphanedTeams.join(", ")}. Promote another admin in those teams first.`
           );
         }

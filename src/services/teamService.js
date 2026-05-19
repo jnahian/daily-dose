@@ -1,5 +1,6 @@
 const prisma = require("../config/prisma");
 const userService = require("./userService");
+const { UserFacingError } = require("../utils/errorHelper");
 const dayjs = require("dayjs");
 const customParseFormat = require("dayjs/plugin/customParseFormat");
 
@@ -610,7 +611,7 @@ class TeamService {
     });
 
     if (!team) {
-      throw new Error("Team not found");
+      throw new UserFacingError("Team not found");
     }
 
     // Permission: org owner or org admin only (per /dd-org-promote requirements)
@@ -628,7 +629,7 @@ class TeamService {
       !orgMembership.isActive ||
       !["OWNER", "ADMIN"].includes(orgMembership.role)
     ) {
-      throw new Error(
+      throw new UserFacingError(
         "You need organization owner or admin permissions for this action"
       );
     }
@@ -638,11 +639,11 @@ class TeamService {
     });
 
     if (!targetUser) {
-      throw new Error("Target user not found");
+      throw new UserFacingError("Target user not found");
     }
 
     if (targetUser.id === adminUser.id) {
-      throw new Error("You cannot promote yourself");
+      throw new UserFacingError("You cannot promote yourself");
     }
 
     const targetMembership = await prisma.teamMember.findUnique({
@@ -652,7 +653,7 @@ class TeamService {
     });
 
     if (!targetMembership || !targetMembership.isActive) {
-      throw new Error("Target user is not an active member of this team");
+      throw new UserFacingError("Target user is not an active member of this team");
     }
 
     const targetOrgMembership = await prisma.organizationMember.findUnique({
@@ -665,13 +666,13 @@ class TeamService {
     });
 
     if (targetOrgMembership?.role === "OWNER") {
-      throw new Error(
+      throw new UserFacingError(
         "Target user is the organization owner and cannot be promoted further"
       );
     }
 
     if (targetMembership.role === "ADMIN") {
-      throw new Error("Target user is already a team admin");
+      throw new UserFacingError("Target user is already a team admin");
     }
 
     const updated = await prisma.teamMember.update({
