@@ -308,7 +308,7 @@ class TeamService {
     });
   }
 
-  async findTeamByName(teamName) {
+  async findTeamByName(teamName, organizationId = null) {
     return await prisma.team.findFirst({
       where: {
         name: {
@@ -316,6 +316,7 @@ class TeamService {
           mode: "insensitive",
         },
         isActive: true,
+        ...(organizationId ? { organizationId } : {}),
       },
       include: {
         organization: true,

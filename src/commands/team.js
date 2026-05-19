@@ -717,6 +717,15 @@ async function promoteOrgMember({ command, ack, respond, client }) {
     const teamName = parts.slice(1).join(" ").trim();
     const adminOrg = await userService.getUserOrganization(command.user_id);
 
+    if (teamName && !adminOrg) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          "You must belong to an organization to promote a team member."
+        ),
+      });
+      return;
+    }
+
     const targetSlackUserId = await resolveTargetSlackUserId(
       parts[0],
       adminOrg ? adminOrg.id : null
@@ -736,10 +745,12 @@ async function promoteOrgMember({ command, ack, respond, client }) {
     }
 
     if (teamName) {
-      const team = await teamService.findTeamByName(teamName);
+      const team = await teamService.findTeamByName(teamName, adminOrg.id);
       if (!team) {
         await updateResponse({
-          blocks: createCommandErrorBlocks(`Team "${teamName}" not found`),
+          blocks: createCommandErrorBlocks(
+            `Team "${teamName}" not found in your organization`
+          ),
         });
         return;
       }

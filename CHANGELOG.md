@@ -17,7 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Service layer: added `userService.promoteOrganizationMember()` and `teamService.promoteTeamMember()`
   - Accepts the same three target formats as the suspend commands (mention, raw Slack user ID, bare `@username`/`username`) via the existing `resolveTargetSlackUserId` helper
   - Command registered without `stripFormatting` so `<@U…|name>` mention tokens survive for `parseUserMention`
+  - Team-scope lookup is scoped to the actor's organization to prevent cross-tenant collisions when a team of the same name exists in another org
   - Slash command added to `slack-app-manifest.json`
+
+### Changed
+
+- `teamService.findTeamByName(teamName, organizationId = null)` now accepts an optional `organizationId` filter; existing call sites that omit it retain the previous global behavior
 
 ## [1.6.1] - 2026-05-17
 
