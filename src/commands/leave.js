@@ -8,6 +8,7 @@ const {
   createCommandErrorBlocks,
 } = require("../utils/blockHelper");
 const permissionHelper = require("../utils/permissionHelper");
+const { sanitizeError } = require("../utils/errorHelper");
 
 async function setLeave({ command, ack, respond, client }) {
   const updateResponse = await ackWithProcessing(
@@ -89,7 +90,7 @@ async function setLeave({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -122,7 +123,7 @@ async function cancelLeave({ command, ack, respond }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -186,7 +187,7 @@ async function listLeaves({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -248,7 +249,7 @@ async function setWorkDays({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -322,7 +323,7 @@ async function showWorkDays({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -568,7 +569,7 @@ async function setMemberLeave({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -756,7 +757,7 @@ async function cancelMemberLeave({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -959,7 +960,7 @@ async function listMemberLeaves({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }

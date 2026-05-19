@@ -30,6 +30,7 @@ const {
   createStandupPreviewHeaderBlocks,
   createNoDataBlocks,
 } = require("../utils/blockHelper");
+const { sanitizeError } = require("../utils/errorHelper");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -124,9 +125,8 @@ async function submitManual({ command, ack, respond, client }) {
       });
     }
   } catch (error) {
-    console.error("Error in submitManual:", error);
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -333,12 +333,10 @@ async function handleStandupSubmission({ ack, body, view, client }) {
       }
     }
   } catch (error) {
-    console.error("Error handling standup submission:", error);
-
     // Send error message to user
     await client.chat.postMessage({
       channel: body.user.id,
-      text: `❌ Error submitting standup: ${error.message}`,
+      text: sanitizeError(error, "❌ Error submitting standup."),
     });
   }
 }
@@ -498,9 +496,8 @@ async function updateStandup({ command, ack, respond, client }) {
       });
     }
   } catch (error) {
-    console.error("Error in standup update:", error);
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -640,11 +637,9 @@ async function handleStandupUpdateSubmission({ ack, body, view, client }) {
       }
     }
   } catch (error) {
-    console.error("Error handling standup update submission:", error);
-
     await client.chat.postMessage({
       channel: body.user.id,
-      text: `❌ Error ${isUpdate ? "updating" : "submitting"} standup: ${error.message}`,
+      text: sanitizeError(error, `❌ Error ${isUpdate ? "updating" : "submitting"} standup.`),
     });
   }
 }
@@ -728,10 +723,9 @@ async function sendReminders({ command, ack, respond, client }) {
       `📧 ${getUserLogIdentifier(user)} sent standup reminders for team ${team.name} (${members.length} members)`
     );
   } catch (error) {
-    console.error("Error in sendReminders command:", error);
     await updateResponse({
       blocks: createCommandErrorBlocks(
-        `Failed to send reminders: ${error.message}`,
+        sanitizeError(error, "Failed to send reminders."),
         ["Check team configuration", "Verify bot permissions in team channel"]
       ),
     });
@@ -859,10 +853,9 @@ async function postStandup({ command, ack, respond, client }) {
       `📊 ${getUserLogIdentifier(user)} posted standup for team ${team.name} (${targetDate.format("YYYY-MM-DD")})`
     );
   } catch (error) {
-    console.error("Error in postStandup command:", error);
     await updateResponse({
       blocks: createCommandErrorBlocks(
-        `Failed to post standup: ${error.message}`,
+        sanitizeError(error, "Failed to post standup."),
         [
           "Check if bot has access to team channel",
           "Verify standup responses exist for the date",
@@ -1042,10 +1035,9 @@ async function previewStandup({ command, ack, respond, client }) {
       `🔍 ${getUserLogIdentifier(user)} previewed standup for team ${team.name} (${targetDate.format("YYYY-MM-DD")})`
     );
   } catch (error) {
-    console.error("Error in previewStandup command:", error);
     await updateResponse({
       blocks: createCommandErrorBlocks(
-        `Failed to generate preview: ${error.message}`
+        sanitizeError(error, "Failed to generate preview.")
       ),
       response_type: "ephemeral",
     });
@@ -1134,10 +1126,9 @@ async function sendFollowupReminders({ command, ack, respond, client }) {
       `🔔 ${getUserLogIdentifier(user)} sent followup reminders for team ${team.name} (${pendingCount} pending)`
     );
   } catch (error) {
-    console.error("Error in sendFollowupReminders command:", error);
     await updateResponse({
       blocks: createCommandErrorBlocks(
-        `Failed to send followup reminders: ${error.message}`,
+        sanitizeError(error, "Failed to send followup reminders."),
         ["Check team configuration", "Verify bot permissions"]
       ),
     });
@@ -1282,10 +1273,9 @@ async function showHistory({ command, ack, respond }) {
 
     await updateResponse({ blocks });
   } catch (error) {
-    console.error("Error in showHistory command:", error);
     await updateResponse({
       blocks: createCommandErrorBlocks(
-        `Failed to load standup history: ${error.message}`
+        sanitizeError(error, "Failed to load standup history.")
       ),
     });
   }

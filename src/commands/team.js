@@ -9,6 +9,7 @@ const {
   createCommandErrorBlocks,
 } = require("../utils/blockHelper");
 const { parseTimeString } = require("../utils/timeHelper");
+const { sanitizeError } = require("../utils/errorHelper");
 
 function parseUserMention(token) {
   if (!token) return null;
@@ -134,7 +135,7 @@ async function createTeam({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -192,7 +193,7 @@ async function joinTeam({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -244,7 +245,7 @@ async function leaveTeam({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -294,7 +295,7 @@ async function listTeams({ command, ack, respond }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -368,7 +369,7 @@ async function listMembers({ command, ack, respond }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -536,7 +537,7 @@ async function updateTeam({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -636,7 +637,7 @@ async function handleTeamSuspension({ command, ack, respond, client, suspend }) 
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -711,7 +712,7 @@ async function handleOrgSuspension({ command, ack, respond, client, suspend }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -805,7 +806,7 @@ async function promoteOrgMember({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }

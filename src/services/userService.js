@@ -1,4 +1,5 @@
 const prisma = require("../config/prisma");
+const { UserFacingError } = require("../utils/errorHelper");
 
 class UserService {
   async fetchSlackUserData(slackUserId, slackClient) {
@@ -252,7 +253,9 @@ class UserService {
 
     const adminOrg = await this.getUserOrganization(adminSlackUserId);
     if (!adminOrg) {
-      throw new Error("You must belong to an organization to manage members");
+      throw new UserFacingError(
+        "You must belong to an organization to manage members"
+      );
     }
 
     const adminOrgMembership = await prisma.organizationMember.findUnique({
