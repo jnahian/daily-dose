@@ -35,6 +35,15 @@ receiver.app.get('/health', (req, res) => {
 
 // Serve static files from web/dist directory (React SPA)
 const express = require('express');
+
+// Gate the /scripts route at the server level before the SPA fallback can
+// hand out index.html to an unauthenticated user. The middleware factory
+// throws at startup if SCRIPTS_AUTH_USERNAME / SCRIPTS_AUTH_PASSWORD are
+// not set.
+const { createBasicAuth } = require('./middleware/basicAuth');
+const scriptsAuth = createBasicAuth();
+receiver.app.use('/scripts', scriptsAuth);
+
 receiver.app.use(express.static(path.join(__dirname, '../web/dist')));
 
 // SPA fallback - serve index.html for all other routes (client-side routing)

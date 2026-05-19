@@ -20,6 +20,7 @@ const {
   createButton,
   createActionsBlock,
 } = require("../utils/blockHelper");
+const { parseTimeString } = require("../utils/timeHelper");
 
 class SchedulerService {
   constructor() {
@@ -50,11 +51,20 @@ class SchedulerService {
   async scheduleTeam(team) {
     const { standupTime, postingTime, timezone } = team;
 
-    // Parse times
-    const standupHour = parseInt(standupTime.split(":")[0]);
-    const standupMinute = parseInt(standupTime.split(":")[1]);
-    const postingHour = parseInt(postingTime.split(":")[0]);
-    const postingMinute = parseInt(postingTime.split(":")[1]);
+    let standupParsed, postingParsed;
+    try {
+      standupParsed = parseTimeString(standupTime);
+      postingParsed = parseTimeString(postingTime);
+    } catch (err) {
+      console.error(
+        `❌ Skipping schedule for team "${team.name}" (id=${team.id}): invalid time data in DB — ${err.message}`
+      );
+      return;
+    }
+    const standupHour = standupParsed.hour;
+    const standupMinute = standupParsed.minute;
+    const postingHour = postingParsed.hour;
+    const postingMinute = postingParsed.minute;
 
     // Schedule standup reminder
     const standupCron = `${standupMinute} ${standupHour} * * 0-6`; // All days (0=Sunday, 6=Saturday), we'll filter by user work days

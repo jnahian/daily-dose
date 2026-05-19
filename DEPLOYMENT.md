@@ -104,8 +104,8 @@ Create a `.env` file at the project root and fill in the values below.
 | `APP_URL` | Yes | Public base URL of the app (e.g. `https://dd.example.com`) |
 | `LOG_LEVEL` | No | Log verbosity: `debug`, `info`, `warn`, `error` (default: `info`) |
 | `SENTRY_DSN` | No | Sentry DSN for error tracking (optional) |
-| `SCRIPTS_AUTH_USERNAME` | No | Username for `/scripts-docs` route (default: `admin`) |
-| `SCRIPTS_AUTH_PASSWORD` | No | Password for `/scripts-docs` route (default: `daily-dose-admin`) |
+| `SCRIPTS_AUTH_USERNAME` | **Yes** | Username for `/scripts` route — Required. The app will refuse to start without this. |
+| `SCRIPTS_AUTH_PASSWORD` | **Yes** | Password for `/scripts` route — Required. The app will refuse to start without this. |
 
 ---
 
