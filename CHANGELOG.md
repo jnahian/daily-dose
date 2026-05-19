@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.2] - 2026-05-19
+
 ### Added
 
 - `/dd-org-promote @user [TeamName]` — promotes a user to admin role (org owner/admin only)
@@ -407,7 +409,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.6.1...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.6.2...HEAD
+[1.6.2]: https://github.com/jnahian/daily-dose/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/jnahian/daily-dose/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/jnahian/daily-dose/compare/v1.5.1...v1.6.0
 [1.5.1]: https://github.com/jnahian/daily-dose/compare/v1.5.0...v1.5.1

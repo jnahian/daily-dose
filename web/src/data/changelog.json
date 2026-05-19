@@ -1,9 +1,26 @@
 {
   "versions": [
     {
+      "version": "1.6.2",
+      "date": "2026-05-19",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Promote Members to Admin",
+          "items": [
+            "Organization owners and admins can now promote a member to admin with `/dd-org-promote @user`",
+            "Add a team name to scope the promotion to a single team — e.g. `/dd-org-promote @john Engineering` makes them a team admin in Engineering",
+            "Accepts the same target formats as the suspend commands: `@mention`, raw Slack user ID, or bare username",
+            "Safety guards prevent self-promotion, promoting an existing admin, or trying to promote the organization owner"
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.6.1",
       "date": "2026-05-17",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "changed",
