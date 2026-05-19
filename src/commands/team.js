@@ -8,6 +8,7 @@ const {
   createSectionBlock,
   createCommandErrorBlocks,
 } = require("../utils/blockHelper");
+const { parseTimeString } = require("../utils/timeHelper");
 
 function parseUserMention(token) {
   if (!token) return null;
@@ -99,13 +100,24 @@ async function createTeam({ command, ack, respond, client }) {
       return;
     }
 
+    let parsedStandup, parsedPosting;
+    try {
+      parsedStandup = parseTimeString(standupTime);
+      parsedPosting = parseTimeString(postingTime);
+    } catch (err) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(err.message),
+      });
+      return;
+    }
+
     const team = await teamService.createTeam(
       command.user_id,
       command.channel_id,
       {
         name,
-        standupTime,
-        postingTime,
+        standupTime: parsedStandup.normalized,
+        postingTime: parsedPosting.normalized,
       },
       client
     );
@@ -115,8 +127,8 @@ async function createTeam({ command, ack, respond, client }) {
 
     await updateResponse({
       text: `✅ Team "${name}" created successfully!\n- Standup reminder: ${formatTime12Hour(
-        standupTime
-      )}\n- Posting time: ${formatTime12Hour(postingTime)}\n- Timezone: ${
+        parsedStandup.normalized
+      )}\n- Posting time: ${formatTime12Hour(parsedPosting.normalized)}\n- Timezone: ${
         team.timezone
       }\n- Cron jobs scheduled ✓`,
     });
@@ -457,12 +469,26 @@ async function updateTeam({ command, ack, respond, client }) {
           updates.push(`Name: ${value}`);
           break;
         case "standup":
-          updateData.standupTime = value;
-          updates.push(`Standup time: ${formatTime12Hour(value)}`);
+          try {
+            updateData.standupTime = parseTimeString(value).normalized;
+          } catch (err) {
+            await updateResponse({
+              blocks: createCommandErrorBlocks(err.message),
+            });
+            return;
+          }
+          updates.push(`Standup time: ${formatTime12Hour(updateData.standupTime)}`);
           break;
         case "posting":
-          updateData.postingTime = value;
-          updates.push(`Posting time: ${formatTime12Hour(value)}`);
+          try {
+            updateData.postingTime = parseTimeString(value).normalized;
+          } catch (err) {
+            await updateResponse({
+              blocks: createCommandErrorBlocks(err.message),
+            });
+            return;
+          }
+          updates.push(`Posting time: ${formatTime12Hour(updateData.postingTime)}`);
           break;
         case "notifications":
           if (value !== "true" && value !== "false") {
