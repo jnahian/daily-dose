@@ -81,6 +81,13 @@
                 "should_escape": false
             },
             {
+                "command": "/dd-org-promote",
+                "url": "{{APP_URL}}/slack/events",
+                "description": "Promote a user to organization admin, or team admin if a team is specified (org owner/admin only)",
+                "usage_hint": "@user [TeamName]",
+                "should_escape": false
+            },
+            {
                 "command": "/dd-leave-set",
                 "url": "{{APP_URL}}/slack/events",
                 "description": "Set leave dates to skip standup reminders",

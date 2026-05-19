@@ -308,7 +308,7 @@ class TeamService {
     });
   }
 
-  async findTeamByName(teamName) {
+  async findTeamByName(teamName, organizationId = null) {
     return await prisma.team.findFirst({
       where: {
         name: {
@@ -316,6 +316,7 @@ class TeamService {
           mode: "insensitive",
         },
         isActive: true,
+        ...(organizationId ? { organizationId } : {}),
       },
       include: {
         organization: true,
@@ -591,6 +592,100 @@ class TeamService {
       },
       data: { isActive },
     });
+  }
+
+  async promoteTeamMember(adminSlackUserId, targetSlackUserId, teamId, slackClient = null) {
+    const adminUserData = await userService.fetchSlackUserData(
+      adminSlackUserId,
+      slackClient
+    );
+    const adminUser = await userService.findOrCreateUser(
+      adminSlackUserId,
+      adminUserData
+    );
+
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      include: { organization: true },
+    });
+
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    // Permission: org owner or org admin only (per /dd-org-promote requirements)
+    const orgMembership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: team.organizationId,
+          userId: adminUser.id,
+        },
+      },
+    });
+
+    if (
+      !orgMembership ||
+      !orgMembership.isActive ||
+      !["OWNER", "ADMIN"].includes(orgMembership.role)
+    ) {
+      throw new Error(
+        "You need organization owner or admin permissions for this action"
+      );
+    }
+
+    const targetUser = await prisma.user.findUnique({
+      where: { slackUserId: targetSlackUserId },
+    });
+
+    if (!targetUser) {
+      throw new Error("Target user not found");
+    }
+
+    if (targetUser.id === adminUser.id) {
+      throw new Error("You cannot promote yourself");
+    }
+
+    const targetMembership = await prisma.teamMember.findUnique({
+      where: {
+        teamId_userId: { teamId, userId: targetUser.id },
+      },
+    });
+
+    if (!targetMembership || !targetMembership.isActive) {
+      throw new Error("Target user is not an active member of this team");
+    }
+
+    const targetOrgMembership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: team.organizationId,
+          userId: targetUser.id,
+        },
+      },
+    });
+
+    if (targetOrgMembership?.role === "OWNER") {
+      throw new Error(
+        "Target user is the organization owner and cannot be promoted further"
+      );
+    }
+
+    if (targetMembership.role === "ADMIN") {
+      throw new Error("Target user is already a team admin");
+    }
+
+    const updated = await prisma.teamMember.update({
+      where: {
+        teamId_userId: { teamId, userId: targetUser.id },
+      },
+      data: { role: "ADMIN" },
+    });
+
+    return {
+      teamMember: updated,
+      team,
+      previousRole: targetMembership.role,
+    };
   }
 
   async getUserTeams(slackUserId, slackClient = null) {

@@ -690,6 +690,100 @@ async function handleOrgSuspension({ command, ack, respond, client, suspend }) {
   }
 }
 
+async function promoteOrgMember({ command, ack, respond, client }) {
+  const updateResponse = await ackWithProcessing(
+    ack,
+    respond,
+    "Promoting member...",
+    command
+  );
+
+  try {
+    const parts = command.text.trim().split(/\s+/).filter(Boolean);
+
+    if (parts.length === 0) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          "Usage: `/dd-org-promote @user [TeamName]`",
+          [
+            "`/dd-org-promote @john` — promote to organization admin",
+            "`/dd-org-promote @john Engineering` — promote to team admin in Engineering",
+          ]
+        ),
+      });
+      return;
+    }
+
+    const teamName = parts.slice(1).join(" ").trim();
+    const adminOrg = await userService.getUserOrganization(command.user_id);
+
+    if (teamName && !adminOrg) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          "You must belong to an organization to promote a team member."
+        ),
+      });
+      return;
+    }
+
+    const targetSlackUserId = await resolveTargetSlackUserId(
+      parts[0],
+      adminOrg ? adminOrg.id : null
+    );
+    if (!targetSlackUserId) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          "Could not resolve target user.",
+          [
+            "Use `@user` mention (e.g., `@john`)",
+            "Or pass the Slack user ID directly (e.g., `U0123ABCD`)",
+            "Or pass the username (e.g., `@john` or `john`)",
+          ]
+        ),
+      });
+      return;
+    }
+
+    if (teamName) {
+      const team = await teamService.findTeamByName(teamName, adminOrg.id);
+      if (!team) {
+        await updateResponse({
+          blocks: createCommandErrorBlocks(
+            `Team "${teamName}" not found in your organization`
+          ),
+        });
+        return;
+      }
+
+      const result = await teamService.promoteTeamMember(
+        command.user_id,
+        targetSlackUserId,
+        team.id,
+        client
+      );
+
+      await updateResponse({
+        text: `✅ <@${targetSlackUserId}> has been promoted to team admin in "${result.team.name}".`,
+      });
+      return;
+    }
+
+    const result = await userService.promoteOrganizationMember(
+      command.user_id,
+      targetSlackUserId,
+      client
+    );
+
+    await updateResponse({
+      text: `✅ <@${targetSlackUserId}> has been promoted to organization admin in "${result.organization.name}".`,
+    });
+  } catch (error) {
+    await updateResponse({
+      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+    });
+  }
+}
+
 module.exports = {
   createTeam,
   joinTeam,
@@ -701,4 +795,5 @@ module.exports = {
   unsuspendTeamMember,
   suspendOrgMember,
   unsuspendOrgMember,
+  promoteOrgMember,
 };

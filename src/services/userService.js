@@ -246,6 +246,84 @@ class UserService {
     });
   }
 
+  async promoteOrganizationMember(adminSlackUserId, targetSlackUserId, slackClient = null) {
+    const adminUserData = await this.fetchSlackUserData(adminSlackUserId, slackClient);
+    const adminUser = await this.findOrCreateUser(adminSlackUserId, adminUserData);
+
+    const adminOrg = await this.getUserOrganization(adminSlackUserId);
+    if (!adminOrg) {
+      throw new Error("You must belong to an organization to manage members");
+    }
+
+    const adminOrgMembership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: adminOrg.id,
+          userId: adminUser.id,
+        },
+      },
+    });
+
+    if (
+      !adminOrgMembership ||
+      !adminOrgMembership.isActive ||
+      !["OWNER", "ADMIN"].includes(adminOrgMembership.role)
+    ) {
+      throw new Error(
+        "You need organization owner or admin permissions for this action"
+      );
+    }
+
+    const targetUser = await prisma.user.findUnique({
+      where: { slackUserId: targetSlackUserId },
+    });
+
+    if (!targetUser) {
+      throw new Error("Target user not found");
+    }
+
+    if (targetUser.id === adminUser.id) {
+      throw new Error("You cannot promote yourself");
+    }
+
+    const targetOrgMembership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: adminOrg.id,
+          userId: targetUser.id,
+        },
+      },
+    });
+
+    if (!targetOrgMembership || !targetOrgMembership.isActive) {
+      throw new Error("Target user is not an active member of your organization");
+    }
+
+    if (targetOrgMembership.role === "OWNER") {
+      throw new Error("Target user is the organization owner and cannot be promoted further");
+    }
+
+    if (targetOrgMembership.role === "ADMIN") {
+      throw new Error("Target user is already an organization admin");
+    }
+
+    const updated = await prisma.organizationMember.update({
+      where: {
+        organizationId_userId: {
+          organizationId: adminOrg.id,
+          userId: targetUser.id,
+        },
+      },
+      data: { role: "ADMIN" },
+    });
+
+    return {
+      organizationMember: updated,
+      organization: adminOrg,
+      previousRole: targetOrgMembership.role,
+    };
+  }
+
   async setOrganizationMemberActive(adminSlackUserId, targetSlackUserId, isActive, slackClient = null) {
     const adminUserData = await this.fetchSlackUserData(adminSlackUserId, slackClient);
     const adminUser = await this.findOrCreateUser(adminSlackUserId, adminUserData);

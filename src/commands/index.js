@@ -30,6 +30,7 @@ function setupCommands(app) {
   app.command("/dd-team-unsuspend", teamCommands.unsuspendTeamMember);
   app.command("/dd-org-suspend", teamCommands.suspendOrgMember);
   app.command("/dd-org-unsuspend", teamCommands.unsuspendOrgMember);
+  app.command("/dd-org-promote", teamCommands.promoteOrgMember);
 
   // Leave management commands - wrapped with formatting removal middleware
   app.command("/dd-leave-list", stripFormatting(), leaveCommands.listLeaves);
