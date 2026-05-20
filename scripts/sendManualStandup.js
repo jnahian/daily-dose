@@ -333,9 +333,11 @@ async function sendManualStandup(teamName, options = {}) {
       console.log(
         `⏭️  Already posted for ${team.name} (ts=${result.post.slackMessageTs}) — skipped`
       );
-    } else {
+    } else if (result) {
       console.log(`✅ Standup posted successfully to ${team.slackChannelId}`);
       console.log(`📝 Message timestamp: ${result.ts}`);
+    } else {
+      console.log(`⚠️  Nothing posted for ${team.name} (no data / non-working day)`);
     }
   } catch (error) {
     console.error("❌ Error sending manual standup:", error.message);

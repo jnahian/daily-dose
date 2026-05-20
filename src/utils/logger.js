@@ -26,7 +26,11 @@ function shouldEmit(level) {
 function emit(level, args, sink) {
   if (!shouldEmit(level)) return;
   const prefix = `[${formatTimestamp()}] [${level.toUpperCase()}]`;
-  sink(prefix + " " + (args[0] ?? ""), ...args.slice(1));
+  if (typeof args[0] === "string") {
+    sink(prefix + " " + args[0], ...args.slice(1));
+  } else {
+    sink(prefix, ...args);
+  }
 }
 
 function debug(...args) { emit("debug", args, console.log); }
