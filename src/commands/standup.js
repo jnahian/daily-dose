@@ -839,6 +839,19 @@ async function postStandup({ command, ack, respond, client }) {
       client
     );
 
+    if (result?.skipped) {
+      await updateResponse({
+        blocks: createCommandSuccessBlocks(
+          `Standup for *${team.name}* was already posted`,
+          {
+            "Date": targetDate.format("MMM DD, YYYY"),
+            "Message timestamp": result.post.slackMessageTs,
+          }
+        ),
+      });
+      return;
+    }
+
     await updateResponse({
       blocks: createCommandSuccessBlocks(
         `Standup posted for *${team.name}*`,

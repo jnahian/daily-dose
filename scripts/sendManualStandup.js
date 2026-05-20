@@ -329,8 +329,14 @@ async function sendManualStandup(teamName, options = {}) {
 
     // Use the new postTeamStandup method from standupService
     const result = await standupService.postTeamStandup(team, targetDate.toDate(), app);
-    console.log(`✅ Standup posted successfully to ${team.slackChannelId}`);
-    console.log(`📝 Message timestamp: ${result.ts}`);
+    if (result?.skipped) {
+      console.log(
+        `⏭️  Already posted for ${team.name} (ts=${result.post.slackMessageTs}) — skipped`
+      );
+    } else {
+      console.log(`✅ Standup posted successfully to ${team.slackChannelId}`);
+      console.log(`📝 Message timestamp: ${result.ts}`);
+    }
   } catch (error) {
     console.error("❌ Error sending manual standup:", error.message);
     throw error;
@@ -641,12 +647,16 @@ async function postAllTeamsStandups(options = {}) {
             app
           );
 
-          if (result) {
+          if (result && !result.skipped) {
             successCount++;
             console.log(`   ✅ Successfully posted to ${team.name}`);
           } else {
             skippedCount++;
-            console.log(`   ⚠️  No data to post for ${team.name}`);
+            console.log(
+              result?.skipped
+                ? `   ⏭️  Already posted for ${team.name} — skipped`
+                : `   ⚠️  No data to post for ${team.name}`
+            );
           }
         }
       } catch (error) {

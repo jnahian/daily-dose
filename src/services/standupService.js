@@ -1,4 +1,5 @@
 const prisma = require("../config/prisma");
+const logger = require("../utils/logger");
 const userService = require("./userService");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
@@ -364,6 +365,14 @@ class StandupService {
   }
 
   async postTeamStandup(team, date, slackApp) {
+    const existingPost = await this.getStandupPost(team.id, date);
+    if (existingPost && existingPost.slackMessageTs) {
+      logger.info(
+        `postTeamStandup skipped — already posted for team=${team.id} date=${dayjs(date).format("YYYY-MM-DD")} ts=${existingPost.slackMessageTs}`
+      );
+      return { skipped: true, post: existingPost };
+    }
+
     const targetDate = dayjs(date).tz(team.timezone);
 
     // Check if it's a working day for the organization (general check)
