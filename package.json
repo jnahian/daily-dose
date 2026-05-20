@@ -25,7 +25,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "format": "prettier --write \"src/**/*.js\" \"scripts/**/*.js\" \"test/**/*.js\" \"*.{js,json,md}\"",
-    "format:check": "prettier --check \"src/**/*.js\" \"scripts/**/*.js\" \"test/**/*.js\" \"*.{js,json,md}\""
+    "format:check": "prettier --check \"src/**/*.js\" \"scripts/**/*.js\" \"test/**/*.js\" \"*.{js,json,md}\"",
+    "prepare": "husky"
   },
   "keywords": [
     "slack",
@@ -52,10 +53,29 @@
     "@types/node": "^24.3.0",
     "eslint": "^9.34.0",
     "globals": "^15.15.0",
+    "husky": "^9.1.7",
     "jest": "^30.4.2",
+    "lint-staged": "^15.5.2",
     "nodemon": "^3.1.10",
     "prettier": "^3.8.3",
     "prisma": "^6.15.0",
     "typescript": "^5.9.2"
+  },
+  "lint-staged": {
+    "src/**/*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "scripts/**/*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "test/**/*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   }
 }
