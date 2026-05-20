@@ -1,21 +1,62 @@
 /**
- * Logging utility for Daily Dose bot
- * Provides structured logging for commands, messages, and events
+ * Logging utility for Daily Dose bot.
+ * Levels: debug < info < warn < error. Set with LOG_LEVEL env var.
+ * logger.error() also forwards to Sentry when src/config/sentry.js is wired.
  */
 
 const dayjs = require("dayjs");
+
+const LEVELS = { debug: 10, info: 20, warn: 30, error: 40 };
+
+function resolveThreshold() {
+  const raw = (process.env.LOG_LEVEL || "info").toLowerCase();
+  return LEVELS[raw] ?? LEVELS.info;
+}
+
+const THRESHOLD = resolveThreshold();
 
 function formatTimestamp() {
   return dayjs().toISOString();
 }
 
+function shouldEmit(level) {
+  return LEVELS[level] >= THRESHOLD;
+}
+
+function emit(level, args, sink) {
+  if (!shouldEmit(level)) return;
+  const prefix = `[${formatTimestamp()}] [${level.toUpperCase()}]`;
+  sink(prefix + " " + (args[0] ?? ""), ...args.slice(1));
+}
+
+function debug(...args) { emit("debug", args, console.log); }
+function info(...args)  { emit("info",  args, console.log); }
+function warn(...args)  { emit("warn",  args, console.warn); }
+
+function error(...args) {
+  emit("error", args, console.error);
+  // Forward Error instances to Sentry if it's wired up. Lazy-required so
+  // logger.js stays usable in tests that don't init Sentry.
+  try {
+    const sentry = require("../config/sentry");
+    const client = sentry.getClient && sentry.getClient();
+    if (client) {
+      const err = args.find((a) => a instanceof Error);
+      if (err) client.captureException(err);
+    }
+  } catch (_) {
+    // Sentry module not present or not initialized — ignore.
+  }
+}
+
+// --- existing typed loggers (preserved) ---
+
 function logCommand(payload) {
   if (!payload) {
-    console.log(`[${formatTimestamp()}] COMMAND: null payload`);
+    info("COMMAND: null payload");
     return;
   }
-
-  console.log(`[${formatTimestamp()}] COMMAND:`, {
+  info("COMMAND:", {
     command: payload.command || "unknown",
     user_id: payload.user_id,
     user_name: payload.user_name,
@@ -28,7 +69,7 @@ function logCommand(payload) {
 }
 
 function logMessage(message) {
-  console.log(`[${formatTimestamp()}] MESSAGE:`, {
+  info("MESSAGE:", {
     type: message.type,
     user: message.user,
     channel: message.channel,
@@ -40,7 +81,7 @@ function logMessage(message) {
 }
 
 function logEvent(eventType, payload) {
-  console.log(`[${formatTimestamp()}] EVENT:`, {
+  info("EVENT:", {
     type: eventType,
     user: payload.user?.id || payload.user,
     channel: payload.channel?.id || payload.channel,
@@ -53,7 +94,7 @@ function logEvent(eventType, payload) {
 }
 
 function logAction(action) {
-  console.log(`[${formatTimestamp()}] ACTION:`, {
+  info("ACTION:", {
     action_id: action.action_id,
     block_id: action.block_id,
     type: action.type,
@@ -65,7 +106,7 @@ function logAction(action) {
 }
 
 function logView(view) {
-  console.log(`[${formatTimestamp()}] VIEW:`, {
+  info("VIEW:", {
     callback_id: view.callback_id,
     type: view.type,
     id: view.id,
@@ -75,9 +116,6 @@ function logView(view) {
 }
 
 module.exports = {
-  logCommand,
-  logMessage,
-  logEvent,
-  logAction,
-  logView,
+  debug, info, warn, error,
+  logCommand, logMessage, logEvent, logAction, logView,
 };
