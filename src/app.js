@@ -1,4 +1,5 @@
 require("dotenv").config();
+require("./config/sentry").init();
 const { App, ExpressReceiver } = require("@slack/bolt");
 const path = require("path");
 const prisma = require("./config/prisma");
