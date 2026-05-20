@@ -49,9 +49,10 @@ class SchedulerService {
     await this.scheduleAllTeams();
 
     // Refresh schedules daily at midnight
-    cron.schedule("0 0 * * *", async () => {
-      await this.scheduleAllTeams();
-    });
+    cron.schedule(
+      "0 0 * * *",
+      runScheduledJob("schedule-refresh", () => this.scheduleAllTeams())
+    );
   }
 
   async scheduleAllTeams() {

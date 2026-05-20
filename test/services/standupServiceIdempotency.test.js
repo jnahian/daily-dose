@@ -29,14 +29,14 @@ describe("postTeamStandup idempotency guard", () => {
       channelId: "C123",
     });
 
-    const fakeClient = { chat: { postMessage: jest.fn() } };
+    const fakeApp = { client: { chat: { postMessage: jest.fn() } } };
     const result = await standupService.postTeamStandup(
       { id: "t1", name: "Eng", slackChannelId: "C123", organizationId: "o1" },
       new Date("2024-01-01"),
-      fakeClient
+      fakeApp
     );
 
-    expect(fakeClient.chat.postMessage).not.toHaveBeenCalled();
+    expect(fakeApp.client.chat.postMessage).not.toHaveBeenCalled();
     expect(result).toMatchObject({ skipped: true });
   });
 
