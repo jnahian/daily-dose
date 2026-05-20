@@ -8,6 +8,15 @@ class TimeFormatError extends Error {
 
 const TIME_RE = /^(\d{1,2}):(\d{2})$/;
 
+// Escape characters significant in Slack mrkdwn so user-provided input echoed
+// back in error messages can't break rendering or inject mentions/links.
+function escapeForMessage(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
 function parseTimeString(input) {
   if (typeof input !== "string" || input.length === 0) {
     throw new TimeFormatError(
@@ -15,10 +24,12 @@ function parseTimeString(input) {
     );
   }
 
+  const safeInput = escapeForMessage(input);
+
   const match = input.match(TIME_RE);
   if (!match) {
     throw new TimeFormatError(
-      `Invalid time "${input}". Use HH:MM (24-hour) format, e.g. 09:30`
+      `Invalid time "${safeInput}". Use HH:MM (24-hour) format, e.g. 09:30`
     );
   }
 
@@ -27,12 +38,12 @@ function parseTimeString(input) {
 
   if (hour < 0 || hour > 23) {
     throw new TimeFormatError(
-      `Invalid hour ${hour} in "${input}". Hours must be 0-23`
+      `Invalid hour ${hour} in "${safeInput}". Hours must be 0-23`
     );
   }
   if (minute < 0 || minute > 59) {
     throw new TimeFormatError(
-      `Invalid minute ${minute} in "${input}". Minutes must be 0-59`
+      `Invalid minute ${minute} in "${safeInput}". Minutes must be 0-59`
     );
   }
 

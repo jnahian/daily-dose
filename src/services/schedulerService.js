@@ -60,7 +60,7 @@ class SchedulerService {
         `❌ Skipping schedule for team "${team.name}" (id=${team.id}): invalid time data in DB — ${err.message}`
       );
       // Stop and remove any stale cron jobs for this team so old jobs don't keep firing
-      const staleStandupJobId = `dd-${team.name.toLowerCase().replace(/\s+/g, "-")}`;
+      const staleStandupJobId = `standup-${team.id}`;
       const staleFollowupJobId = `followup-${team.id}`;
       const stalePostingJobId = `posting-${team.id}`;
       if (this.scheduledJobs.has(staleStandupJobId)) {
@@ -84,7 +84,7 @@ class SchedulerService {
 
     // Schedule standup reminder
     const standupCron = `${standupMinute} ${standupHour} * * 0-6`; // All days (0=Sunday, 6=Saturday), we'll filter by user work days
-    const standupJobId = `dd-${team.name.toLowerCase().replace(/\s+/g, "-")}`;
+    const standupJobId = `standup-${team.id}`;
 
     // Cancel existing job if any
     if (this.scheduledJobs.has(standupJobId)) {
