@@ -4,7 +4,12 @@ const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
 const advancedFormat = require("dayjs/plugin/advancedFormat");
-const { isWorkingDay } = require("../utils/dateHelper");
+const {
+  isWorkingDay,
+  isWorkingDayPure,
+  getHolidayDateSet,
+  getOrgDefaultWorkDays,
+} = require("../utils/dateHelper");
 const { getUserMention, getDisplayName } = require("../utils/userHelper");
 const { formatTasks } = require("../utils/messageHelper");
 const {
@@ -44,27 +49,27 @@ class StandupService {
       include: {
         user: true,
         team: {
-          include: {
-            organization: true,
-          },
+          include: { organization: true },
         },
       },
     });
 
-    // Filter by user's work days
-    const activeMembers = [];
-    for (const member of members) {
-      const isWorking = await isWorkingDay(
-        date,
-        member.team.organizationId,
-        member.userId
-      );
-      if (isWorking) {
-        activeMembers.push(member);
-      }
-    }
+    if (members.length === 0) return [];
 
-    return activeMembers;
+    // All members on the same team => same organization. Fetch org-default
+    // workDays and holidays once.
+    const organization = members[0].team.organization;
+    const orgDefaultWorkDays = getOrgDefaultWorkDays(organization.settings);
+    const holidayDateSet = await getHolidayDateSet(
+      organization.id,
+      startOfDay,
+      endOfDay
+    );
+
+    return members.filter((member) => {
+      const workDays = member.user.workDays || orgDefaultWorkDays;
+      return isWorkingDayPure({ date, workDays, holidayDateSet });
+    });
   }
 
   async saveResponse(
