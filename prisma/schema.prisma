@@ -128,6 +128,7 @@ model StandupResponse {
 
   @@unique([teamId, userId, standupDate])
   @@index([standupDate])
+  @@index([teamId, standupDate])
   @@map("standup_responses")
 }
 
