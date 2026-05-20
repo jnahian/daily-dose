@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Database,
   Users,
@@ -11,8 +11,8 @@ import {
   Info,
   Cog,
   ChevronRight,
-} from 'lucide-react';
-import type { ScriptsData } from '../../types/scripts';
+} from "lucide-react";
+import type { ScriptsData } from "../../types/scripts";
 
 interface ScriptsTOCProps {
   data: ScriptsData;
@@ -27,13 +27,17 @@ const iconMap: Record<string, React.ElementType> = {
   bug: Bug,
   settings: Settings,
   seedling: Sprout,
-  'user-check': UserCheck,
-  'paper-plane': Send,
+  "user-check": UserCheck,
+  "paper-plane": Send,
   info: Info,
   cog: Cog,
 };
 
-export const ScriptsTOC = ({ data, activeScript, setActiveScript }: ScriptsTOCProps) => {
+export const ScriptsTOC = ({
+  data,
+  activeScript,
+  setActiveScript,
+}: ScriptsTOCProps) => {
   const scrollToScript = (scriptId: string) => {
     setActiveScript(scriptId);
     const element = document.getElementById(`script-${scriptId}`);
@@ -44,14 +48,16 @@ export const ScriptsTOC = ({ data, activeScript, setActiveScript }: ScriptsTOCPr
 
       window.scrollTo({
         top: offsetPosition,
-        behavior: 'smooth',
+        behavior: "smooth",
       });
     }
   };
 
   return (
     <div className="sticky top-24 bg-bg-surface border border-border-default rounded-xl p-6 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto">
-      <h3 className="font-semibold text-text-primary mb-4 text-sm uppercase tracking-wide">Scripts</h3>
+      <h3 className="font-semibold text-text-primary mb-4 text-sm uppercase tracking-wide">
+        Scripts
+      </h3>
       <nav className="space-y-4">
         {data.categories.map((category) => {
           const CategoryIcon = iconMap[category.icon] || Database;
@@ -70,12 +76,16 @@ export const ScriptsTOC = ({ data, activeScript, setActiveScript }: ScriptsTOCPr
                       onClick={() => scrollToScript(script.id)}
                       className={`
                         w-full text-left text-sm px-3 py-2 rounded-md transition-colors flex items-center gap-2
-                        ${activeScript === script.id ? 'bg-brand-cyan/10 text-brand-cyan' : 'text-text-secondary hover:text-text-primary hover:bg-bg-primary'}
+                        ${activeScript === script.id ? "bg-brand-cyan/10 text-brand-cyan" : "text-text-secondary hover:text-text-primary hover:bg-bg-primary"}
                       `}
                     >
                       <ChevronRight
                         size={14}
-                        className={activeScript === script.id ? 'opacity-100' : 'opacity-0'}
+                        className={
+                          activeScript === script.id
+                            ? "opacity-100"
+                            : "opacity-0"
+                        }
                       />
                       <ScriptIcon size={14} className={script.iconColor} />
                       <span className="truncate">{script.name}</span>

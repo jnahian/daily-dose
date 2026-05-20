@@ -19,7 +19,14 @@
     "team:members": "node scripts/check-team-members.js",
     "team:promote": "node scripts/promoteTeamMember.js",
     "debug:scheduler": "node scripts/debugScheduler.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "format": "prettier --write \"src/**/*.js\" \"scripts/**/*.js\" \"test/**/*.js\" \"*.{js,json,md}\"",
+    "format:check": "prettier --check \"src/**/*.js\" \"scripts/**/*.js\" \"test/**/*.js\" \"*.{js,json,md}\"",
+    "prepare": "husky || true"
   },
   "keywords": [
     "slack",
@@ -36,6 +43,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.15.0",
+    "@sentry/node": "^8.55.2",
     "@slack/bolt": "^4.4.0",
     "dayjs": "^1.11.18",
     "dotenv": "^17.2.2",
@@ -44,8 +52,30 @@
   "devDependencies": {
     "@types/node": "^24.3.0",
     "eslint": "^9.34.0",
+    "globals": "^15.15.0",
+    "husky": "^9.1.7",
+    "jest": "^30.4.2",
+    "lint-staged": "^15.5.2",
     "nodemon": "^3.1.10",
+    "prettier": "^3.8.3",
     "prisma": "^6.15.0",
     "typescript": "^5.9.2"
+  },
+  "lint-staged": {
+    "src/**/*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "scripts/**/*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "test/**/*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   }
 }

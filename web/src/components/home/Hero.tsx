@@ -1,6 +1,6 @@
-import { Link } from 'react-router';
-import { motion } from 'framer-motion';
-import { ArrowRight, Github } from 'lucide-react';
+import { Link } from "react-router";
+import { motion } from "framer-motion";
+import { ArrowRight, Github } from "lucide-react";
 
 export const Hero = () => {
   return (
@@ -29,8 +29,8 @@ export const Hero = () => {
                 </span>
               </h1>
               <p className="mt-4 text-xl text-text-secondary mb-10 max-w-lg mx-auto lg:mx-0">
-                Streamline your team's daily syncs, track progress, and remove blockers without the
-                meeting fatigue.
+                Streamline your team's daily syncs, track progress, and remove
+                blockers without the meeting fatigue.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center">
                 <a
@@ -85,14 +85,20 @@ export const Hero = () => {
                   </div>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-baseline gap-2">
-                      <span className="font-bold text-text-primary">Daily Dose</span>
+                      <span className="font-bold text-text-primary">
+                        Daily Dose
+                      </span>
                       <span className="bg-brand-blue/20 text-brand-blue text-[10px] px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">
                         APP
                       </span>
-                      <span className="text-xs text-text-secondary">9:00 AM</span>
+                      <span className="text-xs text-text-secondary">
+                        9:00 AM
+                      </span>
                     </div>
                     <div className="text-text-secondary text-sm leading-relaxed">
-                      <p className="mb-2">Good morning! It's time for our daily standup. 🚀</p>
+                      <p className="mb-2">
+                        Good morning! It's time for our daily standup. 🚀
+                      </p>
                       <div className="pl-3 border-l-2 border-border-default space-y-1 text-text-secondary">
                         <p>1. What did you accomplish yesterday?</p>
                         <p>2. What are you working on today?</p>
@@ -119,8 +125,12 @@ export const Hero = () => {
                   </div>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-baseline gap-2">
-                      <span className="font-bold text-text-primary">John Doe</span>
-                      <span className="text-xs text-text-secondary">9:05 AM</span>
+                      <span className="font-bold text-text-primary">
+                        John Doe
+                      </span>
+                      <span className="text-xs text-text-secondary">
+                        9:05 AM
+                      </span>
                     </div>
                     <div className="text-text-secondary text-sm leading-relaxed">
                       <p>Here's my update:</p>

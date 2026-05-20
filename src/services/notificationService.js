@@ -18,13 +18,13 @@ class NotificationService {
     user,
     team,
     client,
-    options = {}
+    options = {},
   }) {
     const { isUpdate = false, isLate = false, date = null } = options;
 
     try {
       const teamAdmins = await teamService.getTeamAdmins(teamId);
-      
+
       for (const admin of teamAdmins) {
         // Don't notify the admin if they are the one submitting
         // Also check if the admin has notifications enabled
@@ -36,7 +36,7 @@ class NotificationService {
             client,
             isUpdate,
             isLate,
-            date
+            date,
           });
         }
       }
@@ -64,15 +64,15 @@ class NotificationService {
     client,
     isUpdate,
     isLate,
-    date
+    date,
   }) {
     const userName = user.real_name || user.name || user.id;
     const actionText = isUpdate ? "updated" : "submitted";
     const dateText = date ? ` (${date})` : "";
     const lateText = isLate ? " (late submission)" : "";
-    
+
     const notificationText = `📝 ${userName} ${actionText} their standup for ${team.name}${dateText}${lateText}`;
-    
+
     await client.chat.postMessage({
       channel: admin.user.slackUserId,
       text: notificationText,
@@ -111,14 +111,17 @@ class NotificationService {
     excludeUserId = null,
     client,
     message,
-    blocks = null
+    blocks = null,
   }) {
     try {
       const teamAdmins = await teamService.getTeamAdmins(teamId);
-      
+
       for (const admin of teamAdmins) {
         // Skip if this admin should be excluded or has notifications disabled
-        if ((excludeUserId && admin.user.slackUserId === excludeUserId) || !admin.receiveNotifications) {
+        if (
+          (excludeUserId && admin.user.slackUserId === excludeUserId) ||
+          !admin.receiveNotifications
+        ) {
           continue;
         }
 

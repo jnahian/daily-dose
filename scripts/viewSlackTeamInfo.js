@@ -65,8 +65,8 @@ async function getSlackTeamInfo() {
         const status = user.is_owner
           ? "👑 Owner"
           : user.is_admin
-          ? "🛡️ Admin"
-          : "👤 Member";
+            ? "🛡️ Admin"
+            : "👤 Member";
         const realName = user.real_name || user.name;
         const email = user.profile?.email || "No email";
         const timezone = user.tz_label || "Unknown timezone";

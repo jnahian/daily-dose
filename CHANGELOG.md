@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Server-side BasicAuth gate on `/scripts` route (`src/middleware/basicAuth.js`, `src/app.js`). Replaces the React-only client-side gate that was bypassable by direct URL access. Application refuses to start if `SCRIPTS_AUTH_USERNAME` or `SCRIPTS_AUTH_PASSWORD` is unset.
+- `UserFacingError` class and `sanitizeError(err, fallback?)` helper in `src/utils/errorHelper.js`. Command handlers now emit a generic `Something went wrong (ref: ...)` message for unknown errors; service-provided messages are only rendered verbatim when the service throws `UserFacingError`.
+- `parseTimeString(input)` validator and `TimeFormatError` in `src/utils/timeHelper.js`. Rejects malformed `HH:MM` input at command boundaries before scheduler registration.
+- Jest test harness at the repo root (`jest.config.js`, `npm test`, `npm run test:watch`, `npm run test:coverage`). 32 tests across `timeHelper`, `errorHelper`, and `basicAuth` middleware.
+- Composite database index `@@index([teamId, standupDate])` on `StandupResponse` (migration `20260520044120_standup_response_team_date_index`). The existing `@@unique([teamId, userId, standupDate])` constraint cannot serve team + date-range queries without a `userId`, the shape used by `getTeamResponses`, `getLateResponses`, and the response counting in `postTeamStandup`.
+- `isWorkingDayPure({ date, workDays, holidayDateSet })`, `getHolidayDateSet()`, and `getOrgDefaultWorkDays()` in `src/utils/dateHelper.js` — a pure work-day check plus batch holiday lookup for hot-path callers. `test/utils/dateHelper.test.js` adds 7 tests.
+- Sentry error reporting (`@sentry/node`). New `src/config/sentry.js` initializes Sentry once at process start when `SENTRY_DSN` is set and is a silent no-op otherwise. Wired into `src/app.js`. `SENTRY_DSN` was documented for months but never installed or initialized.
+- Level-aware logging in `src/utils/logger.js`: `logger.debug/info/warn/error` honor the `LOG_LEVEL` env var (`debug` < `info` < `warn` < `error`, default `info`). `logger.error` forwards `Error` instances to Sentry when initialized. The existing typed loggers are preserved and now participate in level filtering.
+- `runScheduledJob(name, fn)` wrapper in `schedulerService` — every cron callback (standup, followup, posting, midnight schedule-refresh) logs start/end with duration and routes failures through `logger.error` → Sentry.
+- Root ESLint flat config (`eslint.config.js`) covering backend `.js` files (`web/` and `public/` have their own tooling and are ignored), plus `npm run lint` / `lint:fix` scripts. ESLint 9 was an unused devDependency.
+- Root `.env.example` — a template mirroring every env var the app reads, so onboarding no longer requires cross-referencing `DEPLOYMENT.md`.
+- husky + lint-staged pre-commit hook — staged backend files are auto-linted (`eslint --fix`) and formatted (`prettier --write`) on commit.
+- CI lint + test gate: `deploy.yml` gains a `lint-and-test` job and `deploy-version.yml`'s `validate` job gains lint + test steps. A failing `npm run lint` or `npm test` now blocks deploy in both workflows.
+
+### Changed
+
+- `/dd-team-create` and `/dd-team-update` now validate time inputs and reject invalid formats (e.g. `99:99`) before scheduler registration.
+- `schedulerService.scheduleTeam` defensively re-parses stored team times and skips registration with a logged warning for teams with invalid stored data.
+- Command-handler catch blocks in `src/commands/team.js`, `src/commands/standup.js`, `src/commands/leave.js` route errors through `sanitizeError` rather than rendering raw `error.message`.
+- `userService.promoteOrganizationMember` and `userService.setOrganizationMemberActive` convert all user-facing throws to `UserFacingError` so messages such as "You cannot promote yourself" and "Target user not found" are preserved through `sanitizeError` instead of being redacted.
+- `teamService.promoteTeamMember` converts all user-facing throws to `UserFacingError` for the same reason; adds `UserFacingError` import to `teamService.js`.
+- `parseTimeString` catch blocks in `/dd-team-create` and `/dd-team-update` route through `sanitizeError` for pattern consistency (behavior unchanged since `TimeFormatError.userFacing === true`).
+- `standupService.getActiveMembers` batches its holiday and work-day lookups instead of calling the per-member async `isWorkingDay`, which re-fetched the same organization settings and per-user `workDays` every iteration. Query count is now O(1) in team size (~3 queries) instead of 2N+1 (~21 for a 10-person team, ~101 for 50). `isWorkingDay` is retained as a thin async wrapper for low-volume one-off callers and short-circuits on non-work days before its holiday query.
+- `schedulerService` cron callbacks no longer use inline `try/catch` + `console.error` (which left failures invisible in production); `console.*` calls in that file migrated to `logger.*`.
+- Prettier is now unified on the root `.prettierrc.json` (double quotes, `printWidth` 80). The duplicate `web/.prettierrc` (single quotes) is deleted and `web/` reformatted to match, so running Prettier from any directory produces consistent output.
+
+### Fixed
+
+- `postTeamStandup` is now idempotent: a duplicate posting-cron firing for the same `(teamId, standupDate)` used to post a second Slack message and overwrite the first message's `slackMessageTs`, orphaning late-reply threads. It now checks for an existing `StandupPost` with a non-null `slackMessageTs` and returns early. Operator-facing call sites (`/dd-standup-post`, `sendManualStandup`) report "already posted" instead of a blank timestamp.
+- `handleStandupUpdateSubmission` destructured `isUpdate` inside its `try` block but referenced it in the `catch` handler; block scope meant the catch threw a `ReferenceError` instead of reporting the real error. `isUpdate` is now declared before the `try`. (Caught by the newly-added ESLint config.)
+
+### Security
+
+- `/scripts` is no longer reachable without valid `SCRIPTS_AUTH_USERNAME` / `SCRIPTS_AUTH_PASSWORD` credentials.
+- Removed hardcoded `admin`/`daily-dose-admin` default credentials from `basicAuth` middleware.
+
 ## [1.6.2] - 2026-05-19
 
 ### Added

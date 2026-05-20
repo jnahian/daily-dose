@@ -21,6 +21,7 @@ This project includes a script to manage your Slack app manifest via the Slack A
 ## Usage
 
 ### Create a New App
+
 ```bash
 # Using npm script
 npm run manifest:create
@@ -30,6 +31,7 @@ node src/scripts/updateSlackManifest.js --create
 ```
 
 ### Update Existing App
+
 ```bash
 # Using npm script (you'll need to provide app ID)
 npm run manifest:update -- --app-id A1234567890
@@ -39,6 +41,7 @@ node src/scripts/updateSlackManifest.js --app-id A1234567890
 ```
 
 ### Dry Run (Preview Changes)
+
 ```bash
 # See what would change without applying
 npm run manifest:dry-run -- --app-id A1234567890

@@ -1,6 +1,6 @@
-import { motion } from 'framer-motion';
-import { useId } from 'react';
-import { LordIcon } from '../LordIcon';
+import { motion } from "framer-motion";
+import { useId } from "react";
+import { LordIcon } from "../LordIcon";
 
 interface FeatureCardProps {
   title: string;
@@ -12,7 +12,7 @@ interface FeatureCardProps {
 const FeatureCard = ({ title, description, icon, delay }: FeatureCardProps) => {
   const id = useId();
   // Convert the ID to a valid CSS selector format (remove colons)
-  const safeId = `feature-${id.replace(/:/g, '')}`;
+  const safeId = `feature-${id.replace(/:/g, "")}`;
 
   return (
     <motion.div
@@ -41,44 +41,45 @@ const FeatureCard = ({ title, description, icon, delay }: FeatureCardProps) => {
 export const Features = () => {
   const features = [
     {
-      title: 'Automated Reminders',
+      title: "Automated Reminders",
       description:
-        'Set it and forget it. The bot automatically reminds your team to submit their standups at your chosen time.',
-      icon: 'https://cdn.lordicon.com/kbtmbyzy.json',
+        "Set it and forget it. The bot automatically reminds your team to submit their standups at your chosen time.",
+      icon: "https://cdn.lordicon.com/kbtmbyzy.json",
       delay: 0.1,
     },
     {
-      title: 'Smart Summaries',
+      title: "Smart Summaries",
       description:
         "Get a beautifully formatted summary of everyone's updates posted directly to your Slack channel.",
-      icon: 'https://cdn.lordicon.com/nocovwne.json',
+      icon: "https://cdn.lordicon.com/nocovwne.json",
       delay: 0.2,
     },
     {
-      title: 'Timezone Aware',
+      title: "Timezone Aware",
       description:
-        'Perfect for remote teams. Configure standup times per team to match their local working hours.',
-      icon: 'https://cdn.lordicon.com/abfverha.json',
+        "Perfect for remote teams. Configure standup times per team to match their local working hours.",
+      icon: "https://cdn.lordicon.com/abfverha.json",
       delay: 0.3,
     },
     {
-      title: 'Leave Management',
+      title: "Leave Management",
       description:
         "Mark yourself as away or on vacation. The bot won't bug you while you're recharging.",
-      icon: 'https://cdn.lordicon.com/hursldrn.json',
+      icon: "https://cdn.lordicon.com/hursldrn.json",
       delay: 0.4,
     },
     {
-      title: 'Multiple Teams',
+      title: "Multiple Teams",
       description:
-        'Support for multiple teams within a single organization. Engineering, Marketing, Design - all covered.',
-      icon: 'https://cdn.lordicon.com/uukerzzv.json',
+        "Support for multiple teams within a single organization. Engineering, Marketing, Design - all covered.",
+      icon: "https://cdn.lordicon.com/uukerzzv.json",
       delay: 0.5,
     },
     {
-      title: 'Detailed History',
-      description: 'Access past standups easily. Keep a record of progress and blockers over time.',
-      icon: 'https://cdn.lordicon.com/gqdnbnwt.json',
+      title: "Detailed History",
+      description:
+        "Access past standups easily. Keep a record of progress and blockers over time.",
+      icon: "https://cdn.lordicon.com/gqdnbnwt.json",
       delay: 0.6,
     },
   ];
@@ -103,7 +104,8 @@ export const Features = () => {
             </span>
           </h2>
           <p className="text-text-secondary max-w-2xl mx-auto">
-            Powerful features designed to make daily updates effortless and effective.
+            Powerful features designed to make daily updates effortless and
+            effective.
           </p>
         </div>
 

@@ -6,12 +6,12 @@ const teamService = require("../src/services/teamService");
 async function debugScheduler() {
   console.log("🔍 Debugging Scheduler Service");
   console.log("=".repeat(50));
-  
+
   try {
     // Get all active teams
     const teams = await teamService.getActiveTeamsForScheduling();
     console.log(`\n📊 Found ${teams.length} active teams:\n`);
-    
+
     teams.forEach((team, index) => {
       console.log(`${index + 1}. ${team.name}`);
       console.log(`   - Standup Time: ${team.standupTime}`);
@@ -25,7 +25,7 @@ async function debugScheduler() {
     // Get scheduled jobs info
     const jobs = schedulerService.getScheduledJobs();
     console.log(`📅 Currently scheduled jobs: ${jobs.length}\n`);
-    
+
     jobs.forEach((job, index) => {
       console.log(`${index + 1}. Job ID: ${job.id}`);
       console.log(`   - Running: ${job.running}`);
@@ -42,11 +42,10 @@ async function debugScheduler() {
     }
 
     console.log("\n✨ Scheduler debug completed successfully!");
-    
   } catch (error) {
     console.error("❌ Error debugging scheduler:", error);
   }
-  
+
   process.exit(0);
 }
 
