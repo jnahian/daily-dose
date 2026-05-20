@@ -22,6 +22,22 @@ const {
 } = require("../utils/blockHelper");
 const { parseTimeString } = require("../utils/timeHelper");
 
+const logger = require("../utils/logger");
+
+function runScheduledJob(name, fn) {
+  return async () => {
+    const startedAt = Date.now();
+    logger.info(`cron:${name} fired`);
+    try {
+      await fn();
+      logger.info(`cron:${name} ok (${Date.now() - startedAt}ms)`);
+    } catch (err) {
+      // logger.error forwards to Sentry when initialized
+      logger.error(`cron:${name} failed`, err);
+    }
+  };
+}
+
 class SchedulerService {
   constructor() {
     this.scheduledJobs = new Map();
@@ -39,7 +55,7 @@ class SchedulerService {
   }
 
   async scheduleAllTeams() {
-    console.log("📅 Scheduling standup reminders for all teams...");
+    logger.info("📅 Scheduling standup reminders for all teams...");
 
     const teams = await teamService.getActiveTeamsForScheduling();
 
@@ -56,8 +72,9 @@ class SchedulerService {
       standupParsed = parseTimeString(standupTime);
       postingParsed = parseTimeString(postingTime);
     } catch (err) {
-      console.error(
-        `❌ Skipping schedule for team "${team.name}" (id=${team.id}): invalid time data in DB — ${err.message}`
+      logger.error(
+        `❌ Skipping schedule for team "${team.name}" (id=${team.id}): invalid time data in DB`,
+        err
       );
       // Stop and remove any stale cron jobs for this team so old jobs don't keep firing
       const staleStandupJobId = `standup-${team.id}`;
@@ -93,26 +110,10 @@ class SchedulerService {
 
     const standupJob = cron.schedule(
       standupCron,
-      async () => {
-        console.log(
-          `🚀 CRON JOB FIRED: Standup reminder for ${team.name} at ${dayjs()
-            .tz(timezone)
-            .format()}`
-        );
-        try {
-          await this.sendStandupReminders(team);
-        } catch (error) {
-          console.error(
-            `❌ Error in standup reminder for ${team.name}:`,
-            error
-          );
-        }
-      },
-      {
-        timezone,
-        scheduled: true,
-        name: standupJobId,
-      }
+      runScheduledJob(`standup:${team.name}`, () =>
+        this.sendStandupReminders(team)
+      ),
+      { timezone, scheduled: true, name: standupJobId }
     );
 
     this.scheduledJobs.set(standupJobId, standupJob);
@@ -133,14 +134,10 @@ class SchedulerService {
 
     const followupJob = cron.schedule(
       followupCron,
-      async () => {
-        await this.sendFollowupReminders(team);
-      },
-      {
-        timezone,
-        scheduled: true,
-        name: followupJobId,
-      }
+      runScheduledJob(`followup:${team.name}`, () =>
+        this.sendFollowupReminders(team)
+      ),
+      { timezone, scheduled: true, name: followupJobId }
     );
 
     this.scheduledJobs.set(followupJobId, followupJob);
@@ -155,24 +152,16 @@ class SchedulerService {
 
     const postingJob = cron.schedule(
       postingCron,
-      async () => {
-        try {
-          const now = dayjs().tz(team.timezone);
-          await standupService.postTeamStandup(team, now.toDate(), this.app);
-        } catch (error) {
-          console.error(`❌ Error posting standup for ${team.name}:`, error);
-        }
-      },
-      {
-        timezone,
-        scheduled: true,
-        name: postingJobId,
-      }
+      runScheduledJob(`posting:${team.name}`, () => {
+        const now = dayjs().tz(team.timezone);
+        return standupService.postTeamStandup(team, now.toDate(), this.app);
+      }),
+      { timezone, scheduled: true, name: postingJobId }
     );
 
     this.scheduledJobs.set(postingJobId, postingJob);
 
-    console.log(
+    logger.info(
       `✅ Scheduled team: ${team.name} (${timezone}), Standup: ${standupTime}, Posting: ${postingTime}`
     );
   }
@@ -214,7 +203,7 @@ class SchedulerService {
           ],
         });
       } catch (error) {
-        console.error(
+        logger.error(
           `Failed to send reminder to ${member.user.slackUserId}:`,
           error
         );
@@ -267,7 +256,7 @@ class SchedulerService {
           ],
         });
       } catch (error) {
-        console.error(
+        logger.error(
           `Failed to send follow-up to ${member.user.slackUserId}:`,
           error
         );
@@ -288,7 +277,7 @@ class SchedulerService {
       // Post the late response as a threaded reply
       await standupService.postLateResponses(team, responseDate, this.app);
     } catch (error) {
-      console.error(
+      logger.error(
         `Failed to handle late response for team ${teamId}:`,
         error
       );
@@ -311,7 +300,7 @@ class SchedulerService {
       );
 
       if (!standupPost || !standupPost.slackMessageTs) {
-        console.log(
+        logger.info(
           `No standup post found for team ${team.name} on ${dayjs(
             responseDate
           ).format("YYYY-MM-DD")}`
@@ -330,13 +319,13 @@ class SchedulerService {
         ...message,
       });
 
-      console.log(
+      logger.info(
         `✅ Posted late response for ${getUserLogIdentifier(
           lateResponse.user
         )} in team ${team.name}`
       );
     } catch (error) {
-      console.error("Failed to post single late response:", error);
+      logger.error("Failed to post single late response:", error);
     }
   }
 
@@ -348,14 +337,14 @@ class SchedulerService {
     try {
       const team = await teamService.getTeamById(teamId);
       if (!team) {
-        console.error(`Team with ID ${teamId} not found for schedule refresh`);
+        logger.error(`Team with ID ${teamId} not found for schedule refresh`);
         return;
       }
 
-      console.log(`🔄 Refreshing schedule for team: ${team.name}`);
+      logger.info(`🔄 Refreshing schedule for team: ${team.name}`);
       await this.scheduleTeam(team);
     } catch (error) {
-      console.error(`Failed to refresh schedule for team ${teamId}:`, error);
+      logger.error(`Failed to refresh schedule for team ${teamId}:`, error);
     }
   }
 
@@ -364,10 +353,10 @@ class SchedulerService {
    */
   async refreshAllSchedules() {
     try {
-      console.log("🔄 Refreshing all team schedules...");
+      logger.info("🔄 Refreshing all team schedules...");
       await this.scheduleAllTeams();
     } catch (error) {
-      console.error("Failed to refresh all schedules:", error);
+      logger.error("Failed to refresh all schedules:", error);
     }
   }
 
@@ -395,7 +384,7 @@ class SchedulerService {
     if (this.scheduledJobs.has(jobId)) {
       this.scheduledJobs.get(jobId).stop();
       this.scheduledJobs.delete(jobId);
-      console.log(`🛑 Stopped job: ${jobId}`);
+      logger.info(`🛑 Stopped job: ${jobId}`);
     }
   }
 
@@ -407,7 +396,7 @@ class SchedulerService {
       job.stop();
     }
     this.scheduledJobs.clear();
-    console.log("🛑 Stopped all scheduled jobs");
+    logger.info("🛑 Stopped all scheduled jobs");
   }
 }
 
