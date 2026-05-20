@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `UserFacingError` class and `sanitizeError(err, fallback?)` helper in `src/utils/errorHelper.js`. Command handlers now emit a generic `Something went wrong (ref: ...)` message for unknown errors; service-provided messages are only rendered verbatim when the service throws `UserFacingError`.
 - `parseTimeString(input)` validator and `TimeFormatError` in `src/utils/timeHelper.js`. Rejects malformed `HH:MM` input at command boundaries before scheduler registration.
 - Jest test harness at the repo root (`jest.config.js`, `npm test`, `npm run test:watch`, `npm run test:coverage`). 32 tests across `timeHelper`, `errorHelper`, and `basicAuth` middleware.
+- Composite database index `@@index([teamId, standupDate])` on `StandupResponse` (migration `20260520044120_standup_response_team_date_index`). The existing `@@unique([teamId, userId, standupDate])` constraint cannot serve team + date-range queries without a `userId`, the shape used by `getTeamResponses`, `getLateResponses`, and the response counting in `postTeamStandup`.
+- `isWorkingDayPure({ date, workDays, holidayDateSet })`, `getHolidayDateSet()`, and `getOrgDefaultWorkDays()` in `src/utils/dateHelper.js` — a pure work-day check plus batch holiday lookup for hot-path callers. `test/utils/dateHelper.test.js` adds 7 tests.
 
 ### Changed
 
@@ -22,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `userService.promoteOrganizationMember` and `userService.setOrganizationMemberActive` convert all user-facing throws to `UserFacingError` so messages such as "You cannot promote yourself" and "Target user not found" are preserved through `sanitizeError` instead of being redacted.
 - `teamService.promoteTeamMember` converts all user-facing throws to `UserFacingError` for the same reason; adds `UserFacingError` import to `teamService.js`.
 - `parseTimeString` catch blocks in `/dd-team-create` and `/dd-team-update` route through `sanitizeError` for pattern consistency (behavior unchanged since `TimeFormatError.userFacing === true`).
+- `standupService.getActiveMembers` batches its holiday and work-day lookups instead of calling the per-member async `isWorkingDay`, which re-fetched the same organization settings and per-user `workDays` every iteration. Query count is now O(1) in team size (~3 queries) instead of 2N+1 (~21 for a 10-person team, ~101 for 50). `isWorkingDay` is retained as a thin async wrapper for low-volume one-off callers and short-circuits on non-work days before its holiday query.
 
 ### Security
 
