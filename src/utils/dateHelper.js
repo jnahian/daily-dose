@@ -1,8 +1,10 @@
 const prisma = require("../config/prisma");
 const dayjs = require("dayjs");
 const weekday = require("dayjs/plugin/weekday");
+const utc = require("dayjs/plugin/utc");
 
 dayjs.extend(weekday);
+dayjs.extend(utc);
 
 const DEFAULT_WORK_DAYS = [1, 2, 3, 4, 7];
 
@@ -12,7 +14,7 @@ function getDayOfWeekIso(date) {
 }
 
 function toIsoDate(date) {
-  return dayjs(date).format("YYYY-MM-DD");
+  return dayjs.utc(date).format("YYYY-MM-DD");
 }
 
 /**
@@ -73,7 +75,7 @@ async function isWorkingDay(date, organizationId, userId = null) {
       where: { id: userId },
       select: { workDays: true },
     });
-    workDays = user?.workDays || null;
+    workDays = user?.workDays?.length ? user.workDays : null;
   }
 
   if (!workDays) {

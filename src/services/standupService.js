@@ -67,7 +67,7 @@ class StandupService {
     );
 
     return members.filter((member) => {
-      const workDays = member.user.workDays || orgDefaultWorkDays;
+      const workDays = member.user.workDays?.length ? member.user.workDays : orgDefaultWorkDays;
       return isWorkingDayPure({ date, workDays, holidayDateSet });
     });
   }
