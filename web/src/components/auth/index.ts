@@ -1,1 +1,1 @@
-export { BasicAuth } from './BasicAuth';
+export { BasicAuth } from "./BasicAuth";

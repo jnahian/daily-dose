@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @theme {
   --color-brand-cyan: #00cfff;
@@ -7,7 +7,7 @@
   --color-brand-navy-light: #151e32;
   --color-brand-accent: #38bdf8;
 
-  --font-sans: 'Inter', sans-serif;
+  --font-sans: "Inter", sans-serif;
 
   /* Semantic Colors */
   --color-bg-primary: var(--bg-primary);
@@ -39,5 +39,7 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   font-family: var(--font-sans);
-  transition: background-color 0.3s, color 0.3s;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
 }

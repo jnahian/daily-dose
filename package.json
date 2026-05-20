@@ -23,7 +23,9 @@
     "lint:fix": "eslint . --fix",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "format": "prettier --write \"src/**/*.js\" \"scripts/**/*.js\" \"test/**/*.js\" \"*.{js,json,md}\"",
+    "format:check": "prettier --check \"src/**/*.js\" \"scripts/**/*.js\" \"test/**/*.js\" \"*.{js,json,md}\""
   },
   "keywords": [
     "slack",
@@ -52,6 +54,7 @@
     "globals": "^15.15.0",
     "jest": "^30.4.2",
     "nodemon": "^3.1.10",
+    "prettier": "^3.8.3",
     "prisma": "^6.15.0",
     "typescript": "^5.9.2"
   }

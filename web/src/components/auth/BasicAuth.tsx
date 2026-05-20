@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Lock, Eye, EyeOff } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Lock, Eye, EyeOff } from "lucide-react";
 
 interface BasicAuthProps {
   children: React.ReactNode;
 }
 
-const ADMIN_USERNAME = import.meta.env.VITE_ADMIN_USERNAME || 'admin';
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
-const AUTH_KEY = 'scripts_auth_token';
+const ADMIN_USERNAME = import.meta.env.VITE_ADMIN_USERNAME || "admin";
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || "admin123";
+const AUTH_KEY = "scripts_auth_token";
 
 export const BasicAuth = ({ children }: BasicAuthProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -28,23 +28,23 @@ export const BasicAuth = ({ children }: BasicAuthProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
       const token = btoa(`${username}:${password}`);
       sessionStorage.setItem(AUTH_KEY, token);
       setIsAuthenticated(true);
     } else {
-      setError('Invalid username or password');
-      setPassword('');
+      setError("Invalid username or password");
+      setPassword("");
     }
   };
 
   const handleLogout = () => {
     sessionStorage.removeItem(AUTH_KEY);
     setIsAuthenticated(false);
-    setUsername('');
-    setPassword('');
+    setUsername("");
+    setPassword("");
   };
 
   if (isLoading) {
@@ -65,7 +65,9 @@ export const BasicAuth = ({ children }: BasicAuthProps) => {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-red-500/20 border border-red-500/30 rounded-full mb-4">
                 <Lock size={32} className="text-red-400" />
               </div>
-              <h1 className="text-2xl font-bold text-text-primary mb-2">Authentication Required</h1>
+              <h1 className="text-2xl font-bold text-text-primary mb-2">
+                Authentication Required
+              </h1>
               <p className="text-text-secondary">
                 Scripts documentation is restricted to administrators only.
               </p>
@@ -74,7 +76,10 @@ export const BasicAuth = ({ children }: BasicAuthProps) => {
             {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="username" className="block text-sm font-medium text-text-secondary mb-2">
+                <label
+                  htmlFor="username"
+                  className="block text-sm font-medium text-text-secondary mb-2"
+                >
                   Username
                 </label>
                 <input
@@ -90,12 +95,15 @@ export const BasicAuth = ({ children }: BasicAuthProps) => {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-text-secondary mb-2">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-text-secondary mb-2"
+                >
                   Password
                 </label>
                 <div className="relative">
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     id="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -131,7 +139,8 @@ export const BasicAuth = ({ children }: BasicAuthProps) => {
             {/* Info */}
             <div className="mt-6 pt-6 border-t border-border-default">
               <p className="text-xs text-text-secondary text-center">
-                Contact your administrator if you need access to the scripts documentation.
+                Contact your administrator if you need access to the scripts
+                documentation.
               </p>
             </div>
           </div>

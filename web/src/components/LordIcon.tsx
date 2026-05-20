@@ -1,6 +1,6 @@
-import { useRef } from 'react';
-import lottie from 'lottie-web';
-import { defineElement } from '@lordicon/element';
+import { useRef } from "react";
+import lottie from "lottie-web";
+import { defineElement } from "@lordicon/element";
 
 // Initialize Lordicon element
 try {
@@ -12,7 +12,7 @@ try {
 
 interface LordIconProps {
   src: string;
-  trigger?: 'hover' | 'click' | 'loop' | 'morph';
+  trigger?: "hover" | "click" | "loop" | "morph";
   size?: number;
   colors?: string;
   delay?: number;
@@ -22,7 +22,7 @@ interface LordIconProps {
 
 export const LordIcon = ({
   src,
-  trigger = 'hover',
+  trigger = "hover",
   size = 32,
   colors,
   delay,
@@ -45,5 +45,3 @@ export const LordIcon = ({
     />
   );
 };
-
-

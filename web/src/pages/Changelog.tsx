@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router';
+import { useState } from "react";
+import { Link } from "react-router";
 import {
   History,
   Github,
@@ -10,52 +10,60 @@ import {
   Shield,
   AlertTriangle,
   Trash2,
-} from 'lucide-react';
-import { VersionCard, TableOfContents } from '../components/changelog';
-import changelogData from '../data/changelog.json';
-import type { ChangelogData } from '../types/changelog';
+} from "lucide-react";
+import { VersionCard, TableOfContents } from "../components/changelog";
+import changelogData from "../data/changelog.json";
+import type { ChangelogData } from "../types/changelog";
 
 export const meta = () => {
   return [
-    { title: 'Changelog - Daily Dose | Release Notes & Version History' },
+    { title: "Changelog - Daily Dose | Release Notes & Version History" },
     {
-      name: 'description',
+      name: "description",
       content:
-        'Daily Dose Changelog - Track all updates, new features, and improvements to the Slack standup bot. Stay informed about the latest releases.',
+        "Daily Dose Changelog - Track all updates, new features, and improvements to the Slack standup bot. Stay informed about the latest releases.",
     },
     {
-      name: 'keywords',
-      content: 'daily dose changelog, release notes, version history, slack bot updates',
-    },
-    { name: 'author', content: 'Daily Dose' },
-    { property: 'og:type', content: 'website' },
-    { property: 'og:url', content: '/changelog' },
-    { property: 'og:title', content: 'Daily Dose Changelog - Release Notes & Updates' },
-    {
-      property: 'og:description',
+      name: "keywords",
       content:
-        'Track all updates, new features, and improvements to Daily Dose Slack bot. View complete version history.',
+        "daily dose changelog, release notes, version history, slack bot updates",
     },
-    { property: 'og:image', content: '/logo.png' },
-    { property: 'twitter:card', content: 'summary_large_image' },
-    { property: 'twitter:url', content: '/changelog' },
-    { property: 'twitter:title', content: 'Daily Dose Changelog - Release Notes & Updates' },
+    { name: "author", content: "Daily Dose" },
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: "/changelog" },
     {
-      property: 'twitter:description',
-      content:
-        'Track all updates, new features, and improvements to Daily Dose Slack bot. View complete version history.',
+      property: "og:title",
+      content: "Daily Dose Changelog - Release Notes & Updates",
     },
-    { property: 'twitter:image', content: '/logo.png' },
+    {
+      property: "og:description",
+      content:
+        "Track all updates, new features, and improvements to Daily Dose Slack bot. View complete version history.",
+    },
+    { property: "og:image", content: "/logo.png" },
+    { property: "twitter:card", content: "summary_large_image" },
+    { property: "twitter:url", content: "/changelog" },
+    {
+      property: "twitter:title",
+      content: "Daily Dose Changelog - Release Notes & Updates",
+    },
+    {
+      property: "twitter:description",
+      content:
+        "Track all updates, new features, and improvements to Daily Dose Slack bot. View complete version history.",
+    },
+    { property: "twitter:image", content: "/logo.png" },
   ];
 };
 
 const Changelog = () => {
   const data = changelogData as ChangelogData;
-  const [activeVersion, setActiveVersion] = useState(data.versions[0]?.version || '');
+  const [activeVersion, setActiveVersion] = useState(
+    data.versions[0]?.version || ""
+  );
 
   return (
     <div className="min-h-screen bg-bg-primary text-text-primary transition-colors duration-300">
-
       {/* Main content */}
       <main className="pt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -66,7 +74,8 @@ const Changelog = () => {
               Changelog
             </h1>
             <p className="text-xl text-text-secondary mb-8">
-              Track all updates, new features, and improvements to Daily Dose. We follow{' '}
+              Track all updates, new features, and improvements to Daily Dose.
+              We follow{" "}
               <a
                 href="https://semver.org/"
                 target="_blank"
@@ -74,7 +83,7 @@ const Changelog = () => {
                 className="text-brand-cyan hover:text-brand-blue underline transition-colors"
               >
                 Semantic Versioning
-              </a>{' '}
+              </a>{" "}
               and keep detailed release notes.
             </p>
             <div className="flex items-center gap-4 flex-wrap">
@@ -122,7 +131,9 @@ const Changelog = () => {
                       <Check size={14} />
                       Added
                     </span>
-                    <p className="text-sm text-text-secondary mt-2">New features</p>
+                    <p className="text-sm text-text-secondary mt-2">
+                      New features
+                    </p>
                   </div>
                   <div className="bg-bg-primary rounded-lg p-4 text-center border border-border-default">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-semibold uppercase">
@@ -136,7 +147,9 @@ const Changelog = () => {
                       <AlertTriangle size={14} />
                       Deprecated
                     </span>
-                    <p className="text-sm text-text-secondary mt-2">Soon removed</p>
+                    <p className="text-sm text-text-secondary mt-2">
+                      Soon removed
+                    </p>
                   </div>
                   <div className="bg-bg-primary rounded-lg p-4 text-center border border-border-default">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-500 text-white rounded-full text-xs font-semibold uppercase">
@@ -150,7 +163,9 @@ const Changelog = () => {
                       <Wrench size={14} />
                       Fixed
                     </span>
-                    <p className="text-sm text-text-secondary mt-2">Bug fixes</p>
+                    <p className="text-sm text-text-secondary mt-2">
+                      Bug fixes
+                    </p>
                   </div>
                   <div className="bg-bg-primary rounded-lg p-4 text-center border border-border-default">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-500 text-white rounded-full text-xs font-semibold uppercase">
@@ -166,7 +181,10 @@ const Changelog = () => {
             {/* Table of Contents - Right Side */}
             <div className="hidden lg:block">
               <TableOfContents
-                versions={data.versions.map((v) => ({ version: v.version, date: v.date }))}
+                versions={data.versions.map((v) => ({
+                  version: v.version,
+                  date: v.date,
+                }))}
                 activeVersion={activeVersion}
                 setActiveVersion={setActiveVersion}
               />

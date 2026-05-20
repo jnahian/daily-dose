@@ -5,8 +5,8 @@
  */
 export const formatDate = (dateString: string): string => {
   // Handle special cases
-  if (dateString === 'TBD' || dateString === 'Unreleased') {
-    return 'Coming Soon';
+  if (dateString === "TBD" || dateString === "Unreleased") {
+    return "Coming Soon";
   }
 
   try {
@@ -19,10 +19,10 @@ export const formatDate = (dateString: string): string => {
     }
 
     // Format as "Month Day, Year" (e.g., "February 5, 2026")
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   } catch (error) {
     return dateString; // Return original on error
@@ -34,9 +34,9 @@ export const formatDate = (dateString: string): string => {
  * @returns Formatted current date string (e.g., "February 5, 2026")
  */
 export const formatCurrentDate = (): string => {
-  return new Date().toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+  return new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 };

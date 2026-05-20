@@ -1,5 +1,5 @@
 export interface ContentItem {
-  type: 'text' | 'command' | 'code' | 'list' | 'note' | 'warning';
+  type: "text" | "command" | "code" | "list" | "note" | "warning";
   value?: string;
   title?: string;
   command?: string;
