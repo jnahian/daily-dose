@@ -247,9 +247,19 @@ class UserService {
     });
   }
 
-  async promoteOrganizationMember(adminSlackUserId, targetSlackUserId, slackClient = null) {
-    const adminUserData = await this.fetchSlackUserData(adminSlackUserId, slackClient);
-    const adminUser = await this.findOrCreateUser(adminSlackUserId, adminUserData);
+  async promoteOrganizationMember(
+    adminSlackUserId,
+    targetSlackUserId,
+    slackClient = null
+  ) {
+    const adminUserData = await this.fetchSlackUserData(
+      adminSlackUserId,
+      slackClient
+    );
+    const adminUser = await this.findOrCreateUser(
+      adminSlackUserId,
+      adminUserData
+    );
 
     const adminOrg = await this.getUserOrganization(adminSlackUserId);
     if (!adminOrg) {
@@ -299,11 +309,15 @@ class UserService {
     });
 
     if (!targetOrgMembership || !targetOrgMembership.isActive) {
-      throw new UserFacingError("Target user is not an active member of your organization");
+      throw new UserFacingError(
+        "Target user is not an active member of your organization"
+      );
     }
 
     if (targetOrgMembership.role === "OWNER") {
-      throw new UserFacingError("Target user is the organization owner and cannot be promoted further");
+      throw new UserFacingError(
+        "Target user is the organization owner and cannot be promoted further"
+      );
     }
 
     if (targetOrgMembership.role === "ADMIN") {
@@ -327,13 +341,26 @@ class UserService {
     };
   }
 
-  async setOrganizationMemberActive(adminSlackUserId, targetSlackUserId, isActive, slackClient = null) {
-    const adminUserData = await this.fetchSlackUserData(adminSlackUserId, slackClient);
-    const adminUser = await this.findOrCreateUser(adminSlackUserId, adminUserData);
+  async setOrganizationMemberActive(
+    adminSlackUserId,
+    targetSlackUserId,
+    isActive,
+    slackClient = null
+  ) {
+    const adminUserData = await this.fetchSlackUserData(
+      adminSlackUserId,
+      slackClient
+    );
+    const adminUser = await this.findOrCreateUser(
+      adminSlackUserId,
+      adminUserData
+    );
 
     const adminOrg = await this.getUserOrganization(adminSlackUserId);
     if (!adminOrg) {
-      throw new UserFacingError("You must belong to an organization to manage members");
+      throw new UserFacingError(
+        "You must belong to an organization to manage members"
+      );
     }
 
     const adminOrgMembership = await prisma.organizationMember.findUnique({
@@ -364,7 +391,9 @@ class UserService {
     }
 
     if (targetUser.id === adminUser.id) {
-      throw new UserFacingError("You cannot change your own organization membership status");
+      throw new UserFacingError(
+        "You cannot change your own organization membership status"
+      );
     }
 
     const targetOrgMembership = await prisma.organizationMember.findUnique({
@@ -377,12 +406,19 @@ class UserService {
     });
 
     if (!targetOrgMembership) {
-      throw new UserFacingError("Target user is not a member of your organization");
+      throw new UserFacingError(
+        "Target user is not a member of your organization"
+      );
     }
 
     // Owner status can only be changed by another owner
-    if (targetOrgMembership.role === "OWNER" && adminOrgMembership.role !== "OWNER") {
-      throw new UserFacingError("Only organization owners can change another owner's status");
+    if (
+      targetOrgMembership.role === "OWNER" &&
+      adminOrgMembership.role !== "OWNER"
+    ) {
+      throw new UserFacingError(
+        "Only organization owners can change another owner's status"
+      );
     }
 
     if (targetOrgMembership.isActive === isActive) {
@@ -512,8 +548,17 @@ class UserService {
     };
   }
 
-  async setMemberLeave(targetSlackUserId, startDate, endDate, reason, slackClient = null) {
-    const userData = await this.fetchSlackUserData(targetSlackUserId, slackClient);
+  async setMemberLeave(
+    targetSlackUserId,
+    startDate,
+    endDate,
+    reason,
+    slackClient = null
+  ) {
+    const userData = await this.fetchSlackUserData(
+      targetSlackUserId,
+      slackClient
+    );
     const user = await this.findOrCreateUser(targetSlackUserId, userData);
 
     return await prisma.leave.create({
@@ -565,7 +610,10 @@ class UserService {
   }
 
   async listMemberLeaves(targetSlackUserId, slackClient = null) {
-    const userData = await this.fetchSlackUserData(targetSlackUserId, slackClient);
+    const userData = await this.fetchSlackUserData(
+      targetSlackUserId,
+      slackClient
+    );
     const user = await this.findOrCreateUser(targetSlackUserId, userData);
 
     return await prisma.leave.findMany({

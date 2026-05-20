@@ -158,13 +158,10 @@ async function joinTeam({ command, ack, respond, client }) {
 
       if (!team) {
         await updateResponse({
-          blocks: createCommandErrorBlocks(
-            "No team found in this channel.",
-            [
-              "Run `/dd-team-join [TeamName]` to join a specific team",
-              "Or run `/dd-team-join` inside a team channel",
-            ]
-          ),
+          blocks: createCommandErrorBlocks("No team found in this channel.", [
+            "Run `/dd-team-join [TeamName]` to join a specific team",
+            "Or run `/dd-team-join` inside a team channel",
+          ]),
         });
         return;
       }
@@ -216,13 +213,10 @@ async function leaveTeam({ command, ack, respond, client }) {
 
       if (!team) {
         await updateResponse({
-          blocks: createCommandErrorBlocks(
-            "No team found in this channel.",
-            [
-              "Run `/dd-team-leave [TeamName]` to leave a specific team",
-              "Or run `/dd-team-leave` inside a team channel",
-            ]
-          ),
+          blocks: createCommandErrorBlocks("No team found in this channel.", [
+            "Run `/dd-team-leave [TeamName]` to leave a specific team",
+            "Or run `/dd-team-leave` inside a team channel",
+          ]),
         });
         return;
       }
@@ -318,13 +312,10 @@ async function listMembers({ command, ack, respond }) {
 
       if (!team) {
         await updateResponse({
-          blocks: createCommandErrorBlocks(
-            "No team found in this channel.",
-            [
-              "Run `/dd-team-members [TeamName]` to view a specific team",
-              "Or run `/dd-team-members` inside a team channel",
-            ]
-          ),
+          blocks: createCommandErrorBlocks("No team found in this channel.", [
+            "Run `/dd-team-members [TeamName]` to view a specific team",
+            "Or run `/dd-team-members` inside a team channel",
+          ]),
         });
         return;
       }
@@ -394,14 +385,11 @@ async function updateTeam({ command, ack, respond, client }) {
 
       if (!team) {
         await updateResponse({
-          blocks: createCommandErrorBlocks(
-            "No team found in this channel.",
-            [
-              "Usage: `/dd-team-update [TeamName] [parameters]`",
-              "Parameters: `name=NewName`, `standup=HH:MM`, `posting=HH:MM`, `notifications=true/false`",
-              "Example: `/dd-team-update Engineering standup=09:00`",
-            ]
-          ),
+          blocks: createCommandErrorBlocks("No team found in this channel.", [
+            "Usage: `/dd-team-update [TeamName] [parameters]`",
+            "Parameters: `name=NewName`, `standup=HH:MM`, `posting=HH:MM`, `notifications=true/false`",
+            "Example: `/dd-team-update Engineering standup=09:00`",
+          ]),
         });
         return;
       }
@@ -414,10 +402,9 @@ async function updateTeam({ command, ack, respond, client }) {
 
         if (!team) {
           await updateResponse({
-            blocks: createCommandErrorBlocks(
-              "No team found in this channel.",
-              ["Provide team name: `/dd-team-update [TeamName] [parameters]`"]
-            ),
+            blocks: createCommandErrorBlocks("No team found in this channel.", [
+              "Provide team name: `/dd-team-update [TeamName] [parameters]`",
+            ]),
           });
           return;
         }
@@ -478,7 +465,9 @@ async function updateTeam({ command, ack, respond, client }) {
             });
             return;
           }
-          updates.push(`Standup time: ${formatTime12Hour(updateData.standupTime)}`);
+          updates.push(
+            `Standup time: ${formatTime12Hour(updateData.standupTime)}`
+          );
           break;
         case "posting":
           try {
@@ -489,7 +478,9 @@ async function updateTeam({ command, ack, respond, client }) {
             });
             return;
           }
-          updates.push(`Posting time: ${formatTime12Hour(updateData.postingTime)}`);
+          updates.push(
+            `Posting time: ${formatTime12Hour(updateData.postingTime)}`
+          );
           break;
         case "notifications":
           if (value !== "true" && value !== "false") {
@@ -547,10 +538,22 @@ async function suspendTeamMember({ command, ack, respond, client }) {
 }
 
 async function unsuspendTeamMember({ command, ack, respond, client }) {
-  return handleTeamSuspension({ command, ack, respond, client, suspend: false });
+  return handleTeamSuspension({
+    command,
+    ack,
+    respond,
+    client,
+    suspend: false,
+  });
 }
 
-async function handleTeamSuspension({ command, ack, respond, client, suspend }) {
+async function handleTeamSuspension({
+  command,
+  ack,
+  respond,
+  client,
+  suspend,
+}) {
   const action = suspend ? "Suspending" : "Reactivating";
   const verb = suspend ? "suspended" : "reactivated";
   const cmdName = suspend ? "/dd-team-suspend" : "/dd-team-unsuspend";
@@ -592,13 +595,10 @@ async function handleTeamSuspension({ command, ack, respond, client, suspend }) 
       team = await teamService.findTeamByChannel(command.channel_id);
       if (!team) {
         await updateResponse({
-          blocks: createCommandErrorBlocks(
-            "No team found in this channel.",
-            [
-              `Run \`${cmdName} @user [TeamName]\` to target a specific team`,
-              `Or run \`${cmdName} @user\` inside a team channel`,
-            ]
-          ),
+          blocks: createCommandErrorBlocks("No team found in this channel.", [
+            `Run \`${cmdName} @user [TeamName]\` to target a specific team`,
+            `Or run \`${cmdName} @user\` inside a team channel`,
+          ]),
         });
         return;
       }
@@ -610,14 +610,11 @@ async function handleTeamSuspension({ command, ack, respond, client, suspend }) 
     );
     if (!targetSlackUserId) {
       await updateResponse({
-        blocks: createCommandErrorBlocks(
-          "Could not resolve target user.",
-          [
-            "Use `@user` mention (e.g., `@john`)",
-            "Or pass the Slack user ID directly (e.g., `U0123ABCD`)",
-            "Or pass the username for already-deactivated users (e.g., `@john` or `john`)",
-          ]
-        ),
+        blocks: createCommandErrorBlocks("Could not resolve target user.", [
+          "Use `@user` mention (e.g., `@john`)",
+          "Or pass the Slack user ID directly (e.g., `U0123ABCD`)",
+          "Or pass the username for already-deactivated users (e.g., `@john` or `john`)",
+        ]),
       });
       return;
     }
@@ -667,10 +664,9 @@ async function handleOrgSuspension({ command, ack, respond, client, suspend }) {
 
     if (parts.length === 0) {
       await updateResponse({
-        blocks: createCommandErrorBlocks(
-          `Usage: \`${cmdName} @user\``,
-          [`\`${cmdName} @john\``]
-        ),
+        blocks: createCommandErrorBlocks(`Usage: \`${cmdName} @user\``, [
+          `\`${cmdName} @john\``,
+        ]),
       });
       return;
     }
@@ -682,14 +678,11 @@ async function handleOrgSuspension({ command, ack, respond, client, suspend }) {
     );
     if (!targetSlackUserId) {
       await updateResponse({
-        blocks: createCommandErrorBlocks(
-          "Could not resolve target user.",
-          [
-            "Use `@user` mention (e.g., `@john`)",
-            "Or pass the Slack user ID directly (e.g., `U0123ABCD`)",
-            "Or pass the username for already-deactivated users (e.g., `@john` or `john`)",
-          ]
-        ),
+        blocks: createCommandErrorBlocks("Could not resolve target user.", [
+          "Use `@user` mention (e.g., `@john`)",
+          "Or pass the Slack user ID directly (e.g., `U0123ABCD`)",
+          "Or pass the username for already-deactivated users (e.g., `@john` or `john`)",
+        ]),
       });
       return;
     }
@@ -759,14 +752,11 @@ async function promoteOrgMember({ command, ack, respond, client }) {
     );
     if (!targetSlackUserId) {
       await updateResponse({
-        blocks: createCommandErrorBlocks(
-          "Could not resolve target user.",
-          [
-            "Use `@user` mention (e.g., `@john`)",
-            "Or pass the Slack user ID directly (e.g., `U0123ABCD`)",
-            "Or pass the username (e.g., `@john` or `john`)",
-          ]
-        ),
+        blocks: createCommandErrorBlocks("Could not resolve target user.", [
+          "Use `@user` mention (e.g., `@john`)",
+          "Or pass the Slack user ID directly (e.g., `U0123ABCD`)",
+          "Or pass the username (e.g., `@john` or `john`)",
+        ]),
       });
       return;
     }

@@ -216,11 +216,11 @@ class StandupService {
           userId: user.id,
         },
         orderBy: {
-          standupDate: 'desc',
+          standupDate: "desc",
         },
       });
     } catch (error) {
-      console.error('Error getting last standup response:', error);
+      console.error("Error getting last standup response:", error);
       return null;
     }
   }
@@ -246,10 +246,7 @@ class StandupService {
       include: {
         team: true,
       },
-      orderBy: [
-        { standupDate: "desc" },
-        { submittedAt: "asc" },
-      ],
+      orderBy: [{ standupDate: "desc" }, { submittedAt: "asc" }],
     });
   }
 
@@ -414,11 +411,13 @@ class StandupService {
 
     // Get members who are active, not on leave, and not admins
     const eligibleMembers = allMembers.filter(
-      (m) => !leaveUserIds.has(m.userId) && m.role !== 'ADMIN'
+      (m) => !leaveUserIds.has(m.userId) && m.role !== "ADMIN"
     );
 
     // Get members who would be shown in the standup (not hidden from mentions)
-    const visibleMembers = eligibleMembers.filter((m) => !m.hideFromNotResponded);
+    const visibleMembers = eligibleMembers.filter(
+      (m) => !m.hideFromNotResponded
+    );
 
     // Skip posting if there are no visible members (all are hidden/mention=off)
     if (visibleMembers.length === 0 && responses.length === 0) {
@@ -429,7 +428,8 @@ class StandupService {
     }
 
     // Check if all eligible members have disabled reminders
-    const allMembersDisabledReminders = eligibleMembers.length > 0 &&
+    const allMembersDisabledReminders =
+      eligibleMembers.length > 0 &&
       eligibleMembers.every((m) => m.hideFromNotResponded);
 
     // If all members disabled reminders AND no one submitted standups, skip posting
@@ -443,10 +443,11 @@ class StandupService {
     // Calculate not submitted (exclude admins and those who opted out)
     const notSubmitted = allMembers
       .filter(
-        (m) => !respondedUserIds.has(m.userId) &&
-               !leaveUserIds.has(m.userId) &&
-               m.role !== 'ADMIN' &&
-               !m.hideFromNotResponded
+        (m) =>
+          !respondedUserIds.has(m.userId) &&
+          !leaveUserIds.has(m.userId) &&
+          m.role !== "ADMIN" &&
+          !m.hideFromNotResponded
       )
       .map((m) => ({
         slackUserId: m.user.slackUserId,
@@ -544,7 +545,10 @@ class StandupService {
         },
       });
 
-      const allMembers = await this.getActiveMembers(team.id, targetDate.toDate());
+      const allMembers = await this.getActiveMembers(
+        team.id,
+        targetDate.toDate()
+      );
 
       // Get members on leave
       const membersOnLeave = await prisma.teamMember.findMany({
@@ -571,10 +575,11 @@ class StandupService {
       // Calculate not submitted (exclude admins and those who opted out)
       const notSubmitted = allMembers
         .filter(
-          (m) => !respondedUserIds.has(m.userId) &&
-                 !leaveUserIds.has(m.userId) &&
-                 m.role !== 'ADMIN' &&
-                 !m.hideFromNotResponded
+          (m) =>
+            !respondedUserIds.has(m.userId) &&
+            !leaveUserIds.has(m.userId) &&
+            m.role !== "ADMIN" &&
+            !m.hideFromNotResponded
         )
         .map((m) => ({
           slackUserId: m.user.slackUserId,
@@ -597,13 +602,17 @@ class StandupService {
         targetDate
       );
 
-      console.log(`📤 Posting on-demand standup message for team ${team.name}...`);
+      console.log(
+        `📤 Posting on-demand standup message for team ${team.name}...`
+      );
       const result = await slackApp.client.chat.postMessage({
         channel: team.slackChannelId,
         ...message,
       });
 
-      console.log(`✅ Message posted successfully with timestamp: ${result.ts}`);
+      console.log(
+        `✅ Message posted successfully with timestamp: ${result.ts}`
+      );
 
       // Save message timestamp for threading future late responses
       await this.saveStandupPost(

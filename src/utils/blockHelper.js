@@ -2,7 +2,7 @@
  * Utility functions for generating Slack Block Kit components
  */
 
-const { convertTextToRichText } = require('./messageHelper');
+const { convertTextToRichText } = require("./messageHelper");
 
 /**
  * Create a basic section block with markdown text
@@ -53,7 +53,6 @@ function createActionsBlock(elements) {
   };
 }
 
-
 /**
  * Create a button element
  * @param {string} text - Button text
@@ -90,7 +89,14 @@ function createButton(text, actionId, value, style = null) {
  * @param {string} elementType - Type of input element (rich_text_input, plain_text_input, etc.)
  * @returns {object} Slack input block
  */
-function createInputBlock(blockId, label, actionId, placeholder, optional = false, elementType = "rich_text_input") {
+function createInputBlock(
+  blockId,
+  label,
+  actionId,
+  placeholder,
+  optional = false,
+  elementType = "rich_text_input"
+) {
   return {
     type: "input",
     block_id: blockId,
@@ -119,9 +125,17 @@ function createInputBlock(blockId, label, actionId, placeholder, optional = fals
  * @param {object} lastResponse - Last standup response to prefill today's tasks (optional)
  * @returns {object} Complete modal view structure
  */
-function createStandupModal(teamName, teamId, today, existingResponse = null, lastResponse = null) {
+function createStandupModal(
+  teamName,
+  teamId,
+  today,
+  existingResponse = null,
+  lastResponse = null
+) {
   const blocks = [
-    createSectionBlock(`*📊 ${teamName} - ${today}*${existingResponse ? " (Update)" : ""}`),
+    createSectionBlock(
+      `*📊 ${teamName} - ${today}*${existingResponse ? " (Update)" : ""}`
+    ),
     createDividerBlock(),
     createInputBlock(
       "yesterday_tasks",
@@ -148,7 +162,9 @@ function createStandupModal(teamName, teamId, today, existingResponse = null, la
 
   // Add initial values if lastResponse exists (prefill yesterday's tasks with last response's today's tasks)
   if (lastResponse && lastResponse.todayTasks) {
-    const yesterdayTasksBlock = blocks.find(block => block.block_id === "yesterday_tasks");
+    const yesterdayTasksBlock = blocks.find(
+      (block) => block.block_id === "yesterday_tasks"
+    );
     if (yesterdayTasksBlock) {
       const richTextValue = convertTextToRichText(lastResponse.todayTasks);
       if (richTextValue) {
@@ -188,12 +204,7 @@ function createStandupReminderBlocks(message, teamName, teamId) {
   return [
     createSectionBlock(message),
     createActionsBlock([
-      createButton(
-        "📝 Submit Standup",
-        "submit_standup",
-        teamId,
-        "primary"
-      ),
+      createButton("📝 Submit Standup", "submit_standup", teamId, "primary"),
     ]),
   ];
 }
@@ -221,12 +232,10 @@ function createStandupSummaryHeader(teamName, date, totalMembers, submitted) {
  * @returns {Array<object>} Array of blocks for user response
  */
 function createUserResponseBlocks(response) {
-  const blocks = [
-    createSectionBlock(`*👤 ${response.userMention}*`),
-  ];
+  const blocks = [createSectionBlock(`*👤 ${response.userMention}*`)];
 
   const fields = [];
-  
+
   if (response.yesterdayTasks) {
     fields.push({
       type: "mrkdwn",
@@ -312,9 +321,7 @@ function createNotRespondedBlocks(notResponded) {
     .map((m) => `• <@${m.slackUserId}>`)
     .join("\n");
 
-  return [
-    createSectionBlock(`*📝 Not Responded*\n${notRespondedText}`),
-  ];
+  return [createSectionBlock(`*📝 Not Responded*\n${notRespondedText}`)];
 }
 
 /**
@@ -325,13 +332,9 @@ function createNotRespondedBlocks(notResponded) {
 function createOnLeaveBlocks(onLeave) {
   if (onLeave.length === 0) return [];
 
-  const onLeaveText = onLeave
-    .map((m) => `• <@${m.slackUserId}>`)
-    .join("\n");
+  const onLeaveText = onLeave.map((m) => `• <@${m.slackUserId}>`).join("\n");
 
-  return [
-    createSectionBlock(`*🌴 On Leave*\n${onLeaveText}`),
-  ];
+  return [createSectionBlock(`*🌴 On Leave*\n${onLeaveText}`)];
 }
 
 /**
@@ -348,9 +351,7 @@ function createTeamSelectionBlocks(teams, actionId = "select_team_standup") {
   return [
     createSectionBlock(`*📝 Select a team for standup:*\n${teamList}`),
     createActionsBlock(
-      teams.map((team) =>
-        createButton(team.name, actionId, team.id.toString())
-      )
+      teams.map((team) => createButton(team.name, actionId, team.id.toString()))
     ),
   ];
 }
@@ -361,9 +362,7 @@ function createTeamSelectionBlocks(teams, actionId = "select_team_standup") {
  * @returns {Array<object>} Array of blocks for error message
  */
 function createErrorBlocks(message) {
-  return [
-    createSectionBlock(`❌ ${message}`),
-  ];
+  return [createSectionBlock(`❌ ${message}`)];
 }
 
 /**
@@ -372,9 +371,7 @@ function createErrorBlocks(message) {
  * @returns {Array<object>} Array of blocks for success message
  */
 function createSuccessBlocks(message) {
-  return [
-    createSectionBlock(`✅ ${message}`),
-  ];
+  return [createSectionBlock(`✅ ${message}`)];
 }
 
 /**
@@ -386,14 +383,20 @@ function createSuccessBlocks(message) {
  * @param {object} existingResponse - Existing response data (optional)
  * @returns {object} Complete modal view structure for updating
  */
-function createStandupUpdateModal(teamName, teamId, today, standupDate, existingResponse = null) {
+function createStandupUpdateModal(
+  teamName,
+  teamId,
+  today,
+  standupDate,
+  existingResponse = null
+) {
   return {
     type: "modal",
     callback_id: "standup_update_modal",
-    private_metadata: JSON.stringify({ 
-      teamId, 
+    private_metadata: JSON.stringify({
+      teamId,
       standupDate,
-      isUpdate: !!existingResponse
+      isUpdate: !!existingResponse,
     }),
     title: {
       type: "plain_text",
@@ -408,7 +411,9 @@ function createStandupUpdateModal(teamName, teamId, today, standupDate, existing
       text: "Cancel",
     },
     blocks: [
-      createSectionBlock(`*📊 ${teamName} - ${today}*${existingResponse ? " (Update)" : ""}`),
+      createSectionBlock(
+        `*📊 ${teamName} - ${today}*${existingResponse ? " (Update)" : ""}`
+      ),
       createDividerBlock(),
       createInputBlock(
         "yesterday_tasks",
@@ -434,12 +439,12 @@ function createStandupUpdateModal(teamName, teamId, today, standupDate, existing
         true,
         "rich_text_input"
       ),
-    ].map(block => {
+    ].map((block) => {
       // Add initial values to input blocks if existingResponse exists
       if (block.type === "input" && existingResponse) {
         const blockId = block.block_id;
         let initialText = "";
-        
+
         if (blockId === "yesterday_tasks" && existingResponse.yesterdayTasks) {
           initialText = existingResponse.yesterdayTasks;
         } else if (blockId === "today_tasks" && existingResponse.todayTasks) {
@@ -447,7 +452,7 @@ function createStandupUpdateModal(teamName, teamId, today, standupDate, existing
         } else if (blockId === "blockers" && existingResponse.blockers) {
           initialText = existingResponse.blockers;
         }
-        
+
         if (initialText) {
           block.element.initial_value = {
             type: "rich_text",
@@ -457,11 +462,11 @@ function createStandupUpdateModal(teamName, teamId, today, standupDate, existing
                 elements: [
                   {
                     type: "text",
-                    text: initialText
-                  }
-                ]
-              }
-            ]
+                    text: initialText,
+                  },
+                ],
+              },
+            ],
           };
         }
       }
@@ -477,9 +482,7 @@ function createStandupUpdateModal(teamName, teamId, today, standupDate, existing
  * @returns {Array<object>} Array of blocks for success response
  */
 function createCommandSuccessBlocks(message, details = null) {
-  const blocks = [
-    createSectionBlock(`✅ ${message}`),
-  ];
+  const blocks = [createSectionBlock(`✅ ${message}`)];
 
   if (details) {
     const detailsText = Object.entries(details)
@@ -507,9 +510,7 @@ function createCommandSuccessBlocks(message, details = null) {
  * @returns {Array<object>} Array of blocks for error response
  */
 function createCommandErrorBlocks(message, suggestions = null) {
-  const blocks = [
-    createSectionBlock(`❌ ${message}`),
-  ];
+  const blocks = [createSectionBlock(`❌ ${message}`)];
 
   if (suggestions && suggestions.length > 0) {
     const suggestionsText = suggestions
@@ -531,9 +532,10 @@ function createCommandErrorBlocks(message, suggestions = null) {
  * @returns {Array<object>} Array of blocks for permission denied response
  */
 function createPermissionDeniedBlocks(requiredRole = "ADMIN") {
-  const roleText = requiredRole === "OWNER"
-    ? "organization owner"
-    : "team admin or organization owner";
+  const roleText =
+    requiredRole === "OWNER"
+      ? "organization owner"
+      : "team admin or organization owner";
 
   return [
     createSectionBlock(`❌ *Permission Denied*`),

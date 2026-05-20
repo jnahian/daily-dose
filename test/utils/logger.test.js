@@ -89,10 +89,9 @@ describe("logger levels", () => {
   it("error() forwards to Sentry.captureException when wired", () => {
     jest.resetModules();
     const captureException = jest.fn();
-    jest.doMock(
-      "../../src/config/sentry",
-      () => ({ getClient: () => ({ captureException }) })
-    );
+    jest.doMock("../../src/config/sentry", () => ({
+      getClient: () => ({ captureException }),
+    }));
     logger = require("../../src/utils/logger");
     const err = new Error("boom");
     logger.error("explosion", err);

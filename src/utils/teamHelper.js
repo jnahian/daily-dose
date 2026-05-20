@@ -12,7 +12,11 @@ const prisma = require("../config/prisma");
  * @param {number|null} userId - The user ID for additional context (optional)
  * @returns {Promise<{team: object|null, error: string|null}>} Team object and error message
  */
-async function resolveTeamFromContext(channelId = null, teamName = null, userId = null) {
+async function resolveTeamFromContext(
+  channelId = null,
+  teamName = null,
+  userId = null
+) {
   try {
     let team = null;
 
@@ -71,7 +75,8 @@ async function resolveTeamFromContext(channelId = null, teamName = null, userId 
       if (!team) {
         return {
           team: null,
-          error: "This channel is not associated with any team. Please provide a team name.",
+          error:
+            "This channel is not associated with any team. Please provide a team name.",
         };
       }
 
@@ -81,7 +86,8 @@ async function resolveTeamFromContext(channelId = null, teamName = null, userId 
     // No context provided
     return {
       team: null,
-      error: "Please provide a team name or run this command in a team channel.",
+      error:
+        "Please provide a team name or run this command in a team channel.",
     };
   } catch (error) {
     console.error("Error resolving team from context:", error);
@@ -225,7 +231,8 @@ function validateDateFormat(dateStr) {
   if (!datePattern.test(dateStr)) {
     return {
       isValid: false,
-      error: "Invalid date format. Please use YYYY-MM-DD format (e.g., 2025-01-15).",
+      error:
+        "Invalid date format. Please use YYYY-MM-DD format (e.g., 2025-01-15).",
     };
   }
 

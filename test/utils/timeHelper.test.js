@@ -1,4 +1,7 @@
-const { parseTimeString, TimeFormatError } = require("../../src/utils/timeHelper");
+const {
+  parseTimeString,
+  TimeFormatError,
+} = require("../../src/utils/timeHelper");
 
 describe("parseTimeString", () => {
   describe("valid input", () => {
@@ -39,9 +42,12 @@ describe("parseTimeString", () => {
       expect(() => parseTimeString(input)).toThrow(TimeFormatError);
     });
 
-    it.each([null, undefined, 930, {}, []])("rejects non-string %p", (input) => {
-      expect(() => parseTimeString(input)).toThrow(TimeFormatError);
-    });
+    it.each([null, undefined, 930, {}, []])(
+      "rejects non-string %p",
+      (input) => {
+        expect(() => parseTimeString(input)).toThrow(TimeFormatError);
+      }
+    );
 
     it("error is flagged userFacing for sanitizer interop", () => {
       try {

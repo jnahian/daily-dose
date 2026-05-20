@@ -40,7 +40,9 @@ describe("createBasicAuth", () => {
   it("throws at construction if env vars are missing", () => {
     delete process.env.SCRIPTS_AUTH_USERNAME;
     jest.resetModules();
-    const { createBasicAuth: factory } = require("../../src/middleware/basicAuth");
+    const {
+      createBasicAuth: factory,
+    } = require("../../src/middleware/basicAuth");
     expect(() => factory()).toThrow(/SCRIPTS_AUTH_USERNAME/);
   });
 
@@ -80,8 +82,7 @@ describe("createBasicAuth", () => {
     const mw = createBasicAuth();
     const res = makeRes();
     const next = jest.fn();
-    const malformed =
-      "Basic " + Buffer.from("nocolon").toString("base64");
+    const malformed = "Basic " + Buffer.from("nocolon").toString("base64");
     mw({ headers: { authorization: malformed } }, res, next);
     expect(res.statusCode).toBe(401);
     expect(next).not.toHaveBeenCalled();
@@ -103,7 +104,9 @@ describe("createBasicAuth", () => {
   it("handles passwords containing colons", () => {
     process.env.SCRIPTS_AUTH_PASSWORD = "wonder:land:1";
     jest.resetModules();
-    const { createBasicAuth: factory } = require("../../src/middleware/basicAuth");
+    const {
+      createBasicAuth: factory,
+    } = require("../../src/middleware/basicAuth");
     const mw = factory();
     const res = makeRes();
     const next = jest.fn();

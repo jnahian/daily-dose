@@ -177,7 +177,7 @@ class SchedulerService {
     );
 
     // Filter out team owners/admins from receiving reminders
-    const members = allMembers.filter(member => member.role !== 'ADMIN');
+    const members = allMembers.filter((member) => member.role !== "ADMIN");
 
     for (const member of members) {
       try {
@@ -190,7 +190,12 @@ class SchedulerService {
             createSectionBlock(randomMessage),
             createSectionBlock(`*Team:* ${team.name}`),
             createActionsBlock([
-              createButton("📝 Submit Standup", `open_standup_${team.id}`, team.id.toString(), "primary")
+              createButton(
+                "📝 Submit Standup",
+                `open_standup_${team.id}`,
+                team.id.toString(),
+                "primary"
+              ),
             ]),
             {
               type: "context",
@@ -227,7 +232,7 @@ class SchedulerService {
 
     const respondedUserIds = new Set(responses.map((r) => r.userId));
     const pendingMembers = members.filter(
-      (m) => !respondedUserIds.has(m.userId) && m.role !== 'ADMIN'
+      (m) => !respondedUserIds.has(m.userId) && m.role !== "ADMIN"
     );
 
     for (const member of pendingMembers) {
@@ -243,7 +248,12 @@ class SchedulerService {
             createSectionBlock(randomFollowupMessage),
             createSectionBlock(`*Team:* ${team.name}`),
             createActionsBlock([
-              createButton("📝 Submit Standup", `open_standup_${team.id}`, team.id.toString(), "primary")
+              createButton(
+                "📝 Submit Standup",
+                `open_standup_${team.id}`,
+                team.id.toString(),
+                "primary"
+              ),
             ]),
             {
               type: "context",
@@ -265,7 +275,6 @@ class SchedulerService {
     }
   }
 
-
   async handleLateResponse(teamId, responseData) {
     try {
       const team = await teamService.getTeamById(teamId);
@@ -278,10 +287,7 @@ class SchedulerService {
       // Post the late response as a threaded reply
       await standupService.postLateResponses(team, responseDate, this.app);
     } catch (error) {
-      logger.error(
-        `Failed to handle late response for team ${teamId}:`,
-        error
-      );
+      logger.error(`Failed to handle late response for team ${teamId}:`, error);
     }
   }
 
@@ -309,9 +315,8 @@ class SchedulerService {
         return;
       }
 
-      const message = await standupService.formatLateResponseMessage(
-        lateResponse
-      );
+      const message =
+        await standupService.formatLateResponseMessage(lateResponse);
 
       await this.app.client.chat.postMessage({
         channel: standupPost.channelId,
@@ -371,7 +376,7 @@ class SchedulerService {
       jobs.push({
         id: jobId,
         running: job.running || false,
-        scheduled: job.scheduled || false
+        scheduled: job.scheduled || false,
       });
     }
     return jobs;

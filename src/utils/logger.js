@@ -33,9 +33,15 @@ function emit(level, args, sink) {
   }
 }
 
-function debug(...args) { emit("debug", args, console.log); }
-function info(...args)  { emit("info",  args, console.log); }
-function warn(...args)  { emit("warn",  args, console.warn); }
+function debug(...args) {
+  emit("debug", args, console.log);
+}
+function info(...args) {
+  emit("info", args, console.log);
+}
+function warn(...args) {
+  emit("warn", args, console.warn);
+}
 
 function error(...args) {
   emit("error", args, console.error);
@@ -120,6 +126,13 @@ function logView(view) {
 }
 
 module.exports = {
-  debug, info, warn, error,
-  logCommand, logMessage, logEvent, logAction, logView,
+  debug,
+  info,
+  warn,
+  error,
+  logCommand,
+  logMessage,
+  logEvent,
+  logAction,
+  logView,
 };

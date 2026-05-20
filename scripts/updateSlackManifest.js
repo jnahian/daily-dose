@@ -359,7 +359,9 @@ class SlackManifestManager {
         await this.createApp(manifest, options.dryRun);
       } else {
         if (!this.appId) {
-          console.error("❌ Error: SLACK_APP_ID must be set in .env for updates");
+          console.error(
+            "❌ Error: SLACK_APP_ID must be set in .env for updates"
+          );
           console.error("   Use --create to create a new app instead");
           process.exit(1);
         }

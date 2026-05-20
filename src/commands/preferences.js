@@ -29,7 +29,11 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
         mentionIndex = i;
       } else if (args[i].startsWith("notify=")) {
         notifyIndex = i;
-      } else if (!args[i].startsWith("mention=") && !args[i].startsWith("notify=") && teamNameIndex === -1) {
+      } else if (
+        !args[i].startsWith("mention=") &&
+        !args[i].startsWith("notify=") &&
+        teamNameIndex === -1
+      ) {
         // First non-parameter argument is team name
         teamNameIndex = i;
       }
@@ -93,13 +97,10 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
       team = await teamService.findTeamByChannel(command.channel_id);
       if (!team) {
         await updateResponse({
-          blocks: createCommandErrorBlocks(
-            "No team found in this channel.",
-            [
-              "Usage: `/dd-standup-reminder [TeamName] mention=on/off notify=on/off`",
-              "Or run inside a team channel without the team name",
-            ]
-          ),
+          blocks: createCommandErrorBlocks("No team found in this channel.", [
+            "Usage: `/dd-standup-reminder [TeamName] mention=on/off notify=on/off`",
+            "Or run inside a team channel without the team name",
+          ]),
         });
         return;
       }
@@ -107,7 +108,10 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
     }
 
     // Check if user is a member of the team
-    const membership = await teamService.getUserTeamMembership(command.user_id, team.id);
+    const membership = await teamService.getUserTeamMembership(
+      command.user_id,
+      team.id
+    );
 
     if (!membership) {
       await updateResponse({
@@ -131,7 +135,9 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
     if (notifyParam !== undefined) {
       updates.receiveNotifications = notifyParam === "on";
       const notifyStatus = notifyParam === "on" ? "enabled" : "disabled";
-      statusMessages.push(`Notifications (reminders + team submissions): *${notifyStatus}*`);
+      statusMessages.push(
+        `Notifications (reminders + team submissions): *${notifyStatus}*`
+      );
     }
 
     // Update preferences
@@ -143,21 +149,28 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
     );
 
     // Get current status after update
-    const updatedMembership = await teamService.getUserTeamMembership(command.user_id, team.id);
+    const updatedMembership = await teamService.getUserTeamMembership(
+      command.user_id,
+      team.id
+    );
 
-    const currentMentionStatus = updatedMembership.hideFromNotResponded ? "disabled" : "enabled";
-    const currentNotifyStatus = updatedMembership.receiveNotifications ? "enabled" : "disabled";
+    const currentMentionStatus = updatedMembership.hideFromNotResponded
+      ? "disabled"
+      : "enabled";
+    const currentNotifyStatus = updatedMembership.receiveNotifications
+      ? "enabled"
+      : "disabled";
 
     await updateResponse({
       blocks: [
         createSectionBlock(
           `*🔔 Standup Preferences Updated for ${teamName}*\n\n` +
-          statusMessages.join("\n") +
-          `\n\n*Current Settings:*\n` +
-          `• Mentions in non-responded list: *${currentMentionStatus}*\n` +
-          `• Notifications (reminders + submissions): *${currentNotifyStatus}*\n\n` +
-          `*Note:* When notifications are disabled, you won't receive standup reminders or admin notifications about team member submissions. You can still submit standups manually.`
-        )
+            statusMessages.join("\n") +
+            `\n\n*Current Settings:*\n` +
+            `• Mentions in non-responded list: *${currentMentionStatus}*\n` +
+            `• Notifications (reminders + submissions): *${currentNotifyStatus}*\n\n` +
+            `*Note:* When notifications are disabled, you won't receive standup reminders or admin notifications about team member submissions. You can still submit standups manually.`
+        ),
       ],
     });
   } catch (error) {
