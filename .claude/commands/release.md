@@ -49,22 +49,29 @@ Read `CHANGELOG.md`. The `## [Unreleased]` section must have at least one entry 
 
 ## 5. Update `CHANGELOG.md`
 
+`CHANGELOG.md` is the **development reference** — the complete technical audit trail. Every release gets a section here, including internal refactors, dependency bumps, infra changes, and implementation detail (file names, function names). Never omit technical changes from it.
+
 After the user confirms the `[Unreleased]` content:
 
 - Replace `## [Unreleased]` with two headings:
+
   ```
   ## [Unreleased]
 
   ## [<NEW_VERSION>] - YYYY-MM-DD
   ```
+
   Today's date in `YYYY-MM-DD` (use the shell: `date +%Y-%m-%d` from `Bash`, not your assumed date).
+
 - At the bottom of the file, update the link references:
   - Change `[Unreleased]: ...<PREV_TAG>...HEAD` to `[Unreleased]: ...v<NEW_VERSION>...HEAD`
   - Insert a new line `[<NEW_VERSION>]: ...<PREV_TAG>...v<NEW_VERSION>` below it
 
 ## 6. Update `web/src/data/changelog.json` (user-facing)
 
-This is **user-facing** and should be plain language. Two cases:
+`changelog.json` is **user-facing only** — it gets an entry solely for changes a non-technical end user would notice. Skip internal refactors, dependency bumps, infra changes, and pure technical fixes per `CLAUDE.md`'s changelog policy. Unlike `CHANGELOG.md`, this file is not a complete record: a release with no user-visible changes gets no entry here at all (Case C below).
+
+Three cases:
 
 **Case A — an entry for `<NEW_VERSION>` already exists** (we may have pre-folded user-visible work in there during the cycle):
 
@@ -84,7 +91,12 @@ This is **user-facing** and should be plain language. Two cases:
 - Set `isLatest: true` on the new entry and flip the previous latest to `isLatest: false`.
 - Show the draft to the user and let them edit before committing.
 
-Validate the file parses: `node -e "JSON.parse(require('fs').readFileSync('web/src/data/changelog.json','utf8'))"`.
+**Case C — the release has no user-visible changes** (e.g. an internal-only refactor, infra change, dependency bump, or admin-only fix):
+
+- Do not add an entry. Leave `changelog.json` untouched — do not flip `isLatest`, do not change any dates. The previous version stays `isLatest: true`.
+- Tell the user you are skipping `changelog.json` because the release has nothing user-facing, so they can correct you if they disagree.
+
+Validate the file parses (skip in Case C — file unchanged): `node -e "JSON.parse(require('fs').readFileSync('web/src/data/changelog.json','utf8'))"`.
 
 ## 7. Update `package.json` version
 
