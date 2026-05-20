@@ -59,6 +59,12 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
