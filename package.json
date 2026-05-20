@@ -19,6 +19,8 @@
     "team:members": "node scripts/check-team-members.js",
     "team:promote": "node scripts/promoteTeamMember.js",
     "debug:scheduler": "node scripts/debugScheduler.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
@@ -47,6 +49,7 @@
   "devDependencies": {
     "@types/node": "^24.3.0",
     "eslint": "^9.34.0",
+    "globals": "^15.15.0",
     "jest": "^30.4.2",
     "nodemon": "^3.1.10",
     "prisma": "^6.15.0",
