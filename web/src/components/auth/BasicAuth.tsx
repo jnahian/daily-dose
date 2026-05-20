@@ -5,8 +5,8 @@ interface BasicAuthProps {
   children: React.ReactNode;
 }
 
-const ADMIN_USERNAME = import.meta.env.VITE_ADMIN_USERNAME || "admin";
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || "admin123";
+const ADMIN_USERNAME = import.meta.env.VITE_ADMIN_USERNAME;
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD;
 const AUTH_KEY = "scripts_auth_token";
 
 export const BasicAuth = ({ children }: BasicAuthProps) => {
