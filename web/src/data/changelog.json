@@ -1,9 +1,39 @@
 {
   "versions": [
     {
+      "version": "1.7.0",
+      "date": "2026-05-20",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "changed",
+          "title": "Stricter Time Validation",
+          "items": [
+            "`/dd-team-create` and `/dd-team-update` now reject malformed times like `99:99` right away with a clear message, instead of failing silently later",
+            "Times are normalized on save — entering `9:5` is accepted and stored as `09:05`"
+          ]
+        },
+        {
+          "type": "changed",
+          "title": "Friendlier Error Messages",
+          "items": [
+            "Unexpected errors now show a short message with a reference code instead of raw internal details",
+            "Clear, expected messages (like \"You cannot promote yourself\") are still shown in full"
+          ]
+        },
+        {
+          "type": "fixed",
+          "title": "No More Duplicate Standup Posts",
+          "items": [
+            "When the posting job ran twice for the same team and day, the bot used to post the standup summary again and lose the thread for late replies — it now detects the existing post and skips"
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.6.2",
       "date": "2026-05-19",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "added",
