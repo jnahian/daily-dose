@@ -59,6 +59,22 @@ class SchedulerService {
       console.error(
         `❌ Skipping schedule for team "${team.name}" (id=${team.id}): invalid time data in DB — ${err.message}`
       );
+      // Stop and remove any stale cron jobs for this team so old jobs don't keep firing
+      const staleStandupJobId = `dd-${team.name.toLowerCase().replace(/\s+/g, "-")}`;
+      const staleFollowupJobId = `followup-${team.id}`;
+      const stalePostingJobId = `posting-${team.id}`;
+      if (this.scheduledJobs.has(staleStandupJobId)) {
+        this.scheduledJobs.get(staleStandupJobId).stop();
+        this.scheduledJobs.delete(staleStandupJobId);
+      }
+      if (this.scheduledJobs.has(staleFollowupJobId)) {
+        this.scheduledJobs.get(staleFollowupJobId).stop();
+        this.scheduledJobs.delete(staleFollowupJobId);
+      }
+      if (this.scheduledJobs.has(stalePostingJobId)) {
+        this.scheduledJobs.get(stalePostingJobId).stop();
+        this.scheduledJobs.delete(stalePostingJobId);
+      }
       return;
     }
     const standupHour = standupParsed.hour;

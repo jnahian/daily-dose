@@ -505,9 +505,11 @@ async function updateStandup({ command, ack, respond, client }) {
 async function handleStandupUpdateSubmission({ ack, body, view, client }) {
   await ack();
 
+  let isUpdate = false;
   try {
     const metadata = JSON.parse(view.private_metadata);
-    const { teamId, standupDate, isUpdate } = metadata;
+    const { teamId, standupDate } = metadata;
+    isUpdate = metadata.isUpdate;
     const values = view.state.values;
 
     const yesterdayTasks =

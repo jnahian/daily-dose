@@ -139,7 +139,7 @@ baseline without forcing a style refactor in the same PR."
 
 - [ ] **Step 1: Confirm the root `.prettierrc.json`**
 
-Read `/Users/nahian/Projects/daily-dose-bot/.prettierrc.json`. It should be:
+Read `.prettierrc.json`. It should be:
 ```json
 {
   "semi": true,
@@ -153,7 +153,7 @@ Read `/Users/nahian/Projects/daily-dose-bot/.prettierrc.json`. It should be:
 
 - [ ] **Step 2: Compare against `web/.prettierrc`**
 
-Read `/Users/nahian/Projects/daily-dose-bot/web/.prettierrc`. Note the differences — typically `singleQuote: true`.
+Read `web/.prettierrc`. Note the differences — typically `singleQuote: true`.
 
 - [ ] **Step 3: Check the actual style used in `web/`**
 
@@ -232,13 +232,13 @@ match. Apply the unified style across backend in this commit."
 
 - [ ] **Step 1: Pull the canonical variable list from `DEPLOYMENT.md`**
 
-Run: `grep -nE '^[A-Z_]+=|^\s*\*\s*\`[A-Z_]+\`' /Users/nahian/Projects/daily-dose-bot/DEPLOYMENT.md`
+Run: `grep -nE '^[A-Z_]+=|^\s*\*\s*\`[A-Z_]+\`' DEPLOYMENT.md`
 
 Confirm the list of required variables (typical: `SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET`, `SLACK_APP_TOKEN`, `DATABASE_URL`, `DIRECT_URL`, `PORT`, `DEFAULT_TIMEZONE`, `APP_URL`, `LOG_LEVEL`, `SENTRY_DSN`, `SCRIPTS_AUTH_USERNAME`, `SCRIPTS_AUTH_PASSWORD`).
 
 - [ ] **Step 2: Create `.env.example`**
 
-Create `/Users/nahian/Projects/daily-dose-bot/.env.example`:
+Create `.env.example`:
 ```bash
 # Slack credentials — see DEPLOYMENT.md for how to obtain these
 SLACK_BOT_TOKEN=xoxb-your-bot-token
@@ -268,7 +268,7 @@ SCRIPTS_AUTH_PASSWORD=
 
 - [ ] **Step 3: Verify `.gitignore` excludes `.env` but allows `.env.example`**
 
-Run: `grep -nE '^\.env|^!\.env' /Users/nahian/Projects/daily-dose-bot/.gitignore`
+Run: `grep -nE '^\.env|^!\.env' .gitignore`
 
 Expected: `.env` (or similar) appears; `.env.example` is not blocked. If `.env.example` is currently blocked, add an explicit `!.env.example` exception.
 
@@ -374,7 +374,7 @@ CI and prevents unformatted code from landing on main."
 
 - [ ] **Step 1: Inspect the existing workflow**
 
-Run: `cat /Users/nahian/Projects/daily-dose-bot/.github/workflows/deploy.yml`
+Run: `cat .github/workflows/deploy.yml`
 
 Note the existing `jobs:` structure. Confirm whether there's already a `lint` / `test` job or just a `deploy` job.
 

@@ -612,7 +612,7 @@ Fix: at the top of `postTeamStandup`, look up the existing `StandupPost`. If `sl
 
 - [ ] **Step 1: Locate `postTeamStandup`**
 
-Run: `grep -n "postTeamStandup\|async postTeamStandup" /Users/nahian/Projects/daily-dose-bot/src/services/standupService.js`
+Run: `grep -n "postTeamStandup\|async postTeamStandup" src/services/standupService.js`
 
 Note the exact line where the method body starts (it is in the range `361-509` per the audit but verify).
 

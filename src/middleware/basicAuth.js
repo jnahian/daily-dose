@@ -1,11 +1,9 @@
-const { timingSafeEqual } = require("crypto");
+const crypto = require("crypto");
 
 function timingSafeEqualString(a, b) {
-  if (typeof a !== "string" || typeof b !== "string") return false;
-  const bufA = Buffer.from(a);
-  const bufB = Buffer.from(b);
-  if (bufA.length !== bufB.length) return false;
-  return timingSafeEqual(bufA, bufB);
+  const ah = crypto.createHash("sha256").update(String(a), "utf8").digest();
+  const bh = crypto.createHash("sha256").update(String(b), "utf8").digest();
+  return crypto.timingSafeEqual(ah, bh);
 }
 
 function createBasicAuth() {

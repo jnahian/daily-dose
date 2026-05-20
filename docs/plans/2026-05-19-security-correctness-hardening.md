@@ -105,7 +105,7 @@ Run: `rm test/sanity.test.js`
 
 - [ ] **Step 7: Update `.gitignore` to ignore coverage output**
 
-If `/Users/nahian/Projects/daily-dose-bot/.gitignore` does not already contain `coverage/`, append:
+If `.gitignore` does not already contain `coverage/`, append:
 ```
 coverage/
 ```
@@ -309,7 +309,7 @@ In `src/commands/team.js`, find the block immediately before `const team = await
 
 - [ ] **Step 7: Find the time-parsing section in `updateTeam`**
 
-Run: `grep -n "standup=\|posting=" /Users/nahian/Projects/daily-dose-bot/src/commands/team.js`
+Run: `grep -n "standup=\|posting=" src/commands/team.js`
 
 This locates the param-parsing block inside `updateTeam` (starts near line 430). Note the exact lines where `updateData.standupTime` and `updateData.postingTime` are assigned from the parsed `value`.
 
@@ -525,7 +525,7 @@ Expected: all tests pass.
 
 - [ ] **Step 5: Find every leaky catch block**
 
-Run: `grep -rn '\${error\.message}' /Users/nahian/Projects/daily-dose-bot/src/commands/`
+Run: `grep -rn '\${error\.message}' src/commands/`
 
 Expected: a list of files and line numbers. Each one is a candidate.
 
