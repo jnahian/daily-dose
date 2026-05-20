@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-05-20
+
 ### Removed
 
 - Client-side `BasicAuth` React gate on the `/scripts` page (`web/src/components/auth/`, `web/.env.example`, `VITE_ADMIN_USERNAME` / `VITE_ADMIN_PASSWORD`). It was a redundant second login layered on top of the server-side BasicAuth added in 1.7.0, and — as a build-time-baked credential check shipped in the client bundle — provided no real security. `/scripts` remains protected at the Express layer via `SCRIPTS_AUTH_USERNAME` / `SCRIPTS_AUTH_PASSWORD`.
@@ -453,7 +455,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.7.1...HEAD
+[1.7.1]: https://github.com/jnahian/daily-dose/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/jnahian/daily-dose/compare/v1.6.2...v1.7.0
 [1.6.2]: https://github.com/jnahian/daily-dose/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/jnahian/daily-dose/compare/v1.6.0...v1.6.1
