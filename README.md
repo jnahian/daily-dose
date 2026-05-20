@@ -70,23 +70,22 @@ Daily Dose includes a comprehensive administrative scripts documentation interfa
 - **Local Development**: http://localhost:3000/scripts-docs
 - **Production**: Available at your deployment's base URL + `/scripts-docs`
 - **Authentication**: Protected with HTTP Basic Auth
-  - **Default Username**: `admin`
-  - **Default Password**: `daily-dose-admin`
-  - **Configurable**: Set via environment variables (see configuration section)
+  - **Credentials**: Set via the `SCRIPTS_AUTH_USERNAME` and `SCRIPTS_AUTH_PASSWORD` environment variables (see configuration section)
+  - **No defaults**: both variables are required — the app refuses to start until they are set
 
 ### Authentication Configuration
 
 The scripts documentation route is protected with configurable HTTP Basic Authentication:
 
 ```bash
-# Environment Variables for Scripts Documentation Auth
-SCRIPTS_AUTH_USERNAME=admin              # Default: "admin"
-SCRIPTS_AUTH_PASSWORD=daily-dose-admin    # Default: "daily-dose-admin"
+# Environment Variables for Scripts Documentation Auth (both required — no defaults)
+SCRIPTS_AUTH_USERNAME=your-username
+SCRIPTS_AUTH_PASSWORD=your-strong-password
 ```
 
 **Security Recommendations:**
 
-- Change default credentials before deploying to production
+- Both variables are required — there are no default credentials, and the app will not start until they are set
 - Use strong, unique passwords for the documentation interface
 - Restrict access to authorized administrators only
 - Consider additional network-level security for production deployments
@@ -1052,8 +1051,8 @@ DIRECT_URL=postgresql://user:pass@host:port/db       # Direct database connectio
 **Scripts Documentation Authentication:**
 
 ```bash
-SCRIPTS_AUTH_USERNAME=admin              # Username for /scripts-docs access (default: "admin")
-SCRIPTS_AUTH_PASSWORD=daily-dose-admin    # Password for /scripts-docs access (default: "daily-dose-admin")
+SCRIPTS_AUTH_USERNAME=your-username           # Required — no default; app will not start if unset
+SCRIPTS_AUTH_PASSWORD=your-strong-password    # Required — no default; app will not start if unset
 ```
 
 **Optional Monitoring:**

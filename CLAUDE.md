@@ -67,7 +67,7 @@ High-leverage footguns specific to this repo. Read before editing:
 - `cd web && npm run lint` - Lint frontend code
 - `cd web && npm run format` - Format frontend code with Prettier
 
-**Note:** There is no root-level lint script. ESLint is installed at the root but only the `web/` package has a wired-up `lint` command. Lint backend code manually with `npx eslint <path>` if needed.
+**Lint & format:** `npm run lint` / `npm run lint:fix` lint the backend `.js` files via the flat ESLint config at the repo root (`eslint.config.js`; `web/` and `public/` are ignored — they have their own tooling). `npm run format` / `npm run format:check` apply the root Prettier config. `web/` keeps its own `lint`/`format` commands.
 
 ### Version Management
 
@@ -318,13 +318,13 @@ When adding/updating features:
 
 ### Testing Approach
 
-No automated tests currently configured - manual testing via Slack interactions and script execution.
+Jest is the test runner. Tests live in `test/`; run them with `npm test` (also `npm run test:watch`, `npm run test:coverage`). Continue to manually test Slack interactions for behavior that isn't unit-testable.
 
+- Run the unit tests with `npm test`
 - Test slash commands in Slack workspace
 - Verify scheduler jobs with `npm run debug:scheduler`
 - Check team member eligibility with `npm run team:members`
 - Test web frontend locally with `cd web && npm run dev`
-- The `test/` directory exists but is empty — no test runner is wired up.
 
 ### Deployment & Infrastructure
 
