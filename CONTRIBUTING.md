@@ -87,7 +87,7 @@ cd web && npm run dev
 
 1. **Fork** the repository and create a branch from `main`.
 2. **Make your changes** — keep them focused and minimal.
-3. **Test manually** in a Slack workspace (no automated tests currently).
+3. **Run `npm test`** and verify it passes; also test manually in a Slack workspace.
 4. **Push** your branch and open a PR against `main`.
 5. **Fill in the PR description** — what changed and why.
 
