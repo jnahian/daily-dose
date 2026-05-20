@@ -91,8 +91,7 @@ describe("logger levels", () => {
     const captureException = jest.fn();
     jest.doMock(
       "../../src/config/sentry",
-      () => ({ getClient: () => ({ captureException }) }),
-      { virtual: true }
+      () => ({ getClient: () => ({ captureException }) })
     );
     logger = require("../../src/utils/logger");
     const err = new Error("boom");
