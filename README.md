@@ -1137,4 +1137,4 @@ git tag --list
 
 ---
 
-For technical setup and administration, see the [Complete Implementation Guide](docs/daily-dose-complete-guide.md).
+For deployment and infrastructure, see [DEPLOYMENT.md](DEPLOYMENT.md). For architecture and development guidance, see [CLAUDE.md](CLAUDE.md).

@@ -428,16 +428,19 @@ Add these Bot Token Scopes:
 **Note**: Commands marked with ⚠️ require admin permissions in your organization.
 
 **Standup Commands:**
+
 - `/dd-standup` - Submit standup manually
 - `/dd-standup-update` - Update standup for any day
 
 **Manual Standup Trigger Commands ⚠️ (Admin/Owner Only):**
+
 - `/dd-standup-remind [team-name]` - Send standup reminders to team members ⚠️ **(admin/owner only)**
 - `/dd-standup-post [YYYY-MM-DD] [team-name]` - Post standup summary to channel ⚠️ **(admin/owner only)**
 - `/dd-standup-preview [YYYY-MM-DD] [team-name]` - Preview standup summary before posting ⚠️ **(admin/owner only)**
 - `/dd-standup-followup [team-name]` - Send followup reminders to non-responders ⚠️ **(admin/owner only)**
 
 **Team Management Commands:**
+
 - `/dd-team-create` - Create a new team ⚠️ **(admin only)**
 - `/dd-team-update` - Update team settings ⚠️ **(admin only)**
 - `/dd-team-join` - Join a team
@@ -446,15 +449,18 @@ Add these Bot Token Scopes:
 - `/dd-team-members` - View team members
 
 **Leave Management Commands:**
+
 - `/dd-leave-set` - Set leave dates
 - `/dd-leave-list` - List your leaves
 - `/dd-leave-cancel` - Cancel leave
 
 **Work Days Commands:**
+
 - `/dd-workdays-set` - Set personal work days
 - `/dd-workdays-show` - Show current work days
 
 **Holiday Management Commands ⚠️ (Admin Only):**
+
 - `/dd-holiday-set` - Set holidays ⚠️ **(admin only)**
 - `/dd-holiday-update` - Update holiday name ⚠️ **(admin only)**
 - `/dd-holiday-delete` - Delete holidays ⚠️ **(admin only)**
@@ -488,12 +494,12 @@ const { setupWorkflows } = require("./workflows");
 const schedulerService = require("./services/schedulerService");
 
 const receiver = new ExpressReceiver({
-  signingSecret: process.env.SLACK_SIGNING_SECRET
+  signingSecret: process.env.SLACK_SIGNING_SECRET,
 });
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
-  receiver
+  receiver,
 });
 
 // Setup commands and workflows
@@ -504,7 +510,7 @@ setupWorkflows(app);
 schedulerService.initialize(app);
 
 // Health check endpoint
-receiver.app.get('/health', (req, res) => {
+receiver.app.get("/health", (req, res) => {
   res.status(200).json({
     status: "healthy",
     timestamp: new Date().toISOString(),
@@ -1174,20 +1180,30 @@ function stripFormatting() {
   return async ({ command, next }) => {
     if (command.text) {
       // Remove user mentions: <@U123456> -> @username
-      command.text = command.text.replace(/<@([UW][A-Z0-9]+)(\|([^>]+))?>/g, '@$3');
-      
+      command.text = command.text.replace(
+        /<@([UW][A-Z0-9]+)(\|([^>]+))?>/g,
+        "@$3"
+      );
+
       // Remove channel mentions: <#C123456|channel-name> -> #channel-name
-      command.text = command.text.replace(/<#([CD][A-Z0-9]+)(\|([^>]+))?>/g, '#$3');
-      
+      command.text = command.text.replace(
+        /<#([CD][A-Z0-9]+)(\|([^>]+))?>/g,
+        "#$3"
+      );
+
       // Remove link formatting: <https://example.com|example.com> -> https://example.com
-      command.text = command.text.replace(/<(https?:\/\/[^|>]+)(\|([^>]+))?>/g, '$1');
-      
+      command.text = command.text.replace(
+        /<(https?:\/\/[^|>]+)(\|([^>]+))?>/g,
+        "$1"
+      );
+
       // Remove special characters used by Slack
-      command.text = command.text.replace(/&lt;/g, '<')
-                                 .replace(/&gt;/g, '>')
-                                 .replace(/&amp;/g, '&');
+      command.text = command.text
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&amp;/g, "&");
     }
-    
+
     await next();
   };
 }
@@ -1564,13 +1580,33 @@ const { stripFormatting } = require("../middleware/command");
 function setupCommands(app) {
   // Standup commands (primary functionality) - wrapped with formatting removal middleware
   app.command("/dd-standup", stripFormatting(), standupCommands.submitManual);
-  app.command("/dd-standup-update", stripFormatting(), standupCommands.updateStandup);
+  app.command(
+    "/dd-standup-update",
+    stripFormatting(),
+    standupCommands.updateStandup
+  );
 
   // Admin/Owner standup management commands - wrapped with formatting removal middleware ⚠️ admin/owner only
-  app.command("/dd-standup-remind", stripFormatting(), standupCommands.sendReminders);
-  app.command("/dd-standup-post", stripFormatting(), standupCommands.postStandup);
-  app.command("/dd-standup-preview", stripFormatting(), standupCommands.previewStandup);
-  app.command("/dd-standup-followup", stripFormatting(), standupCommands.sendFollowupReminders);
+  app.command(
+    "/dd-standup-remind",
+    stripFormatting(),
+    standupCommands.sendReminders
+  );
+  app.command(
+    "/dd-standup-post",
+    stripFormatting(),
+    standupCommands.postStandup
+  );
+  app.command(
+    "/dd-standup-preview",
+    stripFormatting(),
+    standupCommands.previewStandup
+  );
+  app.command(
+    "/dd-standup-followup",
+    stripFormatting(),
+    standupCommands.sendFollowupReminders
+  );
 
   // Team management commands - wrapped with formatting removal middleware
   app.command("/dd-team-list", stripFormatting(), teamCommands.listTeams);
@@ -1586,19 +1622,38 @@ function setupCommands(app) {
   app.command("/dd-leave-cancel", stripFormatting(), leaveCommands.cancelLeave);
 
   // Work days configuration commands - wrapped with formatting removal middleware
-  app.command("/dd-workdays-show", stripFormatting(), leaveCommands.showWorkDays);
+  app.command(
+    "/dd-workdays-show",
+    stripFormatting(),
+    leaveCommands.showWorkDays
+  );
   app.command("/dd-workdays-set", stripFormatting(), leaveCommands.setWorkDays);
 
   // Holiday management commands - wrapped with formatting removal middleware ⚠️ admin only
   app.command("/dd-holiday-set", stripFormatting(), holidayCommands.setHoliday);
-  app.command("/dd-holiday-update", stripFormatting(), holidayCommands.updateHoliday);
-  app.command("/dd-holiday-delete", stripFormatting(), holidayCommands.deleteHoliday);
-  app.command("/dd-holiday-list", stripFormatting(), holidayCommands.listHolidays);
+  app.command(
+    "/dd-holiday-update",
+    stripFormatting(),
+    holidayCommands.updateHoliday
+  );
+  app.command(
+    "/dd-holiday-delete",
+    stripFormatting(),
+    holidayCommands.deleteHoliday
+  );
+  app.command(
+    "/dd-holiday-list",
+    stripFormatting(),
+    holidayCommands.listHolidays
+  );
 
   // Interactive components (no formatting removal needed for these)
   app.action(/open_standup_.*/, standupCommands.openStandupModal);
   app.view("standup_modal", standupCommands.handleStandupSubmission);
-  app.view("standup_update_modal", standupCommands.handleStandupUpdateSubmission);
+  app.view(
+    "standup_update_modal",
+    standupCommands.handleStandupUpdateSubmission
+  );
 
   console.log("✅ Commands registered with formatting removal middleware");
 }
@@ -2319,14 +2374,12 @@ The system supports individual work day preferences while maintaining organizati
 ## Future Enhancements
 
 1. **Analytics Dashboard**
-
    - Participation rates by team/org
    - Response time patterns
    - Blocker trends
    - Work day compliance metrics
 
 2. **Advanced Features**
-
    - Custom questions per team
    - Weekly summaries
    - Integration with Jira/Trello
