@@ -1,0 +1,834 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_src_services_teamservice_js",
+      "label": "teamService.js",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "services_teamservice_validatetimestring",
+      "label": "validateTimeString()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L10"
+    },
+    {
+      "id": "services_teamservice_teamservice",
+      "label": "TeamService",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L20"
+    },
+    {
+      "id": "services_teamservice_teamservice_createteam",
+      "label": ".createTeam()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L21"
+    },
+    {
+      "id": "services_teamservice_teamservice_jointeam",
+      "label": ".joinTeam()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L75"
+    },
+    {
+      "id": "services_teamservice_teamservice_listteams",
+      "label": ".listTeams()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L138"
+    },
+    {
+      "id": "services_teamservice_teamservice_listteamsforuser",
+      "label": ".listTeamsForUser()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L162"
+    },
+    {
+      "id": "services_teamservice_teamservice_getteammembers",
+      "label": ".getTeamMembers()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L207"
+    },
+    {
+      "id": "services_teamservice_teamservice_getteamadmins",
+      "label": ".getTeamAdmins()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L219"
+    },
+    {
+      "id": "services_teamservice_teamservice_getactiveteamsforscheduling",
+      "label": ".getActiveTeamsForScheduling()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L232"
+    },
+    {
+      "id": "services_teamservice_teamservice_leaveteam",
+      "label": ".leaveTeam()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L246"
+    },
+    {
+      "id": "services_teamservice_teamservice_getteambyid",
+      "label": ".getTeamById()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L303"
+    },
+    {
+      "id": "services_teamservice_teamservice_findteambyname",
+      "label": ".findTeamByName()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L312"
+    },
+    {
+      "id": "services_teamservice_teamservice_findteambychannel",
+      "label": ".findTeamByChannel()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L328"
+    },
+    {
+      "id": "services_teamservice_teamservice_updateteam",
+      "label": ".updateTeam()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L340"
+    },
+    {
+      "id": "services_teamservice_teamservice_getuserteammembership",
+      "label": ".getUserTeamMembership()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L405"
+    },
+    {
+      "id": "services_teamservice_teamservice_updateteammemberpreferences",
+      "label": ".updateTeamMemberPreferences()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L420"
+    },
+    {
+      "id": "services_teamservice_teamservice_isteamadmin",
+      "label": ".isTeamAdmin()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L459"
+    },
+    {
+      "id": "services_teamservice_teamservice_setteammemberactive",
+      "label": ".setTeamMemberActive()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L479"
+    },
+    {
+      "id": "services_teamservice_teamservice_promoteteammember",
+      "label": ".promoteTeamMember()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L617"
+    },
+    {
+      "id": "services_teamservice_teamservice_getuserteams",
+      "label": ".getUserTeams()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L718"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_services_teamservice_js",
+      "target": "services_teamservice_validatetimestring",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_services_teamservice_js",
+      "target": "services_teamservice_teamservice",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "services_teamservice_teamservice",
+      "target": "services_teamservice_teamservice_createteam",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "services_teamservice_teamservice",
+      "target": "services_teamservice_teamservice_jointeam",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "services_teamservice_teamservice",
+      "target": "services_teamservice_teamservice_listteams",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L138",
+      "weight": 1.0
+    },
+    {
+      "source": "services_teamservice_teamservice",
+      "target": "services_teamservice_teamservice_listteamsforuser",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "services_teamservice_teamservice",
+      "target": "services_teamservice_teamservice_getteammembers",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L207",
+      "weight": 1.0
+    },
+    {
+      "source": "services_teamservice_teamservice",
+      "target": "services_teamservice_teamservice_getteamadmins",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L219",
+      "weight": 1.0
+    },
+    {
+      "source": "services_teamservice_teamservice",
+      "target": "services_teamservice_teamservice_getactiveteamsforscheduling",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L232",
+      "weight": 1.0
+    },
+    {
+      "source": "services_teamservice_teamservice",
+      "target": "services_teamservice_teamservice_leaveteam",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L246",
+      "weight": 1.0
+    },
+    {
+      "source": "services_teamservice_teamservice",
+      "target": "services_teamservice_teamservice_getteambyid",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L303",
+      "weight": 1.0
+    },
+    {
+      "source": "services_teamservice_teamservice",
+      "target": "services_teamservice_teamservice_findteambyname",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L312",
+      "weight": 1.0
+    },
+    {
+      "source": "services_teamservice_teamservice",
+      "target": "services_teamservice_teamservice_findteambychannel",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L328",
+      "weight": 1.0
+    },
+    {
+      "source": "services_teamservice_teamservice",
+      "target": "services_teamservice_teamservice_updateteam",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L340",
+      "weight": 1.0
+    },
+    {
+      "source": "services_teamservice_teamservice",
+      "target": "services_teamservice_teamservice_getuserteammembership",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L405",
+      "weight": 1.0
+    },
+    {
+      "source": "services_teamservice_teamservice",
+      "target": "services_teamservice_teamservice_updateteammemberpreferences",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L420",
+      "weight": 1.0
+    },
+    {
+      "source": "services_teamservice_teamservice",
+      "target": "services_teamservice_teamservice_isteamadmin",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L459",
+      "weight": 1.0
+    },
+    {
+      "source": "services_teamservice_teamservice",
+      "target": "services_teamservice_teamservice_setteammemberactive",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L479",
+      "weight": 1.0
+    },
+    {
+      "source": "services_teamservice_teamservice",
+      "target": "services_teamservice_teamservice_promoteteammember",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L617",
+      "weight": 1.0
+    },
+    {
+      "source": "services_teamservice_teamservice",
+      "target": "services_teamservice_teamservice_getuserteams",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L718",
+      "weight": 1.0
+    },
+    {
+      "source": "services_teamservice_teamservice_updateteam",
+      "target": "services_teamservice_validatetimestring",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L371",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": [
+    {
+      "caller_nid": "services_teamservice_validatetimestring",
+      "callee": "dayjs",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L11"
+    },
+    {
+      "caller_nid": "services_teamservice_validatetimestring",
+      "callee": "isValid",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L12"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_createteam",
+      "callee": "fetchSlackUserData",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L23"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_createteam",
+      "callee": "findOrCreateUser",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L27"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_createteam",
+      "callee": "getUserOrganization",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L28"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_createteam",
+      "callee": "canCreateTeam",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L35"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_createteam",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L41"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_createteam",
+      "callee": "$transaction",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L50"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_jointeam",
+      "callee": "fetchSlackUserData",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L76"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_jointeam",
+      "callee": "findOrCreateUser",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L80"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_jointeam",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L83"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_jointeam",
+      "callee": "getUserOrganization",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L93"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_jointeam",
+      "callee": "addUserToOrganization",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L97"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_jointeam",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L104"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_jointeam",
+      "callee": "upsert",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L119"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_listteams",
+      "callee": "getUserOrganization",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L139"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_listteams",
+      "callee": "findMany",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L145"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_listteamsforuser",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L163"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_listteamsforuser",
+      "callee": "includes",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L182"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_listteamsforuser",
+      "callee": "findMany",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L185"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_getteammembers",
+      "callee": "findMany",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L208"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_getteamadmins",
+      "callee": "findMany",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L220"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_getactiveteamsforscheduling",
+      "callee": "findMany",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L233"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_leaveteam",
+      "callee": "fetchSlackUserData",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L247"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_leaveteam",
+      "callee": "findOrCreateUser",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L251"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_leaveteam",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L254"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_leaveteam",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L269"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_leaveteam",
+      "callee": "update",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L290"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_getteambyid",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L304"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_findteambyname",
+      "callee": "findFirst",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L313"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_findteambychannel",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L329"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_updateteam",
+      "callee": "fetchSlackUserData",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L341"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_updateteam",
+      "callee": "findOrCreateUser",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L345"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_updateteam",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L348"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_updateteam",
+      "callee": "update",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L385"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_updateteam",
+      "callee": "update",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L399"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_getuserteammembership",
+      "callee": "fetchSlackUserData",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L406"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_getuserteammembership",
+      "callee": "findOrCreateUser",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L407"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_getuserteammembership",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L409"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_updateteammemberpreferences",
+      "callee": "fetchSlackUserData",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L426"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_updateteammemberpreferences",
+      "callee": "findOrCreateUser",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L430"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_updateteammemberpreferences",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L433"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_updateteammemberpreferences",
+      "callee": "update",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L448"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_isteamadmin",
+      "callee": "fetchSlackUserData",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L460"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_isteamadmin",
+      "callee": "findOrCreateUser",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L464"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_isteamadmin",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L466"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_setteammemberactive",
+      "callee": "fetchSlackUserData",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L486"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_setteammemberactive",
+      "callee": "findOrCreateUser",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L490"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_setteammemberactive",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L495"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_setteammemberactive",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L505"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_setteammemberactive",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L511"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_setteammemberactive",
+      "callee": "includes",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L527"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_setteammemberactive",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L535"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_setteammemberactive",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L547"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_setteammemberactive",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L557"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_setteammemberactive",
+      "callee": "count",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L594"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_setteammemberactive",
+      "callee": "update",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L609"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_promoteteammember",
+      "callee": "fetchSlackUserData",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L623"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_promoteteammember",
+      "callee": "findOrCreateUser",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L627"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_promoteteammember",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L632"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_promoteteammember",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L642"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_promoteteammember",
+      "callee": "includes",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L654"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_promoteteammember",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L661"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_promoteteammember",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L673"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_promoteteammember",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L685"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_promoteteammember",
+      "callee": "update",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L704"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_getuserteams",
+      "callee": "fetchSlackUserData",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L719"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_getuserteams",
+      "callee": "findOrCreateUser",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L723"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_getuserteams",
+      "callee": "findMany",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L725"
+    },
+    {
+      "caller_nid": "services_teamservice_teamservice_getuserteams",
+      "callee": "map",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/teamService.js",
+      "source_location": "L738"
+    }
+  ]
+}

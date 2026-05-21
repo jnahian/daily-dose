@@ -1,0 +1,38 @@
+{
+  "nodes": [
+    {
+      "id": "favicon_16x16_daily_dose_favicon",
+      "label": "Daily Dose Favicon (16x16)",
+      "file_type": "image",
+      "source_file": "web/public/favicon-16x16.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "favicon_16x16_daily_dose_favicon",
+      "target": "favicon_32x32_daily_dose_favicon",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "web/public/favicon-16x16.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "favicon_16x16_daily_dose_favicon",
+      "target": "logo_daily_dose_logo",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "web/public/favicon-16x16.png",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": []
+}

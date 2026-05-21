@@ -1,0 +1,101 @@
+{
+  "nodes": [
+    {
+      "id": "cron_refresh_implementation_cron_job_refresh",
+      "label": "Cron Job Refresh",
+      "file_type": "document",
+      "source_file": "docs/cron-refresh-implementation.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "cron_refresh_implementation_refresh_team_schedule",
+      "label": "SchedulerService.refreshTeamSchedule",
+      "file_type": "document",
+      "source_file": "docs/cron-refresh-implementation.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "cron_refresh_implementation_refresh_all_schedules",
+      "label": "SchedulerService.refreshAllSchedules",
+      "file_type": "document",
+      "source_file": "docs/cron-refresh-implementation.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "cron_refresh_implementation_debug_scheduler",
+      "label": "debugScheduler Utility",
+      "file_type": "document",
+      "source_file": "docs/cron-refresh-implementation.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "cron_refresh_implementation_cron_job_refresh",
+      "target": "cron_refresh_implementation_refresh_team_schedule",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/cron-refresh-implementation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cron_refresh_implementation_cron_job_refresh",
+      "target": "cron_refresh_implementation_refresh_all_schedules",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/cron-refresh-implementation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cron_refresh_implementation_cron_job_refresh",
+      "target": "cron_refresh_implementation_debug_scheduler",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/cron-refresh-implementation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cron_refresh_implementation_refresh_team_schedule",
+      "target": "daily_dose_complete_guide_scheduler_service",
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "docs/cron-refresh-implementation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cron_refresh_implementation_cron_job_refresh",
+      "target": "daily_dose_complete_guide_scheduler_service",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs/cron-refresh-implementation.md",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": []
+}

@@ -1,0 +1,38 @@
+{
+  "nodes": [
+    {
+      "id": "public_index_html_landing_page",
+      "label": "public/index.html Landing Page",
+      "file_type": "document",
+      "source_file": "public/index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "public_index_html_landing_page",
+      "target": "public_readme_main_js",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "public/index.html",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "public_index_html_landing_page",
+      "target": "readme_web_landing_page",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/index.html",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": []
+}

@@ -1,0 +1,123 @@
+{
+  "nodes": [
+    {
+      "id": "new_commands_plan_holiday_management_commands",
+      "label": "Holiday Management Commands",
+      "file_type": "document",
+      "source_file": "docs/new-commands-plan.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "new_commands_plan_dd_holiday_set",
+      "label": "/dd-holiday-set Command",
+      "file_type": "document",
+      "source_file": "docs/new-commands-plan.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "new_commands_plan_dd_holiday_update",
+      "label": "/dd-holiday-update Command",
+      "file_type": "document",
+      "source_file": "docs/new-commands-plan.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "new_commands_plan_dd_holiday_delete",
+      "label": "/dd-holiday-delete Command",
+      "file_type": "document",
+      "source_file": "docs/new-commands-plan.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "new_commands_plan_dd_standup_update",
+      "label": "/dd-standup-update Command",
+      "file_type": "document",
+      "source_file": "docs/new-commands-plan.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "new_commands_plan_standup_update_modal",
+      "label": "standup_update_modal Callback",
+      "file_type": "document",
+      "source_file": "docs/new-commands-plan.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "new_commands_plan_holiday_management_commands",
+      "target": "new_commands_plan_dd_holiday_set",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/new-commands-plan.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "new_commands_plan_holiday_management_commands",
+      "target": "new_commands_plan_dd_holiday_update",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/new-commands-plan.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "new_commands_plan_holiday_management_commands",
+      "target": "new_commands_plan_dd_holiday_delete",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/new-commands-plan.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "new_commands_plan_dd_standup_update",
+      "target": "new_commands_plan_standup_update_modal",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/new-commands-plan.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "new_commands_plan_dd_holiday_set",
+      "target": "daily_dose_complete_guide_prisma_schema",
+      "relation": "shares_data_with",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "docs/new-commands-plan.md",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": []
+}

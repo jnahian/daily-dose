@@ -1,0 +1,91 @@
+{
+  "nodes": [
+    {
+      "id": "2026_03_30_license_contributing_deployment_plan",
+      "label": "License/Contributing/Deployment Guide Plan",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-03-30-license-contributing-deployment.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "2026_03_30_license_contributing_deployment_mit_license",
+      "label": "MIT LICENSE File",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-03-30-license-contributing-deployment.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "2026_03_30_license_contributing_deployment_contributing_md",
+      "label": "CONTRIBUTING.md",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-03-30-license-contributing-deployment.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "2026_03_30_license_contributing_deployment_deployment_md",
+      "label": "Root DEPLOYMENT.md",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-03-30-license-contributing-deployment.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "2026_03_30_license_contributing_deployment_plan",
+      "target": "2026_03_30_license_contributing_deployment_mit_license",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-03-30-license-contributing-deployment.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_03_30_license_contributing_deployment_plan",
+      "target": "2026_03_30_license_contributing_deployment_contributing_md",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-03-30-license-contributing-deployment.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_03_30_license_contributing_deployment_plan",
+      "target": "2026_03_30_license_contributing_deployment_deployment_md",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-03-30-license-contributing-deployment.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_03_30_license_contributing_deployment_contributing_md",
+      "target": "2026_03_30_license_contributing_deployment_deployment_md",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-03-30-license-contributing-deployment.md",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": []
+}

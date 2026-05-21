@@ -1,0 +1,41 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_web_src_components_lordicon_tsx",
+      "label": "LordIcon.tsx",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/LordIcon.tsx",
+      "source_location": "L1"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_lordicon_tsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/LordIcon.tsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_lordicon_tsx",
+      "target": "lottie_web",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/LordIcon.tsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_lordicon_tsx",
+      "target": "element",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/LordIcon.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": []
+}

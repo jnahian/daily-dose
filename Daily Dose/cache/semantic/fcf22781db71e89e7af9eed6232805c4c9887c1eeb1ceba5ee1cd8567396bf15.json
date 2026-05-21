@@ -1,0 +1,198 @@
+{
+  "nodes": [
+    {
+      "id": "2026_05_19_dx_and_tooling_plan",
+      "label": "DX & Tooling Implementation Plan",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-05-19-dx-and-tooling.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "2026_05_19_dx_and_tooling_eslint_config",
+      "label": "Root ESLint Flat Config",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-05-19-dx-and-tooling.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "2026_05_19_dx_and_tooling_prettier_config",
+      "label": "Unified Prettier Config",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-05-19-dx-and-tooling.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "2026_05_19_dx_and_tooling_env_example",
+      "label": "Root .env.example",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-05-19-dx-and-tooling.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "2026_05_19_dx_and_tooling_husky_lint_staged",
+      "label": "husky + lint-staged Pre-Commit Hook",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-05-19-dx-and-tooling.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "2026_05_19_dx_and_tooling_ci_lint_test_gate",
+      "label": "CI Lint + Test Gate",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-05-19-dx-and-tooling.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "2026_05_19_dx_and_tooling_plan",
+      "target": "2026_05_19_dx_and_tooling_eslint_config",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-dx-and-tooling.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_dx_and_tooling_plan",
+      "target": "2026_05_19_dx_and_tooling_prettier_config",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-dx-and-tooling.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_dx_and_tooling_plan",
+      "target": "2026_05_19_dx_and_tooling_env_example",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-dx-and-tooling.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_dx_and_tooling_plan",
+      "target": "2026_05_19_dx_and_tooling_husky_lint_staged",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-dx-and-tooling.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_dx_and_tooling_plan",
+      "target": "2026_05_19_dx_and_tooling_ci_lint_test_gate",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-dx-and-tooling.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_dx_and_tooling_husky_lint_staged",
+      "target": "2026_05_19_dx_and_tooling_eslint_config",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-dx-and-tooling.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_dx_and_tooling_husky_lint_staged",
+      "target": "2026_05_19_dx_and_tooling_prettier_config",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-dx-and-tooling.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_dx_and_tooling_ci_lint_test_gate",
+      "target": "2026_05_19_dx_and_tooling_eslint_config",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-dx-and-tooling.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_dx_and_tooling_ci_lint_test_gate",
+      "target": "2026_05_19_security_correctness_hardening_jest_harness",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-dx-and-tooling.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_dx_and_tooling_env_example",
+      "target": "2026_03_30_license_contributing_deployment_deployment_md",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-dx-and-tooling.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_dx_and_tooling_env_example",
+      "target": "2026_03_30_license_contributing_deployment_contributing_md",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-dx-and-tooling.md",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "may_2026_codebase_hardening_program",
+      "label": "May 2026 Codebase Hardening Plan Series",
+      "nodes": [
+        "2026_05_19_security_correctness_hardening_plan",
+        "2026_05_19_query_performance_plan",
+        "2026_05_19_observability_and_reliability_plan",
+        "2026_05_19_dx_and_tooling_plan"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.9,
+      "source_file": "docs/plans/2026-05-19-dx-and-tooling.md"
+    }
+  ]
+}

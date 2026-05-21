@@ -1,0 +1,81 @@
+{
+  "nodes": [
+    {
+      "id": "readme_manifest_slack_app_manifest",
+      "label": "Slack App Manifest Management",
+      "file_type": "document",
+      "source_file": "README-manifest.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "readme_manifest_update_slack_manifest_script",
+      "label": "updateSlackManifest.js Script",
+      "file_type": "document",
+      "source_file": "README-manifest.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "readme_manifest_slack_user_token",
+      "label": "SLACK_USER_TOKEN (apps:write scope)",
+      "file_type": "document",
+      "source_file": "README-manifest.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "readme_manifest_slack_app_manifest_json",
+      "label": "slack-app-manifest.json",
+      "file_type": "document",
+      "source_file": "README-manifest.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "readme_manifest_slack_app_manifest",
+      "target": "readme_manifest_update_slack_manifest_script",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README-manifest.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "readme_manifest_update_slack_manifest_script",
+      "target": "readme_manifest_slack_user_token",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README-manifest.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "readme_manifest_update_slack_manifest_script",
+      "target": "readme_manifest_slack_app_manifest_json",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README-manifest.md",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": []
+}

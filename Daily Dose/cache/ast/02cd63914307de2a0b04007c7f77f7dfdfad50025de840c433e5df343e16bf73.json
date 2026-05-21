@@ -1,0 +1,13 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_jest_config_js",
+      "label": "jest.config.js",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/jest.config.js",
+      "source_location": "L1"
+    }
+  ],
+  "edges": [],
+  "raw_calls": []
+}

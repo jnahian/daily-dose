@@ -1,0 +1,48 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_web_src_components_changelog_changelognavbar_tsx",
+      "label": "ChangelogNavbar.tsx",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/changelog/ChangelogNavbar.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "changelog_changelognavbar_changelognavbar",
+      "label": "ChangelogNavbar()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/changelog/ChangelogNavbar.tsx",
+      "source_location": "L4"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_changelog_changelognavbar_tsx",
+      "target": "react_router",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/changelog/ChangelogNavbar.tsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_changelog_changelognavbar_tsx",
+      "target": "lucide_react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/changelog/ChangelogNavbar.tsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_changelog_changelognavbar_tsx",
+      "target": "changelog_changelognavbar_changelognavbar",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/changelog/ChangelogNavbar.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": []
+}

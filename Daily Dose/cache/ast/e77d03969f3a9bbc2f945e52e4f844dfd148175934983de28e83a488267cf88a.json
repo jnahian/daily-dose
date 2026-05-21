@@ -1,0 +1,91 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_src_utils_errorhelper_js",
+      "label": "errorHelper.js",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/errorHelper.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "utils_errorhelper_userfacingerror",
+      "label": "UserFacingError",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/errorHelper.js",
+      "source_location": "L15"
+    },
+    {
+      "id": "utils_errorhelper_userfacingerror_constructor",
+      "label": ".constructor()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/errorHelper.js",
+      "source_location": "L16"
+    },
+    {
+      "id": "utils_errorhelper_sanitizeerror",
+      "label": "sanitizeError()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/errorHelper.js",
+      "source_location": "L26"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_errorhelper_js",
+      "target": "utils_errorhelper_userfacingerror",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/errorHelper.js",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_errorhelper_userfacingerror",
+      "target": "utils_errorhelper_userfacingerror_constructor",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/errorHelper.js",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_errorhelper_js",
+      "target": "utils_errorhelper_sanitizeerror",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/errorHelper.js",
+      "source_location": "L26",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": [
+    {
+      "caller_nid": "utils_errorhelper_userfacingerror_constructor",
+      "callee": "super",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/errorHelper.js",
+      "source_location": "L17"
+    },
+    {
+      "caller_nid": "utils_errorhelper_sanitizeerror",
+      "callee": "toString",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/errorHelper.js",
+      "source_location": "L30"
+    },
+    {
+      "caller_nid": "utils_errorhelper_sanitizeerror",
+      "callee": "randomBytes",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/errorHelper.js",
+      "source_location": "L30"
+    },
+    {
+      "caller_nid": "utils_errorhelper_sanitizeerror",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/errorHelper.js",
+      "source_location": "L31"
+    }
+  ]
+}

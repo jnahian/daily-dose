@@ -1,0 +1,765 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_src_services_userservice_js",
+      "label": "userService.js",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "services_userservice_userservice",
+      "label": "UserService",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L4"
+    },
+    {
+      "id": "services_userservice_userservice_fetchslackuserdata",
+      "label": ".fetchSlackUserData()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L5"
+    },
+    {
+      "id": "services_userservice_userservice_findorcreateuser",
+      "label": ".findOrCreateUser()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L31"
+    },
+    {
+      "id": "services_userservice_userservice_getuserorganization",
+      "label": ".getUserOrganization()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L63"
+    },
+    {
+      "id": "services_userservice_userservice_finduserbyusernameinorg",
+      "label": ".findUserByUsernameInOrg()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L88"
+    },
+    {
+      "id": "services_userservice_userservice_cancreateteam",
+      "label": ".canCreateTeam()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L99"
+    },
+    {
+      "id": "services_userservice_userservice_setleave",
+      "label": ".setLeave()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L112"
+    },
+    {
+      "id": "services_userservice_userservice_cancelleave",
+      "label": ".cancelLeave()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L126"
+    },
+    {
+      "id": "services_userservice_userservice_getactiveleaves",
+      "label": ".getActiveLeaves()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L164"
+    },
+    {
+      "id": "services_userservice_userservice_setworkdays",
+      "label": ".setWorkDays()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L174"
+    },
+    {
+      "id": "services_userservice_userservice_getworkdays",
+      "label": ".getWorkDays()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L184"
+    },
+    {
+      "id": "services_userservice_userservice_addusertoorganization",
+      "label": ".addUserToOrganization()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L210"
+    },
+    {
+      "id": "services_userservice_userservice_promoteorganizationmember",
+      "label": ".promoteOrganizationMember()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L250"
+    },
+    {
+      "id": "services_userservice_userservice_setorganizationmemberactive",
+      "label": ".setOrganizationMemberActive()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L344"
+    },
+    {
+      "id": "services_userservice_userservice_suspendusersystemwide",
+      "label": ".suspendUserSystemWide()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L523"
+    },
+    {
+      "id": "services_userservice_userservice_setmemberleave",
+      "label": ".setMemberLeave()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L551"
+    },
+    {
+      "id": "services_userservice_userservice_cancelmemberleave",
+      "label": ".cancelMemberLeave()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L574"
+    },
+    {
+      "id": "services_userservice_userservice_listmemberleaves",
+      "label": ".listMemberLeaves()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L612"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_services_userservice_js",
+      "target": "services_userservice_userservice",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice",
+      "target": "services_userservice_userservice_fetchslackuserdata",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice",
+      "target": "services_userservice_userservice_findorcreateuser",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice",
+      "target": "services_userservice_userservice_getuserorganization",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice",
+      "target": "services_userservice_userservice_finduserbyusernameinorg",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice",
+      "target": "services_userservice_userservice_cancreateteam",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice",
+      "target": "services_userservice_userservice_setleave",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L112",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice",
+      "target": "services_userservice_userservice_cancelleave",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L126",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice",
+      "target": "services_userservice_userservice_getactiveleaves",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L164",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice",
+      "target": "services_userservice_userservice_setworkdays",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L174",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice",
+      "target": "services_userservice_userservice_getworkdays",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L184",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice",
+      "target": "services_userservice_userservice_addusertoorganization",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L210",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice",
+      "target": "services_userservice_userservice_promoteorganizationmember",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L250",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice",
+      "target": "services_userservice_userservice_setorganizationmemberactive",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L344",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice",
+      "target": "services_userservice_userservice_suspendusersystemwide",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L523",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice",
+      "target": "services_userservice_userservice_setmemberleave",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L551",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice",
+      "target": "services_userservice_userservice_cancelmemberleave",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L574",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice",
+      "target": "services_userservice_userservice_listmemberleaves",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L612",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice_setleave",
+      "target": "services_userservice_userservice_fetchslackuserdata",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L113",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice_setleave",
+      "target": "services_userservice_userservice_findorcreateuser",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L114",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice_setworkdays",
+      "target": "services_userservice_userservice_fetchslackuserdata",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L175",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice_setworkdays",
+      "target": "services_userservice_userservice_findorcreateuser",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L176",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice_promoteorganizationmember",
+      "target": "services_userservice_userservice_fetchslackuserdata",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L255",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice_promoteorganizationmember",
+      "target": "services_userservice_userservice_findorcreateuser",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L259",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice_promoteorganizationmember",
+      "target": "services_userservice_userservice_getuserorganization",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L264",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice_setorganizationmemberactive",
+      "target": "services_userservice_userservice_fetchslackuserdata",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L350",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice_setorganizationmemberactive",
+      "target": "services_userservice_userservice_findorcreateuser",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L354",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice_setorganizationmemberactive",
+      "target": "services_userservice_userservice_getuserorganization",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L359",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice_setmemberleave",
+      "target": "services_userservice_userservice_fetchslackuserdata",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L558",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice_setmemberleave",
+      "target": "services_userservice_userservice_findorcreateuser",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L562",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice_listmemberleaves",
+      "target": "services_userservice_userservice_fetchslackuserdata",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L613",
+      "weight": 1.0
+    },
+    {
+      "source": "services_userservice_userservice_listmemberleaves",
+      "target": "services_userservice_userservice_findorcreateuser",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L617",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": [
+    {
+      "caller_nid": "services_userservice_userservice_fetchslackuserdata",
+      "callee": "info",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L9"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_fetchslackuserdata",
+      "callee": "warn",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L23"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_findorcreateuser",
+      "callee": "upsert",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L56"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_getuserorganization",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L64"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_finduserbyusernameinorg",
+      "callee": "findFirst",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L90"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_cancreateteam",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L100"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_cancreateteam",
+      "callee": "includes",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L109"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setleave",
+      "callee": "create",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L116"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_cancelleave",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L127"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_cancelleave",
+      "callee": "findMany",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L136"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_cancelleave",
+      "callee": "delete",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L157"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_getactiveleaves",
+      "callee": "findMany",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L165"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setworkdays",
+      "callee": "update",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L178"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_getworkdays",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L185"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_addusertoorganization",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L212"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_addusertoorganization",
+      "callee": "update",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L224"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_addusertoorganization",
+      "callee": "create",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L241"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_promoteorganizationmember",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L271"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_promoteorganizationmember",
+      "callee": "includes",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L283"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_promoteorganizationmember",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L290"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_promoteorganizationmember",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L302"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_promoteorganizationmember",
+      "callee": "update",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L327"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setorganizationmemberactive",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L366"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setorganizationmemberactive",
+      "callee": "includes",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L378"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setorganizationmemberactive",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L385"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setorganizationmemberactive",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L399"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setorganizationmemberactive",
+      "callee": "findMany",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L432"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setorganizationmemberactive",
+      "callee": "map",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L436"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setorganizationmemberactive",
+      "callee": "findMany",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L442"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setorganizationmemberactive",
+      "callee": "groupBy",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L453"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setorganizationmemberactive",
+      "callee": "map",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L456"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setorganizationmemberactive",
+      "callee": "map",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L464"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setorganizationmemberactive",
+      "callee": "map",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L466"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setorganizationmemberactive",
+      "callee": "filter",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L466"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setorganizationmemberactive",
+      "callee": "join",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L472"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setorganizationmemberactive",
+      "callee": "update",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L483"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setorganizationmemberactive",
+      "callee": "push",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L495"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setorganizationmemberactive",
+      "callee": "updateMany",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L496"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setorganizationmemberactive",
+      "callee": "$transaction",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L507"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_suspendusersystemwide",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L524"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_suspendusersystemwide",
+      "callee": "$transaction",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L532"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_suspendusersystemwide",
+      "callee": "updateMany",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L533"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_suspendusersystemwide",
+      "callee": "updateMany",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L537"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_setmemberleave",
+      "callee": "create",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L564"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_cancelmemberleave",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L575"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_cancelmemberleave",
+      "callee": "findMany",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L584"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_cancelmemberleave",
+      "callee": "delete",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L605"
+    },
+    {
+      "caller_nid": "services_userservice_userservice_listmemberleaves",
+      "callee": "findMany",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/services/userService.js",
+      "source_location": "L619"
+    }
+  ]
+}

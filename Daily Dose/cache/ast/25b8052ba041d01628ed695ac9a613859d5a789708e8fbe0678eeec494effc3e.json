@@ -1,0 +1,65 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_web_src_components_scripts_scriptstoc_tsx",
+      "label": "ScriptsTOC.tsx",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/scripts/ScriptsTOC.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_scriptstoc_scriptstoc",
+      "label": "ScriptsTOC()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/scripts/ScriptsTOC.tsx",
+      "source_location": "L36"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_scripts_scriptstoc_tsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/scripts/ScriptsTOC.tsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_scripts_scriptstoc_tsx",
+      "target": "lucide_react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/scripts/ScriptsTOC.tsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_scripts_scriptstoc_tsx",
+      "target": "users_nahian_projects_daily_dose_bot_web_src_types_scripts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/scripts/ScriptsTOC.tsx",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_scripts_scriptstoc_tsx",
+      "target": "scripts_scriptstoc_scriptstoc",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/scripts/ScriptsTOC.tsx",
+      "source_location": "L36",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": [
+    {
+      "caller_nid": "scripts_scriptstoc_scriptstoc",
+      "callee": "map",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/scripts/ScriptsTOC.tsx",
+      "source_location": "L62"
+    }
+  ]
+}

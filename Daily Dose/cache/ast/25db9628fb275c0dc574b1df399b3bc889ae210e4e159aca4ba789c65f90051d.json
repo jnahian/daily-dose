@@ -1,0 +1,458 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_src_commands_index_js",
+      "label": "index.js",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "commands_index_setupcommands",
+      "label": "setupCommands()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L8"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_commands_index_js",
+      "target": "commands_index_setupcommands",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L8",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": [
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L10"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L10"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L11"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L13"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L16"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L18"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L23"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L25"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L28"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L30"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L33"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L35"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L38"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L40"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L45"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L45"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L46"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L46"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L47"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L47"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L48"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L48"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L49"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L49"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L50"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L50"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L53"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L54"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L55"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L56"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L57"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L60"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L60"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L61"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L61"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L62"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L62"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L65"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L67"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L70"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L72"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L75"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L77"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L82"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L84"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L87"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L87"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L90"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L90"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L91"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L93"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L96"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L98"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L101"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L103"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "command",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L108"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "stripFormatting",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L110"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "action",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L115"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "view",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L116"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "view",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L117"
+    },
+    {
+      "caller_nid": "commands_index_setupcommands",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/commands/index.js",
+      "source_location": "L122"
+    }
+  ]
+}

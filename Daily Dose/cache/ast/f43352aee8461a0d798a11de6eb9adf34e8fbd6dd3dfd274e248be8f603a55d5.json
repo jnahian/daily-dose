@@ -1,0 +1,46 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_src_config_sentry_js",
+      "label": "sentry.js",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/config/sentry.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "config_sentry_init",
+      "label": "init()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/config/sentry.js",
+      "source_location": "L6"
+    },
+    {
+      "id": "config_sentry_getclient",
+      "label": "getClient()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/config/sentry.js",
+      "source_location": "L29"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_config_sentry_js",
+      "target": "config_sentry_init",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/config/sentry.js",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_config_sentry_js",
+      "target": "config_sentry_getclient",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/config/sentry.js",
+      "source_location": "L29",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": []
+}

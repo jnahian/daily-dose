@@ -1,0 +1,97 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_web_src_components_docs_contentrenderer_tsx",
+      "label": "ContentRenderer.tsx",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/docs/ContentRenderer.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "docs_contentrenderer_formattext",
+      "label": "formatText()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/docs/ContentRenderer.tsx",
+      "source_location": "L10"
+    },
+    {
+      "id": "docs_contentrenderer_contentrenderer",
+      "label": "ContentRenderer()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/docs/ContentRenderer.tsx",
+      "source_location": "L40"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_docs_contentrenderer_tsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/docs/ContentRenderer.tsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_docs_contentrenderer_tsx",
+      "target": "users_nahian_projects_daily_dose_bot_web_src_components_docs_commandheader",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/docs/ContentRenderer.tsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_docs_contentrenderer_tsx",
+      "target": "users_nahian_projects_daily_dose_bot_web_src_components_docs_codeblock",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/docs/ContentRenderer.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_docs_contentrenderer_tsx",
+      "target": "users_nahian_projects_daily_dose_bot_web_src_types_docs",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/docs/ContentRenderer.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_docs_contentrenderer_tsx",
+      "target": "docs_contentrenderer_formattext",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/docs/ContentRenderer.tsx",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_docs_contentrenderer_tsx",
+      "target": "docs_contentrenderer_contentrenderer",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/docs/ContentRenderer.tsx",
+      "source_location": "L40",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": [
+    {
+      "caller_nid": "docs_contentrenderer_formattext",
+      "callee": "split",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/docs/ContentRenderer.tsx",
+      "source_location": "L14"
+    },
+    {
+      "caller_nid": "docs_contentrenderer_formattext",
+      "callee": "map",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/docs/ContentRenderer.tsx",
+      "source_location": "L16"
+    }
+  ]
+}

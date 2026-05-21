@@ -1,0 +1,94 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_src_middleware_logging_js",
+      "label": "logging.js",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/logging.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "middleware_logging_logcommandmiddleware",
+      "label": "logCommandMiddleware()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/logging.js",
+      "source_location": "L12"
+    },
+    {
+      "id": "middleware_logging_logmessagemiddleware",
+      "label": "logMessageMiddleware()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/logging.js",
+      "source_location": "L22"
+    },
+    {
+      "id": "middleware_logging_logeventmiddleware",
+      "label": "logEventMiddleware()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/logging.js",
+      "source_location": "L32"
+    },
+    {
+      "id": "middleware_logging_logactionmiddleware",
+      "label": "logActionMiddleware()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/logging.js",
+      "source_location": "L42"
+    },
+    {
+      "id": "middleware_logging_logviewmiddleware",
+      "label": "logViewMiddleware()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/logging.js",
+      "source_location": "L52"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_middleware_logging_js",
+      "target": "middleware_logging_logcommandmiddleware",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/logging.js",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_middleware_logging_js",
+      "target": "middleware_logging_logmessagemiddleware",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/logging.js",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_middleware_logging_js",
+      "target": "middleware_logging_logeventmiddleware",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/logging.js",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_middleware_logging_js",
+      "target": "middleware_logging_logactionmiddleware",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/logging.js",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_middleware_logging_js",
+      "target": "middleware_logging_logviewmiddleware",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/logging.js",
+      "source_location": "L52",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": []
+}

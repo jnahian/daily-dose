@@ -1,0 +1,189 @@
+{
+  "nodes": [
+    {
+      "id": "web_migration_plan_web_migration",
+      "label": "Web Migration Plan (HTML to React Router v7)",
+      "file_type": "document",
+      "source_file": "WEB_MIGRATION_PLAN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "web_migration_plan_react_router_v7",
+      "label": "React Router v7 with SSG",
+      "file_type": "document",
+      "source_file": "WEB_MIGRATION_PLAN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "web_migration_plan_json_content_system",
+      "label": "JSON-Based Content System",
+      "file_type": "document",
+      "source_file": "WEB_MIGRATION_PLAN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "web_migration_plan_design_system",
+      "label": "Design System (Colors/Typography)",
+      "file_type": "document",
+      "source_file": "WEB_MIGRATION_PLAN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "web_migration_plan_vite",
+      "label": "Vite Build Tool",
+      "file_type": "document",
+      "source_file": "WEB_MIGRATION_PLAN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "web_migration_plan_tailwind_css",
+      "label": "Tailwind CSS",
+      "file_type": "document",
+      "source_file": "WEB_MIGRATION_PLAN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "web_migration_plan_web_migration",
+      "target": "web_migration_plan_react_router_v7",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "WEB_MIGRATION_PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "web_migration_plan_web_migration",
+      "target": "web_migration_plan_json_content_system",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "WEB_MIGRATION_PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "web_migration_plan_web_migration",
+      "target": "web_migration_plan_design_system",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "WEB_MIGRATION_PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "web_migration_plan_web_migration",
+      "target": "web_migration_plan_vite",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "WEB_MIGRATION_PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "web_migration_plan_web_migration",
+      "target": "web_migration_plan_tailwind_css",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "WEB_MIGRATION_PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "web_migration_plan_web_migration",
+      "target": "public_index_html_landing_page",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "WEB_MIGRATION_PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "web_migration_plan_web_migration",
+      "target": "public_readme_docs_html",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "WEB_MIGRATION_PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "web_migration_plan_web_migration",
+      "target": "public_readme_scripts_docs_html",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "WEB_MIGRATION_PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "web_migration_plan_web_migration",
+      "target": "public_changelog_html_changelog_page",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "WEB_MIGRATION_PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "web_migration_plan_web_migration",
+      "target": "claude_web_frontend",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "WEB_MIGRATION_PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "html_to_react_migration",
+      "label": "HTML Landing Pages Migrated to React",
+      "nodes": [
+        "public_index_html_landing_page",
+        "public_readme_docs_html",
+        "public_readme_scripts_docs_html",
+        "public_changelog_html_changelog_page",
+        "web_migration_plan_web_migration"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.8,
+      "source_file": "WEB_MIGRATION_PLAN.md"
+    }
+  ]
+}

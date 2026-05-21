@@ -1,0 +1,272 @@
+{
+  "nodes": [
+    {
+      "id": "deployment_deployment_guide",
+      "label": "Deployment Guide (Hetzner VPS)",
+      "file_type": "document",
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "deployment_slack_app_setup",
+      "label": "Slack App Setup",
+      "file_type": "document",
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "deployment_bot_token_scopes",
+      "label": "Required Bot Token Scopes",
+      "file_type": "document",
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "deployment_supabase_setup",
+      "label": "Supabase Database Setup",
+      "file_type": "document",
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "deployment_env_vars_reference",
+      "label": "Environment Variables Reference",
+      "file_type": "document",
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "deployment_github_actions_workflow",
+      "label": "GitHub Actions Deployment Workflow",
+      "file_type": "document",
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "deployment_pm2",
+      "label": "PM2 Process Manager",
+      "file_type": "document",
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "deployment_nginx_reverse_proxy",
+      "label": "Nginx Reverse Proxy",
+      "file_type": "document",
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "deployment_socket_mode_disabled",
+      "label": "Socket Mode Disabled (HTTP Endpoints)",
+      "file_type": "document",
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "deployment_prisma_schema",
+      "label": "Prisma Schema (schema.prisma)",
+      "file_type": "document",
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "deployment_deployment_guide",
+      "target": "deployment_slack_app_setup",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "deployment_slack_app_setup",
+      "target": "deployment_bot_token_scopes",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "deployment_slack_app_setup",
+      "target": "deployment_socket_mode_disabled",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "deployment_deployment_guide",
+      "target": "deployment_supabase_setup",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "deployment_deployment_guide",
+      "target": "deployment_env_vars_reference",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "deployment_deployment_guide",
+      "target": "deployment_github_actions_workflow",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "deployment_deployment_guide",
+      "target": "deployment_pm2",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "deployment_deployment_guide",
+      "target": "deployment_nginx_reverse_proxy",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "deployment_supabase_setup",
+      "target": "deployment_prisma_schema",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "deployment_github_actions_workflow",
+      "target": "deployment_pm2",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "deployment_slack_app_setup",
+      "target": "readme_manifest_slack_app_manifest",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "deployment_env_vars_reference",
+      "target": "readme_environment_config",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "deployment_socket_mode_disabled",
+      "target": "claude_cloudflare_dns_only",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "deployment_env_vars_reference",
+      "target": "changelog_scripts_route_protection",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "DEPLOYMENT.md",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "production_deployment_pipeline",
+      "label": "Production Deployment Pipeline",
+      "nodes": [
+        "deployment_github_actions_workflow",
+        "deployment_pm2",
+        "deployment_nginx_reverse_proxy",
+        "deployment_supabase_setup"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.8,
+      "source_file": "DEPLOYMENT.md"
+    }
+  ]
+}

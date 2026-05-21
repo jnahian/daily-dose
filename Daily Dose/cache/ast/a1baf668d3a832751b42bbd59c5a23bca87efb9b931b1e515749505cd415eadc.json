@@ -1,0 +1,424 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_public_js_docs_js",
+      "label": "docs.js",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "js_docs_performsearch",
+      "label": "performSearch()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L35"
+    },
+    {
+      "id": "js_docs_shownoresultsmessage",
+      "label": "showNoResultsMessage()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L125"
+    },
+    {
+      "id": "js_docs_hidenoresultsmessage",
+      "label": "hideNoResultsMessage()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L141"
+    },
+    {
+      "id": "js_docs_updateactivenavitem",
+      "label": "updateActiveNavItem()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L188"
+    },
+    {
+      "id": "js_docs_fallbackcopytoclipboard",
+      "label": "fallbackCopyToClipboard()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L243"
+    },
+    {
+      "id": "js_docs_shownotification",
+      "label": "showNotification()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L264"
+    },
+    {
+      "id": "js_docs_scrolltotop",
+      "label": "scrollToTop()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L383"
+    },
+    {
+      "id": "js_docs_addscrolltotopbutton",
+      "label": "addScrollToTopButton()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L391"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_public_js_docs_js",
+      "target": "js_docs_performsearch",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_public_js_docs_js",
+      "target": "js_docs_shownoresultsmessage",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L125",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_public_js_docs_js",
+      "target": "js_docs_hidenoresultsmessage",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_public_js_docs_js",
+      "target": "js_docs_updateactivenavitem",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L188",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_public_js_docs_js",
+      "target": "js_docs_fallbackcopytoclipboard",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L243",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_public_js_docs_js",
+      "target": "js_docs_shownotification",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L264",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_public_js_docs_js",
+      "target": "js_docs_scrolltotop",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L383",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_public_js_docs_js",
+      "target": "js_docs_addscrolltotopbutton",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L391",
+      "weight": 1.0
+    },
+    {
+      "source": "js_docs_performsearch",
+      "target": "js_docs_shownoresultsmessage",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L119",
+      "weight": 1.0
+    },
+    {
+      "source": "js_docs_performsearch",
+      "target": "js_docs_hidenoresultsmessage",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L121",
+      "weight": 1.0
+    },
+    {
+      "source": "js_docs_shownoresultsmessage",
+      "target": "js_docs_hidenoresultsmessage",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L126",
+      "weight": 1.0
+    },
+    {
+      "source": "js_docs_fallbackcopytoclipboard",
+      "target": "js_docs_shownotification",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L255",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": [
+    {
+      "caller_nid": "js_docs_performsearch",
+      "callee": "querySelectorAll",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L36"
+    },
+    {
+      "caller_nid": "js_docs_performsearch",
+      "callee": "querySelectorAll",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L37"
+    },
+    {
+      "caller_nid": "js_docs_performsearch",
+      "callee": "trim",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L39"
+    },
+    {
+      "caller_nid": "js_docs_performsearch",
+      "callee": "forEach",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L41"
+    },
+    {
+      "caller_nid": "js_docs_performsearch",
+      "callee": "forEach",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L49"
+    },
+    {
+      "caller_nid": "js_docs_performsearch",
+      "callee": "replace",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L54"
+    },
+    {
+      "caller_nid": "js_docs_performsearch",
+      "callee": "forEach",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L59"
+    },
+    {
+      "caller_nid": "js_docs_performsearch",
+      "callee": "forEach",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L108"
+    },
+    {
+      "caller_nid": "js_docs_shownoresultsmessage",
+      "callee": "querySelector",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L127"
+    },
+    {
+      "caller_nid": "js_docs_shownoresultsmessage",
+      "callee": "createElement",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L128"
+    },
+    {
+      "caller_nid": "js_docs_shownoresultsmessage",
+      "callee": "appendChild",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L138"
+    },
+    {
+      "caller_nid": "js_docs_hidenoresultsmessage",
+      "callee": "getElementById",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L142"
+    },
+    {
+      "caller_nid": "js_docs_hidenoresultsmessage",
+      "callee": "remove",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L144"
+    },
+    {
+      "caller_nid": "js_docs_updateactivenavitem",
+      "callee": "querySelectorAll",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L189"
+    },
+    {
+      "caller_nid": "js_docs_updateactivenavitem",
+      "callee": "forEach",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L191"
+    },
+    {
+      "caller_nid": "js_docs_updateactivenavitem",
+      "callee": "add",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L196"
+    },
+    {
+      "caller_nid": "js_docs_updateactivenavitem",
+      "callee": "querySelectorAll",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L199"
+    },
+    {
+      "caller_nid": "js_docs_updateactivenavitem",
+      "callee": "querySelector",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L205"
+    },
+    {
+      "caller_nid": "js_docs_updateactivenavitem",
+      "callee": "add",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L209"
+    },
+    {
+      "caller_nid": "js_docs_fallbackcopytoclipboard",
+      "callee": "createElement",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L244"
+    },
+    {
+      "caller_nid": "js_docs_fallbackcopytoclipboard",
+      "callee": "appendChild",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L249"
+    },
+    {
+      "caller_nid": "js_docs_fallbackcopytoclipboard",
+      "callee": "focus",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L250"
+    },
+    {
+      "caller_nid": "js_docs_fallbackcopytoclipboard",
+      "callee": "select",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L251"
+    },
+    {
+      "caller_nid": "js_docs_fallbackcopytoclipboard",
+      "callee": "execCommand",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L254"
+    },
+    {
+      "caller_nid": "js_docs_fallbackcopytoclipboard",
+      "callee": "removeChild",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L260"
+    },
+    {
+      "caller_nid": "js_docs_shownotification",
+      "callee": "createElement",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L265"
+    },
+    {
+      "caller_nid": "js_docs_shownotification",
+      "callee": "appendChild",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L287"
+    },
+    {
+      "caller_nid": "js_docs_shownotification",
+      "callee": "setTimeout",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L290"
+    },
+    {
+      "caller_nid": "js_docs_shownotification",
+      "callee": "setTimeout",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L295"
+    },
+    {
+      "caller_nid": "js_docs_scrolltotop",
+      "callee": "scrollTo",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L384"
+    },
+    {
+      "caller_nid": "js_docs_addscrolltotopbutton",
+      "callee": "createElement",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L392"
+    },
+    {
+      "caller_nid": "js_docs_addscrolltotopbutton",
+      "callee": "appendChild",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L397"
+    },
+    {
+      "caller_nid": "js_docs_addscrolltotopbutton",
+      "callee": "addEventListener",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L400"
+    },
+    {
+      "caller_nid": "js_docs_addscrolltotopbutton",
+      "callee": "remove",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L402"
+    },
+    {
+      "caller_nid": "js_docs_addscrolltotopbutton",
+      "callee": "add",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/public/js/docs.js",
+      "source_location": "L404"
+    }
+  ]
+}

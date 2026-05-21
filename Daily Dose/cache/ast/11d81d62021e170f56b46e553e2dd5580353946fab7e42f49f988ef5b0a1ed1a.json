@@ -1,0 +1,388 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_scripts_addorgadmin_js",
+      "label": "addOrgAdmin.js",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_addorgadmin_addorgadmin",
+      "label": "addOrgAdmin()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L14"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_scripts_addorgadmin_js",
+      "target": "scripts_addorgadmin_addorgadmin",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L14",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": [
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L21"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L22"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "exit",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L25"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L34"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "info",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L39"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L57"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L58"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L59"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L60"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L61"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L63"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "exit",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L64"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L67"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "exit",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L68"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L75"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L80"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L81"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "findMany",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L82"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "forEach",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L85"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "exit",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L86"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "info",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L91"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L99"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "upsert",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L102"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L113"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L115"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "exit",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L116"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L119"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "exit",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L120"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L125"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "upsert",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L126"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L143"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L146"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "upsert",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L147"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L166"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L169"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "repeat",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L169"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L170"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L171"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "repeat",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L171"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L172"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L173"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L174"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L175"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L176"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L177"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L178"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "repeat",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L178"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L180"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L181"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "exit",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L182"
+    },
+    {
+      "caller_nid": "scripts_addorgadmin_addorgadmin",
+      "callee": "$disconnect",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/addOrgAdmin.js",
+      "source_location": "L184"
+    }
+  ]
+}

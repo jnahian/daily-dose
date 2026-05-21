@@ -1,0 +1,28 @@
+{
+  "nodes": [
+    {
+      "id": "apple_touch_icon_daily_dose_app_icon",
+      "label": "Daily Dose Apple Touch Icon",
+      "file_type": "image",
+      "source_file": "web/public/apple-touch-icon.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "apple_touch_icon_daily_dose_app_icon",
+      "target": "android_chrome_192x192_daily_dose_app_icon",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "web/public/apple-touch-icon.png",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": []
+}

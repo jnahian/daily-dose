@@ -1,0 +1,479 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_scripts_viewslackteaminfo_js",
+      "label": "viewSlackTeamInfo.js",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_viewslackteaminfo_getslackteaminfo",
+      "label": "getSlackTeamInfo()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L7"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_scripts_viewslackteaminfo_js",
+      "target": "scripts_viewslackteaminfo_getslackteaminfo",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L7",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": [
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L9"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "info",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L12"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L15"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L16"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L17"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L18"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L19"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L20"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L21"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L24"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "list",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L25"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "filter",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L26"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "filter",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L28"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "filter",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L31"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "filter",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L34"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L38"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L39"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L40"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L41"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L42"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L45"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "list",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L46"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "filter",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L52"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "filter",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L53"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L55"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L56"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L57"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L58"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "slice",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L61"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "includes",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L62"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "includes",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L62"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L63"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "forEach",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L64"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "includes",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L83"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "includes",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L83"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L84"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L87"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "slice",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L88"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "info",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L91"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L95"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L99"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L102"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L108"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L112"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L116"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "forEach",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L117"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "slice",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L117"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L121"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L125"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "includes",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L130"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "includes",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L130"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L131"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "forEach",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L132"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L143"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L144"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "toLocaleDateString",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L145"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L147"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "billableInfo",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L151"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "keys",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L153"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L154"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L160"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L163"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L166"
+    },
+    {
+      "caller_nid": "scripts_viewslackteaminfo_getslackteaminfo",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/viewSlackTeamInfo.js",
+      "source_location": "L170"
+    }
+  ]
+}

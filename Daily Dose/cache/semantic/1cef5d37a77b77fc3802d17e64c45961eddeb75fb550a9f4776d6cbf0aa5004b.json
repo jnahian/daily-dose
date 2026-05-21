@@ -1,0 +1,46 @@
+{
+  "nodes": [
+    {
+      "id": "logo_daily_dose_logo",
+      "label": "Daily Dose Logo (web/public)",
+      "file_type": "image",
+      "source_file": "web/public/logo.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "logo_daily_dose_logo",
+      "target": "logo_daily_dose_root_logo",
+      "relation": "semantically_similar_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "web/public/logo.png",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "daily_dose_brand_identity_set",
+      "label": "Daily Dose Bot Brand Identity Asset Set",
+      "nodes": [
+        "favicon_16x16_daily_dose_favicon",
+        "favicon_32x32_daily_dose_favicon",
+        "android_chrome_192x192_daily_dose_app_icon",
+        "android_chrome_512x512_daily_dose_app_icon",
+        "apple_touch_icon_daily_dose_app_icon",
+        "logo_daily_dose_logo",
+        "logo_daily_dose_root_logo"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.95,
+      "source_file": "web/public/logo.png"
+    }
+  ]
+}

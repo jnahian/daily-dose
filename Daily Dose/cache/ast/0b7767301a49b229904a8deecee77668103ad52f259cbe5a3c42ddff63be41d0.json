@@ -1,0 +1,13 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_web_src_components_changelog_index_ts",
+      "label": "index.ts",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/changelog/index.ts",
+      "source_location": "L1"
+    }
+  ],
+  "edges": [],
+  "raw_calls": []
+}

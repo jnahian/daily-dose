@@ -1,0 +1,72 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_web_src_components_home_contactform_tsx",
+      "label": "ContactForm.tsx",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/home/ContactForm.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "home_contactform_contactform",
+      "label": "ContactForm()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/home/ContactForm.tsx",
+      "source_location": "L5"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_home_contactform_tsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/home/ContactForm.tsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_home_contactform_tsx",
+      "target": "framer_motion",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/home/ContactForm.tsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_home_contactform_tsx",
+      "target": "lucide_react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/home/ContactForm.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_home_contactform_tsx",
+      "target": "home_contactform_contactform",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/home/ContactForm.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": [
+    {
+      "caller_nid": "home_contactform_contactform",
+      "callee": "useState",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/home/ContactForm.tsx",
+      "source_location": "L6"
+    },
+    {
+      "caller_nid": "home_contactform_contactform",
+      "callee": "useState",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/home/ContactForm.tsx",
+      "source_location": "L9"
+    }
+  ]
+}

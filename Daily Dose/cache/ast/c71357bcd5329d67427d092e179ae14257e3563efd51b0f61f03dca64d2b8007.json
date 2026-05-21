@@ -1,0 +1,70 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_web_src_components_docs_commandheader_tsx",
+      "label": "CommandHeader.tsx",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/docs/CommandHeader.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "docs_commandheader_handlecopy",
+      "label": "handleCopy()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/docs/CommandHeader.tsx",
+      "source_location": "L11"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_docs_commandheader_tsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/docs/CommandHeader.tsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_docs_commandheader_tsx",
+      "target": "lucide_react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/docs/CommandHeader.tsx",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_components_docs_commandheader_tsx",
+      "target": "docs_commandheader_handlecopy",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/docs/CommandHeader.tsx",
+      "source_location": "L11",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": [
+    {
+      "caller_nid": "docs_commandheader_handlecopy",
+      "callee": "writeText",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/docs/CommandHeader.tsx",
+      "source_location": "L12"
+    },
+    {
+      "caller_nid": "docs_commandheader_handlecopy",
+      "callee": "setCopied",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/docs/CommandHeader.tsx",
+      "source_location": "L13"
+    },
+    {
+      "caller_nid": "docs_commandheader_handlecopy",
+      "callee": "setTimeout",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/components/docs/CommandHeader.tsx",
+      "source_location": "L14"
+    }
+  ]
+}

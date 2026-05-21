@@ -1,0 +1,250 @@
+{
+  "nodes": [
+    {
+      "id": "manual_standup_triggers_implementation_manual_trigger_commands",
+      "label": "Manual Standup Trigger Slash Commands",
+      "file_type": "document",
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "manual_standup_triggers_implementation_permission_helper",
+      "label": "permissionHelper Utility",
+      "file_type": "document",
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "manual_standup_triggers_implementation_team_helper",
+      "label": "teamHelper (resolveTeamFromContext)",
+      "file_type": "document",
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "manual_standup_triggers_implementation_dd_standup_remind",
+      "label": "/dd-standup-remind Command",
+      "file_type": "document",
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "manual_standup_triggers_implementation_dd_standup_post",
+      "label": "/dd-standup-post Command",
+      "file_type": "document",
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "manual_standup_triggers_implementation_dd_standup_preview",
+      "label": "/dd-standup-preview Command",
+      "file_type": "document",
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "manual_standup_triggers_implementation_dd_standup_followup",
+      "label": "/dd-standup-followup Command",
+      "file_type": "document",
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "manual_standup_triggers_implementation_context_aware_resolution",
+      "label": "Context-Aware Team Resolution",
+      "file_type": "document",
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "manual_standup_triggers_implementation_manual_trigger_commands",
+      "target": "slack_markdown_guidelines_block_kit_formatting",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "manual_standup_triggers_implementation_manual_trigger_commands",
+      "target": "manual_standup_triggers_implementation_dd_standup_remind",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "manual_standup_triggers_implementation_manual_trigger_commands",
+      "target": "manual_standup_triggers_implementation_dd_standup_post",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "manual_standup_triggers_implementation_manual_trigger_commands",
+      "target": "manual_standup_triggers_implementation_dd_standup_preview",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "manual_standup_triggers_implementation_manual_trigger_commands",
+      "target": "manual_standup_triggers_implementation_dd_standup_followup",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "manual_standup_triggers_implementation_manual_trigger_commands",
+      "target": "manual_standup_triggers_implementation_permission_helper",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "manual_standup_triggers_implementation_manual_trigger_commands",
+      "target": "manual_standup_triggers_implementation_team_helper",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "manual_standup_triggers_implementation_dd_standup_remind",
+      "target": "manual_standup_triggers_implementation_permission_helper",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "manual_standup_triggers_implementation_dd_standup_remind",
+      "target": "manual_standup_triggers_implementation_team_helper",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "manual_standup_triggers_implementation_dd_standup_remind",
+      "target": "daily_dose_complete_guide_scheduler_service",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "manual_standup_triggers_implementation_dd_standup_post",
+      "target": "daily_dose_complete_guide_standup_service",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "manual_standup_triggers_implementation_dd_standup_followup",
+      "target": "daily_dose_complete_guide_scheduler_service",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "manual_standup_triggers_implementation_team_helper",
+      "target": "manual_standup_triggers_implementation_context_aware_resolution",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "manual_standup_triggers_implementation_manual_trigger_commands",
+      "target": "manual_standup_triggers_user_story",
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "manual_standup_trigger_command_suite",
+      "label": "Manual Standup Trigger Command Suite",
+      "nodes": [
+        "manual_standup_triggers_implementation_dd_standup_remind",
+        "manual_standup_triggers_implementation_dd_standup_post",
+        "manual_standup_triggers_implementation_dd_standup_preview",
+        "manual_standup_triggers_implementation_dd_standup_followup"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/implementation-plans/manual-standup-triggers-implementation.md"
+    }
+  ]
+}

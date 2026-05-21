@@ -1,0 +1,13 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_ecosystem_config_js",
+      "label": "ecosystem.config.js",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/ecosystem.config.js",
+      "source_location": "L1"
+    }
+  ],
+  "edges": [],
+  "raw_calls": []
+}

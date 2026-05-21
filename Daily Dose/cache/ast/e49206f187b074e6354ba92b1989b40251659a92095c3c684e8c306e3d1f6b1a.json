@@ -1,0 +1,77 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_web_src_context_themecontext_tsx",
+      "label": "ThemeContext.tsx",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/context/ThemeContext.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "context_themecontext_themeprovider",
+      "label": "ThemeProvider()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/context/ThemeContext.tsx",
+      "source_location": "L23"
+    },
+    {
+      "id": "context_themecontext_usetheme",
+      "label": "useTheme()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/context/ThemeContext.tsx",
+      "source_location": "L63"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_context_themecontext_tsx",
+      "target": "react",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/context/ThemeContext.tsx",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_context_themecontext_tsx",
+      "target": "context_themecontext_themeprovider",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/context/ThemeContext.tsx",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_web_src_context_themecontext_tsx",
+      "target": "context_themecontext_usetheme",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/context/ThemeContext.tsx",
+      "source_location": "L63",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": [
+    {
+      "caller_nid": "context_themecontext_themeprovider",
+      "callee": "useState",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/context/ThemeContext.tsx",
+      "source_location": "L28"
+    },
+    {
+      "caller_nid": "context_themecontext_themeprovider",
+      "callee": "useEffect",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/context/ThemeContext.tsx",
+      "source_location": "L32"
+    },
+    {
+      "caller_nid": "context_themecontext_usetheme",
+      "callee": "useContext",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/web/src/context/ThemeContext.tsx",
+      "source_location": "L64"
+    }
+  ]
+}

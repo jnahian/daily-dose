@@ -1,0 +1,152 @@
+{
+  "nodes": [
+    {
+      "id": "2026_05_19_query_performance_plan",
+      "label": "Query Performance Implementation Plan",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-05-19-query-performance.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "2026_05_19_query_performance_composite_index",
+      "label": "StandupResponse (teamId, standupDate) Composite Index",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-05-19-query-performance.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "2026_05_19_query_performance_is_working_day_pure",
+      "label": "isWorkingDayPure Pure Core",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-05-19-query-performance.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "2026_05_19_query_performance_get_active_members",
+      "label": "standupService.getActiveMembers (N+1 fix)",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-05-19-query-performance.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "2026_05_19_query_performance_n_plus_1_pattern",
+      "label": "N+1 Query Pattern in Standup Posting",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-05-19-query-performance.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "2026_05_19_query_performance_plan",
+      "target": "2026_05_19_query_performance_composite_index",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-query-performance.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_query_performance_plan",
+      "target": "2026_05_19_query_performance_is_working_day_pure",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-query-performance.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_query_performance_plan",
+      "target": "2026_05_19_query_performance_get_active_members",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-query-performance.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_query_performance_get_active_members",
+      "target": "2026_05_19_query_performance_n_plus_1_pattern",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-query-performance.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_query_performance_get_active_members",
+      "target": "2026_05_19_query_performance_is_working_day_pure",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-query-performance.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_query_performance_is_working_day_pure",
+      "target": "daily_dose_complete_guide_date_helper",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-query-performance.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_query_performance_get_active_members",
+      "target": "daily_dose_complete_guide_standup_service",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-query-performance.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_query_performance_composite_index",
+      "target": "daily_dose_complete_guide_prisma_schema",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-query-performance.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_query_performance_plan",
+      "target": "2026_05_19_security_correctness_hardening_jest_harness",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-query-performance.md",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": []
+}

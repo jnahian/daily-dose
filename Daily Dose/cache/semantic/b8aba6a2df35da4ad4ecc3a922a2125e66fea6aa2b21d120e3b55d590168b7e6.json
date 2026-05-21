@@ -1,0 +1,59 @@
+{
+  "nodes": [
+    {
+      "id": "holiday_list_command_plan_dd_holiday_list",
+      "label": "/dd-holiday-list Command",
+      "file_type": "document",
+      "source_file": "docs/holiday-list-command-plan.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "holiday_list_command_plan_list_holidays_function",
+      "label": "listHolidays Function",
+      "file_type": "document",
+      "source_file": "docs/holiday-list-command-plan.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "holiday_list_command_plan_dd_holiday_list",
+      "target": "holiday_list_command_plan_list_holidays_function",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/holiday-list-command-plan.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "holiday_list_command_plan_dd_holiday_list",
+      "target": "new_commands_plan_holiday_management_commands",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/holiday-list-command-plan.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "holiday_list_command_plan_list_holidays_function",
+      "target": "daily_dose_complete_guide_strip_formatting_middleware",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/holiday-list-command-plan.md",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": []
+}

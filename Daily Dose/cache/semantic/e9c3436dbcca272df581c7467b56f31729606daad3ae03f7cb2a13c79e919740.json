@@ -1,0 +1,69 @@
+{
+  "nodes": [
+    {
+      "id": "admin_notification_opt_out_plan_opt_out_feature",
+      "label": "Admin Notification Opt-Out Feature",
+      "file_type": "document",
+      "source_file": "docs/admin-notification-opt-out-plan.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "admin_notification_opt_out_plan_receive_notifications_field",
+      "label": "TeamMember.receiveNotifications Field",
+      "file_type": "document",
+      "source_file": "docs/admin-notification-opt-out-plan.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "admin_notification_opt_out_plan_opt_out_feature",
+      "target": "admin_notification_opt_out_plan_receive_notifications_field",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/admin-notification-opt-out-plan.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "admin_notification_opt_out_plan_opt_out_feature",
+      "target": "admin_notification_plan_notification_service",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/admin-notification-opt-out-plan.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "admin_notification_opt_out_plan_receive_notifications_field",
+      "target": "admin_notification_plan_notify_admins_of_standup_submission",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/admin-notification-opt-out-plan.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "admin_notification_opt_out_plan_receive_notifications_field",
+      "target": "daily_dose_complete_guide_prisma_schema",
+      "relation": "shares_data_with",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/admin-notification-opt-out-plan.md",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": []
+}

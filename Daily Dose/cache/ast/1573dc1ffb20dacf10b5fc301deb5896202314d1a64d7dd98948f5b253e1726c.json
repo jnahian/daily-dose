@@ -1,0 +1,238 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_src_middleware_basicauth_js",
+      "label": "basicAuth.js",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "middleware_basicauth_timingsafeequalstring",
+      "label": "timingSafeEqualString()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L3"
+    },
+    {
+      "id": "middleware_basicauth_createbasicauth",
+      "label": "createBasicAuth()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L9"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_middleware_basicauth_js",
+      "target": "middleware_basicauth_timingsafeequalstring",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_middleware_basicauth_js",
+      "target": "middleware_basicauth_createbasicauth",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "middleware_basicauth_createbasicauth",
+      "target": "middleware_basicauth_timingsafeequalstring",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L36",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": [
+    {
+      "caller_nid": "middleware_basicauth_timingsafeequalstring",
+      "callee": "digest",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L4"
+    },
+    {
+      "caller_nid": "middleware_basicauth_timingsafeequalstring",
+      "callee": "update",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L4"
+    },
+    {
+      "caller_nid": "middleware_basicauth_timingsafeequalstring",
+      "callee": "createHash",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L4"
+    },
+    {
+      "caller_nid": "middleware_basicauth_timingsafeequalstring",
+      "callee": "String",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L4"
+    },
+    {
+      "caller_nid": "middleware_basicauth_timingsafeequalstring",
+      "callee": "digest",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L5"
+    },
+    {
+      "caller_nid": "middleware_basicauth_timingsafeequalstring",
+      "callee": "update",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L5"
+    },
+    {
+      "caller_nid": "middleware_basicauth_timingsafeequalstring",
+      "callee": "createHash",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L5"
+    },
+    {
+      "caller_nid": "middleware_basicauth_timingsafeequalstring",
+      "callee": "String",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L5"
+    },
+    {
+      "caller_nid": "middleware_basicauth_timingsafeequalstring",
+      "callee": "timingSafeEqual",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L6"
+    },
+    {
+      "caller_nid": "middleware_basicauth_createbasicauth",
+      "callee": "startsWith",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L21"
+    },
+    {
+      "caller_nid": "middleware_basicauth_createbasicauth",
+      "callee": "setHeader",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L22"
+    },
+    {
+      "caller_nid": "middleware_basicauth_createbasicauth",
+      "callee": "json",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L23"
+    },
+    {
+      "caller_nid": "middleware_basicauth_createbasicauth",
+      "callee": "status",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L23"
+    },
+    {
+      "caller_nid": "middleware_basicauth_createbasicauth",
+      "callee": "toString",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L26"
+    },
+    {
+      "caller_nid": "middleware_basicauth_createbasicauth",
+      "callee": "from",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L26"
+    },
+    {
+      "caller_nid": "middleware_basicauth_createbasicauth",
+      "callee": "slice",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L26"
+    },
+    {
+      "caller_nid": "middleware_basicauth_createbasicauth",
+      "callee": "indexOf",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L27"
+    },
+    {
+      "caller_nid": "middleware_basicauth_createbasicauth",
+      "callee": "setHeader",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L29"
+    },
+    {
+      "caller_nid": "middleware_basicauth_createbasicauth",
+      "callee": "json",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L30"
+    },
+    {
+      "caller_nid": "middleware_basicauth_createbasicauth",
+      "callee": "status",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L30"
+    },
+    {
+      "caller_nid": "middleware_basicauth_createbasicauth",
+      "callee": "slice",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L32"
+    },
+    {
+      "caller_nid": "middleware_basicauth_createbasicauth",
+      "callee": "slice",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L33"
+    },
+    {
+      "caller_nid": "middleware_basicauth_createbasicauth",
+      "callee": "next",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L39"
+    },
+    {
+      "caller_nid": "middleware_basicauth_createbasicauth",
+      "callee": "setHeader",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L42"
+    },
+    {
+      "caller_nid": "middleware_basicauth_createbasicauth",
+      "callee": "json",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L43"
+    },
+    {
+      "caller_nid": "middleware_basicauth_createbasicauth",
+      "callee": "status",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/middleware/basicAuth.js",
+      "source_location": "L43"
+    }
+  ]
+}

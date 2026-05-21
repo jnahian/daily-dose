@@ -1,0 +1,153 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_src_utils_permissionhelper_js",
+      "label": "permissionHelper.js",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/permissionHelper.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "utils_permissionhelper_isorganizationowner",
+      "label": "isOrganizationOwner()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/permissionHelper.js",
+      "source_location": "L9"
+    },
+    {
+      "id": "utils_permissionhelper_isteamadmin",
+      "label": "isTeamAdmin()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/permissionHelper.js",
+      "source_location": "L29"
+    },
+    {
+      "id": "utils_permissionhelper_canmanageteam",
+      "label": "canManageTeam()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/permissionHelper.js",
+      "source_location": "L53"
+    },
+    {
+      "id": "utils_permissionhelper_getuserbyslackid",
+      "label": "getUserBySlackId()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/permissionHelper.js",
+      "source_location": "L109"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_permissionhelper_js",
+      "target": "utils_permissionhelper_isorganizationowner",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/permissionHelper.js",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_permissionhelper_js",
+      "target": "utils_permissionhelper_isteamadmin",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/permissionHelper.js",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_permissionhelper_js",
+      "target": "utils_permissionhelper_canmanageteam",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/permissionHelper.js",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_permissionhelper_js",
+      "target": "utils_permissionhelper_getuserbyslackid",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/permissionHelper.js",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_permissionhelper_canmanageteam",
+      "target": "utils_permissionhelper_isorganizationowner",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/permissionHelper.js",
+      "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_permissionhelper_canmanageteam",
+      "target": "utils_permissionhelper_isteamadmin",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/permissionHelper.js",
+      "source_location": "L80",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": [
+    {
+      "caller_nid": "utils_permissionhelper_isorganizationowner",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/permissionHelper.js",
+      "source_location": "L11"
+    },
+    {
+      "caller_nid": "utils_permissionhelper_isorganizationowner",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/permissionHelper.js",
+      "source_location": "L18"
+    },
+    {
+      "caller_nid": "utils_permissionhelper_isteamadmin",
+      "callee": "findFirst",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/permissionHelper.js",
+      "source_location": "L31"
+    },
+    {
+      "caller_nid": "utils_permissionhelper_isteamadmin",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/permissionHelper.js",
+      "source_location": "L42"
+    },
+    {
+      "caller_nid": "utils_permissionhelper_canmanageteam",
+      "callee": "findFirst",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/permissionHelper.js",
+      "source_location": "L56"
+    },
+    {
+      "caller_nid": "utils_permissionhelper_canmanageteam",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/permissionHelper.js",
+      "source_location": "L95"
+    },
+    {
+      "caller_nid": "utils_permissionhelper_getuserbyslackid",
+      "callee": "findUnique",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/permissionHelper.js",
+      "source_location": "L111"
+    },
+    {
+      "caller_nid": "utils_permissionhelper_getuserbyslackid",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/permissionHelper.js",
+      "source_location": "L120"
+    }
+  ]
+}

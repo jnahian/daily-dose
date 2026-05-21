@@ -1,0 +1,59 @@
+{
+  "nodes": [
+    {
+      "id": "web_index_html_web_spa_entry",
+      "label": "web/index.html SPA Entry Point",
+      "file_type": "document",
+      "source_file": "web/index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "web_index_html_theme_fouc_script",
+      "label": "Dark Mode FOUC Prevention Script",
+      "file_type": "document",
+      "source_file": "web/index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "web_index_html_web_spa_entry",
+      "target": "web_index_html_theme_fouc_script",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "web/index.html",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "web_index_html_web_spa_entry",
+      "target": "claude_web_frontend",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "web/index.html",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "web_index_html_web_spa_entry",
+      "target": "web_readme_react_vite_template",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "web/index.html",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": []
+}

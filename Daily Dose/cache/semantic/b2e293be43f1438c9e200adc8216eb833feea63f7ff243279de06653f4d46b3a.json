@@ -1,0 +1,152 @@
+{
+  "nodes": [
+    {
+      "id": "2026_05_19_observability_and_reliability_plan",
+      "label": "Observability & Reliability Plan",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-05-19-observability-and-reliability.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "2026_05_19_observability_and_reliability_level_aware_logger",
+      "label": "Level-Aware Logger",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-05-19-observability-and-reliability.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "2026_05_19_observability_and_reliability_sentry_init",
+      "label": "Sentry Initialization",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-05-19-observability-and-reliability.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "2026_05_19_observability_and_reliability_run_scheduled_job",
+      "label": "runScheduledJob Wrapper",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-05-19-observability-and-reliability.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "2026_05_19_observability_and_reliability_post_team_standup_idempotency",
+      "label": "postTeamStandup Idempotency Guard",
+      "file_type": "document",
+      "source_file": "docs/plans/2026-05-19-observability-and-reliability.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "2026_05_19_observability_and_reliability_plan",
+      "target": "2026_05_19_observability_and_reliability_level_aware_logger",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-observability-and-reliability.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_observability_and_reliability_plan",
+      "target": "2026_05_19_observability_and_reliability_sentry_init",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-observability-and-reliability.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_observability_and_reliability_plan",
+      "target": "2026_05_19_observability_and_reliability_run_scheduled_job",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-observability-and-reliability.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_observability_and_reliability_plan",
+      "target": "2026_05_19_observability_and_reliability_post_team_standup_idempotency",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-observability-and-reliability.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_observability_and_reliability_level_aware_logger",
+      "target": "2026_05_19_observability_and_reliability_sentry_init",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-observability-and-reliability.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_observability_and_reliability_run_scheduled_job",
+      "target": "2026_05_19_observability_and_reliability_level_aware_logger",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-observability-and-reliability.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_observability_and_reliability_run_scheduled_job",
+      "target": "daily_dose_complete_guide_scheduler_service",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-observability-and-reliability.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_observability_and_reliability_post_team_standup_idempotency",
+      "target": "daily_dose_complete_guide_standup_service",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-observability-and-reliability.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "2026_05_19_observability_and_reliability_plan",
+      "target": "2026_05_19_security_correctness_hardening_jest_harness",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/2026-05-19-observability-and-reliability.md",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": []
+}

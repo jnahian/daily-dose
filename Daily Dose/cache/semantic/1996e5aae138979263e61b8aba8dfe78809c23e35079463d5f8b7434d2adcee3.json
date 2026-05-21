@@ -1,0 +1,49 @@
+{
+  "nodes": [
+    {
+      "id": "scripts_auth_scripts_auth_doc",
+      "label": "Scripts Documentation Authentication (Client-side)",
+      "file_type": "document",
+      "source_file": "web/SCRIPTS_AUTH.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "scripts_auth_basicauth_component",
+      "label": "BasicAuth.tsx Component",
+      "file_type": "document",
+      "source_file": "web/SCRIPTS_AUTH.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "scripts_auth_scripts_auth_doc",
+      "target": "scripts_auth_basicauth_component",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "web/SCRIPTS_AUTH.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_auth_basicauth_component",
+      "target": "changelog_basicauth_middleware",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "web/SCRIPTS_AUTH.md",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": []
+}

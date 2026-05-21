@@ -1,0 +1,838 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "label": "blockHelper.js",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "utils_blockhelper_createsectionblock",
+      "label": "createSectionBlock()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L12"
+    },
+    {
+      "id": "utils_blockhelper_createfieldsblock",
+      "label": "createFieldsBlock()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L27"
+    },
+    {
+      "id": "utils_blockhelper_createdividerblock",
+      "label": "createDividerBlock()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L38"
+    },
+    {
+      "id": "utils_blockhelper_createactionsblock",
+      "label": "createActionsBlock()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L49"
+    },
+    {
+      "id": "utils_blockhelper_createbutton",
+      "label": "createButton()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L64"
+    },
+    {
+      "id": "utils_blockhelper_createinputblock",
+      "label": "createInputBlock()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L92"
+    },
+    {
+      "id": "utils_blockhelper_createstandupmodal",
+      "label": "createStandupModal()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L128"
+    },
+    {
+      "id": "utils_blockhelper_createstandupreminderblocks",
+      "label": "createStandupReminderBlocks()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L203"
+    },
+    {
+      "id": "utils_blockhelper_createstandupsummaryheader",
+      "label": "createStandupSummaryHeader()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L220"
+    },
+    {
+      "id": "utils_blockhelper_createuserresponseblocks",
+      "label": "createUserResponseBlocks()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L234"
+    },
+    {
+      "id": "utils_blockhelper_createlateresponseblocks",
+      "label": "createLateResponseBlocks()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L271"
+    },
+    {
+      "id": "utils_blockhelper_createnotrespondedblocks",
+      "label": "createNotRespondedBlocks()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L317"
+    },
+    {
+      "id": "utils_blockhelper_createonleaveblocks",
+      "label": "createOnLeaveBlocks()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L332"
+    },
+    {
+      "id": "utils_blockhelper_createteamselectionblocks",
+      "label": "createTeamSelectionBlocks()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L346"
+    },
+    {
+      "id": "utils_blockhelper_createerrorblocks",
+      "label": "createErrorBlocks()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L364"
+    },
+    {
+      "id": "utils_blockhelper_createsuccessblocks",
+      "label": "createSuccessBlocks()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L373"
+    },
+    {
+      "id": "utils_blockhelper_createstandupupdatemodal",
+      "label": "createStandupUpdateModal()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L386"
+    },
+    {
+      "id": "utils_blockhelper_createcommandsuccessblocks",
+      "label": "createCommandSuccessBlocks()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L484"
+    },
+    {
+      "id": "utils_blockhelper_createcommanderrorblocks",
+      "label": "createCommandErrorBlocks()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L512"
+    },
+    {
+      "id": "utils_blockhelper_createpermissiondeniedblocks",
+      "label": "createPermissionDeniedBlocks()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L534"
+    },
+    {
+      "id": "utils_blockhelper_createstanduppreviewheaderblocks",
+      "label": "createStandupPreviewHeaderBlocks()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L562"
+    },
+    {
+      "id": "utils_blockhelper_createnodatablocks",
+      "label": "createNoDataBlocks()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L593"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createsectionblock",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createfieldsblock",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createdividerblock",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L38",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createactionsblock",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createbutton",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L64",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createinputblock",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createstandupmodal",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L128",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createstandupreminderblocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L203",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createstandupsummaryheader",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L220",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createuserresponseblocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L234",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createlateresponseblocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L271",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createnotrespondedblocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L317",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createonleaveblocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L332",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createteamselectionblocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L346",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createerrorblocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L364",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createsuccessblocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L373",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createstandupupdatemodal",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L386",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createcommandsuccessblocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L484",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createcommanderrorblocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L512",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createpermissiondeniedblocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L534",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createstanduppreviewheaderblocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L562",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_src_utils_blockhelper_js",
+      "target": "utils_blockhelper_createnodatablocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L593",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createstandupmodal",
+      "target": "utils_blockhelper_createsectionblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L136",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createstandupmodal",
+      "target": "utils_blockhelper_createdividerblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L139",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createstandupmodal",
+      "target": "utils_blockhelper_createinputblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L140",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createstandupreminderblocks",
+      "target": "utils_blockhelper_createsectionblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L205",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createstandupreminderblocks",
+      "target": "utils_blockhelper_createactionsblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L206",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createstandupreminderblocks",
+      "target": "utils_blockhelper_createbutton",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L207",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createstandupsummaryheader",
+      "target": "utils_blockhelper_createsectionblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L222",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createstandupsummaryheader",
+      "target": "utils_blockhelper_createdividerblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L225",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createuserresponseblocks",
+      "target": "utils_blockhelper_createsectionblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L235",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createuserresponseblocks",
+      "target": "utils_blockhelper_createfieldsblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L254",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createuserresponseblocks",
+      "target": "utils_blockhelper_createdividerblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L261",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createlateresponseblocks",
+      "target": "utils_blockhelper_createsectionblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L273",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createlateresponseblocks",
+      "target": "utils_blockhelper_createfieldsblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L294",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createnotrespondedblocks",
+      "target": "utils_blockhelper_createsectionblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L324",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createonleaveblocks",
+      "target": "utils_blockhelper_createsectionblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L337",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createteamselectionblocks",
+      "target": "utils_blockhelper_createsectionblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L352",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createteamselectionblocks",
+      "target": "utils_blockhelper_createactionsblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L353",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createerrorblocks",
+      "target": "utils_blockhelper_createsectionblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L365",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createsuccessblocks",
+      "target": "utils_blockhelper_createsectionblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L374",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createstandupupdatemodal",
+      "target": "utils_blockhelper_createsectionblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L414",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createstandupupdatemodal",
+      "target": "utils_blockhelper_createdividerblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L417",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createstandupupdatemodal",
+      "target": "utils_blockhelper_createinputblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L418",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createcommandsuccessblocks",
+      "target": "utils_blockhelper_createsectionblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L485",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createcommanderrorblocks",
+      "target": "utils_blockhelper_createsectionblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L513",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createcommanderrorblocks",
+      "target": "utils_blockhelper_createdividerblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L521",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createpermissiondeniedblocks",
+      "target": "utils_blockhelper_createsectionblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L541",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createstanduppreviewheaderblocks",
+      "target": "utils_blockhelper_createsectionblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L573",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createstanduppreviewheaderblocks",
+      "target": "utils_blockhelper_createdividerblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L583",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_blockhelper_createnodatablocks",
+      "target": "utils_blockhelper_createsectionblock",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L597",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": [
+    {
+      "caller_nid": "utils_blockhelper_createstandupmodal",
+      "callee": "find",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L165"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createstandupmodal",
+      "callee": "convertTextToRichText",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L169"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createstandupmodal",
+      "callee": "stringify",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L179"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createuserresponseblocks",
+      "callee": "push",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L240"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createuserresponseblocks",
+      "callee": "push",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L247"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createuserresponseblocks",
+      "callee": "push",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L254"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createuserresponseblocks",
+      "callee": "trim",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L257"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createuserresponseblocks",
+      "callee": "push",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L258"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createuserresponseblocks",
+      "callee": "push",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L261"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createlateresponseblocks",
+      "callee": "push",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L280"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createlateresponseblocks",
+      "callee": "push",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L287"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createlateresponseblocks",
+      "callee": "push",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L294"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createlateresponseblocks",
+      "callee": "trim",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L297"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createlateresponseblocks",
+      "callee": "push",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L298"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createnotrespondedblocks",
+      "callee": "join",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L320"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createnotrespondedblocks",
+      "callee": "map",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L320"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createonleaveblocks",
+      "callee": "join",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L335"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createonleaveblocks",
+      "callee": "map",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L335"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createteamselectionblocks",
+      "callee": "join",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L347"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createteamselectionblocks",
+      "callee": "map",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L347"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createteamselectionblocks",
+      "callee": "map",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L354"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createstandupupdatemodal",
+      "callee": "stringify",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L396"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createstandupupdatemodal",
+      "callee": "map",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L413"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createcommandsuccessblocks",
+      "callee": "join",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L488"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createcommandsuccessblocks",
+      "callee": "map",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L488"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createcommandsuccessblocks",
+      "callee": "entries",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L488"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createcommandsuccessblocks",
+      "callee": "push",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L492"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createcommanderrorblocks",
+      "callee": "join",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L516"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createcommanderrorblocks",
+      "callee": "map",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L516"
+    },
+    {
+      "caller_nid": "utils_blockhelper_createcommanderrorblocks",
+      "callee": "push",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/src/utils/blockHelper.js",
+      "source_location": "L520"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_test_middleware_basicauth_test_js",
+      "label": "basicAuth.test.js",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/test/middleware/basicAuth.test.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "middleware_basicauth_test_makeres",
+      "label": "makeRes()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/test/middleware/basicAuth.test.js",
+      "source_location": "L17"
+    },
+    {
+      "id": "middleware_basicauth_test_basicauthheader",
+      "label": "basicAuthHeader()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/test/middleware/basicAuth.test.js",
+      "source_location": "L36"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_test_middleware_basicauth_test_js",
+      "target": "middleware_basicauth_test_makeres",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/test/middleware/basicAuth.test.js",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_test_middleware_basicauth_test_js",
+      "target": "middleware_basicauth_test_basicauthheader",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/test/middleware/basicAuth.test.js",
+      "source_location": "L36",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": [
+    {
+      "caller_nid": "middleware_basicauth_test_basicauthheader",
+      "callee": "toString",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/test/middleware/basicAuth.test.js",
+      "source_location": "L37"
+    },
+    {
+      "caller_nid": "middleware_basicauth_test_basicauthheader",
+      "callee": "from",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/test/middleware/basicAuth.test.js",
+      "source_location": "L37"
+    }
+  ]
+}

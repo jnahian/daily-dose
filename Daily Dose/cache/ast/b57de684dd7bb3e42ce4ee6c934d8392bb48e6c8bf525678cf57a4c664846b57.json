@@ -1,0 +1,887 @@
+{
+  "nodes": [
+    {
+      "id": "users_nahian_projects_daily_dose_bot_scripts_updateslackmanifest_js",
+      "label": "updateSlackManifest.js",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_updateslackmanifest_slackmanifestmanager",
+      "label": "SlackManifestManager",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L33"
+    },
+    {
+      "id": "scripts_updateslackmanifest_slackmanifestmanager_constructor",
+      "label": ".constructor()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L34"
+    },
+    {
+      "id": "scripts_updateslackmanifest_slackmanifestmanager_loadmanifest",
+      "label": ".loadManifest()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L67"
+    },
+    {
+      "id": "scripts_updateslackmanifest_slackmanifestmanager_refreshaccesstoken",
+      "label": ".refreshAccessToken()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L84"
+    },
+    {
+      "id": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "label": ".updateEnvFile()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L130"
+    },
+    {
+      "id": "scripts_updateslackmanifest_slackmanifestmanager_makerequest",
+      "label": ".makeRequest()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L186"
+    },
+    {
+      "id": "scripts_updateslackmanifest_slackmanifestmanager_createapp",
+      "label": ".createApp()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L233"
+    },
+    {
+      "id": "scripts_updateslackmanifest_slackmanifestmanager_updateapp",
+      "label": ".updateApp()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L268"
+    },
+    {
+      "id": "scripts_updateslackmanifest_slackmanifestmanager_getcurrentmanifest",
+      "label": ".getCurrentManifest()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L303"
+    },
+    {
+      "id": "scripts_updateslackmanifest_slackmanifestmanager_validatemanifest",
+      "label": ".validateManifest()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L321"
+    },
+    {
+      "id": "scripts_updateslackmanifest_slackmanifestmanager_run",
+      "label": ".run()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L353"
+    },
+    {
+      "id": "scripts_updateslackmanifest_showhelp",
+      "label": "showHelp()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L380"
+    },
+    {
+      "id": "scripts_updateslackmanifest_parseargs",
+      "label": "parseArgs()",
+      "file_type": "code",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L416"
+    }
+  ],
+  "edges": [
+    {
+      "source": "users_nahian_projects_daily_dose_bot_scripts_updateslackmanifest_js",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_slackmanifestmanager",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager_constructor",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_slackmanifestmanager",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager_loadmanifest",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_slackmanifestmanager",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager_refreshaccesstoken",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_slackmanifestmanager",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L130",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_slackmanifestmanager",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager_makerequest",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L186",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_slackmanifestmanager",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager_createapp",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L233",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_slackmanifestmanager",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager_updateapp",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L268",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_slackmanifestmanager",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager_getcurrentmanifest",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L303",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_slackmanifestmanager",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager_validatemanifest",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L321",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_slackmanifestmanager",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager_run",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L353",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_scripts_updateslackmanifest_js",
+      "target": "scripts_updateslackmanifest_showhelp",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L380",
+      "weight": 1.0
+    },
+    {
+      "source": "users_nahian_projects_daily_dose_bot_scripts_updateslackmanifest_js",
+      "target": "scripts_updateslackmanifest_parseargs",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L416",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_slackmanifestmanager_refreshaccesstoken",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L117",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_slackmanifestmanager_makerequest",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager_refreshaccesstoken",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L213",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_slackmanifestmanager_createapp",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager_makerequest",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L243",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_slackmanifestmanager_updateapp",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager_makerequest",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L278",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_slackmanifestmanager_getcurrentmanifest",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager_makerequest",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L305",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_slackmanifestmanager_run",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager_loadmanifest",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L355",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_slackmanifestmanager_run",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager_validatemanifest",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L356",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_slackmanifestmanager_run",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager_createapp",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L359",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_slackmanifestmanager_run",
+      "target": "scripts_updateslackmanifest_slackmanifestmanager_updateapp",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L370",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_updateslackmanifest_parseargs",
+      "target": "scripts_updateslackmanifest_showhelp",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L425",
+      "weight": 1.0
+    }
+  ],
+  "raw_calls": [
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_constructor",
+      "callee": "join",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L35"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_constructor",
+      "callee": "cwd",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L35"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_constructor",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L47"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_constructor",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L50"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_constructor",
+      "callee": "exit",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L53"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_constructor",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L57"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_constructor",
+      "callee": "exit",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L60"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_loadmanifest",
+      "callee": "readFileSync",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L69"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_loadmanifest",
+      "callee": "replaceAll",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L70"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_loadmanifest",
+      "callee": "parse",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L71"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_loadmanifest",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L73"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_loadmanifest",
+      "callee": "exit",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L77"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_refreshaccesstoken",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L89"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_refreshaccesstoken",
+      "callee": "fetch",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L91"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_refreshaccesstoken",
+      "callee": "json",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L104"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_refreshaccesstoken",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L111"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_refreshaccesstoken",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L116"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_refreshaccesstoken",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L120"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "callee": "join",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L131"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "callee": "cwd",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L131"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "callee": "existsSync",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L137"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "callee": "readFileSync",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L138"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "callee": "includes",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L142"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "callee": "replace",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L143"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "callee": "includes",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L153"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "callee": "replace",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L154"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "callee": "writeFileSync",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L164"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "callee": "trim",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L164"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L166"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L168"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L169"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L171"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "callee": "warn",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L174"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "callee": "warn",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L175"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "callee": "warn",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L176"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateenvfile",
+      "callee": "warn",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L178"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_makerequest",
+      "callee": "stringify",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L198"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_makerequest",
+      "callee": "fetch",
+      "is_member_call": false,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L202"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_makerequest",
+      "callee": "json",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L203"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_makerequest",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L212"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_makerequest",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L225"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_createapp",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L234"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_createapp",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L237"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_createapp",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L238"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_createapp",
+      "callee": "stringify",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L238"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_createapp",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L247"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_createapp",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L248"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_createapp",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L249"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_createapp",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L250"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_createapp",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L251"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_createapp",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L252"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_createapp",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L253"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_createapp",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L254"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_createapp",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L260"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateapp",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L269"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateapp",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L272"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateapp",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L273"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateapp",
+      "callee": "stringify",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L273"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateapp",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L283"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateapp",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L284"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateapp",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L285"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateapp",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L288"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_updateapp",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L295"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_getcurrentmanifest",
+      "callee": "warn",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L310"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_validatemanifest",
+      "callee": "filter",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L328"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_validatemanifest",
+      "callee": "join",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L332"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_validatemanifest",
+      "callee": "stringify",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L337"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_validatemanifest",
+      "callee": "includes",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L338"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_validatemanifest",
+      "callee": "warn",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L339"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_validatemanifest",
+      "callee": "warn",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L342"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_run",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L362"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_run",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L365"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_run",
+      "callee": "exit",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L366"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_run",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L369"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_run",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L373"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_slackmanifestmanager_run",
+      "callee": "exit",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L374"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_showhelp",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L381"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_parseargs",
+      "callee": "slice",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L417"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_parseargs",
+      "callee": "log",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L418"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_parseargs",
+      "callee": "exit",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L426"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_parseargs",
+      "callee": "error",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L435"
+    },
+    {
+      "caller_nid": "scripts_updateslackmanifest_parseargs",
+      "callee": "exit",
+      "is_member_call": true,
+      "source_file": "/Users/nahian/Projects/daily-dose-bot/scripts/updateSlackManifest.js",
+      "source_location": "L437"
+    }
+  ]
+}
