@@ -1,9 +1,24 @@
 {
   "versions": [
     {
+      "version": "1.8.0",
+      "date": "2026-05-27",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Get-Started Video on Homepage",
+          "items": [
+            "The homepage now features an embedded demo video showing Daily Dose in action — reminders, standup submission, slash commands, and team summaries",
+            "Click the fullscreen button on the video to watch with audio"
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.7.0",
       "date": "2026-05-20",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "changed",
