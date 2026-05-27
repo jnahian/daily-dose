@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-05-27
+
+### Added
+
+- Remotion video workspace (`video/`) — programmatic get-started video built with React and Remotion. Includes six scenes (Hook, Reminder, Modal, Commands, Summary, CTA), per-scene OpenAI TTS voiceover clips, Suno background music, and two output compositions: `MainVideo` (1920×1080) and `Reel` (1080×1920 social media variant). Brand tokens mirror the web theme (`video/src/data/brand.ts`). Scripts: `npm run video:studio`, `video:render`, `video:render:reel`, `video:vo`.
+- Per-command subtitles in the Commands scene — each of the six command slides now shows a caption via the global `CAPTION_SCHEDULE` in `video/src/data/script.ts`.
+
+### Changed
+
+- Homepage hero (`web/src/components/home/Hero.tsx`) now embeds the YouTube video (`youtu.be/bQrJqBpSlBU`) via the IFrame Player API. Autoplays muted and looped; YouTube title/control overlays are clipped by extending the iframe 60px beyond the container. A custom fullscreen button unmutes audio on enter and remutes on exit.
+- README now includes a YouTube thumbnail link to the demo video below the project description.
+- Slack app manifest `description` and `long_description` updated to reflect current feature set and link to `dd.jnahian.me`.
+
+### Removed
+
+- `web/public/daily-dose-intro.mp4` — local video file replaced by the YouTube embed.
+
 ## [1.7.1] - 2026-05-20
 
 ### Removed

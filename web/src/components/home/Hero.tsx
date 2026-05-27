@@ -1,8 +1,68 @@
+import { useRef, useEffect } from "react";
 import { Link } from "react-router";
 import { motion } from "framer-motion";
-import { ArrowRight, Github } from "lucide-react";
+import { ArrowRight, Github, Maximize2 } from "lucide-react";
+
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
 
 export const Hero = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const playerDivRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<any>(null);
+
+  useEffect(() => {
+    const initPlayer = () => {
+      if (!playerDivRef.current) return;
+      playerRef.current = new window.YT.Player(playerDivRef.current, {
+        width: "100%",
+        height: "100%",
+        videoId: "bQrJqBpSlBU",
+        playerVars: {
+          autoplay: 1,
+          mute: 1,
+          loop: 1,
+          playlist: "bQrJqBpSlBU",
+          controls: 0,
+          modestbranding: 1,
+          rel: 0,
+        },
+      });
+    };
+
+    if (window.YT?.Player) {
+      initPlayer();
+    } else {
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(tag);
+      window.onYouTubeIframeAPIReady = initPlayer;
+    }
+
+    const handleFullscreenChange = () => {
+      if (!playerRef.current) return;
+      if (document.fullscreenElement === containerRef.current) {
+        playerRef.current.unMute();
+        playerRef.current.setVolume(100);
+      } else {
+        playerRef.current.mute();
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  const handleFullscreen = () => {
+    containerRef.current?.requestFullscreen();
+  };
+
   return (
     <div className="relative pt-32 pb-20 sm:pt-40 sm:pb-24 overflow-hidden">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none">
@@ -60,13 +120,24 @@ export const Hero = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative mx-auto w-full max-w-lg lg:max-w-none"
           >
-            <div className="rounded-xl overflow-hidden shadow-2xl border border-border-default ring-1 ring-brand-cyan/20 aspect-video">
-              <iframe
-                src="https://www.youtube.com/embed/bQrJqBpSlBU?autoplay=1&mute=1&loop=1&playlist=bQrJqBpSlBU&controls=0&modestbranding=1&rel=0"
-                allow="autoplay; encrypted-media"
-                allowFullScreen
-                className="w-full h-full block"
-              />
+            <div
+              ref={containerRef}
+              className="rounded-xl overflow-hidden shadow-2xl border border-border-default ring-1 ring-brand-cyan/20 aspect-video relative"
+            >
+              {/* Wrapper extended 60px on each side to clip YouTube title/control overlays */}
+              <div className="absolute" style={{ top: -60, bottom: -60, left: 0, right: 0 }}>
+                <div ref={playerDivRef} className="w-full h-full" />
+              </div>
+              {/* Click blocker */}
+              <div className="absolute inset-0" />
+              {/* Fullscreen button */}
+              <button
+                onClick={handleFullscreen}
+                className="absolute bottom-3 right-3 z-10 p-1.5 bg-black/60 hover:bg-black/90 rounded text-white transition-colors"
+                aria-label="Fullscreen"
+              >
+                <Maximize2 size={16} />
+              </button>
             </div>
             {/* Glow */}
             <div className="absolute -z-10 top-1/2 right-0 -translate-y-1/2 translate-x-1/4 w-64 h-64 bg-brand-cyan/10 rounded-full blur-[80px]" />
