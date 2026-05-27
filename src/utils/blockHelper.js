@@ -590,6 +590,94 @@ function createStandupPreviewHeaderBlocks(teamName, date, isToday = true) {
  * @param {string} date - Optional date string
  * @returns {Array<object>} Array of blocks for no data message
  */
+function createHomeTabView(appUrl = "https://dd.jnahian.me") {
+  const webUrl = appUrl.replace(/\/$/, "");
+  const docsUrl = `${webUrl}/docs`;
+  const changelogUrl = `${webUrl}/changelog`;
+  const videoUrl = "https://www.youtube.com/watch?v=bQrJqBpSlBU";
+
+  return {
+    type: "home",
+    blocks: [
+      {
+        type: "header",
+        text: {
+          type: "plain_text",
+          text: "👋 Welcome to Daily Dose",
+          emoji: true,
+        },
+      },
+      createSectionBlock(
+        "Automated daily standups for your team — reminders, submissions, and channel summaries, all without a meeting."
+      ),
+      createActionsBlock([
+        {
+          type: "button",
+          text: {
+            type: "plain_text",
+            text: "▶️  Watch intro video",
+            emoji: true,
+          },
+          url: videoUrl,
+          action_id: "home_open_video",
+        },
+        {
+          type: "button",
+          text: { type: "plain_text", text: "🌐  Website", emoji: true },
+          url: webUrl,
+          action_id: "home_open_website",
+        },
+        {
+          type: "button",
+          text: { type: "plain_text", text: "📖  Docs", emoji: true },
+          url: docsUrl,
+          action_id: "home_open_docs",
+        },
+        {
+          type: "button",
+          text: { type: "plain_text", text: "📝  Changelog", emoji: true },
+          url: changelogUrl,
+          action_id: "home_open_changelog",
+        },
+      ]),
+      createDividerBlock(),
+      {
+        type: "header",
+        text: { type: "plain_text", text: "🚀 Get started", emoji: true },
+      },
+      createSectionBlock(
+        "*1.* Create a team in your standup channel:\n" +
+          "`/dd-team-create [TeamName] 09:30 10:00`\n\n" +
+          "*2.* Invite teammates to join:\n" +
+          "`/dd-team-join [TeamName]`\n\n" +
+          "*3.* Submit standups any time:\n" +
+          "`/dd-standup [TeamName]`"
+      ),
+      createDividerBlock(),
+      {
+        type: "header",
+        text: { type: "plain_text", text: "💡 Handy commands", emoji: true },
+      },
+      createSectionBlock(
+        "• `/dd-team-list` — list teams in your org\n" +
+          "• `/dd-standup-history` — view your past submissions\n" +
+          "• `/dd-leave-set YYYY-MM-DD` — skip reminders for leave\n" +
+          "• `/dd-workdays-set 1,2,3,4,5` — set your work days\n" +
+          "• `/dd-standup-reminder notify=off` — pause reminder DMs"
+      ),
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `Need more? See the <${docsUrl}|full docs> or visit <${webUrl}|${webUrl.replace(/^https?:\/\//, "")}>.`,
+          },
+        ],
+      },
+    ],
+  };
+}
+
 function createNoDataBlocks(context = "data", date = null) {
   const dateText = date ? ` for ${date}` : "";
 
@@ -630,4 +718,5 @@ module.exports = {
   createPermissionDeniedBlocks,
   createStandupPreviewHeaderBlocks,
   createNoDataBlocks,
+  createHomeTabView,
 };

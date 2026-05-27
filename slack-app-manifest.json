@@ -6,6 +6,11 @@
     "long_description": "Daily Dose automates your team's daily standups so you can skip the meeting and keep moving.\n\nEvery morning, team members get a DM reminder with a one-click standup form — three quick fields and they're done. Responses are collected and posted as a formatted summary to your team channel automatically.\n\nKey features:\n• Scheduled reminders at your team's standup time\n• Interactive modal for fast, frictionless submissions\n• Automatic channel summaries with per-member response cards\n• Update or edit submissions for any date\n• Leave management — set leave dates to skip reminders automatically\n• Holiday support — org-wide holidays skip all reminders\n• Work day configuration per member\n• Multi-team and multi-organization support\n• Timezone-aware scheduling per team\n• Admin controls: manual remind, post, preview, and follow-up commands\n\nLearn more and see it in action at dd.jnahian.me"
   },
   "features": {
+    "app_home": {
+      "home_tab_enabled": true,
+      "messages_tab_enabled": true,
+      "messages_tab_read_only_enabled": false
+    },
     "bot_user": {
       "display_name": "Daily Dose",
       "always_online": true
@@ -252,6 +257,7 @@
     "event_subscriptions": {
       "request_url": "{{APP_URL}}/slack/events",
       "bot_events": [
+        "app_home_opened",
         "app_mention",
         "message.channels",
         "message.groups",

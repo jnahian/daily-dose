@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Slack **Home tab** for the bot — surfaces a welcome message, quick-link buttons (intro video, website, docs, changelog), a getting-started checklist, and a handy commands cheat sheet. Implemented as `createHomeTabView()` in `src/utils/blockHelper.js` and published on `app_home_opened` in `src/events/index.js`. Manifest updated: `features.app_home.home_tab_enabled = true` and `app_home_opened` added to bot events.
+
 ## [1.8.0] - 2026-05-27
 
 ### Added
