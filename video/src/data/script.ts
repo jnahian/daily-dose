@@ -18,6 +18,30 @@ export const SCRIPT = {
     vo: "A handful of slash commands put everything else at your fingertips.",
     caption: "Everything at your fingertips.",
   },
+  cmd_standup: {
+    vo: "",
+    caption: "Submit your standup anytime.",
+  },
+  cmd_standup_update: {
+    vo: "",
+    caption: "Edit any past submission.",
+  },
+  cmd_standup_reminder: {
+    vo: "",
+    caption: "Control your reminder preferences.",
+  },
+  cmd_standup_history: {
+    vo: "",
+    caption: "Review your standup history.",
+  },
+  cmd_leave_set: {
+    vo: "",
+    caption: "Set leave — reminders auto-skip.",
+  },
+  cmd_leave_list: {
+    vo: "",
+    caption: "See all your upcoming leave.",
+  },
   summary: {
     vo: "Responses post automatically to your team channel — no meeting required.",
     caption: "Your team sees everyone's update, together.",
@@ -47,11 +71,17 @@ export const MODAL_FIELDS = [
 ];
 
 // Caption timing in frames (30fps). Keep in sync with scene durations in MainVideo.tsx.
+// Commands scene: absolute frames 390–1290, 6 slides × 150f each.
 export const CAPTION_SCHEDULE = [
-  { key: "hook",     startFrame: 8,   endFrame: 55  },
-  { key: "reminder", startFrame: 70,  endFrame: 170 },
-  { key: "modal",    startFrame: 190, endFrame: 380 },
-  // commands scene captions handled internally via progress pips — no global caption shown
-  { key: "summary",  startFrame: 1300, endFrame: 1490 },
-  { key: "cta",      startFrame: 1510, endFrame: 1610 },
+  { key: "hook",                startFrame: 8,    endFrame: 55   },
+  { key: "reminder",            startFrame: 70,   endFrame: 170  },
+  { key: "modal",               startFrame: 190,  endFrame: 380  },
+  { key: "cmd_standup",         startFrame: 398,  endFrame: 531  },
+  { key: "cmd_standup_update",  startFrame: 548,  endFrame: 681  },
+  { key: "cmd_standup_reminder",startFrame: 698,  endFrame: 831  },
+  { key: "cmd_standup_history", startFrame: 848,  endFrame: 981  },
+  { key: "cmd_leave_set",       startFrame: 998,  endFrame: 1131 },
+  { key: "cmd_leave_list",      startFrame: 1148, endFrame: 1281 },
+  { key: "summary",             startFrame: 1300, endFrame: 1490 },
+  { key: "cta",                 startFrame: 1510, endFrame: 1610 },
 ] as const;

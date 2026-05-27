@@ -8,6 +8,12 @@
 Daily Dose is a Slack bot that automates daily standup meetings for teams. It sends reminders, collects responses, and posts formatted standup summaries to team channels.
 </p>
 
+<p align="center">
+  <a href="https://youtu.be/bQrJqBpSlBU">
+    <img src="https://img.youtube.com/vi/bQrJqBpSlBU/maxresdefault.jpg" alt="Daily Dose demo video" width="720">
+  </a>
+</p>
+
 ## ✨ Features
 
 - **Automated Standup Reminders**: Sends DM reminders at configured times

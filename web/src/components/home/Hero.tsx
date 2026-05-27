@@ -60,14 +60,12 @@ export const Hero = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative mx-auto w-full max-w-lg lg:max-w-none"
           >
-            <div className="rounded-xl overflow-hidden shadow-2xl border border-border-default ring-1 ring-brand-cyan/20">
-              <video
-                src="/daily-dose-intro.mp4"
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="w-full block"
+            <div className="rounded-xl overflow-hidden shadow-2xl border border-border-default ring-1 ring-brand-cyan/20 aspect-video">
+              <iframe
+                src="https://www.youtube.com/embed/bQrJqBpSlBU?autoplay=1&mute=1&loop=1&playlist=bQrJqBpSlBU&controls=0&modestbranding=1&rel=0"
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+                className="w-full h-full block"
               />
             </div>
             {/* Glow */}
