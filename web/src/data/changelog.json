@@ -1,9 +1,24 @@
 {
   "versions": [
     {
-      "version": "1.8.0",
+      "version": "1.8.1",
       "date": "2026-05-27",
       "isLatest": true,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Slack App Home Tab",
+          "items": [
+            "The Daily Dose bot now has a Home tab in Slack with a quick welcome and one-click buttons to the intro video, website, docs, and changelog",
+            "Includes a get-started checklist and a handy commands cheat sheet so new teammates can ramp up without leaving Slack"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.8.0",
+      "date": "2026-05-27",
+      "isLatest": false,
       "changes": [
         {
           "type": "added",
