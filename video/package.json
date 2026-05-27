@@ -1,0 +1,25 @@
+{
+  "name": "daily-dose-video",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "video:studio": "remotion studio src/index.ts",
+    "video:render": "remotion render src/index.ts MainVideo out/MainVideo.mp4",
+    "video:render:reel": "remotion render src/index.ts Reel out/Reel.mp4",
+    "video:vo": "ts-node --project tsconfig.json src/audio/generate.ts",
+    "video:music": "ts-node --project tsconfig.json src/audio/generate-music.ts"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "remotion": "^4.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}

@@ -26,7 +26,12 @@
     "test:coverage": "jest --coverage",
     "format": "prettier --write \"src/**/*.js\" \"scripts/**/*.js\" \"test/**/*.js\" \"*.{js,json,md}\"",
     "format:check": "prettier --check \"src/**/*.js\" \"scripts/**/*.js\" \"test/**/*.js\" \"*.{js,json,md}\"",
-    "prepare": "husky || true"
+    "prepare": "husky || true",
+    "video:studio": "cd video && npm run video:studio",
+    "video:render": "cd video && npm run video:render",
+    "video:render:reel": "cd video && npm run video:render:reel",
+    "video:vo": "cd video && npm run video:vo",
+    "video:music": "cd video && npm run video:music"
   },
   "keywords": [
     "slack",
