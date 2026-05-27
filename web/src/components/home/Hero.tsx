@@ -53,99 +53,24 @@ export const Hero = () => {
             </motion.div>
           </div>
 
-          {/* Right Column: Slack Mock Infographic */}
+          {/* Right Column: Get Started Video */}
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative mx-auto w-full max-w-lg lg:max-w-none"
           >
-            <div className="bg-bg-surface border border-border-default rounded-xl shadow-2xl overflow-hidden backdrop-blur-sm">
-              {/* Slack Header Mock */}
-              <div className="bg-bg-surface/50 border-b border-border-default p-4 flex items-center gap-3">
-                <div className="flex gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50" />
-                  <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50" />
-                </div>
-                <div className="h-4 w-px bg-border-default mx-2" />
-                <span className="text-text-secondary text-sm font-medium flex items-center gap-1">
-                  <span className="text-text-secondary">#</span> daily-standup
-                </span>
-              </div>
-
-              {/* Slack Messages Area */}
-              <div className="p-6 space-y-6">
-                {/* Bot Message */}
-                <div className="flex gap-4">
-                  <div className="shrink-0">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-cyan to-brand-blue flex items-center justify-center text-white">
-                      <img src="/logo.png" alt="Daily Dose" />
-                    </div>
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-bold text-text-primary">
-                        Daily Dose
-                      </span>
-                      <span className="bg-brand-blue/20 text-brand-blue text-[10px] px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">
-                        APP
-                      </span>
-                      <span className="text-xs text-text-secondary">
-                        9:00 AM
-                      </span>
-                    </div>
-                    <div className="text-text-secondary text-sm leading-relaxed">
-                      <p className="mb-2">
-                        Good morning! It's time for our daily standup. 🚀
-                      </p>
-                      <div className="pl-3 border-l-2 border-border-default space-y-1 text-text-secondary">
-                        <p>1. What did you accomplish yesterday?</p>
-                        <p>2. What are you working on today?</p>
-                        <p>3. Any blockers?</p>
-                      </div>
-                      <button className="mt-3 px-4 py-1.5 bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-cyan text-sm font-medium rounded border border-brand-blue/20 transition-colors cursor-pointer">
-                        Submit Standup
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* User Reply */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1, duration: 0.5 }}
-                  className="flex gap-4"
-                >
-                  <div className="shrink-0">
-                    <div className="w-10 h-10 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 font-bold">
-                      JD
-                    </div>
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-bold text-text-primary">
-                        John Doe
-                      </span>
-                      <span className="text-xs text-text-secondary">
-                        9:05 AM
-                      </span>
-                    </div>
-                    <div className="text-text-secondary text-sm leading-relaxed">
-                      <p>Here's my update:</p>
-                      <ul className="list-disc list-inside space-y-1 mt-1 text-text-secondary">
-                        <li>Fixed the authentication bug 🐛</li>
-                        <li>Working on the new dashboard layout 📊</li>
-                        <li>No blockers at the moment ✅</li>
-                      </ul>
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
+            <div className="rounded-xl overflow-hidden shadow-2xl border border-border-default ring-1 ring-brand-cyan/20">
+              <video
+                src="/daily-dose-intro.mp4"
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="w-full block"
+              />
             </div>
-
-            {/* Decorative Elements around the mock */}
+            {/* Glow */}
             <div className="absolute -z-10 top-1/2 right-0 -translate-y-1/2 translate-x-1/4 w-64 h-64 bg-brand-cyan/10 rounded-full blur-[80px]" />
           </motion.div>
         </div>

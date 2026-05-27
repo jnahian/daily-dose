@@ -1,9 +1,9 @@
 {
   "display_information": {
     "name": "Daily Dose",
-    "description": "Automated daily standup bot for teams with multi-tenant organization support",
+    "description": "Standups without the meeting. Automated daily standups, reminders, and team summaries for Slack.",
     "background_color": "#2c3e50",
-    "long_description": "Daily Dose helps teams stay connected with automated daily standups. Features include scheduled reminders, team management, leave tracking, and comprehensive standup reporting across multiple organizations."
+    "long_description": "Daily Dose automates your team's daily standups so you can skip the meeting and keep moving.\n\nEvery morning, team members get a DM reminder with a one-click standup form — three quick fields and they're done. Responses are collected and posted as a formatted summary to your team channel automatically.\n\nKey features:\n• Scheduled reminders at your team's standup time\n• Interactive modal for fast, frictionless submissions\n• Automatic channel summaries with per-member response cards\n• Update or edit submissions for any date\n• Leave management — set leave dates to skip reminders automatically\n• Holiday support — org-wide holidays skip all reminders\n• Work day configuration per member\n• Multi-team and multi-organization support\n• Timezone-aware scheduling per team\n• Admin controls: manual remind, post, preview, and follow-up commands\n\nLearn more and see it in action at dd.jnahian.me"
   },
   "features": {
     "bot_user": {
