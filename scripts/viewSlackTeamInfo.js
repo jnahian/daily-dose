@@ -98,7 +98,7 @@ async function getSlackTeamInfo() {
             if (channel.topic?.value) {
               console.log(`        Topic: ${channel.topic.value}`);
             }
-          } catch (error) {
+          } catch {
             console.log(
               `      - #${channel.name} - ${channel.id} (Error getting details)`
             );
@@ -153,7 +153,7 @@ async function getSlackTeamInfo() {
         const billableUsers = Object.keys(statsResponse.billable_info).length;
         console.log(`   - Billable Users: ${billableUsers}`);
       }
-    } catch (error) {
+    } catch {
       // Billable info might not be available for all plans
     }
   } catch (error) {

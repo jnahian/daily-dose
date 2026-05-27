@@ -144,7 +144,7 @@ async function addOrgAdmin() {
 
     // Add user to organization as ADMIN
     console.log("\n🔐 Adding user to organization as ADMIN...");
-    const orgMember = await prisma.organizationMember.upsert({
+    await prisma.organizationMember.upsert({
       where: {
         organizationId_userId: {
           organizationId: organization.id,

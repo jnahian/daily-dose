@@ -17,7 +17,6 @@ const {
   createSectionBlock,
   createFieldsBlock,
   createDividerBlock,
-  createUserResponseBlocks,
   createLateResponseBlocks,
   createNotRespondedBlocks,
   createOnLeaveBlocks,

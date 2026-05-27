@@ -68,7 +68,7 @@ async function getChannelName(client, channelId) {
       channel: channelId,
     });
     return channelInfo.channel.name;
-  } catch (error) {
+  } catch {
     throw new Error(
       "Failed to get channel information. Please provide a team name explicitly."
     );

@@ -54,7 +54,7 @@ function error(...args) {
       const err = args.find((a) => a instanceof Error);
       if (err) client.captureException(err);
     }
-  } catch (_) {
+  } catch {
     // Sentry module not present or not initialized — ignore.
   }
 }

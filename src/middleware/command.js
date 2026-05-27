@@ -5,7 +5,7 @@ function stripFormatting() {
     console.log("Command:", command);
     if (command.text) {
       // remove Slack-style formatting
-      let clean = removeFormatting(command.text);
+      const clean = removeFormatting(command.text);
       command.text = clean;
     }
 

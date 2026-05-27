@@ -117,7 +117,7 @@ function formatTime12Hour(time24) {
     const timeObj = dayjs(`2000-01-01 ${time24}`, "YYYY-MM-DD HH:mm", true);
     if (!timeObj.isValid()) return time24;
     return timeObj.format("h:mm A");
-  } catch (error) {
+  } catch {
     return time24;
   }
 }

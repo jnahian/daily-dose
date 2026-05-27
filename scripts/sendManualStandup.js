@@ -7,10 +7,7 @@ const standupService = require("../src/services/standupService");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
-const {
-  getUserLogIdentifier,
-  getUserMention,
-} = require("../src/utils/userHelper");
+const { getUserLogIdentifier } = require("../src/utils/userHelper");
 const { formatTime12Hour } = require("../src/utils/dateHelper");
 const {
   createSectionBlock,

@@ -2,20 +2,18 @@ const cron = require("node-cron");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
-const prisma = require("../config/prisma");
 const { getUserLogIdentifier } = require("../utils/userHelper");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 const teamService = require("./teamService");
 const standupService = require("./standupService");
-const { isWorkingDay, formatTime12Hour } = require("../utils/dateHelper");
+const { formatTime12Hour } = require("../utils/dateHelper");
 const {
   getRandomStandupMessage,
   getRandomFollowupMessage,
 } = require("../utils/messageHelper");
 const {
-  createStandupReminderBlocks,
   createSectionBlock,
   createButton,
   createActionsBlock,
@@ -398,7 +396,7 @@ class SchedulerService {
    * Stop all scheduled jobs (useful for cleanup)
    */
   stopAllJobs() {
-    for (const [jobId, job] of this.scheduledJobs) {
+    for (const job of this.scheduledJobs.values()) {
       job.stop();
     }
     this.scheduledJobs.clear();

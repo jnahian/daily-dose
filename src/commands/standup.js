@@ -836,11 +836,6 @@ async function postStandup({ command, ack, respond, client }) {
       team.id,
       targetDate.toDate()
     );
-    const allMembers = await standupService.getActiveMembers(
-      team.id,
-      targetDate.toDate()
-    );
-
     if (responses.length === 0 && lateResponses.length === 0) {
       await updateResponse({
         blocks: createNoDataBlocks(
@@ -900,7 +895,7 @@ async function postStandup({ command, ack, respond, client }) {
  * Admin/Owner command: Preview standup summary
  * Usage: /dd-standup-preview [date] [team-name]
  */
-async function previewStandup({ command, ack, respond, client }) {
+async function previewStandup({ command, ack, respond }) {
   const updateResponse = await ackWithProcessing(
     ack,
     respond,
