@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `isOrganizationOwner()` in `src/utils/permissionHelper.js` selected `createdBy` off `prisma.organization.findUnique()`, but the `Organization` model has no `createdBy` field — ownership is modelled via `OrganizationMember.role = OWNER`. The query threw `PrismaClientValidationError`, the `catch` returned `false`, so **no user was ever recognized as an org owner**: `canManageTeam()` always fell through to the team-admin check, silently blocking owners from every owner-gated command (standup post/remind/preview/followup, leave admin paths, team update). Now checks `prisma.organizationMember.findUnique({ where: { organizationId_userId }, select: { role, isActive } })` for an active `OWNER` membership.
+- `teamService.updateTeam()` (`/dd-team-update`) gated on the caller's `TeamMember.role === "ADMIN"` directly, so an organization owner who was not a team admin of that specific team got "You need admin permissions to update this team". Now gates via `permissionHelper.canManageTeam()` (org owner **or** team admin), consistent with the standup admin commands.
+- Ran a schema-wide audit validating every Prisma query's field references against `schema.prisma`; these two were the only remaining stale-field references (companions to the 1.8.2 `getUserBySlackId` and 1.8.3 `resolveTeamFromContext` fixes).
+
 ## [1.8.3] - 2026-06-03
 
 ### Fixed

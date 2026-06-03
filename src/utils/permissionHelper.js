@@ -8,12 +8,12 @@ const prisma = require("../config/prisma");
  */
 async function isOrganizationOwner(userId, organizationId) {
   try {
-    const organization = await prisma.organization.findUnique({
-      where: { id: organizationId },
-      select: { createdBy: true },
+    const membership = await prisma.organizationMember.findUnique({
+      where: { organizationId_userId: { organizationId, userId } },
+      select: { role: true, isActive: true },
     });
 
-    return organization && organization.createdBy === userId;
+    return !!membership && membership.isActive && membership.role === "OWNER";
   } catch (error) {
     console.error("Error checking organization owner:", error);
     return false;

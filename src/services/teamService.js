@@ -1,5 +1,6 @@
 const prisma = require("../config/prisma");
 const userService = require("./userService");
+const permissionHelper = require("../utils/permissionHelper");
 const { UserFacingError } = require("../utils/errorHelper");
 const dayjs = require("dayjs");
 const customParseFormat = require("dayjs/plugin/customParseFormat");
@@ -349,9 +350,6 @@ class TeamService {
       where: { id: teamId },
       include: {
         organization: true,
-        members: {
-          where: { userId: user.id, isActive: true },
-        },
       },
     });
 
@@ -359,9 +357,9 @@ class TeamService {
       throw new Error("Team not found");
     }
 
-    // Check if user is an admin of this team
-    const membership = team.members[0];
-    if (!membership || membership.role !== "ADMIN") {
+    // Permission: team admin or organization owner
+    const permission = await permissionHelper.canManageTeam(user.id, teamId);
+    if (!permission.canManage) {
       throw new Error("You need admin permissions to update this team");
     }
 
