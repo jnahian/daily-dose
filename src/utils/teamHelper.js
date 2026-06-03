@@ -25,11 +25,11 @@ async function resolveTeamFromContext(
       let organizationIdFilter = null;
 
       if (userId) {
-        const requestingUser = await prisma.user.findUnique({
-          where: { id: userId },
+        const membership = await prisma.organizationMember.findFirst({
+          where: { userId, isActive: true },
           select: { organizationId: true },
         });
-        organizationIdFilter = requestingUser?.organizationId ?? null;
+        organizationIdFilter = membership?.organizationId ?? null;
       }
 
       const normalizedName = teamName.trim();
