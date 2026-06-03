@@ -66,12 +66,12 @@ describe("logger levels", () => {
     expect(consoleSpy.log).toHaveBeenCalled();
   });
 
-  it("prefixes output with [LEVEL] and an ISO timestamp", () => {
+  it("prefixes output with [LEVEL] and no timestamp (PM2 supplies the timestamp)", () => {
     delete process.env.LOG_LEVEL;
     logger = require("../../src/utils/logger");
     logger.info("hello");
     const arg = consoleSpy.log.mock.calls[0][0];
-    expect(arg).toMatch(/^\[\d{4}-\d{2}-\d{2}T.+\] \[INFO\] hello/);
+    expect(arg).toBe("[INFO] hello");
   });
 
   it("LOG_LEVEL=warn suppresses debug and info, emits warn and error", () => {

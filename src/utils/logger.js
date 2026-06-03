@@ -4,8 +4,6 @@
  * logger.error() also forwards to Sentry when src/config/sentry.js is wired.
  */
 
-const dayjs = require("dayjs");
-
 const LEVELS = { debug: 10, info: 20, warn: 30, error: 40 };
 
 function resolveThreshold() {
@@ -15,17 +13,15 @@ function resolveThreshold() {
 
 const THRESHOLD = resolveThreshold();
 
-function formatTimestamp() {
-  return dayjs().toISOString();
-}
-
 function shouldEmit(level) {
   return LEVELS[level] >= THRESHOLD;
 }
 
 function emit(level, args, sink) {
   if (!shouldEmit(level)) return;
-  const prefix = `[${formatTimestamp()}] [${level.toUpperCase()}]`;
+  // Timestamp intentionally omitted — PM2 prepends one line-level timestamp
+  // (ecosystem.config.js `time: true`). Emitting another here double-stamps.
+  const prefix = `[${level.toUpperCase()}]`;
   if (typeof args[0] === "string") {
     sink(prefix + " " + args[0], ...args.slice(1));
   } else {
@@ -66,8 +62,7 @@ function logCommand(payload) {
     info("COMMAND: null payload");
     return;
   }
-  info("COMMAND:", {
-    command: payload.command || "unknown",
+  info(`COMMAND ${payload.command || "unknown"}`, {
     user_id: payload.user_id,
     user_name: payload.user_name,
     channel_id: payload.channel_id,
