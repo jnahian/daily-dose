@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.2] - 2026-06-03
+
+### Changed
+
+- CI workflows bumped to current action and runtime versions: `actions/checkout` and `actions/setup-node` to v5, and the setup-node `node-version` to 24 (`.github/workflows/`).
+
 ### Fixed
 
 - `getUserBySlackId()` in `src/utils/permissionHelper.js` queried `prisma.user.findUnique()` with `include: { organization: true }`, but the `User` model has no singular `organization` relation (orgs are reached through the `organizations` / `OrganizationMember[]` junction). Prisma threw `PrismaClientValidationError`, which the helper's `catch` swallowed into `null`, causing `/dd-standup-post`, `/dd-standup-remind`, `/dd-standup-preview`, and `/dd-standup-followup` to report "User not found" for every user. Removed the broken (and unused — all callers read only `user.id`) `include`.
@@ -482,7 +488,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.8.1...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.8.2...HEAD
+[1.8.2]: https://github.com/jnahian/daily-dose/compare/v1.8.1...v1.8.2
 [1.8.1]: https://github.com/jnahian/daily-dose/compare/v1.8.0...v1.8.1
 [1.8.0]: https://github.com/jnahian/daily-dose/compare/v1.7.1...v1.8.0
 [1.7.1]: https://github.com/jnahian/daily-dose/compare/v1.7.0...v1.7.1
