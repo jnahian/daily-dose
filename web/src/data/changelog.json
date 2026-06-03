@@ -1,9 +1,24 @@
 {
   "versions": [
     {
+      "version": "1.8.5",
+      "date": "2026-06-03",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "fixed",
+          "title": "More reliable standups",
+          "items": [
+            "Fixed errors that could stop standup posting, reminders, and previews from working",
+            "Long updates with lots of links no longer fail to post"
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.8.1",
       "date": "2026-05-27",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "added",

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.5] - 2026-06-03
+
+### Changed
+
+- Logging under PM2 now shows a single timestamp: the app logger no longer adds its own ISO timestamp (PM2 already prepends one to every line via `ecosystem.config.js` `time: true`), and slash-command logs show the command at the top level (`COMMAND /dd-standup-post {…}`) via `logger.logCommand` instead of the raw `console.log("Command:", command)` object dump. PM2 `log_date_format` bumped to millisecond precision. Removed the now-unused `dayjs`/`formatTimestamp` from `logger.js`. (`src/utils/logger.js`, `src/middleware/command.js`, `ecosystem.config.js`, `test/utils/logger.test.js`)
+
+### Fixed
+
+- Standup posting and manual reminders crashed with `TypeError: Cannot read properties of undefined (reading 'chat')`. `/dd-standup-post` passed the raw Slack WebClient to `standupService.postTeamStandup`, which expects an app-shaped object (`slackApp.client.chat`); `/dd-standup-remind` and `/dd-standup-followup` re-ran `schedulerService.initialize(client)`, overwriting the singleton's `this.app` (set with the real Bolt app at startup) with the WebClient and re-registering duplicate cron jobs — breaking automated reminders until the next restart. `postStandup` now passes `{ client }` (matching the `postStandupOnDemand` call sites); the erroneous re-init calls are removed. (`src/commands/standup.js`)
+- `/dd-standup-preview` (and posting) failed with Slack `500 invalid_blocks` for long standups, on two independent counts. Rich-text links were rendered as `<url |text>` — a space before the pipe with no trim on the URL — so a link whose URL had trailing whitespace became invalid; now renders `<url|text>` (trimmed). And each user's yesterday/today went into a section `fields[]` entry, which Slack caps at 2000 chars; long pasted task URLs overflowed it. New shared `blockHelper.createTaskFieldBlocks` keeps the two-column fields layout when each entry fits 2000, otherwise renders full-width section blocks (3000 cap, truncated on a line boundary so links aren't cut mid-URL), replacing the duplicated field-building in `standupService` and `blockHelper`. (`src/utils/messageHelper.js`, `src/utils/blockHelper.js`, `src/services/standupService.js`)
+
 ## [1.8.4] - 2026-06-03
 
 ### Fixed
@@ -502,7 +513,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.8.4...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.8.5...HEAD
+[1.8.5]: https://github.com/jnahian/daily-dose/compare/v1.8.4...v1.8.5
 [1.8.4]: https://github.com/jnahian/daily-dose/compare/v1.8.3...v1.8.4
 [1.8.3]: https://github.com/jnahian/daily-dose/compare/v1.8.2...v1.8.3
 [1.8.2]: https://github.com/jnahian/daily-dose/compare/v1.8.1...v1.8.2
