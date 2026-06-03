@@ -73,8 +73,12 @@ function formatElement(el) {
     return text;
   }
   if (el.type === "link") {
-    const linkText = el.text || el.url;
-    return `<${el.url} ${el.text ? `|${linkText}` : ""}>`;
+    // Slack mrkdwn link syntax is <url|text> with NO space — a space (or
+    // trailing whitespace in the url) makes the URL invalid and Slack rejects
+    // the whole payload with `invalid_blocks`. Trim and omit the separator
+    // space.
+    const url = (el.url || "").trim();
+    return el.text ? `<${url}|${el.text}>` : `<${url}>`;
   }
   if (el.type === "user") return `<@${el.user_id}>`;
   if (el.type === "channel") return `<#${el.channel_id}>`;

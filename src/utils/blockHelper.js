@@ -31,6 +31,49 @@ function createFieldsBlock(fields) {
   };
 }
 
+// Slack Block Kit limits: a section `fields[].text` caps at 2000 chars, a
+// section `text` at 3000. Standup task lists with long pasted URLs can exceed
+// the field cap, which makes Slack reject the whole message with
+// `invalid_blocks`. Keep the compact two-column layout when everything fits;
+// otherwise fall back to full-width sections and truncate only pathological
+// content — on a line boundary, so links aren't cut mid-URL.
+const SLACK_FIELD_MAX = 2000;
+const SLACK_TEXT_MAX = 3000;
+
+function truncateForSlack(text, max) {
+  if (text.length <= max) return text;
+  const marker = "\n… _(truncated)_";
+  const slice = text.slice(0, max - marker.length);
+  const lastNewline = slice.lastIndexOf("\n");
+  const safe = lastNewline > 0 ? slice.slice(0, lastNewline) : slice;
+  return safe + marker;
+}
+
+/**
+ * Build the per-user task blocks (yesterday/today) within Slack's limits.
+ * Two-column fields when each entry fits the 2000-char field cap; otherwise
+ * full-width section blocks (3000-char cap, safely truncated).
+ * @param {string} [yesterdayTasks]
+ * @param {string} [todayTasks]
+ * @returns {Array<object>} Slack blocks (possibly empty)
+ */
+function createTaskFieldBlocks(yesterdayTasks, todayTasks) {
+  const entries = [];
+  if (yesterdayTasks) entries.push(`*📄 Last Working Day*\n${yesterdayTasks}`);
+  if (todayTasks) entries.push(`*🎯 Today*\n${todayTasks}`);
+  if (entries.length === 0) return [];
+
+  if (entries.every((text) => text.length <= SLACK_FIELD_MAX)) {
+    return [
+      createFieldsBlock(entries.map((text) => ({ type: "mrkdwn", text }))),
+    ];
+  }
+
+  return entries.map((text) =>
+    createSectionBlock(truncateForSlack(text, SLACK_TEXT_MAX))
+  );
+}
+
 /**
  * Create a divider block
  * @returns {object} Slack divider block
@@ -234,25 +277,9 @@ function createStandupSummaryHeader(teamName, date, totalMembers, submitted) {
 function createUserResponseBlocks(response) {
   const blocks = [createSectionBlock(`*👤 ${response.userMention}*`)];
 
-  const fields = [];
-
-  if (response.yesterdayTasks) {
-    fields.push({
-      type: "mrkdwn",
-      text: `*📄 Last Working Day*\n${response.yesterdayTasks}`,
-    });
-  }
-
-  if (response.todayTasks) {
-    fields.push({
-      type: "mrkdwn",
-      text: `*🎯 Today*\n${response.todayTasks}`,
-    });
-  }
-
-  if (fields.length > 0) {
-    blocks.push(createFieldsBlock(fields));
-  }
+  blocks.push(
+    ...createTaskFieldBlocks(response.yesterdayTasks, response.todayTasks)
+  );
 
   if (response.blockers && response.blockers.trim()) {
     blocks.push(createSectionBlock(`⚠️ *Blocker:* _${response.blockers}_`));
@@ -698,6 +725,7 @@ function createNoDataBlocks(context = "data", date = null) {
 module.exports = {
   createSectionBlock,
   createFieldsBlock,
+  createTaskFieldBlocks,
   createDividerBlock,
   createActionsBlock,
   createButton,

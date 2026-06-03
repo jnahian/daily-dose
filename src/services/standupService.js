@@ -15,7 +15,7 @@ const { getUserMention, getDisplayName } = require("../utils/userHelper");
 const { formatTasks } = require("../utils/messageHelper");
 const {
   createSectionBlock,
-  createFieldsBlock,
+  createTaskFieldBlocks,
   createDividerBlock,
   createLateResponseBlocks,
   createNotRespondedBlocks,
@@ -298,22 +298,12 @@ class StandupService {
       // Use modified version of createUserResponseBlocks to match existing format
       blocks.push(createSectionBlock(`*👤 ${responseData.userMention}*`));
 
-      const fields = [];
-      if (responseData.yesterdayTasks) {
-        fields.push({
-          type: "mrkdwn",
-          text: `*📄 Last Working Day*\n${responseData.yesterdayTasks}`,
-        });
-      }
-      if (responseData.todayTasks) {
-        fields.push({
-          type: "mrkdwn",
-          text: `*🎯 Today*\n${responseData.todayTasks}`,
-        });
-      }
-      if (fields.length > 0) {
-        blocks.push(createFieldsBlock(fields));
-      }
+      blocks.push(
+        ...createTaskFieldBlocks(
+          responseData.yesterdayTasks,
+          responseData.todayTasks
+        )
+      );
 
       // Blockers section (using existing context format)
       if (responseData.blockers && responseData.blockers.trim()) {
