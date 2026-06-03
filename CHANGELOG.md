@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.3] - 2026-06-03
+
 ### Fixed
 
 - `resolveTeamFromContext()` in `src/utils/teamHelper.js` selected `organizationId` off `prisma.user.findUnique()` to scope a team-name lookup to the requester's org, but the `User` model has no `organizationId` scalar (orgs are reached through the `OrganizationMember` junction). Prisma threw `PrismaClientValidationError`, the `catch` returned a generic "An error occurred while finding the team" message, and `/dd-standup-post`/`-remind`/`-preview`/`-followup` failed whenever a team name was passed. Now resolves the org via `prisma.organizationMember.findFirst({ where: { userId, isActive: true } })`, matching the `getUserOrganization` / `listTeamsForUser` convention. Companion to the 1.8.2 `getUserBySlackId` fix; an app-wide audit confirmed these were the only two stale singular-`User`-organization assumptions.
@@ -492,7 +494,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.8.2...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.8.3...HEAD
+[1.8.3]: https://github.com/jnahian/daily-dose/compare/v1.8.2...v1.8.3
 [1.8.2]: https://github.com/jnahian/daily-dose/compare/v1.8.1...v1.8.2
 [1.8.1]: https://github.com/jnahian/daily-dose/compare/v1.8.0...v1.8.1
 [1.8.0]: https://github.com/jnahian/daily-dose/compare/v1.7.1...v1.8.0
