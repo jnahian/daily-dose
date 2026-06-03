@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.4] - 2026-06-03
+
 ### Fixed
 
 - `isOrganizationOwner()` in `src/utils/permissionHelper.js` selected `createdBy` off `prisma.organization.findUnique()`, but the `Organization` model has no `createdBy` field — ownership is modelled via `OrganizationMember.role = OWNER`. The query threw `PrismaClientValidationError`, the `catch` returned `false`, so **no user was ever recognized as an org owner**: `canManageTeam()` always fell through to the team-admin check, silently blocking owners from every owner-gated command (standup post/remind/preview/followup, leave admin paths, team update). Now checks `prisma.organizationMember.findUnique({ where: { organizationId_userId }, select: { role, isActive } })` for an active `OWNER` membership.
@@ -500,7 +502,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.8.3...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.8.4...HEAD
+[1.8.4]: https://github.com/jnahian/daily-dose/compare/v1.8.3...v1.8.4
 [1.8.3]: https://github.com/jnahian/daily-dose/compare/v1.8.2...v1.8.3
 [1.8.2]: https://github.com/jnahian/daily-dose/compare/v1.8.1...v1.8.2
 [1.8.1]: https://github.com/jnahian/daily-dose/compare/v1.8.0...v1.8.1
