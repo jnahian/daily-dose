@@ -110,9 +110,6 @@ async function getUserBySlackId(slackUserId) {
   try {
     const user = await prisma.user.findUnique({
       where: { slackUserId },
-      include: {
-        organization: true,
-      },
     });
 
     return user;
