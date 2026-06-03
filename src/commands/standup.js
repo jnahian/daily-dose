@@ -672,7 +672,7 @@ async function handleStandupUpdateSubmission({ ack, body, view, client }) {
  * Admin/Owner command: Send standup reminders to team members
  * Usage: /dd-standup-remind [team-name]
  */
-async function sendReminders({ command, ack, respond, client }) {
+async function sendReminders({ command, ack, respond }) {
   const updateResponse = await ackWithProcessing(
     ack,
     respond,
@@ -721,8 +721,9 @@ async function sendReminders({ command, ack, respond, client }) {
       return;
     }
 
-    // Initialize scheduler service and send reminders
-    await schedulerService.initialize(client);
+    // Scheduler is already initialized with the Bolt app at startup (app.js).
+    // Do NOT re-initialize here: passing the WebClient would overwrite this.app
+    // (breaking this.app.client.chat) and re-register duplicate cron jobs.
     await schedulerService.sendStandupReminders(team);
 
     // Get count of active members for confirmation
@@ -846,11 +847,12 @@ async function postStandup({ command, ack, respond, client }) {
       return;
     }
 
-    // Post standup using service
+    // Post standup using service. postTeamStandup expects an app-shaped object
+    // (it calls slackApp.client.chat), so wrap the WebClient as { client }.
     const result = await standupService.postTeamStandup(
       team,
       targetDate.toDate(),
-      client
+      { client }
     );
 
     if (result?.skipped) {
@@ -1071,7 +1073,7 @@ async function previewStandup({ command, ack, respond }) {
  * Admin/Owner command: Send followup reminders to non-responders
  * Usage: /dd-standup-followup [team-name]
  */
-async function sendFollowupReminders({ command, ack, respond, client }) {
+async function sendFollowupReminders({ command, ack, respond }) {
   const updateResponse = await ackWithProcessing(
     ack,
     respond,
@@ -1120,8 +1122,8 @@ async function sendFollowupReminders({ command, ack, respond, client }) {
       return;
     }
 
-    // Initialize scheduler service and send followup reminders
-    await schedulerService.initialize(client);
+    // Scheduler is already initialized with the Bolt app at startup (app.js);
+    // do NOT re-initialize here (see sendReminders above).
     await schedulerService.sendFollowupReminders(team);
 
     // Get count of pending members for confirmation
