@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `getUserBySlackId()` in `src/utils/permissionHelper.js` queried `prisma.user.findUnique()` with `include: { organization: true }`, but the `User` model has no singular `organization` relation (orgs are reached through the `organizations` / `OrganizationMember[]` junction). Prisma threw `PrismaClientValidationError`, which the helper's `catch` swallowed into `null`, causing `/dd-standup-post`, `/dd-standup-remind`, `/dd-standup-preview`, and `/dd-standup-followup` to report "User not found" for every user. Removed the broken (and unused — all callers read only `user.id`) `include`.
+
 ## [1.8.1] - 2026-05-27
 
 ### Added
