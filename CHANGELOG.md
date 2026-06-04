@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.6] - 2026-06-04
+
+### Fixed
+
+- Opening the standup modal failed with Slack `invalid_arguments` (`invalid additional property: style [json-pointer:/view/blocks/2/element/initial_value/elements/0/elements/1]`) whenever the user's previous standup contained an indented (nested) bullet or numbered list. `extractRichTextValue` stores nested list items as space-indented lines, and `convertTextToRichText` rebuilt them via `parseListStructure`, which modeled nesting by placing a child `rich_text_list` inside the parent list's `elements` array — a shape Slack's rich_text schema rejects (a list's `elements` may contain only `rich_text_section`). Replaced `parseListStructure` with `parseListBlocks`, which expresses nesting the way Slack requires: flat sibling `rich_text_list` blocks distinguished by an integer `indent` level, grouping consecutive same-`(indent, style)` items into one block so ordered numbering stays contiguous. Added `test/utils/messageHelper.test.js` covering the crash repro, the Slack schema invariant, indent-based nesting, and round-trip stability. (`src/utils/messageHelper.js`, `test/utils/messageHelper.test.js`)
+
 ## [1.8.5] - 2026-06-03
 
 ### Changed
@@ -513,7 +519,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.8.5...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.8.6...HEAD
+[1.8.6]: https://github.com/jnahian/daily-dose/compare/v1.8.5...v1.8.6
 [1.8.5]: https://github.com/jnahian/daily-dose/compare/v1.8.4...v1.8.5
 [1.8.4]: https://github.com/jnahian/daily-dose/compare/v1.8.3...v1.8.4
 [1.8.3]: https://github.com/jnahian/daily-dose/compare/v1.8.2...v1.8.3
