@@ -235,14 +235,11 @@ function convertTextToRichText(text) {
     // Handle lists (both bulleted and numbered) with multi-level support
     const listInfo = getListItemInfo(line);
     if (listInfo) {
-      // Parse the entire list structure recursively
-      const { listElement, nextIndex } = parseListStructure(
-        lines,
-        i,
-        listInfo.type,
-        listInfo.indentLevel
-      );
-      elements.push(listElement);
+      // Slack expresses nested lists as sibling rich_text_list blocks with an
+      // `indent` level — NOT as lists nested inside another list's `elements`
+      // (that shape is rejected with "invalid additional property: style").
+      const { lists, nextIndex } = parseListBlocks(lines, i);
+      elements.push(...lists);
       i = nextIndex;
       continue;
     }
@@ -333,58 +330,58 @@ function getIndentLevel(line) {
 }
 
 /**
- * Recursively parse list structure with unlimited nesting levels
+ * Parse a run of consecutive list lines into Slack rich_text_list blocks.
+ *
+ * Slack represents nesting with sibling lists distinguished by an integer
+ * `indent` level — a list may NOT contain another list inside its `elements`.
+ * Consecutive items sharing the same (indent, style) are grouped into one list
+ * block so ordered-list numbering stays contiguous.
+ *
  * @param {Array} lines - Array of lines to parse
  * @param {number} startIndex - Starting index in the lines array
- * @param {string} listType - Type of list ("bullet" or "ordered")
- * @param {number} baseIndentLevel - Base indentation level for this list
- * @returns {object} Object with listElement and nextIndex
+ * @returns {object} Object with `lists` (array of rich_text_list) and nextIndex
  */
-function parseListStructure(lines, startIndex, listType, baseIndentLevel) {
-  const listItems = [];
+function parseListBlocks(lines, startIndex) {
+  const items = [];
   let i = startIndex;
 
   while (i < lines.length) {
-    const currentListInfo = getListItemInfo(lines[i]);
-
-    // Stop if not a list item or different type
-    if (!currentListInfo || currentListInfo.type !== listType) {
-      break;
-    }
-
-    // Stop if less indented than base level
-    if (currentListInfo.indentLevel < baseIndentLevel) {
-      break;
-    }
-
-    if (currentListInfo.indentLevel === baseIndentLevel) {
-      // Same level item
-      listItems.push({
-        type: "rich_text_section",
-        elements: parseInlineFormatting(currentListInfo.text),
-      });
-      i++;
-    } else if (currentListInfo.indentLevel > baseIndentLevel) {
-      // Nested list - recursively parse it
-      const { listElement: nestedList, nextIndex } = parseListStructure(
-        lines,
-        i,
-        currentListInfo.type,
-        currentListInfo.indentLevel
-      );
-      listItems.push(nestedList);
-      i = nextIndex;
-    }
+    const info = getListItemInfo(lines[i]);
+    if (!info) break;
+    items.push(info);
+    i++;
   }
 
-  return {
-    listElement: {
-      type: "rich_text_list",
-      style: listType === "bullet" ? "bullet" : "ordered",
-      elements: listItems,
-    },
-    nextIndex: i,
-  };
+  // Map distinct raw indentation widths to 0,1,2,... indent levels.
+  const widths = [...new Set(items.map((it) => it.indentLevel))].sort(
+    (a, b) => a - b
+  );
+
+  const lists = [];
+  let current = null;
+
+  for (const item of items) {
+    const indent = widths.indexOf(item.indentLevel);
+    const style = item.type === "ordered" ? "ordered" : "bullet";
+
+    if (
+      !current ||
+      current.style !== style ||
+      (current.indent || 0) !== indent
+    ) {
+      current = { type: "rich_text_list", style };
+      if (indent > 0) current.indent = indent;
+      current.elements = [];
+      lists.push(current);
+    }
+
+    current.elements.push({
+      type: "rich_text_section",
+      elements: parseInlineFormatting(item.text),
+    });
+  }
+
+  return { lists, nextIndex: i };
 }
 
 /**
@@ -526,5 +523,5 @@ module.exports = {
   parseInlineFormatting,
   getIndentLevel,
   getListItemInfo,
-  parseListStructure,
+  parseListBlocks,
 };
