@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Slack manifest: set `should_escape: true` on `/dd-standup-post` and `/dd-standup-preview` so a typed `@user` is delivered to the app as an escaped mention (`<@U…>`) rather than plain text — required for the v1.9.0 individual-standup `@mention` feature to work in the live app (`parseCommandArguments` only matches the escaped form). Also updated their `usage_hint`/`description` to advertise the `[@user]` argument. Requires pushing the manifest to Slack (`npm run manifest:update`). (`slack-app-manifest.json`)
+
 ## [1.9.0] - 2026-06-08
 
 ### Added
