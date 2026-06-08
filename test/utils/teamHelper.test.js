@@ -41,4 +41,18 @@ describe("parseCommandArguments mention extraction", () => {
       mentionedUserId: null,
     });
   });
+
+  it("parses team name when the mention is in the middle", () => {
+    const res = parseCommandArguments("Engineering <@U123|alice> 2025-01-15");
+    expect(res).toEqual({
+      date: "2025-01-15",
+      teamName: "Engineering",
+      mentionedUserId: "U123",
+    });
+  });
+
+  it("does not match a lowercase user id", () => {
+    const res = parseCommandArguments("<@u123abc>");
+    expect(res.mentionedUserId).toBeNull();
+  });
 });
