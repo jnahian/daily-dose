@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `/dd-standup-preview` and `/dd-standup-post` now accept an optional `@mention` to preview or post a single team member's standup. Preview is ephemeral; post appends the member's response as a threaded reply under the day's team standup post (`reply_broadcast: true`), auto-posting the team summary first if no thread exists yet. New `standupService.getUserResponse`, `formatIndividualResponseMessage`, and `postIndividualResponse`; `teamHelper.parseCommandArguments` now returns `mentionedUserId`; reuses `blockHelper.createUserResponseBlocks` (no admin label). Always appends — no dedup. (`src/commands/standup.js`, `src/services/standupService.js`, `src/utils/teamHelper.js`)
+
+### Changed
+
+- `permissionHelper.canManageTeam` now grants management to organization **admins** (`OrgRole.ADMIN`), not just owners and team admins — applies to all admin commands. New `isOrganizationAdmin` helper. (`src/utils/permissionHelper.js`)
+
 ## [1.8.7] - 2026-06-08
 
 ### Fixed
