@@ -21,6 +21,26 @@ async function isOrganizationOwner(userId, organizationId) {
 }
 
 /**
+ * Check if a user is an admin of an organization
+ * @param {string} userId - The user ID to check
+ * @param {string} organizationId - The organization ID to check against
+ * @returns {Promise<boolean>} True if user is an organization admin
+ */
+async function isOrganizationAdmin(userId, organizationId) {
+  try {
+    const membership = await prisma.organizationMember.findUnique({
+      where: { organizationId_userId: { organizationId, userId } },
+      select: { role: true, isActive: true },
+    });
+
+    return !!membership && membership.isActive && membership.role === "ADMIN";
+  } catch (error) {
+    console.error("Error checking organization admin:", error);
+    return false;
+  }
+}
+
+/**
  * Check if a user is an admin of a specific team
  * @param {number} userId - The user ID to check
  * @param {number} teamId - The team ID to check against
@@ -76,6 +96,16 @@ async function canManageTeam(userId, teamId) {
       };
     }
 
+    // Check if user is an organization admin
+    const isOrgAdmin = await isOrganizationAdmin(userId, team.organizationId);
+    if (isOrgAdmin) {
+      return {
+        canManage: true,
+        role: "ORG_ADMIN",
+        reason: null,
+      };
+    }
+
     // Check if user is team admin
     const isAdmin = await isTeamAdmin(userId, teamId);
     if (isAdmin) {
@@ -121,6 +151,7 @@ async function getUserBySlackId(slackUserId) {
 
 module.exports = {
   isOrganizationOwner,
+  isOrganizationAdmin,
   isTeamAdmin,
   canManageTeam,
   getUserBySlackId,

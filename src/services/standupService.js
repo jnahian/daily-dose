@@ -18,6 +18,7 @@ const {
   createTaskFieldBlocks,
   createDividerBlock,
   createLateResponseBlocks,
+  createUserResponseBlocks,
   createNotRespondedBlocks,
   createOnLeaveBlocks,
 } = require("../utils/blockHelper");
@@ -158,6 +159,29 @@ class StandupService {
       },
       orderBy: {
         submittedAt: "asc",
+      },
+    });
+  }
+
+  async getUserResponse(teamId, userId, date) {
+    const startOfDay = dayjs(date).startOf("day").toDate();
+    const endOfDay = dayjs(date).endOf("day").toDate();
+
+    return await prisma.standupResponse.findFirst({
+      where: {
+        teamId,
+        userId,
+        standupDate: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+      include: {
+        user: true,
+      },
+      // Most recent submission wins if the user re-submitted
+      orderBy: {
+        submittedAt: "desc",
       },
     });
   }
@@ -349,6 +373,20 @@ class StandupService {
     return {
       text: `Late Submission from ${getDisplayName(response.user)}`,
       blocks,
+    };
+  }
+
+  async formatIndividualResponseMessage(response) {
+    const responseData = {
+      userMention: getUserMention(response.user),
+      yesterdayTasks: formatTasks(response.yesterdayTasks),
+      todayTasks: formatTasks(response.todayTasks),
+      blockers: response.blockers,
+    };
+
+    return {
+      text: `Standup from ${getDisplayName(response.user)}`,
+      blocks: createUserResponseBlocks(responseData),
     };
   }
 
@@ -658,6 +696,46 @@ class StandupService {
     } catch (error) {
       console.error(
         `Failed to post late responses for team ${team.name}:`,
+        error
+      );
+      throw error;
+    }
+  }
+
+  async postIndividualResponse(team, date, response, slackApp) {
+    try {
+      // Ensure a team standup thread exists; auto-create it if missing.
+      let standupPost = await this.getStandupPost(team.id, date);
+      if (!standupPost || !standupPost.slackMessageTs) {
+        await this.postTeamStandup(team, date, slackApp);
+        standupPost = await this.getStandupPost(team.id, date);
+      }
+
+      if (!standupPost || !standupPost.slackMessageTs) {
+        throw new Error(
+          "Could not find or create a standup thread to post into"
+        );
+      }
+
+      const message = await this.formatIndividualResponseMessage(response);
+
+      const result = await slackApp.client.chat.postMessage({
+        channel: standupPost.channelId,
+        thread_ts: standupPost.slackMessageTs,
+        reply_broadcast: true,
+        ...message,
+      });
+
+      console.log(
+        `✅ Posted individual standup for ${getDisplayName(
+          response.user
+        )} in team ${team.name}`
+      );
+
+      return { ts: result.ts, channel: standupPost.channelId };
+    } catch (error) {
+      console.error(
+        `Failed to post individual standup for team ${team.name}:`,
         error
       );
       throw error;

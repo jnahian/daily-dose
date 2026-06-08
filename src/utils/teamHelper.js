@@ -187,16 +187,27 @@ function parseTeamName(commandText) {
  * - "team name" 2025-01-15
  *
  * @param {string} commandText - The command text to parse
- * @returns {{date: string|null, teamName: string|null}} Parsed date and team name
+ * @returns {{date: string|null, teamName: string|null, mentionedUserId: string|null}} Parsed date, team name, and mentioned user ID
  */
 function parseCommandArguments(commandText) {
   if (!commandText || !commandText.trim()) {
-    return { date: null, teamName: null };
+    return { date: null, teamName: null, mentionedUserId: null };
   }
 
-  const text = commandText.trim();
+  let text = commandText.trim();
   let date = null;
   let teamName = null;
+  let mentionedUserId = null;
+
+  // Mention pattern: <@U123> or <@U123|name>. Slack user IDs are uppercase
+  // alphanumeric. Use the first mention; strip all before date/team parsing.
+  const mentionPattern = /<@([A-Z0-9]+)(?:\|[^>]+)?>/g;
+  const firstMention = mentionPattern.exec(text);
+  if (firstMention) {
+    mentionedUserId = firstMention[1];
+    mentionPattern.lastIndex = 0; // reset stateful /g regex before reuse
+    text = text.replace(mentionPattern, "").trim();
+  }
 
   // Date pattern: YYYY-MM-DD
   const datePattern = /\b(\d{4}-\d{2}-\d{2})\b/;
@@ -204,17 +215,15 @@ function parseCommandArguments(commandText) {
 
   if (dateMatch) {
     date = dateMatch[1];
-    // Remove date from text to extract team name
     const remainingText = text.replace(dateMatch[0], "").trim();
     if (remainingText) {
       teamName = parseTeamName(remainingText);
     }
-  } else {
-    // No date, entire text is team name
+  } else if (text) {
     teamName = parseTeamName(text);
   }
 
-  return { date, teamName };
+  return { date, teamName, mentionedUserId };
 }
 
 /**

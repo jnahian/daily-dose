@@ -190,13 +190,14 @@ These commands allow team admins and organization owners to manually trigger sta
 **Permission Requirements:**
 
 - **Team Admins**: Can use commands in their team's channel without specifying team name
+- **Organization Admins**: Can run admin commands in any team's channel without specifying a team name (channel-based resolution, like team admins), for any team in the organization — or specify a team name explicitly to act from any channel
 - **Organization Owners**: Can use commands from any channel but must specify team name
 
 #### Command Overview
 
 - `/dd-standup-remind [team-name]` - Send standup reminders to team members ⚠️ **(admin/owner only)**
-- `/dd-standup-post [YYYY-MM-DD] [team-name]` - Post standup summary to channel ⚠️ **(admin/owner only)**
-- `/dd-standup-preview [YYYY-MM-DD] [team-name]` - Preview standup summary before posting ⚠️ **(admin/owner only)**
+- `/dd-standup-post [@user] [YYYY-MM-DD] [team-name]` - Post standup summary to channel, or append a single member's standup as a threaded reply when you @mention them ⚠️ **(admin/owner only)**
+- `/dd-standup-preview [@user] [YYYY-MM-DD] [team-name]` - Preview the team summary, or a single member's standup when you @mention them (ephemeral) ⚠️ **(admin/owner only)**
 - `/dd-standup-followup [team-name]` - Send followup reminders to non-responders ⚠️ **(admin/owner only)**
 
 #### Context-Aware Behavior
@@ -259,11 +260,12 @@ These commands allow team admins and organization owners to manually trigger sta
   - Send additional reminders if team members forgot
   - Test reminder functionality for new teams
 
-**Standup Post** - `/dd-standup-post [YYYY-MM-DD] [team-name]`
+**Standup Post** - `/dd-standup-post [@user] [YYYY-MM-DD] [team-name]`
 
-- **Purpose**: Manually post standup summary to the team channel
+- **Purpose**: Manually post standup summary to the team channel, or append a single member's standup as a threaded reply
 - **Date format**: YYYY-MM-DD (e.g., 2024-12-20)
 - **Default**: Posts today's standup if no date specified
+- **Individual post**: When an @mention is provided, appends that member's standup response as a threaded reply under the day's team standup post (broadcast to channel). If no team standup thread exists yet for that date, the team summary is auto-posted first to create the thread.
 - **Context-aware**:
   - Admins in team channel: `/dd-standup-post` or `/dd-standup-post 2024-12-20`
   - Owners from anywhere: `/dd-standup-post Engineering` or `/dd-standup-post 2024-12-20 Engineering`
@@ -271,13 +273,15 @@ These commands allow team admins and organization owners to manually trigger sta
   - Post summary early before scheduled posting time
   - Re-post summary if original was deleted
   - Post past standup summaries that were missed
+  - Share a single team member's standup into the thread on demand
 
-**Standup Preview** - `/dd-standup-preview [YYYY-MM-DD] [team-name]`
+**Standup Preview** - `/dd-standup-preview [@user] [YYYY-MM-DD] [team-name]`
 
 - **Purpose**: Preview standup summary before posting to channel (ephemeral message)
 - **Date format**: YYYY-MM-DD (e.g., 2024-12-20)
 - **Default**: Previews today's standup if no date specified
 - **Visibility**: Only visible to you (ephemeral)
+- **Individual preview**: When an @mention is provided, previews only that member's standup response instead of the full team summary (still ephemeral).
 - **Context-aware**:
   - Admins in team channel: `/dd-standup-preview` or `/dd-standup-preview 2024-12-20`
   - Owners from anywhere: `/dd-standup-preview Engineering` or `/dd-standup-preview 2024-12-20 Engineering`
@@ -285,6 +289,7 @@ These commands allow team admins and organization owners to manually trigger sta
   - Check what the summary looks like before posting
   - Verify all expected submissions are included
   - Review standup data without posting to channel
+  - Inspect a specific team member's standup privately
 
 **Standup Followup** - `/dd-standup-followup [team-name]`
 
