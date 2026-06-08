@@ -179,6 +179,7 @@ class StandupService {
       include: {
         user: true,
       },
+      // Most recent submission wins if the user re-submitted
       orderBy: {
         submittedAt: "desc",
       },
@@ -702,27 +703,43 @@ class StandupService {
   }
 
   async postIndividualResponse(team, date, response, slackApp) {
-    // Ensure a team standup thread exists; auto-create it if missing.
-    let standupPost = await this.getStandupPost(team.id, date);
-    if (!standupPost || !standupPost.slackMessageTs) {
-      await this.postTeamStandup(team, date, slackApp);
-      standupPost = await this.getStandupPost(team.id, date);
+    try {
+      // Ensure a team standup thread exists; auto-create it if missing.
+      let standupPost = await this.getStandupPost(team.id, date);
+      if (!standupPost || !standupPost.slackMessageTs) {
+        await this.postTeamStandup(team, date, slackApp);
+        standupPost = await this.getStandupPost(team.id, date);
+      }
+
+      if (!standupPost || !standupPost.slackMessageTs) {
+        throw new Error(
+          "Could not find or create a standup thread to post into"
+        );
+      }
+
+      const message = await this.formatIndividualResponseMessage(response);
+
+      const result = await slackApp.client.chat.postMessage({
+        channel: standupPost.channelId,
+        thread_ts: standupPost.slackMessageTs,
+        reply_broadcast: true,
+        ...message,
+      });
+
+      console.log(
+        `✅ Posted individual standup for ${getDisplayName(
+          response.user
+        )} in team ${team.name}`
+      );
+
+      return { ts: result.ts, channel: standupPost.channelId };
+    } catch (error) {
+      console.error(
+        `Failed to post individual standup for team ${team.name}:`,
+        error
+      );
+      throw error;
     }
-
-    if (!standupPost || !standupPost.slackMessageTs) {
-      throw new Error("Could not find or create a standup thread to post into");
-    }
-
-    const message = await this.formatIndividualResponseMessage(response);
-
-    const result = await slackApp.client.chat.postMessage({
-      channel: standupPost.channelId,
-      thread_ts: standupPost.slackMessageTs,
-      reply_broadcast: true,
-      ...message,
-    });
-
-    return { ts: result.ts, channel: standupPost.channelId };
   }
 }
 

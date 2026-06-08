@@ -52,6 +52,7 @@ describe("formatIndividualResponseMessage", () => {
     const msg = await standupService.formatIndividualResponseMessage(response);
 
     expect(typeof msg.text).toBe("string");
+    expect(msg.text).toContain("Alice");
     expect(Array.isArray(msg.blocks)).toBe(true);
     // First block is the member header section "*👤 <@U1>*"
     expect(msg.blocks[0].text.text).toContain("<@U1>");
@@ -123,5 +124,22 @@ describe("postIndividualResponse", () => {
     expect(postMessage).toHaveBeenCalledWith(
       expect.objectContaining({ thread_ts: "333.3", reply_broadcast: true })
     );
+  });
+
+  it("throws when no thread can be found or created", async () => {
+    jest.spyOn(standupService, "getStandupPost").mockResolvedValue(null);
+    jest.spyOn(standupService, "postTeamStandup").mockResolvedValue({});
+    const postMessage = jest.fn();
+    const slackApp = { client: { chat: { postMessage } } };
+
+    await expect(
+      standupService.postIndividualResponse(
+        team,
+        new Date("2025-01-15"),
+        response,
+        slackApp
+      )
+    ).rejects.toThrow();
+    expect(postMessage).not.toHaveBeenCalled();
   });
 });
