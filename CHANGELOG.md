@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-06-09
+
 ### Fixed
 
 - The v1.9.0 individual-standup `@mention` feature never matched the mention: `/dd-standup-post` and `/dd-standup-preview` were registered with the `stripFormatting()` middleware, whose `removeFormatting()` rewrites `<@U123|alice>` to `alice` (its `<…|…>` link rule) before the handler runs, so `parseCommandArguments` saw plain text and fell through to the team path. Removed `stripFormatting()` from both commands so the raw `<@U…|name>` wrapper survives — matching the existing suspension/promote commands, which already skip it for the same reason. (`src/commands/index.js`)
@@ -540,7 +542,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.9.0...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.9.1...HEAD
+[1.9.1]: https://github.com/jnahian/daily-dose/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/jnahian/daily-dose/compare/v1.8.7...v1.9.0
 [1.8.7]: https://github.com/jnahian/daily-dose/compare/v1.8.6...v1.8.7
 [1.8.6]: https://github.com/jnahian/daily-dose/compare/v1.8.5...v1.8.6

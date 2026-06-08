@@ -1,9 +1,23 @@
 {
   "versions": [
     {
+      "version": "1.9.1",
+      "date": "2026-06-09",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "fixed",
+          "title": "Posting a member's standup by @mention now works",
+          "items": [
+            "Mentioning a member in /dd-standup-post or /dd-standup-preview now correctly targets that person instead of the whole team"
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.9.0",
       "date": "2026-06-08",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "added",
