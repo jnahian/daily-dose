@@ -700,6 +700,30 @@ class StandupService {
       throw error;
     }
   }
+
+  async postIndividualResponse(team, date, response, slackApp) {
+    // Ensure a team standup thread exists; auto-create it if missing.
+    let standupPost = await this.getStandupPost(team.id, date);
+    if (!standupPost || !standupPost.slackMessageTs) {
+      await this.postTeamStandup(team, date, slackApp);
+      standupPost = await this.getStandupPost(team.id, date);
+    }
+
+    if (!standupPost || !standupPost.slackMessageTs) {
+      throw new Error("Could not find or create a standup thread to post into");
+    }
+
+    const message = await this.formatIndividualResponseMessage(response);
+
+    const result = await slackApp.client.chat.postMessage({
+      channel: standupPost.channelId,
+      thread_ts: standupPost.slackMessageTs,
+      reply_broadcast: true,
+      ...message,
+    });
+
+    return { ts: result.ts, channel: standupPost.channelId };
+  }
 }
 
 module.exports = new StandupService();
