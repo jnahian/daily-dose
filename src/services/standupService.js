@@ -162,6 +162,28 @@ class StandupService {
     });
   }
 
+  async getUserResponse(teamId, userId, date) {
+    const startOfDay = dayjs(date).startOf("day").toDate();
+    const endOfDay = dayjs(date).endOf("day").toDate();
+
+    return await prisma.standupResponse.findFirst({
+      where: {
+        teamId,
+        userId,
+        standupDate: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+      include: {
+        user: true,
+      },
+      orderBy: {
+        submittedAt: "desc",
+      },
+    });
+  }
+
   async saveStandupPost(teamId, date, messageTs, channelId) {
     const standupDate = dayjs(date).toDate();
 
