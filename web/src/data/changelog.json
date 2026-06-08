@@ -2,9 +2,16 @@
   "versions": [
     {
       "version": "1.8.6",
-      "date": "2026-06-04",
+      "date": "2026-06-08",
       "isLatest": true,
       "changes": [
+        {
+          "type": "fixed",
+          "title": "Late standups post reliably",
+          "items": [
+            "Fixed late standup submissions failing to post when an update contained long content such as pasted links"
+          ]
+        },
         {
           "type": "fixed",
           "title": "Standup form opens reliably",
