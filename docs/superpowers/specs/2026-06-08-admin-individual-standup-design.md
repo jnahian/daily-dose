@@ -76,8 +76,9 @@ In `previewStandup`, when `mentionedUserId` is present:
 
 In `postStandup`, when `mentionedUserId` is present:
 
-1. Steps 1–4 as preview (errors use the same response style as the existing team
-   post command).
+1. Steps 1–4 as preview. Unlike the team `/dd-standup-post`, **individual-post
+   errors are ephemeral** (only the admin needs to see "not a member" / "no
+   standup found"); the success confirmation is ephemeral too.
 2. Ensure the day's team `StandupPost` thread exists
    (`standupService.getStandupPost`). **If missing, auto-post the team summary**
    via `standupService.postTeamStandup(team, date, { client })` to create the
