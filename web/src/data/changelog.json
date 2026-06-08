@@ -1,9 +1,31 @@
 {
   "versions": [
     {
-      "version": "1.8.7",
+      "version": "1.9.0",
       "date": "2026-06-08",
       "isLatest": true,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Preview and post a single member's standup",
+          "items": [
+            "Admins can preview or post one team member's standup by mentioning them, e.g. /dd-standup-preview @alice or /dd-standup-post @alice",
+            "Posting a member adds their update as a reply under the day's team standup, and posts the team summary first if it isn't up yet"
+          ]
+        },
+        {
+          "type": "changed",
+          "title": "Organization admins get admin access",
+          "items": [
+            "Organization admins can now run admin standup commands, alongside owners and team admins"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.8.7",
+      "date": "2026-06-08",
+      "isLatest": false,
       "changes": [
         {
           "type": "fixed",

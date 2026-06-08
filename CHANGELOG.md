@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-06-08
+
 ### Added
 
 - `/dd-standup-preview` and `/dd-standup-post` now accept an optional `@mention` to preview or post a single team member's standup. Preview is ephemeral; post appends the member's response as a threaded reply under the day's team standup post (`reply_broadcast: true`), auto-posting the team summary first if no thread exists yet. New `standupService.getUserResponse`, `formatIndividualResponseMessage`, and `postIndividualResponse`; `teamHelper.parseCommandArguments` now returns `mentionedUserId`; reuses `blockHelper.createUserResponseBlocks` (no admin label). Always appends — no dedup. (`src/commands/standup.js`, `src/services/standupService.js`, `src/utils/teamHelper.js`)
@@ -533,7 +535,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.8.7...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/jnahian/daily-dose/compare/v1.8.7...v1.9.0
 [1.8.7]: https://github.com/jnahian/daily-dose/compare/v1.8.6...v1.8.7
 [1.8.6]: https://github.com/jnahian/daily-dose/compare/v1.8.5...v1.8.6
 [1.8.5]: https://github.com/jnahian/daily-dose/compare/v1.8.4...v1.8.5
