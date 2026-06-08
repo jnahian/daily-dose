@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Posting a **late** standup submission failed with Slack `invalid_blocks` (`must be less than 2001 characters [json-pointer:/blocks/2/fields/0/text]`) when the user's tasks contained long pasted content (e.g. URLs). The 1.8.5 fix routed the regular post path through the limit-aware `blockHelper.createTaskFieldBlocks`, but `createLateResponseBlocks` still hand-built the section `fields[]` with no length check, so a late entry over the 2000-char field cap was rejected. `createLateResponseBlocks` now reuses `createTaskFieldBlocks` (compact two-column fields when each entry fits 2000 chars, otherwise full-width sections truncated on a line boundary). Added `test/utils/blockHelper.test.js` covering both the regular and late paths against Slack's field/text limits. (`src/utils/blockHelper.js`, `test/utils/blockHelper.test.js`)
+
 ## [1.8.6] - 2026-06-04
 
 ### Fixed

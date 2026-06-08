@@ -301,25 +301,9 @@ function createLateResponseBlocks(response) {
     createSectionBlock(`*👤 ${response.userMention}*`),
   ];
 
-  const fields = [];
-
-  if (response.yesterdayTasks) {
-    fields.push({
-      type: "mrkdwn",
-      text: `*📄 Last Working Day*\n${response.yesterdayTasks}`,
-    });
-  }
-
-  if (response.todayTasks) {
-    fields.push({
-      type: "mrkdwn",
-      text: `*🎯 Today*\n${response.todayTasks}`,
-    });
-  }
-
-  if (fields.length > 0) {
-    blocks.push(createFieldsBlock(fields));
-  }
+  blocks.push(
+    ...createTaskFieldBlocks(response.yesterdayTasks, response.todayTasks)
+  );
 
   if (response.blockers && response.blockers.trim()) {
     blocks.push({
