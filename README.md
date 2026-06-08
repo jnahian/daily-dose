@@ -190,7 +190,7 @@ These commands allow team admins and organization owners to manually trigger sta
 **Permission Requirements:**
 
 - **Team Admins**: Can use commands in their team's channel without specifying team name
-- **Organization Admins**: Can use commands from any channel (same access as owners)
+- **Organization Admins**: Can run admin commands in any team's channel without specifying a team name (channel-based resolution, like team admins), for any team in the organization — or specify a team name explicitly to act from any channel
 - **Organization Owners**: Can use commands from any channel but must specify team name
 
 #### Command Overview
