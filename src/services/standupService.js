@@ -18,6 +18,7 @@ const {
   createTaskFieldBlocks,
   createDividerBlock,
   createLateResponseBlocks,
+  createUserResponseBlocks,
   createNotRespondedBlocks,
   createOnLeaveBlocks,
 } = require("../utils/blockHelper");
@@ -371,6 +372,20 @@ class StandupService {
     return {
       text: `Late Submission from ${getDisplayName(response.user)}`,
       blocks,
+    };
+  }
+
+  async formatIndividualResponseMessage(response) {
+    const responseData = {
+      userMention: getUserMention(response.user),
+      yesterdayTasks: formatTasks(response.yesterdayTasks),
+      todayTasks: formatTasks(response.todayTasks),
+      blockers: response.blockers,
+    };
+
+    return {
+      text: `Standup from ${getDisplayName(response.user)}`,
+      blocks: createUserResponseBlocks(responseData),
     };
   }
 
