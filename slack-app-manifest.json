@@ -178,15 +178,15 @@
         "command": "/dd-standup-post",
         "url": "{{APP_URL}}/slack/events",
         "description": "Post team standup, or a member's standup, to channel (admin/owner)",
-        "usage_hint": "[@user] [YYYY-MM-DD] [team-name]",
-        "should_escape": true
+        "usage_hint": "[YYYY-MM-DD] [team-name] [@user]",
+        "should_escape": false
       },
       {
         "command": "/dd-standup-preview",
         "url": "{{APP_URL}}/slack/events",
         "description": "Preview team or a member's standup before posting (admin/owner)",
-        "usage_hint": "[@user] [YYYY-MM-DD] [team-name]",
-        "should_escape": true
+        "usage_hint": "[YYYY-MM-DD] [team-name] [@user]",
+        "should_escape": false
       },
       {
         "command": "/dd-standup-followup",

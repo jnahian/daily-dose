@@ -196,8 +196,8 @@ These commands allow team admins and organization owners to manually trigger sta
 #### Command Overview
 
 - `/dd-standup-remind [team-name]` - Send standup reminders to team members ⚠️ **(admin/owner only)**
-- `/dd-standup-post [@user] [YYYY-MM-DD] [team-name]` - Post standup summary to channel, or append a single member's standup as a threaded reply when you @mention them ⚠️ **(admin/owner only)**
-- `/dd-standup-preview [@user] [YYYY-MM-DD] [team-name]` - Preview the team summary, or a single member's standup when you @mention them (ephemeral) ⚠️ **(admin/owner only)**
+- `/dd-standup-post [YYYY-MM-DD] [team-name] [@user]` - Post standup summary to channel, or append a single member's standup as a threaded reply when you @mention them ⚠️ **(admin/owner only)**
+- `/dd-standup-preview [YYYY-MM-DD] [team-name] [@user]` - Preview the team summary, or a single member's standup when you @mention them (ephemeral) ⚠️ **(admin/owner only)**
 - `/dd-standup-followup [team-name]` - Send followup reminders to non-responders ⚠️ **(admin/owner only)**
 
 #### Context-Aware Behavior
@@ -260,7 +260,7 @@ These commands allow team admins and organization owners to manually trigger sta
   - Send additional reminders if team members forgot
   - Test reminder functionality for new teams
 
-**Standup Post** - `/dd-standup-post [@user] [YYYY-MM-DD] [team-name]`
+**Standup Post** - `/dd-standup-post [YYYY-MM-DD] [team-name] [@user]`
 
 - **Purpose**: Manually post standup summary to the team channel, or append a single member's standup as a threaded reply
 - **Date format**: YYYY-MM-DD (e.g., 2024-12-20)
@@ -275,7 +275,7 @@ These commands allow team admins and organization owners to manually trigger sta
   - Post past standup summaries that were missed
   - Share a single team member's standup into the thread on demand
 
-**Standup Preview** - `/dd-standup-preview [@user] [YYYY-MM-DD] [team-name]`
+**Standup Preview** - `/dd-standup-preview [YYYY-MM-DD] [team-name] [@user]`
 
 - **Purpose**: Preview standup summary before posting to channel (ephemeral message)
 - **Date format**: YYYY-MM-DD (e.g., 2024-12-20)

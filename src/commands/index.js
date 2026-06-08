@@ -25,16 +25,10 @@ function setupCommands(app) {
     stripFormatting(),
     standupCommands.sendReminders
   );
-  app.command(
-    "/dd-standup-post",
-    stripFormatting(),
-    standupCommands.postStandup
-  );
-  app.command(
-    "/dd-standup-preview",
-    stripFormatting(),
-    standupCommands.previewStandup
-  );
+  // standup-post / -preview accept an optional @mention; skip stripFormatting
+  // so the raw <@U...|name> wrapper survives for parseCommandArguments.
+  app.command("/dd-standup-post", standupCommands.postStandup);
+  app.command("/dd-standup-preview", standupCommands.previewStandup);
   app.command(
     "/dd-standup-followup",
     stripFormatting(),

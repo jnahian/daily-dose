@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Slack manifest: set `should_escape: true` on `/dd-standup-post` and `/dd-standup-preview` so a typed `@user` is delivered to the app as an escaped mention (`<@U…>`) rather than plain text — required for the v1.9.0 individual-standup `@mention` feature to work in the live app (`parseCommandArguments` only matches the escaped form). Also updated their `usage_hint`/`description` to advertise the `[@user]` argument. Requires pushing the manifest to Slack (`npm run manifest:update`). (`slack-app-manifest.json`)
+- The v1.9.0 individual-standup `@mention` feature never matched the mention: `/dd-standup-post` and `/dd-standup-preview` were registered with the `stripFormatting()` middleware, whose `removeFormatting()` rewrites `<@U123|alice>` to `alice` (its `<…|…>` link rule) before the handler runs, so `parseCommandArguments` saw plain text and fell through to the team path. Removed `stripFormatting()` from both commands so the raw `<@U…|name>` wrapper survives — matching the existing suspension/promote commands, which already skip it for the same reason. (`src/commands/index.js`)
+- Slack manifest: updated `/dd-standup-post` and `/dd-standup-preview` `usage_hint` (`[YYYY-MM-DD] [team-name] [@user]`) and `description` to advertise the optional member `@mention`. (`slack-app-manifest.json`)
 
 ## [1.9.0] - 2026-06-08
 
