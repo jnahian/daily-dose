@@ -894,6 +894,29 @@ async function postStandup({ command, ack, respond, client }) {
 }
 
 /**
+ * Resolve a mentioned Slack user to an active member of the given team.
+ * @param {string} teamId
+ * @param {string} mentionedUserId - Slack user ID from the command mention
+ * @returns {Promise<{targetUser?: object, error?: string}>}
+ */
+async function resolveTargetMember(teamId, mentionedUserId) {
+  const targetUser = await getUserBySlackId(mentionedUserId);
+  if (!targetUser) {
+    return { error: "That user isn't registered in the system." };
+  }
+
+  const membership = await prisma.teamMember.findUnique({
+    where: { teamId_userId: { teamId, userId: targetUser.id } },
+  });
+
+  if (!membership || !membership.isActive) {
+    return { error: "That user isn't an active member of this team." };
+  }
+
+  return { targetUser };
+}
+
+/**
  * Admin/Owner command: Preview standup summary
  * Usage: /dd-standup-preview [date] [team-name]
  */
@@ -919,7 +942,11 @@ async function previewStandup({ command, ack, respond }) {
     }
 
     // Parse command arguments
-    const { date: dateStr, teamName } = parseCommandArguments(command.text);
+    const {
+      date: dateStr,
+      teamName,
+      mentionedUserId,
+    } = parseCommandArguments(command.text);
 
     // Validate date format if provided
     if (dateStr) {
@@ -967,6 +994,59 @@ async function previewStandup({ command, ack, respond }) {
     const targetDate = dateStr
       ? dayjs(dateStr).tz(team.timezone)
       : dayjs().tz(team.timezone);
+
+    // Individual member preview
+    if (mentionedUserId) {
+      const { targetUser, error: memberError } = await resolveTargetMember(
+        team.id,
+        mentionedUserId
+      );
+      if (memberError) {
+        await updateResponse({
+          blocks: createCommandErrorBlocks(memberError),
+          response_type: "ephemeral",
+        });
+        return;
+      }
+
+      const response = await standupService.getUserResponse(
+        team.id,
+        targetUser.id,
+        targetDate.toDate()
+      );
+      if (!response) {
+        await updateResponse({
+          blocks: createNoDataBlocks(
+            `standup from ${getUserMention(targetUser)}`,
+            targetDate.format("MMM DD, YYYY")
+          ),
+          response_type: "ephemeral",
+        });
+        return;
+      }
+
+      const message =
+        await standupService.formatIndividualResponseMessage(response);
+
+      await updateResponse({
+        blocks: [
+          createSectionBlock(
+            `🔍 *Preview — ${getUserMention(targetUser)}'s standup* · ${targetDate.format(
+              "MMM DD, YYYY"
+            )}`
+          ),
+          ...message.blocks,
+        ],
+        response_type: "ephemeral",
+      });
+
+      console.log(
+        `🔍 ${getUserLogIdentifier(user)} previewed ${getUserMention(
+          targetUser
+        )}'s standup for team ${team.name} (${targetDate.format("YYYY-MM-DD")})`
+      );
+      return;
+    }
 
     // Get standup data
     const responses = await standupService.getTeamResponses(
