@@ -191,12 +191,22 @@ function parseTeamName(commandText) {
  */
 function parseCommandArguments(commandText) {
   if (!commandText || !commandText.trim()) {
-    return { date: null, teamName: null };
+    return { date: null, teamName: null, mentionedUserId: null };
   }
 
-  const text = commandText.trim();
+  let text = commandText.trim();
   let date = null;
   let teamName = null;
+  let mentionedUserId = null;
+
+  // Mention pattern: <@U123> or <@U123|name>. Use the first, strip all.
+  const mentionPattern = /<@([A-Z0-9]+)(?:\|[^>]+)?>/g;
+  const mentionMatch = text.match(mentionPattern);
+  if (mentionMatch) {
+    const first = /<@([A-Z0-9]+)(?:\|[^>]+)?>/.exec(mentionMatch[0]);
+    mentionedUserId = first[1];
+    text = text.replace(mentionPattern, "").trim();
+  }
 
   // Date pattern: YYYY-MM-DD
   const datePattern = /\b(\d{4}-\d{2}-\d{2})\b/;
@@ -204,17 +214,15 @@ function parseCommandArguments(commandText) {
 
   if (dateMatch) {
     date = dateMatch[1];
-    // Remove date from text to extract team name
     const remainingText = text.replace(dateMatch[0], "").trim();
     if (remainingText) {
       teamName = parseTeamName(remainingText);
     }
-  } else {
-    // No date, entire text is team name
+  } else if (text) {
     teamName = parseTeamName(text);
   }
 
-  return { date, teamName };
+  return { date, teamName, mentionedUserId };
 }
 
 /**
