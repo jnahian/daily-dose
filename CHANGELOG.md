@@ -7,11 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.8.6] - 2026-06-08
+## [1.8.7] - 2026-06-08
 
 ### Fixed
 
 - Posting a **late** standup submission failed with Slack `invalid_blocks` (`must be less than 2001 characters [json-pointer:/blocks/2/fields/0/text]`) when the user's tasks contained long pasted content (e.g. URLs). The 1.8.5 fix routed the regular post path through the limit-aware `blockHelper.createTaskFieldBlocks`, but `createLateResponseBlocks` still hand-built the section `fields[]` with no length check, so a late entry over the 2000-char field cap was rejected. `createLateResponseBlocks` now reuses `createTaskFieldBlocks` (compact two-column fields when each entry fits 2000 chars, otherwise full-width sections truncated on a line boundary). Added `test/utils/blockHelper.test.js` covering both the regular and late paths against Slack's field/text limits. (`src/utils/blockHelper.js`, `test/utils/blockHelper.test.js`)
+
+## [1.8.6] - 2026-06-04
+
+### Fixed
+
 - Opening the standup modal failed with Slack `invalid_arguments` (`invalid additional property: style [json-pointer:/view/blocks/2/element/initial_value/elements/0/elements/1]`) whenever the user's previous standup contained an indented (nested) bullet or numbered list. `extractRichTextValue` stores nested list items as space-indented lines, and `convertTextToRichText` rebuilt them via `parseListStructure`, which modeled nesting by placing a child `rich_text_list` inside the parent list's `elements` array — a shape Slack's rich_text schema rejects (a list's `elements` may contain only `rich_text_section`). Replaced `parseListStructure` with `parseListBlocks`, which expresses nesting the way Slack requires: flat sibling `rich_text_list` blocks distinguished by an integer `indent` level, grouping consecutive same-`(indent, style)` items into one block so ordered numbering stays contiguous. Added `test/utils/messageHelper.test.js` covering the crash repro, the Slack schema invariant, indent-based nesting, and round-trip stability. (`src/utils/messageHelper.js`, `test/utils/messageHelper.test.js`)
 
 ## [1.8.5] - 2026-06-03
@@ -520,7 +525,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.8.6...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.8.7...HEAD
+[1.8.7]: https://github.com/jnahian/daily-dose/compare/v1.8.6...v1.8.7
 [1.8.6]: https://github.com/jnahian/daily-dose/compare/v1.8.5...v1.8.6
 [1.8.5]: https://github.com/jnahian/daily-dose/compare/v1.8.4...v1.8.5
 [1.8.4]: https://github.com/jnahian/daily-dose/compare/v1.8.3...v1.8.4
