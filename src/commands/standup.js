@@ -782,7 +782,11 @@ async function postStandup({ command, ack, respond, client }) {
     }
 
     // Parse command arguments (date and/or team name)
-    const { date: dateStr, teamName } = parseCommandArguments(command.text);
+    const {
+      date: dateStr,
+      teamName,
+      mentionedUserId,
+    } = parseCommandArguments(command.text);
 
     // Validate date format if provided
     if (dateStr) {
@@ -827,6 +831,62 @@ async function postStandup({ command, ack, respond, client }) {
     const targetDate = dateStr
       ? dayjs(dateStr).tz(team.timezone)
       : dayjs().tz(team.timezone);
+
+    // Individual member post (ephemeral errors + confirmation)
+    if (mentionedUserId) {
+      const { targetUser, error: memberError } = await resolveTargetMember(
+        team.id,
+        mentionedUserId
+      );
+      if (memberError) {
+        await updateResponse({
+          blocks: createCommandErrorBlocks(memberError),
+          response_type: "ephemeral",
+        });
+        return;
+      }
+
+      const response = await standupService.getUserResponse(
+        team.id,
+        targetUser.id,
+        targetDate.toDate()
+      );
+      if (!response) {
+        await updateResponse({
+          blocks: createNoDataBlocks(
+            `standup from ${getUserMention(targetUser)}`,
+            targetDate.format("MMM DD, YYYY")
+          ),
+          response_type: "ephemeral",
+        });
+        return;
+      }
+
+      const result = await standupService.postIndividualResponse(
+        team,
+        targetDate.toDate(),
+        response,
+        { client }
+      );
+
+      await updateResponse({
+        blocks: createCommandSuccessBlocks(
+          `Posted ${getUserMention(targetUser)}'s standup to *${team.name}*`,
+          {
+            Date: targetDate.format("MMM DD, YYYY"),
+            "Message timestamp": result.ts,
+          }
+        ),
+        response_type: "ephemeral",
+      });
+
+      console.log(
+        `📊 ${getUserLogIdentifier(user)} posted ${getUserMention(
+          targetUser
+        )}'s standup for team ${team.name} (${targetDate.format("YYYY-MM-DD")})`
+      );
+      return;
+    }
 
     // Check if responses exist
     const responses = await standupService.getTeamResponses(
