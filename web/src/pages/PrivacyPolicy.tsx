@@ -14,7 +14,7 @@ export const meta = () => {
     },
     { name: "author", content: "Daily Dose" },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: "/privacy" },
+    { property: "og:url", content: "https://dd.jnahian.me/privacy" },
     { property: "og:title", content: "Privacy Policy - Daily Dose" },
     {
       property: "og:description",

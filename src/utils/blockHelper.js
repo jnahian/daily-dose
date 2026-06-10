@@ -75,6 +75,23 @@ function createTaskFieldBlocks(yesterdayTasks, todayTasks) {
 }
 
 /**
+ * Create a context block with a single mrkdwn element
+ * @param {string} text - mrkdwn text
+ * @returns {object} Slack context block
+ */
+function createContextBlock(text) {
+  return {
+    type: "context",
+    elements: [
+      {
+        type: "mrkdwn",
+        text,
+      },
+    ],
+  };
+}
+
+/**
  * Build the blocker line for a standup response as a section block.
  * The user-supplied text is truncated to Slack's section cap. It is NOT
  * wrapped in `_…_` italics: blockers are multi-line mrkdwn that may itself
@@ -95,15 +112,56 @@ function createBlockerSectionBlock(blockers) {
  * @returns {object} Slack context block
  */
 function createBlockerContextBlock(blockers) {
-  return {
-    type: "context",
-    elements: [
-      {
-        type: "mrkdwn",
-        text: `⚠️ *Blocker:* ${truncateForSlack(blockers, SLACK_FIELD_MAX - 50)}`,
-      },
-    ],
-  };
+  return createContextBlock(
+    `⚠️ *Blocker:* ${truncateForSlack(blockers, SLACK_FIELD_MAX - 50)}`
+  );
+}
+
+/**
+ * Create the DM blocks notifying a team admin that a member submitted or
+ * updated their standup
+ * @param {string} notificationText - Pre-formatted notification line
+ * @param {object} team - Team with name and slackChannelId
+ * @returns {Array<object>} Slack blocks
+ */
+function createAdminSubmissionNotificationBlocks(notificationText, team) {
+  return [
+    createSectionBlock(notificationText),
+    createContextBlock(
+      `Team: *${team.name}* | Channel: <#${team.slackChannelId}>`
+    ),
+  ];
+}
+
+/**
+ * Create the Slack message blocks for a website contact-form submission.
+ * All values are user input from an unauthenticated public endpoint, so they
+ * are rendered as plain_text (never mrkdwn) — Slack treats plain_text
+ * literally, which neutralises mention/link/formatting injection.
+ * @param {object} submission
+ * @param {string} submission.name
+ * @param {string} submission.email
+ * @param {string} submission.subject
+ * @param {string} submission.message
+ * @returns {Array<object>} Slack blocks
+ */
+function createContactNotificationBlocks({ name, email, subject, message }) {
+  return [
+    createSectionBlock("*📬 New contact form submission*"),
+    createFieldsBlock([
+      { type: "plain_text", text: `From: ${name}` },
+      { type: "plain_text", text: `Email: ${email}` },
+    ]),
+    {
+      type: "section",
+      text: { type: "plain_text", text: `Subject: ${subject}` },
+    },
+    createDividerBlock(),
+    {
+      type: "section",
+      text: { type: "plain_text", text: message },
+    },
+  ];
 }
 
 /**
@@ -728,6 +786,9 @@ module.exports = {
   createSectionBlock,
   createFieldsBlock,
   createTaskFieldBlocks,
+  createContextBlock,
+  createAdminSubmissionNotificationBlocks,
+  createContactNotificationBlocks,
   createBlockerSectionBlock,
   createBlockerContextBlock,
   createDividerBlock,

@@ -31,7 +31,7 @@ export const meta = () => {
     },
     { name: "author", content: "Daily Dose" },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: "/scripts" },
+    { property: "og:url", content: "https://dd.jnahian.me/scripts" },
     {
       property: "og:title",
       content: "Daily Dose Scripts Documentation - Admin Tools Guide",
@@ -43,7 +43,7 @@ export const meta = () => {
     },
     { property: "og:image", content: "/logo.png" },
     { property: "twitter:card", content: "summary_large_image" },
-    { property: "twitter:url", content: "/scripts" },
+    { property: "twitter:url", content: "https://dd.jnahian.me/scripts" },
     {
       property: "twitter:title",
       content: "Daily Dose Scripts Documentation - Admin Tools Guide",

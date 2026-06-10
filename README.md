@@ -1066,6 +1066,12 @@ SCRIPTS_AUTH_USERNAME=your-username           # Required — no default; app wil
 SCRIPTS_AUTH_PASSWORD=your-strong-password    # Required — no default; app will not start if unset
 ```
 
+**Contact Form (optional):**
+
+```bash
+CONTACT_SLACK_CHANNEL=C0123456789              # Slack channel or user ID that receives contact-form messages
+```
+
 **Optional Monitoring:**
 
 ```bash

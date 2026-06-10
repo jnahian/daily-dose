@@ -56,3 +56,23 @@ describe("parseCommandArguments mention extraction", () => {
     expect(res.mentionedUserId).toBeNull();
   });
 });
+
+const { validateDateFormat } = require("../../src/utils/teamHelper");
+
+describe("validateDateFormat", () => {
+  it("accepts a valid YYYY-MM-DD date and empty input", () => {
+    expect(validateDateFormat("2025-01-15").isValid).toBe(true);
+    expect(validateDateFormat("").isValid).toBe(true);
+  });
+
+  it("rejects wrong shapes", () => {
+    expect(validateDateFormat("15-01-2025").isValid).toBe(false);
+    expect(validateDateFormat("2025/01/15").isValid).toBe(false);
+  });
+
+  it("rejects calendar-invalid dates instead of rolling them over", () => {
+    // new Date("2025-02-30") silently becomes March 2 — strict dayjs must not
+    expect(validateDateFormat("2025-02-30").isValid).toBe(false);
+    expect(validateDateFormat("2025-13-01").isValid).toBe(false);
+  });
+});

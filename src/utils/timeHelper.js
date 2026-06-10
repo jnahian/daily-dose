@@ -52,4 +52,29 @@ function parseTimeString(input) {
   return { hour, minute, normalized };
 }
 
-module.exports = { parseTimeString, TimeFormatError };
+/**
+ * Validate an IANA timezone identifier (e.g. "America/New_York").
+ * Team timezones are stored as free-form strings; a typo like
+ * "America/NewYork" would otherwise be accepted and make node-cron/dayjs
+ * silently schedule the team's jobs at the wrong time.
+ * @param {string} timezone
+ * @returns {string} the validated timezone, unchanged
+ * @throws {TimeFormatError} when the identifier is not a valid IANA timezone
+ */
+function validateTimezone(timezone) {
+  if (typeof timezone !== "string" || timezone.length === 0) {
+    throw new TimeFormatError(
+      "Timezone must be an IANA identifier, e.g. Asia/Dhaka or America/New_York"
+    );
+  }
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: timezone });
+  } catch {
+    throw new TimeFormatError(
+      `Invalid timezone "${escapeForMessage(timezone)}". Use an IANA identifier, e.g. Asia/Dhaka or America/New_York`
+    );
+  }
+  return timezone;
+}
+
+module.exports = { parseTimeString, validateTimezone, TimeFormatError };

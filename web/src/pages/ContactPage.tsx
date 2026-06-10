@@ -14,7 +14,7 @@ export const meta = () => {
     },
     { name: "author", content: "Daily Dose" },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: "/contact" },
+    { property: "og:url", content: "https://dd.jnahian.me/contact" },
     { property: "og:title", content: "Contact Us - Daily Dose" },
     {
       property: "og:description",
@@ -40,7 +40,7 @@ const ContactPage = () => {
             href="https://github.com/jnahian/daily-dose"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-8 rounded-lg border border-border-default bg-bg-secondary hover:border-brand-cyan/50 transition-all duration-300 hover:shadow-lg hover:shadow-brand-cyan/10"
+            className="p-8 rounded-lg border border-border-default bg-bg-surface hover:border-brand-cyan/50 transition-all duration-300 hover:shadow-lg hover:shadow-brand-cyan/10"
           >
             <div className="flex items-start gap-4">
               <Github className="w-8 h-8 text-brand-cyan flex-shrink-0 mt-1" />
@@ -62,7 +62,7 @@ const ContactPage = () => {
             href="https://github.com/jnahian/daily-dose/discussions"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-8 rounded-lg border border-border-default bg-bg-secondary hover:border-brand-cyan/50 transition-all duration-300 hover:shadow-lg hover:shadow-brand-cyan/10"
+            className="p-8 rounded-lg border border-border-default bg-bg-surface hover:border-brand-cyan/50 transition-all duration-300 hover:shadow-lg hover:shadow-brand-cyan/10"
           >
             <div className="flex items-start gap-4">
               <MessageSquare className="w-8 h-8 text-brand-cyan flex-shrink-0 mt-1" />
@@ -81,7 +81,7 @@ const ContactPage = () => {
         </div>
 
         {/* Additional Contact Section */}
-        <div className="bg-bg-secondary border border-border-default rounded-lg p-8">
+        <div className="bg-bg-surface border border-border-default rounded-lg p-8">
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
             <Mail className="w-6 h-6 text-brand-cyan" />
             Other Ways to Reach Us

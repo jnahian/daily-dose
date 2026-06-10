@@ -57,6 +57,18 @@ function error(...args) {
 
 // --- existing typed loggers (preserved) ---
 
+// Command text is user input and can contain anything a user pastes into a
+// slash command (including, by accident, sensitive data). Keep only a short
+// prefix at the default log level so logs stay useful for debugging without
+// retaining full payloads; the complete text is available at debug level.
+const COMMAND_TEXT_LOG_MAX = 100;
+
+function truncateCommandText(text) {
+  if (typeof text !== "string") return text;
+  if (text.length <= COMMAND_TEXT_LOG_MAX) return text;
+  return `${text.slice(0, COMMAND_TEXT_LOG_MAX)}… (${text.length} chars)`;
+}
+
 function logCommand(payload) {
   if (!payload) {
     info("COMMAND: null payload");
@@ -68,9 +80,15 @@ function logCommand(payload) {
     channel_id: payload.channel_id,
     channel_name: payload.channel_name,
     team_id: payload.team_id,
-    text: payload.text,
+    text: truncateCommandText(payload.text),
     trigger_id: payload.trigger_id,
   });
+  if (
+    typeof payload.text === "string" &&
+    payload.text.length > COMMAND_TEXT_LOG_MAX
+  ) {
+    debug(`COMMAND ${payload.command || "unknown"} full text:`, payload.text);
+  }
 }
 
 function logMessage(message) {

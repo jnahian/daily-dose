@@ -1,4 +1,8 @@
 const prisma = require("../config/prisma");
+const dayjs = require("dayjs");
+const customParseFormat = require("dayjs/plugin/customParseFormat");
+
+dayjs.extend(customParseFormat);
 
 /**
  * Resolve team from context (channel or team name)
@@ -245,9 +249,10 @@ function validateDateFormat(dateStr) {
     };
   }
 
-  // Check if date is valid
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) {
+  // Strict dayjs parsing for consistency with the rest of the codebase.
+  // The native Date constructor parses YYYY-MM-DD as UTC and silently rolls
+  // invalid dates like 2025-02-30 over to the next month.
+  if (!dayjs(dateStr, "YYYY-MM-DD", true).isValid()) {
     return {
       isValid: false,
       error: "Invalid date. Please provide a valid date in YYYY-MM-DD format.",

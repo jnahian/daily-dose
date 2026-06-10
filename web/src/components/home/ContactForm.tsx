@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Send, CheckCircle } from "lucide-react";
 
@@ -6,6 +6,10 @@ export const ContactForm = () => {
   const [status, setStatus] = useState<
     "idle" | "submitting" | "success" | "error"
   >("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+  // Tracks the success-message reset timer so a resubmit within the 3s
+  // window can't have the stale timer flip the newer state back to idle.
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -13,17 +17,48 @@ export const ContactForm = () => {
     message: "",
   });
 
+  useEffect(() => {
+    return () => {
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    };
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (resetTimerRef.current) {
+      clearTimeout(resetTimerRef.current);
+      resetTimerRef.current = null;
+    }
     setStatus("submitting");
+    setErrorMessage("");
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setStatus("success");
-    setFormData({ name: "", email: "", subject: "", message: "" });
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-    // Reset success message after 3 seconds
-    setTimeout(() => setStatus("idle"), 3000);
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        setErrorMessage(
+          body?.error ?? "Failed to send your message. Please try again later."
+        );
+        setStatus("error");
+        return;
+      }
+
+      setStatus("success");
+      setFormData({ name: "", email: "", subject: "", message: "" });
+
+      // Reset success message after 3 seconds
+      resetTimerRef.current = setTimeout(() => setStatus("idle"), 3000);
+    } catch {
+      setErrorMessage(
+        "Failed to send your message. Please check your connection and try again."
+      );
+      setStatus("error");
+    }
   };
 
   const handleChange = (
@@ -61,6 +96,12 @@ export const ContactForm = () => {
             We'll get back to you as soon as possible.
           </p>
         </motion.div>
+      )}
+
+      {status === "error" && errorMessage && (
+        <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+          {errorMessage}
+        </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">

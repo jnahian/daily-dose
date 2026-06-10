@@ -21,7 +21,7 @@ export const meta = () => {
     },
     { name: "author", content: "Daily Dose" },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: "" },
+    { property: "og:url", content: "https://dd.jnahian.me/" },
     {
       property: "og:title",
       content: "Daily Dose - Automate Your Team Standups",
@@ -33,7 +33,7 @@ export const meta = () => {
     },
     { property: "og:image", content: "/logo.png" },
     { property: "twitter:card", content: "summary_large_image" },
-    { property: "twitter:url", content: "" },
+    { property: "twitter:url", content: "https://dd.jnahian.me/" },
     {
       property: "twitter:title",
       content: "Daily Dose - Automate Your Team Standups",
