@@ -63,9 +63,32 @@ function formatTasks(tasks) {
  * @param {*} el - The rich text element to format
  * @returns {string} The formatted text
  */
+// Slack mrkdwn treats &, < and > as control characters (mentions, links,
+// HTML entities). Raw text typed by users must have them escaped, otherwise
+// pasted snippets like `<script>` or `a < b && b > c` are parsed as broken
+// link/mention syntax and can corrupt the whole message. Structured elements
+// (link/user/channel) below are built from rich-text data, not raw text, so
+// they keep their angle brackets.
+function escapeSlackText(text) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+// Inverse of escapeSlackText, used when feeding stored mrkdwn back into a
+// rich_text_input as a raw text element (modal prefill). Without this, every
+// edit/resubmit cycle would escape the entities again (& → &amp; → &amp;amp;).
+function unescapeSlackText(text) {
+  return text
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+}
+
 function formatElement(el) {
   if (el.type === "text") {
-    let text = el.text;
+    let text = escapeSlackText(el.text);
     if (el.style?.bold) text = `*${text}*`;
     if (el.style?.italic) text = `_${text}_`;
     if (el.style?.strike) text = `~${text}~`;
@@ -172,6 +195,12 @@ function extractRichTextValue(richTextValue) {
  */
 function convertTextToRichText(text) {
   if (!text || typeof text !== "string") return null;
+
+  // Stored task text has &, <, > escaped (see escapeSlackText). Restore the
+  // raw characters before feeding them back into a rich_text_input, so the
+  // user edits what they originally typed and extraction doesn't re-escape
+  // the entities.
+  text = unescapeSlackText(text);
 
   const elements = [];
   const lines = text.split("\n");
@@ -518,6 +547,8 @@ module.exports = {
   STANDUP_REMINDER_MESSAGES,
   FOLLOWUP_REMINDER_MESSAGES,
   formatTasks,
+  escapeSlackText,
+  unescapeSlackText,
   extractRichTextValue,
   convertTextToRichText,
   parseInlineFormatting,
