@@ -172,7 +172,7 @@ Multi-tenant design with Organizations → Teams → Users hierarchy:
 
 ### Admin Panel
 
-An operator/super-admin web UI at `/admin/*`, served by the same React SPA but routed separately: `App.tsx` branches on `location.pathname.startsWith('/admin')` and renders a dedicated admin `Routes` tree under `AdminLayout` (no public `Navbar`/`ThemeProvider` wrapper).
+An operator/super-admin web UI at `/admin/*`, served by the same React SPA but routed separately: `App.tsx` branches on `location.pathname.startsWith('/admin')` and renders a dedicated admin `Routes` tree under `AdminLayout` (no public `Navbar`/`ThemeProvider` wrapper). Full feature/API reference: `docs/admin-panel.md`.
 
 - **Backend**: `src/routes/admin.js`, mounted at `/api/admin` in `src/app.js`.
 - **Auth**: Slack OAuth (`/auth/slack` → `/auth/callback`) with httpOnly cookie sessions stored in the `sessions` Prisma table; `requireAuth` middleware validates the `admin_session` cookie. Auth hook on the frontend is `web/src/hooks/useAdminAuth.ts`.
@@ -350,7 +350,7 @@ Jest is the test runner. Tests live in `test/`; run them with `npm test` (also `
 
 - **`admin/`** — empty placeholder directory.
 - **`CONTRIBUTING.md`** — contributor workflow and conventions.
-- **`docs/`** — the canonical `slack-markdown-guidelines.md`, `VERSIONING.md`, `README-manifest.md`, and `notification-service-examples.md`. `docs/plans/` holds the active roadmap; `docs/archive/` holds completed/historical plans, user stories, and the superseded implementation guide.
+- **`docs/`** — the canonical `slack-markdown-guidelines.md`, `admin-panel.md`, `VERSIONING.md`, `README-manifest.md`, and `notification-service-examples.md`. `docs/plans/` holds the active roadmap; `docs/archive/` holds completed/historical plans, user stories, and the superseded implementation guide.
 - **`.code-notes/`** and **`.agent/`** — scratchpad directories for tool/agent notes; not part of production code. Treat as ignorable unless the user references them.
 
 ## Project-Specific Conventions
