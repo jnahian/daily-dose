@@ -16,6 +16,7 @@ const { formatTasks } = require("../utils/messageHelper");
 const {
   createSectionBlock,
   createTaskFieldBlocks,
+  createBlockerContextBlock,
   createDividerBlock,
   createLateResponseBlocks,
   createUserResponseBlocks,
@@ -331,15 +332,7 @@ class StandupService {
 
       // Blockers section (using existing context format)
       if (responseData.blockers && responseData.blockers.trim()) {
-        blocks.push({
-          type: "context",
-          elements: [
-            {
-              type: "mrkdwn",
-              text: `⚠️ *Blocker:* _${responseData.blockers}_`,
-            },
-          ],
-        });
+        blocks.push(createBlockerContextBlock(responseData.blockers));
       }
 
       blocks.push(createDividerBlock());

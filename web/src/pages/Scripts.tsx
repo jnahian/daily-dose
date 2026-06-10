@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router";
 import {
   Terminal,
@@ -10,10 +10,10 @@ import {
   AlertCircle,
   Book,
   History,
+  Lock,
 } from "lucide-react";
 import { ScriptsTOC, ScriptCard } from "../components/scripts";
 import { CodeBlock } from "../components/docs";
-import scriptsData from "../data/scripts.json";
 import type { ScriptsData } from "../types/scripts";
 
 export const meta = () => {
@@ -31,7 +31,7 @@ export const meta = () => {
     },
     { name: "author", content: "Daily Dose" },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: "/scripts-docs" },
+    { property: "og:url", content: "/scripts" },
     {
       property: "og:title",
       content: "Daily Dose Scripts Documentation - Admin Tools Guide",
@@ -43,7 +43,7 @@ export const meta = () => {
     },
     { property: "og:image", content: "/logo.png" },
     { property: "twitter:card", content: "summary_large_image" },
-    { property: "twitter:url", content: "/scripts-docs" },
+    { property: "twitter:url", content: "/scripts" },
     {
       property: "twitter:title",
       content: "Daily Dose Scripts Documentation - Admin Tools Guide",
@@ -58,10 +58,47 @@ export const meta = () => {
 };
 
 const Scripts = () => {
-  const data = scriptsData as ScriptsData;
-  const [activeScript, setActiveScript] = useState(
-    data.categories[0]?.scripts[0]?.id || ""
-  );
+  // The docs content is deliberately not bundled with the SPA — it is served
+  // from /scripts/data.json behind HTTP Basic Auth. Navigating here
+  // client-side therefore shows an auth screen until the browser has
+  // credentials for the realm, obtained by visiting /scripts/auth (an
+  // auth-gated redirect that works in production and via the Vite dev proxy).
+  const [data, setData] = useState<ScriptsData | null>(null);
+  const [status, setStatus] = useState<
+    "loading" | "ready" | "unauthorized" | "error"
+  >("loading");
+  const [activeScript, setActiveScript] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/scripts/data.json")
+      .then(async (res) => {
+        if (cancelled) return;
+        if (res.status === 401) {
+          setStatus("unauthorized");
+          return;
+        }
+        if (!res.ok) {
+          setStatus("error");
+          return;
+        }
+        const json = (await res.json()) as ScriptsData;
+        if (cancelled) return;
+        if (!Array.isArray(json?.categories)) {
+          setStatus("error");
+          return;
+        }
+        setData(json);
+        setActiveScript(json.categories[0]?.scripts[0]?.id || "");
+        setStatus("ready");
+      })
+      .catch(() => {
+        if (!cancelled) setStatus("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const iconMap: Record<string, React.ElementType> = {
     database: Database,
@@ -69,6 +106,40 @@ const Scripts = () => {
     robot: Play,
     settings: Settings,
   };
+
+  if (status !== "ready" || !data) {
+    return (
+      <div className="min-h-screen bg-bg-primary text-text-primary transition-colors duration-300">
+        <main className="pt-16">
+          <div className="max-w-xl mx-auto px-4 py-24 text-center">
+            {status === "loading" ? (
+              <p className="text-text-secondary">Loading documentation…</p>
+            ) : (
+              <div className="bg-bg-surface border border-border-default rounded-xl p-8">
+                <Lock size={32} className="mx-auto mb-4 text-text-secondary" />
+                <h1 className="text-2xl font-bold mb-3">
+                  {status === "unauthorized"
+                    ? "Authentication required"
+                    : "Unable to load documentation"}
+                </h1>
+                <p className="text-text-secondary mb-6">
+                  {status === "unauthorized"
+                    ? "The scripts documentation is restricted. Sign in to continue."
+                    : "Something went wrong while loading the scripts documentation. Please try again."}
+                </p>
+                <button
+                  onClick={() => window.location.assign("/scripts/auth")}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                >
+                  {status === "unauthorized" ? "Sign in" : "Retry"}
+                </button>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-bg-primary text-text-primary transition-colors duration-300">
