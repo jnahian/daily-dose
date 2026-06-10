@@ -43,6 +43,13 @@ const { createContactNotificationBlocks } = require("./utils/blockHelper");
 // Forwards website contact-form submissions to the Slack channel (or user
 // DM) configured via CONTACT_SLACK_CHANNEL. Unauthenticated and public, so
 // inputs are length-capped and rate-limited per IP.
+//
+// Production runs behind an Nginx reverse proxy (see DEPLOYMENT.md) that
+// forwards the client address in X-Forwarded-For. Trust that single hop so
+// req.ip is the real client IP — otherwise every visitor shares the proxy's
+// address and one rate-limit bucket.
+receiver.app.set("trust proxy", 1);
+
 const CONTACT_LIMITS = { name: 200, email: 320, subject: 200, message: 2900 };
 const CONTACT_RATE_WINDOW_MS = 10 * 60 * 1000;
 const CONTACT_RATE_MAX = 5;
