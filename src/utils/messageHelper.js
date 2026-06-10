@@ -63,9 +63,36 @@ function formatTasks(tasks) {
  * @param {*} el - The rich text element to format
  * @returns {string} The formatted text
  */
+// Slack mrkdwn treats &, < and > as control characters (mentions, links,
+// HTML entities). Raw text typed by users must have them escaped, otherwise
+// pasted snippets like `<script>` or `a < b && b > c` are parsed as broken
+// link/mention syntax and can corrupt the whole message. Structured elements
+// (link/user/channel) below are built from rich-text data, not raw text, so
+// they keep their angle brackets.
+function escapeSlackText(text) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+// Inverse of escapeSlackText. Applied when emitting raw `text` elements
+// while rebuilding rich text for modal prefill — AFTER the structured
+// patterns (mentions/links) have been matched against the still-escaped
+// string. Without it every edit/resubmit cycle would re-escape the entities
+// (& → &amp; → &amp;amp;); applying it any earlier would let escaped
+// literals like `&lt;@U123&gt;` re-match the mention pattern and become a
+// real mention.
+function unescapeSlackText(text) {
+  return text
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+}
+
 function formatElement(el) {
   if (el.type === "text") {
-    let text = el.text;
+    let text = escapeSlackText(el.text);
     if (el.style?.bold) text = `*${text}*`;
     if (el.style?.italic) text = `_${text}_`;
     if (el.style?.strike) text = `~${text}~`;
@@ -173,6 +200,14 @@ function extractRichTextValue(richTextValue) {
 function convertTextToRichText(text) {
   if (!text || typeof text !== "string") return null;
 
+  // Stored task text has &, <, > escaped in raw-text runs (see
+  // escapeSlackText) while structured syntax (<@U…>, <url|text>) is stored
+  // raw. Parsing happens on the escaped string and the entities are restored
+  // only when emitting `text` elements (here for code/quote blocks, and in
+  // parseInlineFormatting for everything else). Unescaping up front would
+  // let previously-escaped literals like `&lt;@U123&gt;` re-match the
+  // mention pattern and turn into a real mention after one edit cycle.
+
   const elements = [];
   const lines = text.split("\n");
   let i = 0;
@@ -197,6 +232,9 @@ function convertTextToRichText(text) {
             type: "rich_text_section",
             elements: [
               {
+                // Extraction does not escape entities inside preformatted
+                // blocks (they bypass formatElement), so no unescape here —
+                // the stored text is already the raw user input.
                 type: "text",
                 text: codeLines.join("\n"),
               },
@@ -222,6 +260,7 @@ function convertTextToRichText(text) {
             type: "rich_text_section",
             elements: [
               {
+                // Same as preformatted: quote text is extracted unescaped.
                 type: "text",
                 text: quoteLines.join("\n"),
               },
@@ -457,7 +496,7 @@ function parseInlineFormatting(text) {
       if (plainText) {
         elements.push({
           type: "text",
-          text: plainText,
+          text: unescapeSlackText(plainText),
         });
       }
     }
@@ -482,7 +521,7 @@ function parseInlineFormatting(text) {
     } else if (match.style) {
       elements.push({
         type: "text",
-        text: match.content,
+        text: unescapeSlackText(match.content),
         style: match.style,
       });
     }
@@ -496,7 +535,7 @@ function parseInlineFormatting(text) {
     if (remainingText) {
       elements.push({
         type: "text",
-        text: remainingText,
+        text: unescapeSlackText(remainingText),
       });
     }
   }
@@ -505,7 +544,7 @@ function parseInlineFormatting(text) {
   if (elements.length === 0) {
     elements.push({
       type: "text",
-      text: text,
+      text: unescapeSlackText(text),
     });
   }
 
@@ -518,6 +557,8 @@ module.exports = {
   STANDUP_REMINDER_MESSAGES,
   FOLLOWUP_REMINDER_MESSAGES,
   formatTasks,
+  escapeSlackText,
+  unescapeSlackText,
   extractRichTextValue,
   convertTextToRichText,
   parseInlineFormatting,

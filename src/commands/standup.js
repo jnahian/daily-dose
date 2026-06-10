@@ -26,6 +26,7 @@ const {
   createActionsBlock,
   createSectionBlock,
   createFieldsBlock,
+  createBlockerContextBlock,
   createDividerBlock,
   createCommandSuccessBlocks,
   createCommandErrorBlocks,
@@ -1428,15 +1429,7 @@ async function showHistory({ command, ack, respond }) {
       }
 
       if (response.blockers && response.blockers.trim()) {
-        blocks.push({
-          type: "context",
-          elements: [
-            {
-              type: "mrkdwn",
-              text: `⚠️ *Blocker:* _${response.blockers}_`,
-            },
-          ],
-        });
+        blocks.push(createBlockerContextBlock(response.blockers));
       }
 
       blocks.push(createDividerBlock());

@@ -180,8 +180,11 @@ class SchedulerService {
       now.toDate()
     );
 
-    // Filter out team owners/admins from receiving reminders
-    const members = allMembers.filter((member) => member.role !== "ADMIN");
+    // Filter out team owners/admins and members who opted out of
+    // notifications (/dd-standup-reminder notify=off)
+    const members = allMembers.filter(
+      (member) => member.role !== "ADMIN" && member.receiveNotifications
+    );
 
     for (const member of members) {
       try {
@@ -230,7 +233,10 @@ class SchedulerService {
 
     const respondedUserIds = new Set(responses.map((r) => r.userId));
     const pendingMembers = members.filter(
-      (m) => !respondedUserIds.has(m.userId) && m.role !== "ADMIN"
+      (m) =>
+        !respondedUserIds.has(m.userId) &&
+        m.role !== "ADMIN" &&
+        m.receiveNotifications
     );
 
     for (const member of pendingMembers) {

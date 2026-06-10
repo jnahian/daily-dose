@@ -8,6 +8,11 @@ export default defineConfig({
     proxy: {
       // The contact form posts to the bot's Express server during local dev.
       "/api": "http://localhost:3000",
+      // Scripts docs content and the auth-trigger route are served by the
+      // bot's Express server behind Basic Auth (see src/app.js); proxy them
+      // during local development so the browser's auth prompt works.
+      "/scripts/data.json": "http://localhost:3000",
+      "/scripts/auth": "http://localhost:3000",
     },
   },
   build: {

@@ -92,6 +92,32 @@ function createContextBlock(text) {
 }
 
 /**
+ * Build the blocker line for a standup response as a section block.
+ * The user-supplied text is truncated to Slack's section cap. It is NOT
+ * wrapped in `_…_` italics: blockers are multi-line mrkdwn that may itself
+ * contain `_`, and nested/unbalanced markers corrupt the rendering.
+ * @param {string} blockers - Blocker text (already mrkdwn, from rich text extraction)
+ * @returns {object} Slack section block
+ */
+function createBlockerSectionBlock(blockers) {
+  return createSectionBlock(
+    `⚠️ *Blocker:* ${truncateForSlack(blockers, SLACK_TEXT_MAX - 50)}`
+  );
+}
+
+/**
+ * Same as createBlockerSectionBlock but as a context block (used for late
+ * submissions). Context elements cap at 2000 chars.
+ * @param {string} blockers - Blocker text (already mrkdwn, from rich text extraction)
+ * @returns {object} Slack context block
+ */
+function createBlockerContextBlock(blockers) {
+  return createContextBlock(
+    `⚠️ *Blocker:* ${truncateForSlack(blockers, SLACK_FIELD_MAX - 50)}`
+  );
+}
+
+/**
  * Create the DM blocks notifying a team admin that a member submitted or
  * updated their standup
  * @param {string} notificationText - Pre-formatted notification line
@@ -346,7 +372,7 @@ function createUserResponseBlocks(response) {
   );
 
   if (response.blockers && response.blockers.trim()) {
-    blocks.push(createSectionBlock(`⚠️ *Blocker:* _${response.blockers}_`));
+    blocks.push(createBlockerSectionBlock(response.blockers));
   }
 
   blocks.push(createDividerBlock());
@@ -370,15 +396,7 @@ function createLateResponseBlocks(response) {
   );
 
   if (response.blockers && response.blockers.trim()) {
-    blocks.push({
-      type: "context",
-      elements: [
-        {
-          type: "mrkdwn",
-          text: `⚠️ *Blocker:* _${response.blockers}_`,
-        },
-      ],
-    });
+    blocks.push(createBlockerContextBlock(response.blockers));
   }
 
   return blocks;
@@ -529,20 +547,14 @@ function createStandupUpdateModal(
         }
 
         if (initialText) {
-          block.element.initial_value = {
-            type: "rich_text",
-            elements: [
-              {
-                type: "rich_text_section",
-                elements: [
-                  {
-                    type: "text",
-                    text: initialText,
-                  },
-                ],
-              },
-            ],
-          };
+          // Rebuild rich text from the stored mrkdwn so links/mentions become
+          // structured elements again and escaped entities are restored —
+          // inserting the stored string as a raw text element would re-escape
+          // it on every edit/resubmit cycle.
+          const richTextValue = convertTextToRichText(initialText);
+          if (richTextValue) {
+            block.element.initial_value = richTextValue;
+          }
         }
       }
       return block;
@@ -777,6 +789,8 @@ module.exports = {
   createContextBlock,
   createAdminSubmissionNotificationBlocks,
   createContactNotificationBlocks,
+  createBlockerSectionBlock,
+  createBlockerContextBlock,
   createDividerBlock,
   createActionsBlock,
   createButton,

@@ -131,6 +131,31 @@ const { createBasicAuth } = require("./middleware/basicAuth");
 const scriptsAuth = createBasicAuth();
 receiver.app.use("/scripts", scriptsAuth);
 
+// The scripts documentation content is intentionally NOT bundled into the
+// SPA (a bundled copy would be readable without auth via client-side
+// navigation). The Scripts page fetches it from this endpoint, which sits
+// under the auth-gated /scripts path.
+receiver.app.get("/scripts/data.json", (req, res) => {
+  const scriptsDataPath = path.join(__dirname, "../web/src/data/scripts.json");
+  res.sendFile(scriptsDataPath, (err) => {
+    if (err && !res.headersSent) {
+      logger.error(
+        `Failed to serve scripts docs from ${scriptsDataPath}:`,
+        err
+      );
+      res.status(500).json({ error: "Unable to load scripts documentation" });
+    }
+  });
+});
+
+// Auth-trigger endpoint for the SPA's "Sign in" button. Sits behind the
+// /scripts Basic Auth gate, so navigating here forces the browser's auth
+// prompt and then bounces back to the page. Works in production and via the
+// Vite dev proxy (where a direct /scripts load is served by Vite, unauthed).
+receiver.app.get("/scripts/auth", (req, res) => {
+  res.redirect("/scripts");
+});
+
 receiver.app.use(express.static(path.join(__dirname, "../web/dist")));
 
 // SPA fallback - serve index.html for all other routes (client-side routing)

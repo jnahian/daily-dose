@@ -10,6 +10,12 @@ const SLACK_TEXT_MAX = 3000;
 
 function assertWithinSlackLimits(blocks) {
   for (const block of blocks) {
+    if (block.type === "context") {
+      for (const element of block.elements) {
+        expect(element.text.length).toBeLessThanOrEqual(SLACK_FIELD_MAX);
+      }
+      continue;
+    }
     if (block.type !== "section") continue;
     if (Array.isArray(block.fields)) {
       for (const field of block.fields) {
@@ -41,6 +47,32 @@ describe("blockHelper standup blocks stay within Slack limits", () => {
       todayTasks: "short task",
     });
     assertWithinSlackLimits(blocks);
+  });
+
+  it("truncates oversized blocker content in summary and late blocks", () => {
+    const response = {
+      userMention: "<@U123>",
+      yesterdayTasks: "did stuff",
+      todayTasks: "will do stuff",
+      blockers: longTasks,
+    };
+    assertWithinSlackLimits(createUserResponseBlocks(response));
+    assertWithinSlackLimits(createLateResponseBlocks(response));
+  });
+
+  it("does not wrap blocker text in italics (nested mrkdwn corrupts rendering)", () => {
+    const blockers = "waiting on _staging_ access\n• infra ticket";
+    const blocks = createUserResponseBlocks({
+      userMention: "<@U123>",
+      yesterdayTasks: "did stuff",
+      todayTasks: "will do stuff",
+      blockers,
+    });
+    const blockerBlock = blocks.find((b) =>
+      b.text?.text?.includes("*Blocker:*")
+    );
+    expect(blockerBlock).toBeDefined();
+    expect(blockerBlock.text.text).toBe(`⚠️ *Blocker:* ${blockers}`);
   });
 
   it("createLateResponseBlocks uses compact fields when content fits", () => {
