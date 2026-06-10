@@ -14,6 +14,7 @@ High-leverage footguns specific to this repo. Read before editing:
 - **Don't parallelize Slack calls across teams** — Slack rate-limits at ~1 req/sec/channel. Process teams sequentially.
 - **Don't proxy Slack endpoints through Cloudflare** — must be DNS-only (orange cloud OFF). Edge buffering breaks the 3-second ack window and is the recurring source of `/dd-*` timeouts. See `DEPLOYMENT.md`.
 - **Don't put internal refactors in `web/src/data/changelog.json`** — that file is user-facing. Internal changes go in `CHANGELOG.md` only.
+- **Don't put admin-panel changes in either changelog** — the admin panel (`/admin/*`, `src/routes/admin.js`) is an internal operator tool, not a user-facing bot feature; keep it out of both `CHANGELOG.md` and `web/src/data/changelog.json`.
 - **Don't read modal rich_text values directly** — use `messageHelper.extractPlainText()` or `convertRichTextToSlack()`.
 - **Don't bypass `permissionHelper`** — always check via `isTeamAdmin()` / `isOrgOwner()`. Admins resolve team from channel; owners must pass team name explicitly.
 
@@ -113,6 +114,7 @@ High-leverage footguns specific to this repo. Read before editing:
 - **Commands**: `src/commands/` - Slack slash command handlers (team, leave, standup, preferences, holiday)
 - **Workflows**: `src/workflows/` - Slack interactive component handlers (buttons, modals, actions)
 - **Services**: `src/services/` - Business logic (scheduler, standup, team, user)
+- **Routes**: `src/routes/` - Express routers (`admin.js` — admin panel API mounted at `/api/admin`)
 - **Utilities**: `src/utils/` - Helper functions (date, message, command, user, logger, permission, team, blockHelper)
 - **Database**: Prisma ORM with PostgreSQL via Supabase
 - **Web Frontend**: React SPA in `web/` directory (served from `web/dist/`)
@@ -168,6 +170,15 @@ Multi-tenant design with Organizations → Teams → Users hierarchy:
 - **Components**: Organized by feature (home, docs, scripts, changelog, auth)
 - **Theme System**: Dark/light mode with context provider in `web/src/context/ThemeContext.tsx`
 
+### Admin Panel
+
+An operator/super-admin web UI at `/admin/*`, served by the same React SPA but routed separately: `App.tsx` branches on `location.pathname.startsWith('/admin')` and renders a dedicated admin `Routes` tree under `AdminLayout` (no public `Navbar`/`ThemeProvider` wrapper).
+
+- **Backend**: `src/routes/admin.js`, mounted at `/api/admin` in `src/app.js`.
+- **Auth**: Slack OAuth (`/auth/slack` → `/auth/callback`) with httpOnly cookie sessions stored in the `sessions` Prisma table; `requireAuth` middleware validates the `admin_session` cookie. Auth hook on the frontend is `web/src/hooks/useAdminAuth.ts`.
+- **Access tiers**: `requireSuperAdmin` (backed by the `super_admins` table) gates platform-wide routes (e.g. organizations CRUD); org-scoped routes use `verifyOrgAccess`, which allows super admins or org `OWNER`/`ADMIN` members. Grant super-admin access via `npm run super-admin:add`.
+- **Pages/resources**: Login, Dashboard, Organizations, Teams, Members, Standups, Holidays, Scheduler, Activity (`web/src/pages/admin/`); shared components in `web/src/components/admin/` (`AdminLayout`, `AdminSidebar`, `AdminTopBar`, `DataTable`, `AdminModal`, `StatCard`, `StatusBadge`).
+
 ### Environment Configuration
 
 Key environment variables in `.env`:
@@ -177,6 +188,7 @@ Key environment variables in `.env`:
 - **App settings**: PORT, DEFAULT_TIMEZONE, APP_URL
 - **Logging**: LOG_LEVEL, SENTRY_DSN (optional)
 - **Scripts Auth**: SCRIPTS_AUTH_USERNAME, SCRIPTS_AUTH_PASSWORD (for /scripts-docs route protection)
+- **Admin Panel OAuth**: ADMIN_OAUTH_REDIRECT_URI (Slack OAuth callback for the admin panel; SLACK_CLIENT_ID/SLACK_CLIENT_SECRET double as the admin OAuth credentials)
 
 ## Development Notes
 
