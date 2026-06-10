@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
-import { Bot, MessageSquare, Users, Zap } from 'lucide-react';
+import { motion } from "framer-motion";
+import { Bot, MessageSquare, Users, Zap } from "lucide-react";
 
 export const HowItWorksAnimation = () => {
   return (
@@ -14,7 +14,7 @@ export const HowItWorksAnimation = () => {
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20"
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ duration: 0.5, type: 'spring' }}
+          transition={{ duration: 0.5, type: "spring" }}
         >
           <div className="relative">
             <div className="w-20 h-20 bg-brand-navy rounded-2xl border-2 border-brand-cyan flex items-center justify-center shadow-[0_0_30px_rgba(0,207,255,0.3)]">
@@ -33,7 +33,7 @@ export const HowItWorksAnimation = () => {
                   duration: 2,
                   repeat: Infinity,
                   delay: i * 0.4,
-                  ease: 'easeOut',
+                  ease: "easeOut",
                 }}
               />
             ))}
@@ -60,7 +60,7 @@ export const HowItWorksAnimation = () => {
               transition={{
                 delay: 0.5 + i * 0.2,
                 duration: 0.5,
-                type: 'spring',
+                type: "spring",
               }}
             >
               <div className="relative -translate-x-1/2 -translate-y-1/2">
@@ -118,14 +118,19 @@ export const HowItWorksAnimation = () => {
         <motion.div
           className="absolute top-10 right-10 text-brand-cyan/20"
           animate={{ y: [0, -20, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         >
           <Zap className="w-8 h-8" />
         </motion.div>
         <motion.div
           className="absolute bottom-20 left-10 text-brand-cyan/20"
           animate={{ y: [0, 20, 0] }}
-          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          transition={{
+            duration: 5,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1,
+          }}
         >
           <div className="w-4 h-4 rounded-full bg-current" />
         </motion.div>

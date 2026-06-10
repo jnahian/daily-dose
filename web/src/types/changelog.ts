@@ -1,5 +1,5 @@
 export interface ChangeItem {
-  type: 'added' | 'changed' | 'fixed' | 'security' | 'deprecated' | 'removed';
+  type: "added" | "changed" | "fixed" | "security" | "deprecated" | "removed";
   title: string;
   items: string[];
 }

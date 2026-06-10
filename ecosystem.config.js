@@ -20,7 +20,7 @@ module.exports = {
       log_file: "./logs/combined.log",
       time: true,
       merge_logs: true,
-      log_date_format: "YYYY-MM-DD HH:mm:ss Z",
+      log_date_format: "YYYY-MM-DD HH:mm:ss.SSS Z",
     },
   ],
 };

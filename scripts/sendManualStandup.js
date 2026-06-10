@@ -7,9 +7,13 @@ const standupService = require("../src/services/standupService");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
-const { getUserLogIdentifier, getUserMention } = require("../src/utils/userHelper");
+const { getUserLogIdentifier } = require("../src/utils/userHelper");
 const { formatTime12Hour } = require("../src/utils/dateHelper");
-const { createSectionBlock, createButton, createActionsBlock } = require("../src/utils/blockHelper");
+const {
+  createSectionBlock,
+  createButton,
+  createActionsBlock,
+} = require("../src/utils/blockHelper");
 const readline = require("readline");
 
 dayjs.extend(utc);
@@ -313,9 +317,8 @@ async function sendManualStandup(teamName, options = {}) {
           `\n🕐 Late responses that would be posted as threaded replies (${lateResponses.length}):`
         );
         for (const lateResponse of lateResponses) {
-          const lateMessage = await standupService.formatLateResponseMessage(
-            lateResponse
-          );
+          const lateMessage =
+            await standupService.formatLateResponseMessage(lateResponse);
           console.log(
             `\n--- Late Response from ${getUserLogIdentifier(
               lateResponse.user
@@ -328,9 +331,23 @@ async function sendManualStandup(teamName, options = {}) {
     }
 
     // Use the new postTeamStandup method from standupService
-    const result = await standupService.postTeamStandup(team, targetDate.toDate(), app);
-    console.log(`✅ Standup posted successfully to ${team.slackChannelId}`);
-    console.log(`📝 Message timestamp: ${result.ts}`);
+    const result = await standupService.postTeamStandup(
+      team,
+      targetDate.toDate(),
+      app
+    );
+    if (result?.skipped) {
+      console.log(
+        `⏭️  Already posted for ${team.name} (ts=${result.post.slackMessageTs}) — skipped`
+      );
+    } else if (result) {
+      console.log(`✅ Standup posted successfully to ${team.slackChannelId}`);
+      console.log(`📝 Message timestamp: ${result.ts}`);
+    } else {
+      console.log(
+        `⚠️  Nothing posted for ${team.name} (no data / non-working day)`
+      );
+    }
   } catch (error) {
     console.error("❌ Error sending manual standup:", error.message);
     throw error;
@@ -374,9 +391,16 @@ async function sendStandupReminders(teamName) {
         await app.client.chat.postMessage({
           channel: member.user.slackUserId,
           blocks: [
-            createSectionBlock(`🌅 Good morning! Time for your daily standup for *${team.name}*`),
+            createSectionBlock(
+              `🌅 Good morning! Time for your daily standup for *${team.name}*`
+            ),
             createActionsBlock([
-              createButton("📝 Submit Standup", `open_standup_${team.id}`, team.id.toString(), "primary")
+              createButton(
+                "📝 Submit Standup",
+                `open_standup_${team.id}`,
+                team.id.toString(),
+                "primary"
+              ),
             ]),
             {
               type: "context",
@@ -509,7 +533,9 @@ async function postAllTeamsStandups(options = {}) {
     const dateStr = targetDate.format("YYYY-MM-DD");
     const actionType = options.dryRun ? "Preview standups" : "Post standups";
 
-    console.log(`🚀 Preparing to ${actionType.toLowerCase()} for all active teams...\n`);
+    console.log(
+      `🚀 Preparing to ${actionType.toLowerCase()} for all active teams...\n`
+    );
     console.log(`📅 Target date: ${dateStr}\n`);
 
     // Get all active teams with at least one active member
@@ -543,7 +569,9 @@ async function postAllTeamsStandups(options = {}) {
     }
 
     // Display teams that will receive standup posts
-    console.log(`📋 Found ${teams.length} active team(s) with active members:\n`);
+    console.log(
+      `📋 Found ${teams.length} active team(s) with active members:\n`
+    );
     const tableData = teams.map((team) => ({
       "Team Name": team.name,
       "Active Members": team._count.members,
@@ -553,7 +581,9 @@ async function postAllTeamsStandups(options = {}) {
     console.table(tableData);
 
     // Ask for confirmation
-    console.log(`\n⚠️  This will ${actionType.toLowerCase()} for ${teams.length} team(s) on ${dateStr}.`);
+    console.log(
+      `\n⚠️  This will ${actionType.toLowerCase()} for ${teams.length} team(s) on ${dateStr}.`
+    );
     const confirmed = await confirmAction("Do you want to proceed?");
 
     if (!confirmed) {
@@ -612,7 +642,8 @@ async function postAllTeamsStandups(options = {}) {
 
           const notSubmitted = allMembers
             .filter(
-              (m) => !respondedUserIds.has(m.userId) && !leaveUserIds.has(m.userId)
+              (m) =>
+                !respondedUserIds.has(m.userId) && !leaveUserIds.has(m.userId)
             )
             .map((m) => ({
               slackUserId: m.user.slackUserId,
@@ -620,7 +651,9 @@ async function postAllTeamsStandups(options = {}) {
               onLeave: false,
             }));
 
-          console.log(`   📊 Stats: ${responses.length} responses, ${lateResponses.length} late, ${notSubmitted.length} pending`);
+          console.log(
+            `   📊 Stats: ${responses.length} responses, ${lateResponses.length} late, ${notSubmitted.length} pending`
+          );
 
           if (
             responses.length === 0 &&
@@ -641,12 +674,16 @@ async function postAllTeamsStandups(options = {}) {
             app
           );
 
-          if (result) {
+          if (result && !result.skipped) {
             successCount++;
             console.log(`   ✅ Successfully posted to ${team.name}`);
           } else {
             skippedCount++;
-            console.log(`   ⚠️  No data to post for ${team.name}`);
+            console.log(
+              result?.skipped
+                ? `   ⏭️  Already posted for ${team.name} — skipped`
+                : `   ⚠️  No data to post for ${team.name}`
+            );
           }
         }
       } catch (error) {
@@ -677,7 +714,9 @@ async function postAllTeamsStandups(options = {}) {
 
 async function remindAllTeams() {
   try {
-    console.log(`🚀 Preparing to send standup reminders to all active teams...\n`);
+    console.log(
+      `🚀 Preparing to send standup reminders to all active teams...\n`
+    );
 
     // Get all active teams with at least one active member
     const teams = await prisma.team.findMany({
@@ -710,7 +749,9 @@ async function remindAllTeams() {
     }
 
     // Display teams
-    console.log(`📋 Found ${teams.length} active team(s) with active members:\n`);
+    console.log(
+      `📋 Found ${teams.length} active team(s) with active members:\n`
+    );
     const tableData = teams.map((team) => ({
       "Team Name": team.name,
       "Active Members": team._count.members,
@@ -720,7 +761,9 @@ async function remindAllTeams() {
     console.table(tableData);
 
     // Ask for confirmation
-    console.log(`\n⚠️  This will send standup reminders to ${teams.length} team(s).`);
+    console.log(
+      `\n⚠️  This will send standup reminders to ${teams.length} team(s).`
+    );
     const confirmed = await confirmAction("Do you want to proceed?");
 
     if (!confirmed) {
@@ -754,7 +797,9 @@ async function remindAllTeams() {
     console.log(`${"=".repeat(60)}\n`);
 
     if (failureCount > 0) {
-      console.log("⚠️  Some teams failed to receive reminders. Check logs above.");
+      console.log(
+        "⚠️  Some teams failed to receive reminders. Check logs above."
+      );
     } else {
       console.log(`✅ All reminders sent successfully!`);
     }
@@ -833,7 +878,9 @@ Note:
           const teamName = args[1];
           if (!teamName) {
             console.error("❌ Team name is required for post command");
-            console.log("Use --all to post to all teams, or provide a team name");
+            console.log(
+              "Use --all to post to all teams, or provide a team name"
+            );
             process.exit(1);
           }
 
@@ -862,7 +909,9 @@ Note:
           const teamName = args[1];
           if (!teamName) {
             console.error("❌ Team name is required for remind command");
-            console.log("Use --all to send to all teams, or provide a team name");
+            console.log(
+              "Use --all to send to all teams, or provide a team name"
+            );
             process.exit(1);
           }
           await sendStandupReminders(teamName);

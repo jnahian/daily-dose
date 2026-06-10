@@ -280,6 +280,41 @@
                 "# Change team name\n/dd-team-update Engineering name=\"Engineering Team\"",
                 "# Disable admin notifications\n/dd-team-update Engineering notifications=false"
               ]
+            },
+            {
+              "type": "command",
+              "command": "/dd-team-suspend @user [team-name]",
+              "description": "Suspend a member from a team (team admin or org owner/admin). Suspended members stop receiving reminders, are excluded from standup posts, and cannot submit standups for that team. Blocked when the user is the only active admin of the team.",
+              "examples": [
+                "# Suspend from team in current channel\n/dd-team-suspend @john",
+                "# Suspend from a specific team\n/dd-team-suspend @john Engineering"
+              ]
+            },
+            {
+              "type": "command",
+              "command": "/dd-team-unsuspend @user [team-name]",
+              "description": "Reactivate a suspended team member (team admin or org owner/admin). Blocked if the user is currently org-suspended — run /dd-org-unsuspend first.",
+              "examples": [
+                "# Reactivate in team for current channel\n/dd-team-unsuspend @john",
+                "# Reactivate in specific team\n/dd-team-unsuspend @john Engineering"
+              ]
+            },
+            {
+              "type": "command",
+              "command": "/dd-org-suspend @user",
+              "description": "Suspend a member across the entire organization (org owner/admin only). Cascades the suspension to every active team membership in the organization. Blocked if the user is the only active admin of any team — promote another admin first.",
+              "examples": ["/dd-org-suspend @john"]
+            },
+            {
+              "type": "command",
+              "command": "/dd-org-unsuspend @user",
+              "description": "Reactivate a suspended organization member (org owner/admin only). Restores org membership only — does NOT resurrect team memberships. Use /dd-team-unsuspend per team to restore team access.",
+              "examples": ["/dd-org-unsuspend @john"]
+            },
+            {
+              "type": "note",
+              "title": "Automatic Slack Deactivation",
+              "value": "When a member is deactivated in Slack, Daily Dose automatically suspends them across every organization and team they belonged to. No admin action required."
             }
           ]
         },

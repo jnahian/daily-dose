@@ -1,6 +1,6 @@
 {
   "name": "daily-dose",
-  "version": "1.5.1",
+  "version": "1.10.0",
   "main": "index.js",
   "directories": {
     "doc": "docs"
@@ -23,14 +23,19 @@
     "team:members": "node scripts/check-team-members.js",
     "team:promote": "node scripts/promoteTeamMember.js",
     "debug:scheduler": "node scripts/debugScheduler.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "version:patch": "npm version patch --no-git-tag-version",
-    "version:minor": "npm version minor --no-git-tag-version",
-    "version:major": "npm version major --no-git-tag-version",
-    "version:check": "node scripts/checkVersion.js",
-    "preversion": "npm run version:check && git diff --exit-code",
-    "postversion": "git add package.json package-lock.json && git commit -m '🔖 Bump version to v'$(node -p \"require('./package.json').version\")",
-    "release": "git tag v$(node -p \"require('./package.json').version\") && git push && git push --tags"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "format": "prettier --write \"src/**/*.js\" \"scripts/**/*.js\" \"test/**/*.js\" \"*.{js,json,md}\"",
+    "format:check": "prettier --check \"src/**/*.js\" \"scripts/**/*.js\" \"test/**/*.js\" \"*.{js,json,md}\"",
+    "prepare": "husky || true",
+    "video:studio": "cd video && npm run video:studio",
+    "video:render": "cd video && npm run video:render",
+    "video:render:reel": "cd video && npm run video:render:reel",
+    "video:vo": "cd video && npm run video:vo",
+    "video:music": "cd video && npm run video:music"
   },
   "keywords": [
     "slack",
@@ -47,6 +52,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.15.0",
+    "@sentry/node": "^8.55.2",
     "@slack/bolt": "^4.4.0",
     "cookie-parser": "^1.4.7",
     "dayjs": "^1.11.18",
@@ -57,8 +63,30 @@
     "@types/node": "^24.3.0",
     "concurrently": "^9.2.1",
     "eslint": "^9.34.0",
+    "globals": "^15.15.0",
+    "husky": "^9.1.7",
+    "jest": "^30.4.2",
+    "lint-staged": "^15.5.2",
     "nodemon": "^3.1.10",
+    "prettier": "^3.8.3",
     "prisma": "^6.15.0",
     "typescript": "^5.9.2"
+  },
+  "lint-staged": {
+    "src/**/*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "scripts/**/*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "test/**/*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   }
 }

@@ -8,6 +8,7 @@ const {
   createCommandErrorBlocks,
 } = require("../utils/blockHelper");
 const permissionHelper = require("../utils/permissionHelper");
+const { sanitizeError } = require("../utils/errorHelper");
 
 async function setLeave({ command, ack, respond, client }) {
   const updateResponse = await ackWithProcessing(
@@ -81,15 +82,15 @@ async function setLeave({ command, ack, respond, client }) {
     const dateText = startDate.isSame(endDate, "day")
       ? `on ${startDate.format("MMM DD, YYYY")}`
       : `from ${startDate.format("MMM DD, YYYY")} to ${endDate.format(
-        "MMM DD, YYYY"
-      )}`;
+          "MMM DD, YYYY"
+        )}`;
 
     await updateResponse({
       text: `✅ Leave set ${dateText}\nReason: ${reason}`,
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -122,7 +123,7 @@ async function cancelLeave({ command, ack, respond }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -165,8 +166,9 @@ async function listLeaves({ command, ack, respond, client }) {
         const endDate = dayjs(leave.endDate).format("MMM DD, YYYY");
         const dateRange =
           startDate === endDate ? startDate : `${startDate} - ${endDate}`;
-        return `- ${dateRange}: ${leave.reason || "No reason"
-          } (ID: ${leave.id.slice(0, 8)})`;
+        return `- ${dateRange}: ${
+          leave.reason || "No reason"
+        } (ID: ${leave.id.slice(0, 8)})`;
       })
       .join("\n");
 
@@ -186,7 +188,7 @@ async function listLeaves({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -248,7 +250,7 @@ async function setWorkDays({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -322,7 +324,7 @@ async function showWorkDays({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -418,7 +420,10 @@ async function setMemberLeave({ command, ack, respond, client }) {
     } else {
       // No team specified - check if user can manage any teams
       // First, check if user is an Org Owner
-      const isOwner = await permissionHelper.isOrganizationOwner(command.user_id, userOrg.id);
+      const isOwner = await permissionHelper.isOrganizationOwner(
+        command.user_id,
+        userOrg.id
+      );
 
       if (isOwner) {
         // Owner can manage all teams
@@ -450,7 +455,10 @@ async function setMemberLeave({ command, ack, respond, client }) {
         }
       } else {
         // Not an owner, check team memberships
-        const userTeams = await teamService.getUserTeams(command.user_id, client);
+        const userTeams = await teamService.getUserTeams(
+          command.user_id,
+          client
+        );
 
         if (userTeams.length === 0) {
           await updateResponse({
@@ -478,7 +486,10 @@ async function setMemberLeave({ command, ack, respond, client }) {
     }
 
     // Check permissions using helper
-    const permission = await permissionHelper.canManageTeam(command.user_id, targetTeam.id);
+    const permission = await permissionHelper.canManageTeam(
+      command.user_id,
+      targetTeam.id
+    );
 
     if (!permission.canManage) {
       await updateResponse({
@@ -491,7 +502,9 @@ async function setMemberLeave({ command, ack, respond, client }) {
 
     // Verify target user is a member of the team
     const teamMembers = await teamService.getTeamMembers(targetTeam.id);
-    const isMember = teamMembers.some(m => m.user.slackUserId === targetSlackUserId);
+    const isMember = teamMembers.some(
+      (m) => m.user.slackUserId === targetSlackUserId
+    );
 
     if (!isMember) {
       await updateResponse({
@@ -505,12 +518,9 @@ async function setMemberLeave({ command, ack, respond, client }) {
     // Parse dates
     if (parts.length < dateStartIndex + 1) {
       await updateResponse({
-        blocks: createCommandErrorBlocks(
-          "Missing start date.",
-          [
-            "Usage: `/dd-leave-set-member @user [team-name] YYYY-MM-DD [YYYY-MM-DD] [reason]`",
-          ]
-        ),
+        blocks: createCommandErrorBlocks("Missing start date.", [
+          "Usage: `/dd-leave-set-member @user [team-name] YYYY-MM-DD [YYYY-MM-DD] [reason]`",
+        ]),
       });
       return;
     }
@@ -549,7 +559,8 @@ async function setMemberLeave({ command, ack, respond, client }) {
       // If next parameter is not a valid date, treat it as part of reason
     }
 
-    const reason = parts.slice(reasonStartIndex).join(" ") || "Leave set by admin";
+    const reason =
+      parts.slice(reasonStartIndex).join(" ") || "Leave set by admin";
 
     await userService.setMemberLeave(
       targetSlackUserId,
@@ -568,7 +579,7 @@ async function setMemberLeave({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -616,10 +627,9 @@ async function cancelMemberLeave({ command, ack, respond, client }) {
 
     if (!leaveId) {
       await updateResponse({
-        blocks: createCommandErrorBlocks(
-          "Missing leave ID.",
-          ["Usage: `/dd-leave-cancel-member @user leave-id [team-name]`"]
-        ),
+        blocks: createCommandErrorBlocks("Missing leave ID.", [
+          "Usage: `/dd-leave-cancel-member @user leave-id [team-name]`",
+        ]),
       });
       return;
     }
@@ -665,7 +675,10 @@ async function cancelMemberLeave({ command, ack, respond, client }) {
     } else {
       // No team specified - check if user can manage any teams
       // First, check if user is an Org Owner
-      const isOwner = await permissionHelper.isOrganizationOwner(command.user_id, userOrg.id);
+      const isOwner = await permissionHelper.isOrganizationOwner(
+        command.user_id,
+        userOrg.id
+      );
 
       if (isOwner) {
         // Owner can manage all teams
@@ -697,7 +710,10 @@ async function cancelMemberLeave({ command, ack, respond, client }) {
         }
       } else {
         // Not an owner, check team memberships
-        const userTeams = await teamService.getUserTeams(command.user_id, client);
+        const userTeams = await teamService.getUserTeams(
+          command.user_id,
+          client
+        );
 
         if (userTeams.length === 0) {
           await updateResponse({
@@ -725,7 +741,10 @@ async function cancelMemberLeave({ command, ack, respond, client }) {
     }
 
     // Check permissions using helper
-    const permission = await permissionHelper.canManageTeam(command.user_id, targetTeam.id);
+    const permission = await permissionHelper.canManageTeam(
+      command.user_id,
+      targetTeam.id
+    );
 
     if (!permission.canManage) {
       await updateResponse({
@@ -738,7 +757,9 @@ async function cancelMemberLeave({ command, ack, respond, client }) {
 
     // Verify target user is a member of the team
     const teamMembers = await teamService.getTeamMembers(targetTeam.id);
-    const isMember = teamMembers.some(m => m.user.slackUserId === targetSlackUserId);
+    const isMember = teamMembers.some(
+      (m) => m.user.slackUserId === targetSlackUserId
+    );
 
     if (!isMember) {
       await updateResponse({
@@ -756,7 +777,7 @@ async function cancelMemberLeave({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -840,7 +861,10 @@ async function listMemberLeaves({ command, ack, respond, client }) {
     } else {
       // No team specified - check if user can manage any teams
       // First, check if user is an Org Owner
-      const isOwner = await permissionHelper.isOrganizationOwner(command.user_id, userOrg.id);
+      const isOwner = await permissionHelper.isOrganizationOwner(
+        command.user_id,
+        userOrg.id
+      );
 
       if (isOwner) {
         // Owner can manage all teams
@@ -872,7 +896,10 @@ async function listMemberLeaves({ command, ack, respond, client }) {
         }
       } else {
         // Not an owner, check team memberships
-        const userTeams = await teamService.getUserTeams(command.user_id, client);
+        const userTeams = await teamService.getUserTeams(
+          command.user_id,
+          client
+        );
 
         if (userTeams.length === 0) {
           await updateResponse({
@@ -900,7 +927,10 @@ async function listMemberLeaves({ command, ack, respond, client }) {
     }
 
     // Check permissions using helper
-    const permission = await permissionHelper.canManageTeam(command.user_id, targetTeam.id);
+    const permission = await permissionHelper.canManageTeam(
+      command.user_id,
+      targetTeam.id
+    );
 
     if (!permission.canManage) {
       await updateResponse({
@@ -913,7 +943,9 @@ async function listMemberLeaves({ command, ack, respond, client }) {
 
     // Verify target user is a member of the team
     const teamMembers = await teamService.getTeamMembers(targetTeam.id);
-    const isMember = teamMembers.some(m => m.user.slackUserId === targetSlackUserId);
+    const isMember = teamMembers.some(
+      (m) => m.user.slackUserId === targetSlackUserId
+    );
 
     if (!isMember) {
       await updateResponse({
@@ -924,7 +956,10 @@ async function listMemberLeaves({ command, ack, respond, client }) {
       return;
     }
 
-    const leaves = await userService.listMemberLeaves(targetSlackUserId, client);
+    const leaves = await userService.listMemberLeaves(
+      targetSlackUserId,
+      client
+    );
 
     if (leaves.length === 0) {
       await updateResponse({
@@ -945,7 +980,9 @@ async function listMemberLeaves({ command, ack, respond, client }) {
 
     await updateResponse({
       blocks: [
-        createSectionBlock(`*📅 Upcoming Leaves for <@${targetSlackUserId}>:*\nTeam: ${targetTeam.name}\n\n${leaveList}`),
+        createSectionBlock(
+          `*📅 Upcoming Leaves for <@${targetSlackUserId}>:*\nTeam: ${targetTeam.name}\n\n${leaveList}`
+        ),
         {
           type: "context",
           elements: [
@@ -959,7 +996,7 @@ async function listMemberLeaves({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }

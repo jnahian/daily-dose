@@ -65,11 +65,13 @@ function withFormattingRemoval(handler) {
 async function getChannelName(client, channelId) {
   try {
     const channelInfo = await client.conversations.info({
-      channel: channelId
+      channel: channelId,
     });
     return channelInfo.channel.name;
-  } catch (error) {
-    throw new Error("Failed to get channel information. Please provide a team name explicitly.");
+  } catch {
+    throw new Error(
+      "Failed to get channel information. Please provide a team name explicitly."
+    );
   }
 }
 

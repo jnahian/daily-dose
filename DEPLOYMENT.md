@@ -31,20 +31,20 @@ This guide covers the setup and deployment of the Daily Dose bot to a Hetzner VP
 
 ### 2. Required Bot Token Scopes
 
-| Scope | Purpose |
-|-------|---------|
-| `channels:read` | List public channels |
-| `chat:write` | Post messages |
-| `commands` | Register slash commands |
-| `groups:read` | List private channels |
-| `im:write` | Send DMs |
-| `users:read` | Look up user info |
-| `users:read.email` | Match users by email |
+| Scope              | Purpose                 |
+| ------------------ | ----------------------- |
+| `channels:read`    | List public channels    |
+| `chat:write`       | Post messages           |
+| `commands`         | Register slash commands |
+| `groups:read`      | List private channels   |
+| `im:write`         | Send DMs                |
+| `users:read`       | Look up user info       |
+| `users:read.email` | Match users by email    |
 
 ### 3. Required User Token Scopes
 
-| Scope | Purpose |
-|-------|---------|
+| Scope           | Purpose               |
+| --------------- | --------------------- |
 | `channels:read` | Resolve channel names |
 
 ### 4. Disable Socket Mode
@@ -55,11 +55,11 @@ Daily Dose uses HTTP endpoints, not Socket Mode. Make sure **Socket Mode is off*
 
 After installing the app to your workspace, collect:
 
-| Token | Where to find it |
-|-------|-----------------|
-| `SLACK_BOT_TOKEN` | OAuth & Permissions → Bot User OAuth Token (`xoxb-...`) |
-| `SLACK_SIGNING_SECRET` | Basic Information → Signing Secret |
-| `SLACK_USER_TOKEN` | OAuth & Permissions → User OAuth Token (`xoxp-...`) |
+| Token                  | Where to find it                                        |
+| ---------------------- | ------------------------------------------------------- |
+| `SLACK_BOT_TOKEN`      | OAuth & Permissions → Bot User OAuth Token (`xoxb-...`) |
+| `SLACK_SIGNING_SECRET` | Basic Information → Signing Secret                      |
+| `SLACK_USER_TOKEN`     | OAuth & Permissions → User OAuth Token (`xoxp-...`)     |
 
 ---
 
@@ -91,27 +91,29 @@ This creates all tables defined in `prisma/schema.prisma`.
 
 Create a `.env` file at the project root and fill in the values below.
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `SLACK_BOT_TOKEN` | Yes | Bot OAuth token (`xoxb-...`) |
-| `SLACK_SIGNING_SECRET` | Yes | Slack app signing secret |
-| `SLACK_APP_TOKEN` | No | App-level token — not required for HTTP mode |
-| `SLACK_USER_TOKEN` | Yes | User OAuth token (`xoxp-...`) |
-| `DATABASE_URL` | Yes | Supabase pooled connection URL |
-| `DIRECT_URL` | Yes | Supabase direct connection URL |
-| `PORT` | No | HTTP port (default: `3000`) |
-| `DEFAULT_TIMEZONE` | No | Fallback timezone (default: `America/New_York`) |
-| `APP_URL` | Yes | Public base URL of the app (e.g. `https://dd.example.com`) |
-| `LOG_LEVEL` | No | Log verbosity: `debug`, `info`, `warn`, `error` (default: `info`) |
-| `SENTRY_DSN` | No | Sentry DSN for error tracking (optional) |
-| `SCRIPTS_AUTH_USERNAME` | No | Username for `/scripts-docs` route (default: `admin`) |
-| `SCRIPTS_AUTH_PASSWORD` | No | Password for `/scripts-docs` route (default: `daily-dose-admin`) |
+| Variable                | Required | Description                                                                                    |
+| ----------------------- | -------- | ---------------------------------------------------------------------------------------------- |
+| `SLACK_BOT_TOKEN`       | Yes      | Bot OAuth token (`xoxb-...`)                                                                   |
+| `SLACK_SIGNING_SECRET`  | Yes      | Slack app signing secret                                                                       |
+| `SLACK_APP_TOKEN`       | No       | App-level token — not required for HTTP mode                                                   |
+| `SLACK_USER_TOKEN`      | Yes      | User OAuth token (`xoxp-...`)                                                                  |
+| `DATABASE_URL`          | Yes      | Supabase pooled connection URL                                                                 |
+| `DIRECT_URL`            | Yes      | Supabase direct connection URL                                                                 |
+| `PORT`                  | No       | HTTP port (default: `3000`)                                                                    |
+| `DEFAULT_TIMEZONE`      | No       | Fallback timezone (default: `America/New_York`)                                                |
+| `APP_URL`               | Yes      | Public base URL of the app (e.g. `https://dd.example.com`)                                     |
+| `LOG_LEVEL`             | No       | Log verbosity: `debug`, `info`, `warn`, `error` (default: `info`)                              |
+| `SENTRY_DSN`            | No       | Sentry DSN for error tracking (optional)                                                       |
+| `SCRIPTS_AUTH_USERNAME` | **Yes**  | Username for `/scripts` route — Required. The app will refuse to start without this.           |
+| `SCRIPTS_AUTH_PASSWORD` | **Yes**  | Password for `/scripts` route — Required. The app will refuse to start without this.           |
+| `CONTACT_SLACK_CHANNEL` | No       | Slack channel/user ID that receives website contact-form submissions (form disabled if unset). |
 
 ---
 
 ## Prerequisites
 
 ### VPS Requirements
+
 - Ubuntu 20.04+ or similar Linux distribution
 - Node.js 18+ installed
 - PM2 process manager
@@ -133,28 +135,33 @@ APP_PORT=3000
 ## VPS Initial Setup
 
 ### 1. Connect to your VPS
+
 ```bash
 ssh your-username@your-vps-ip
 ```
 
 ### 2. Install Node.js
+
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
 ### 3. Install PM2 globally
+
 ```bash
 sudo npm install -g pm2
 ```
 
 ### 4. Setup PM2 to start on boot
+
 ```bash
 pm2 startup
 # Follow the instructions displayed
 ```
 
 ### 5. Clone your repository
+
 ```bash
 cd /home/your-username
 git clone https://github.com/your-username/daily-dose.git
@@ -162,11 +169,13 @@ cd daily-dose
 ```
 
 ### 6. Install dependencies
+
 ```bash
 npm ci
 ```
 
 ### 7. Setup environment variables
+
 ```bash
 nano .env
 ```
@@ -174,17 +183,20 @@ nano .env
 Fill in your environment variables (see [Environment Variables Reference](#environment-variables-reference) above).
 
 ### 8. Setup database
+
 ```bash
 npx prisma generate
 npx prisma db push
 ```
 
 ### 9. Create logs directory
+
 ```bash
 mkdir -p logs
 ```
 
 ### 10. Start the application
+
 ```bash
 pm2 start ecosystem.config.js --env production
 pm2 save
@@ -193,22 +205,26 @@ pm2 save
 ## SSH Key Setup
 
 ### 1. Generate SSH key pair (on your local machine)
+
 ```bash
 ssh-keygen -t rsa -b 4096 -C "github-actions@daily-dose"
 ```
 
 ### 2. Copy public key to VPS
+
 ```bash
 ssh-copy-id -i ~/.ssh/id_rsa.pub your-username@your-vps-ip
 ```
 
 ### 3. Add private key to GitHub Secrets
+
 - Copy the content of `~/.ssh/id_rsa` (private key)
 - Add it as `VPS_SSH_KEY` secret in GitHub
 
 ## Firewall Configuration
 
 Open necessary ports:
+
 ```bash
 sudo ufw allow 22/tcp    # SSH
 sudo ufw allow 3000/tcp  # App port
@@ -267,6 +283,7 @@ Update your Slack app's **Request URL** in Event Subscriptions and Slash Command
 ## Deployment Workflow
 
 The GitHub Action will automatically:
+
 1. Run on pushes to `main` branch
 2. Install dependencies and generate Prisma client
 3. SSH to your VPS
@@ -293,17 +310,20 @@ pm2 restart daily-dose
 ## Monitoring
 
 ### Check application status
+
 ```bash
 pm2 status
 pm2 logs daily-dose
 ```
 
 ### View health check
+
 ```bash
 curl http://localhost:3000/health
 ```
 
 ### Monitor logs
+
 ```bash
 pm2 logs daily-dose --lines 100
 ```

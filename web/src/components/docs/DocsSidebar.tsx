@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Search,
   ChevronRight,
@@ -9,7 +9,7 @@ import {
   HelpCircle,
   LifeBuoy,
   SquareSlash,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface NavItem {
   id: string;
@@ -27,12 +27,12 @@ interface DocsSidebarProps {
   setSearchQuery: (query: string) => void;
 }
 
-import { useMemo } from 'react';
-import docsData from '../../data/docs.json';
+import { useMemo } from "react";
+import docsData from "../../data/docs.json";
 
 const SECTION_ICONS: Record<string, React.ElementType> = {
-  'getting-started': Book,
-  'slash-commands': SquareSlash,
+  "getting-started": Book,
+  "slash-commands": SquareSlash,
   features: Zap,
   configuration: Settings,
   troubleshooting: Wrench,
@@ -103,7 +103,7 @@ export const DocsSidebar = ({
 
       window.scrollTo({
         top: offsetPosition,
-        behavior: 'smooth',
+        behavior: "smooth",
       });
     }
     setIsOpen(false);
@@ -126,14 +126,17 @@ export const DocsSidebar = ({
         w-64 overflow-y-auto bg-bg-primary
         fixed top-16 left-0 h-[calc(100vh-4rem)] z-40
         transform transition-transform duration-300
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
         md:translate-x-0 md:h-auto md:max-h-[calc(100vh-4rem)] md:sticky md:top-20 md:shrink-0 md:border-0
       `}
         >
           <div className="py-6 px-6 md:pl-0 md:pr-6">
             {/* Search */}
             <div className="relative mb-6">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
+                size={18}
+              />
               <input
                 type="text"
                 placeholder="Search docs..."
@@ -151,7 +154,7 @@ export const DocsSidebar = ({
                     onClick={() => scrollToSection(item.id)}
                     className={`
                     w-full text-left font-semibold text-sm mb-2 transition-colors flex items-center gap-2
-                    ${activeSection === item.id ? 'text-brand-cyan' : 'text-text-primary hover:text-brand-cyan'}
+                    ${activeSection === item.id ? "text-brand-cyan" : "text-text-primary hover:text-brand-cyan"}
                   `}
                   >
                     <item.icon size={18} />
@@ -165,12 +168,16 @@ export const DocsSidebar = ({
                             onClick={() => scrollToSection(sub.id)}
                             className={`
                             w-full text-left text-sm pl-3 py-1 transition-colors flex items-center gap-2
-                            ${activeSection === sub.id ? 'text-brand-cyan' : 'text-text-secondary hover:text-text-primary'}
+                            ${activeSection === sub.id ? "text-brand-cyan" : "text-text-secondary hover:text-text-primary"}
                           `}
                           >
                             <ChevronRight
                               size={14}
-                              className={activeSection === sub.id ? 'opacity-100' : 'opacity-0'}
+                              className={
+                                activeSection === sub.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              }
                             />
                             {sub.title}
                           </button>
@@ -183,7 +190,6 @@ export const DocsSidebar = ({
             </nav>
           </div>
         </aside>
-
       </div>
     </>
   );

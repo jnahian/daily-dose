@@ -40,7 +40,7 @@ function logEventMiddleware() {
  * Middleware to log all button/action interactions
  */
 function logActionMiddleware() {
-  return async ({ action, body, next }) => {
+  return async ({ action, next }) => {
     logAction(action);
     await next();
   };
@@ -50,7 +50,7 @@ function logActionMiddleware() {
  * Middleware to log all view submissions
  */
 function logViewMiddleware() {
-  return async ({ view, body, next }) => {
+  return async ({ view, next }) => {
     logView(view);
     await next();
   };

@@ -1,4 +1,5 @@
 const prisma = require("../config/prisma");
+const logger = require("../utils/logger");
 
 /**
  * Check if a user is the owner of an organization
@@ -8,14 +9,40 @@ const prisma = require("../config/prisma");
  */
 async function isOrganizationOwner(userId, organizationId) {
   try {
-    const organization = await prisma.organization.findUnique({
-      where: { id: organizationId },
-      select: { createdBy: true },
+    const membership = await prisma.organizationMember.findUnique({
+      where: { organizationId_userId: { organizationId, userId } },
+      select: { role: true, isActive: true },
     });
 
-    return organization && organization.createdBy === userId;
+    return !!membership && membership.isActive && membership.role === "OWNER";
   } catch (error) {
-    console.error("Error checking organization owner:", error);
+    logger.error(
+      `Error checking organization owner (userId=${userId}, organizationId=${organizationId}):`,
+      error
+    );
+    return false;
+  }
+}
+
+/**
+ * Check if a user is an admin of an organization
+ * @param {string} userId - The user ID to check
+ * @param {string} organizationId - The organization ID to check against
+ * @returns {Promise<boolean>} True if user is an organization admin
+ */
+async function isOrganizationAdmin(userId, organizationId) {
+  try {
+    const membership = await prisma.organizationMember.findUnique({
+      where: { organizationId_userId: { organizationId, userId } },
+      select: { role: true, isActive: true },
+    });
+
+    return !!membership && membership.isActive && membership.role === "ADMIN";
+  } catch (error) {
+    logger.error(
+      `Error checking organization admin (userId=${userId}, organizationId=${organizationId}):`,
+      error
+    );
     return false;
   }
 }
@@ -39,7 +66,10 @@ async function isTeamAdmin(userId, teamId) {
 
     return !!teamMember;
   } catch (error) {
-    console.error("Error checking team admin:", error);
+    logger.error(
+      `Error checking team admin (userId=${userId}, teamId=${teamId}):`,
+      error
+    );
     return false;
   }
 }
@@ -76,6 +106,16 @@ async function canManageTeam(userId, teamId) {
       };
     }
 
+    // Check if user is an organization admin
+    const isOrgAdmin = await isOrganizationAdmin(userId, team.organizationId);
+    if (isOrgAdmin) {
+      return {
+        canManage: true,
+        role: "ORG_ADMIN",
+        reason: null,
+      };
+    }
+
     // Check if user is team admin
     const isAdmin = await isTeamAdmin(userId, teamId);
     if (isAdmin) {
@@ -92,7 +132,10 @@ async function canManageTeam(userId, teamId) {
       reason: "User is not an admin or owner",
     };
   } catch (error) {
-    console.error("Error checking team management permission:", error);
+    logger.error(
+      `Error checking team management permission (userId=${userId}, teamId=${teamId}):`,
+      error
+    );
     return {
       canManage: false,
       role: null,
@@ -110,20 +153,21 @@ async function getUserBySlackId(slackUserId) {
   try {
     const user = await prisma.user.findUnique({
       where: { slackUserId },
-      include: {
-        organization: true,
-      },
     });
 
     return user;
   } catch (error) {
-    console.error("Error fetching user by Slack ID:", error);
+    logger.error(
+      `Error fetching user by Slack ID (slackUserId=${slackUserId}):`,
+      error
+    );
     return null;
   }
 }
 
 module.exports = {
   isOrganizationOwner,
+  isOrganizationAdmin,
   isTeamAdmin,
   canManageTeam,
   getUserBySlackId,

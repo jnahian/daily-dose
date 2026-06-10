@@ -63,9 +63,36 @@ function formatTasks(tasks) {
  * @param {*} el - The rich text element to format
  * @returns {string} The formatted text
  */
+// Slack mrkdwn treats &, < and > as control characters (mentions, links,
+// HTML entities). Raw text typed by users must have them escaped, otherwise
+// pasted snippets like `<script>` or `a < b && b > c` are parsed as broken
+// link/mention syntax and can corrupt the whole message. Structured elements
+// (link/user/channel) below are built from rich-text data, not raw text, so
+// they keep their angle brackets.
+function escapeSlackText(text) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+// Inverse of escapeSlackText. Applied when emitting raw `text` elements
+// while rebuilding rich text for modal prefill — AFTER the structured
+// patterns (mentions/links) have been matched against the still-escaped
+// string. Without it every edit/resubmit cycle would re-escape the entities
+// (& → &amp; → &amp;amp;); applying it any earlier would let escaped
+// literals like `&lt;@U123&gt;` re-match the mention pattern and become a
+// real mention.
+function unescapeSlackText(text) {
+  return text
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+}
+
 function formatElement(el) {
   if (el.type === "text") {
-    let text = el.text;
+    let text = escapeSlackText(el.text);
     if (el.style?.bold) text = `*${text}*`;
     if (el.style?.italic) text = `_${text}_`;
     if (el.style?.strike) text = `~${text}~`;
@@ -73,8 +100,12 @@ function formatElement(el) {
     return text;
   }
   if (el.type === "link") {
-    const linkText = el.text || el.url;
-    return `<${el.url} ${el.text ? `|${linkText}` : ""}>`;
+    // Slack mrkdwn link syntax is <url|text> with NO space — a space (or
+    // trailing whitespace in the url) makes the URL invalid and Slack rejects
+    // the whole payload with `invalid_blocks`. Trim and omit the separator
+    // space.
+    const url = (el.url || "").trim();
+    return el.text ? `<${url}|${el.text}>` : `<${url}>`;
   }
   if (el.type === "user") return `<@${el.user_id}>`;
   if (el.type === "channel") return `<#${el.channel_id}>`;
@@ -169,6 +200,14 @@ function extractRichTextValue(richTextValue) {
 function convertTextToRichText(text) {
   if (!text || typeof text !== "string") return null;
 
+  // Stored task text has &, <, > escaped in raw-text runs (see
+  // escapeSlackText) while structured syntax (<@U…>, <url|text>) is stored
+  // raw. Parsing happens on the escaped string and the entities are restored
+  // only when emitting `text` elements (here for code/quote blocks, and in
+  // parseInlineFormatting for everything else). Unescaping up front would
+  // let previously-escaped literals like `&lt;@U123&gt;` re-match the
+  // mention pattern and turn into a real mention after one edit cycle.
+
   const elements = [];
   const lines = text.split("\n");
   let i = 0;
@@ -193,6 +232,9 @@ function convertTextToRichText(text) {
             type: "rich_text_section",
             elements: [
               {
+                // Extraction does not escape entities inside preformatted
+                // blocks (they bypass formatElement), so no unescape here —
+                // the stored text is already the raw user input.
                 type: "text",
                 text: codeLines.join("\n"),
               },
@@ -218,6 +260,7 @@ function convertTextToRichText(text) {
             type: "rich_text_section",
             elements: [
               {
+                // Same as preformatted: quote text is extracted unescaped.
                 type: "text",
                 text: quoteLines.join("\n"),
               },
@@ -231,14 +274,11 @@ function convertTextToRichText(text) {
     // Handle lists (both bulleted and numbered) with multi-level support
     const listInfo = getListItemInfo(line);
     if (listInfo) {
-      // Parse the entire list structure recursively
-      const { listElement, nextIndex } = parseListStructure(
-        lines,
-        i,
-        listInfo.type,
-        listInfo.indentLevel
-      );
-      elements.push(listElement);
+      // Slack expresses nested lists as sibling rich_text_list blocks with an
+      // `indent` level — NOT as lists nested inside another list's `elements`
+      // (that shape is rejected with "invalid additional property: style").
+      const { lists, nextIndex } = parseListBlocks(lines, i);
+      elements.push(...lists);
       i = nextIndex;
       continue;
     }
@@ -329,58 +369,58 @@ function getIndentLevel(line) {
 }
 
 /**
- * Recursively parse list structure with unlimited nesting levels
+ * Parse a run of consecutive list lines into Slack rich_text_list blocks.
+ *
+ * Slack represents nesting with sibling lists distinguished by an integer
+ * `indent` level — a list may NOT contain another list inside its `elements`.
+ * Consecutive items sharing the same (indent, style) are grouped into one list
+ * block so ordered-list numbering stays contiguous.
+ *
  * @param {Array} lines - Array of lines to parse
  * @param {number} startIndex - Starting index in the lines array
- * @param {string} listType - Type of list ("bullet" or "ordered")
- * @param {number} baseIndentLevel - Base indentation level for this list
- * @returns {object} Object with listElement and nextIndex
+ * @returns {object} Object with `lists` (array of rich_text_list) and nextIndex
  */
-function parseListStructure(lines, startIndex, listType, baseIndentLevel) {
-  const listItems = [];
+function parseListBlocks(lines, startIndex) {
+  const items = [];
   let i = startIndex;
 
   while (i < lines.length) {
-    const currentListInfo = getListItemInfo(lines[i]);
-
-    // Stop if not a list item or different type
-    if (!currentListInfo || currentListInfo.type !== listType) {
-      break;
-    }
-
-    // Stop if less indented than base level
-    if (currentListInfo.indentLevel < baseIndentLevel) {
-      break;
-    }
-
-    if (currentListInfo.indentLevel === baseIndentLevel) {
-      // Same level item
-      listItems.push({
-        type: "rich_text_section",
-        elements: parseInlineFormatting(currentListInfo.text),
-      });
-      i++;
-    } else if (currentListInfo.indentLevel > baseIndentLevel) {
-      // Nested list - recursively parse it
-      const { listElement: nestedList, nextIndex } = parseListStructure(
-        lines,
-        i,
-        currentListInfo.type,
-        currentListInfo.indentLevel
-      );
-      listItems.push(nestedList);
-      i = nextIndex;
-    }
+    const info = getListItemInfo(lines[i]);
+    if (!info) break;
+    items.push(info);
+    i++;
   }
 
-  return {
-    listElement: {
-      type: "rich_text_list",
-      style: listType === "bullet" ? "bullet" : "ordered",
-      elements: listItems,
-    },
-    nextIndex: i,
-  };
+  // Map distinct raw indentation widths to 0,1,2,... indent levels.
+  const widths = [...new Set(items.map((it) => it.indentLevel))].sort(
+    (a, b) => a - b
+  );
+
+  const lists = [];
+  let current = null;
+
+  for (const item of items) {
+    const indent = widths.indexOf(item.indentLevel);
+    const style = item.type === "ordered" ? "ordered" : "bullet";
+
+    if (
+      !current ||
+      current.style !== style ||
+      (current.indent || 0) !== indent
+    ) {
+      current = { type: "rich_text_list", style };
+      if (indent > 0) current.indent = indent;
+      current.elements = [];
+      lists.push(current);
+    }
+
+    current.elements.push({
+      type: "rich_text_section",
+      elements: parseInlineFormatting(item.text),
+    });
+  }
+
+  return { lists, nextIndex: i };
 }
 
 /**
@@ -456,7 +496,7 @@ function parseInlineFormatting(text) {
       if (plainText) {
         elements.push({
           type: "text",
-          text: plainText,
+          text: unescapeSlackText(plainText),
         });
       }
     }
@@ -481,7 +521,7 @@ function parseInlineFormatting(text) {
     } else if (match.style) {
       elements.push({
         type: "text",
-        text: match.content,
+        text: unescapeSlackText(match.content),
         style: match.style,
       });
     }
@@ -495,7 +535,7 @@ function parseInlineFormatting(text) {
     if (remainingText) {
       elements.push({
         type: "text",
-        text: remainingText,
+        text: unescapeSlackText(remainingText),
       });
     }
   }
@@ -504,7 +544,7 @@ function parseInlineFormatting(text) {
   if (elements.length === 0) {
     elements.push({
       type: "text",
-      text: text,
+      text: unescapeSlackText(text),
     });
   }
 
@@ -517,10 +557,12 @@ module.exports = {
   STANDUP_REMINDER_MESSAGES,
   FOLLOWUP_REMINDER_MESSAGES,
   formatTasks,
+  escapeSlackText,
+  unescapeSlackText,
   extractRichTextValue,
   convertTextToRichText,
   parseInlineFormatting,
   getIndentLevel,
   getListItemInfo,
-  parseListStructure,
+  parseListBlocks,
 };

@@ -65,8 +65,8 @@ async function getSlackTeamInfo() {
         const status = user.is_owner
           ? "👑 Owner"
           : user.is_admin
-          ? "🛡️ Admin"
-          : "👤 Member";
+            ? "🛡️ Admin"
+            : "👤 Member";
         const realName = user.real_name || user.name;
         const email = user.profile?.email || "No email";
         const timezone = user.tz_label || "Unknown timezone";
@@ -98,7 +98,7 @@ async function getSlackTeamInfo() {
             if (channel.topic?.value) {
               console.log(`        Topic: ${channel.topic.value}`);
             }
-          } catch (error) {
+          } catch {
             console.log(
               `      - #${channel.name} - ${channel.id} (Error getting details)`
             );
@@ -153,7 +153,7 @@ async function getSlackTeamInfo() {
         const billableUsers = Object.keys(statsResponse.billable_info).length;
         console.log(`   - Billable Users: ${billableUsers}`);
       }
-    } catch (error) {
+    } catch {
       // Billable info might not be available for all plans
     }
   } catch (error) {

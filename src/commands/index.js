@@ -8,14 +8,32 @@ const { stripFormatting } = require("../middleware/command");
 function setupCommands(app) {
   // Standup commands (primary functionality) - wrapped with formatting removal middleware
   app.command("/dd-standup", stripFormatting(), standupCommands.submitManual);
-  app.command("/dd-standup-update", stripFormatting(), standupCommands.updateStandup);
-  app.command("/dd-standup-history", stripFormatting(), standupCommands.showHistory);
+  app.command(
+    "/dd-standup-update",
+    stripFormatting(),
+    standupCommands.updateStandup
+  );
+  app.command(
+    "/dd-standup-history",
+    stripFormatting(),
+    standupCommands.showHistory
+  );
 
   // Admin/Owner standup management commands - wrapped with formatting removal middleware
-  app.command("/dd-standup-remind", stripFormatting(), standupCommands.sendReminders);
-  app.command("/dd-standup-post", stripFormatting(), standupCommands.postStandup);
-  app.command("/dd-standup-preview", stripFormatting(), standupCommands.previewStandup);
-  app.command("/dd-standup-followup", stripFormatting(), standupCommands.sendFollowupReminders);
+  app.command(
+    "/dd-standup-remind",
+    stripFormatting(),
+    standupCommands.sendReminders
+  );
+  // standup-post / -preview accept an optional @mention; skip stripFormatting
+  // so the raw <@U...|name> wrapper survives for parseCommandArguments.
+  app.command("/dd-standup-post", standupCommands.postStandup);
+  app.command("/dd-standup-preview", standupCommands.previewStandup);
+  app.command(
+    "/dd-standup-followup",
+    stripFormatting(),
+    standupCommands.sendFollowupReminders
+  );
 
   // Team management commands - wrapped with formatting removal middleware
   app.command("/dd-team-list", stripFormatting(), teamCommands.listTeams);
@@ -24,6 +42,13 @@ function setupCommands(app) {
   app.command("/dd-team-members", stripFormatting(), teamCommands.listMembers);
   app.command("/dd-team-create", stripFormatting(), teamCommands.createTeam);
   app.command("/dd-team-update", stripFormatting(), teamCommands.updateTeam);
+  // Suspension commands accept @mentions; skip stripFormatting so the raw
+  // <@U...|name> wrapper survives for parseUserMention.
+  app.command("/dd-team-suspend", teamCommands.suspendTeamMember);
+  app.command("/dd-team-unsuspend", teamCommands.unsuspendTeamMember);
+  app.command("/dd-org-suspend", teamCommands.suspendOrgMember);
+  app.command("/dd-org-unsuspend", teamCommands.unsuspendOrgMember);
+  app.command("/dd-org-promote", teamCommands.promoteOrgMember);
 
   // Leave management commands - wrapped with formatting removal middleware
   app.command("/dd-leave-list", stripFormatting(), leaveCommands.listLeaves);
@@ -31,9 +56,21 @@ function setupCommands(app) {
   app.command("/dd-leave-cancel", stripFormatting(), leaveCommands.cancelLeave);
 
   // Admin leave management commands - wrapped with formatting removal middleware
-  app.command("/dd-leave-set-member", stripFormatting(), leaveCommands.setMemberLeave);
-  app.command("/dd-leave-cancel-member", stripFormatting(), leaveCommands.cancelMemberLeave);
-  app.command("/dd-leave-list-member", stripFormatting(), leaveCommands.listMemberLeaves);
+  app.command(
+    "/dd-leave-set-member",
+    stripFormatting(),
+    leaveCommands.setMemberLeave
+  );
+  app.command(
+    "/dd-leave-cancel-member",
+    stripFormatting(),
+    leaveCommands.cancelMemberLeave
+  );
+  app.command(
+    "/dd-leave-list-member",
+    stripFormatting(),
+    leaveCommands.listMemberLeaves
+  );
 
   // Work days configuration commands - wrapped with formatting removal middleware
   app.command(
@@ -45,19 +82,40 @@ function setupCommands(app) {
 
   // Holiday management commands - wrapped with formatting removal middleware
   app.command("/dd-holiday-set", stripFormatting(), holidayCommands.setHoliday);
-  app.command("/dd-holiday-update", stripFormatting(), holidayCommands.updateHoliday);
-  app.command("/dd-holiday-delete", stripFormatting(), holidayCommands.deleteHoliday);
-  app.command("/dd-holiday-list", stripFormatting(), holidayCommands.listHolidays);
+  app.command(
+    "/dd-holiday-update",
+    stripFormatting(),
+    holidayCommands.updateHoliday
+  );
+  app.command(
+    "/dd-holiday-delete",
+    stripFormatting(),
+    holidayCommands.deleteHoliday
+  );
+  app.command(
+    "/dd-holiday-list",
+    stripFormatting(),
+    holidayCommands.listHolidays
+  );
 
   // Preferences management commands - wrapped with formatting removal middleware
-  app.command("/dd-standup-reminder", stripFormatting(), preferencesCommands.toggleStandupReminder);
+  app.command(
+    "/dd-standup-reminder",
+    stripFormatting(),
+    preferencesCommands.toggleStandupReminder
+  );
 
   // Interactive components (no formatting removal needed for these)
   app.action(/open_standup_.*/, standupCommands.openStandupModal);
   app.view("standup_modal", standupCommands.handleStandupSubmission);
-  app.view("standup_update_modal", standupCommands.handleStandupUpdateSubmission);
+  app.view(
+    "standup_update_modal",
+    standupCommands.handleStandupUpdateSubmission
+  );
 
-  console.log("✅ Commands registered with formatting removal middleware");
+  console.log(
+    "✅ Commands registered (most with stripFormatting; suspension commands keep raw mentions)"
+  );
 }
 
 module.exports = { setupCommands };

@@ -62,9 +62,8 @@ cd daily-dose
 npm install
 
 # 3. Set up environment variables
-# Create a .env file — see DEPLOYMENT.md for all required variables
-touch .env
-# Fill in your Slack tokens and database URL
+# Copy the template and fill in your values (see DEPLOYMENT.md for tokens and URLs)
+cp .env.example .env
 
 # 4. Generate Prisma client and push schema
 npx prisma generate
@@ -88,7 +87,7 @@ cd web && npm run dev
 
 1. **Fork** the repository and create a branch from `main`.
 2. **Make your changes** — keep them focused and minimal.
-3. **Test manually** in a Slack workspace (no automated tests currently).
+3. **Run `npm test`** and verify it passes; also test manually in a Slack workspace.
 4. **Push** your branch and open a PR against `main`.
 5. **Fill in the PR description** — what changed and why.
 
@@ -96,12 +95,12 @@ cd web && npm run dev
 
 ## Branch Naming
 
-| Type | Pattern | Example |
-|------|---------|---------|
-| Feature | `feat/<short-description>` | `feat/holiday-list-command` |
-| Bug fix | `fix/<short-description>` | `fix/scheduler-timezone` |
-| Documentation | `docs/<short-description>` | `docs/deployment-guide` |
-| Chore | `chore/<short-description>` | `chore/update-dependencies` |
+| Type          | Pattern                     | Example                     |
+| ------------- | --------------------------- | --------------------------- |
+| Feature       | `feat/<short-description>`  | `feat/holiday-list-command` |
+| Bug fix       | `fix/<short-description>`   | `fix/scheduler-timezone`    |
+| Documentation | `docs/<short-description>`  | `docs/deployment-guide`     |
+| Chore         | `chore/<short-description>` | `chore/update-dependencies` |
 
 ---
 
@@ -116,6 +115,7 @@ type(scope): brief description
 **Types:** `feat`, `fix`, `docs`, `refactor`, `style`, `test`, `chore`
 
 **Examples:**
+
 ```
 feat(standup): add bulk operations for all teams
 fix(holiday): resolve database schema mismatch
@@ -124,7 +124,7 @@ docs(readme): update command reference
 
 - Keep the subject line under 72 characters
 - Use the imperative mood ("add" not "added")
-- Where possible, focus on *why*, not just *what*
+- Where possible, focus on _why_, not just _what_
 
 ---
 
@@ -138,6 +138,7 @@ This project follows these principles:
 - **Single Responsibility** — each function does one thing
 
 Key conventions:
+
 - `camelCase` for variables and functions
 - `PascalCase` for Prisma models and React components
 - `UPPER_SNAKE_CASE` for constants

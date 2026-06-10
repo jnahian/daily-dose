@@ -1,5 +1,5 @@
-import { Link } from 'react-router';
-import { Home, Terminal, History } from 'lucide-react';
+import { Link } from "react-router";
+import { Home, Terminal, History } from "lucide-react";
 
 export const DocsNavbar = () => {
   return (
@@ -7,8 +7,14 @@ export const DocsNavbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="Daily Dose Logo" className="w-8 h-8 rounded-lg" />
-            <span className="text-white font-bold text-xl tracking-tight">Daily Dose</span>
+            <img
+              src="/logo.png"
+              alt="Daily Dose Logo"
+              className="w-8 h-8 rounded-lg"
+            />
+            <span className="text-white font-bold text-xl tracking-tight">
+              Daily Dose
+            </span>
           </Link>
 
           <div className="flex items-center gap-4">

@@ -1,18 +1,25 @@
 const prisma = require("../config/prisma");
+const logger = require("../utils/logger");
 const userService = require("./userService");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
 const advancedFormat = require("dayjs/plugin/advancedFormat");
-const { isWorkingDay } = require("../utils/dateHelper");
+const {
+  isWorkingDay,
+  isWorkingDayPure,
+  getHolidayDateSet,
+  getOrgDefaultWorkDays,
+} = require("../utils/dateHelper");
 const { getUserMention, getDisplayName } = require("../utils/userHelper");
 const { formatTasks } = require("../utils/messageHelper");
 const {
   createSectionBlock,
-  createFieldsBlock,
+  createTaskFieldBlocks,
+  createBlockerContextBlock,
   createDividerBlock,
-  createUserResponseBlocks,
   createLateResponseBlocks,
+  createUserResponseBlocks,
   createNotRespondedBlocks,
   createOnLeaveBlocks,
 } = require("../utils/blockHelper");
@@ -44,27 +51,29 @@ class StandupService {
       include: {
         user: true,
         team: {
-          include: {
-            organization: true,
-          },
+          include: { organization: true },
         },
       },
     });
 
-    // Filter by user's work days
-    const activeMembers = [];
-    for (const member of members) {
-      const isWorking = await isWorkingDay(
-        date,
-        member.team.organizationId,
-        member.userId
-      );
-      if (isWorking) {
-        activeMembers.push(member);
-      }
-    }
+    if (members.length === 0) return [];
 
-    return activeMembers;
+    // All members on the same team => same organization. Fetch org-default
+    // workDays and holidays once.
+    const organization = members[0].team.organization;
+    const orgDefaultWorkDays = getOrgDefaultWorkDays(organization.settings);
+    const holidayDateSet = await getHolidayDateSet(
+      organization.id,
+      startOfDay,
+      endOfDay
+    );
+
+    return members.filter((member) => {
+      const workDays = member.user.workDays?.length
+        ? member.user.workDays
+        : orgDefaultWorkDays;
+      return isWorkingDayPure({ date, workDays, holidayDateSet });
+    });
   }
 
   async saveResponse(
@@ -155,10 +164,33 @@ class StandupService {
     });
   }
 
+  async getUserResponse(teamId, userId, date) {
+    const startOfDay = dayjs(date).startOf("day").toDate();
+    const endOfDay = dayjs(date).endOf("day").toDate();
+
+    return await prisma.standupResponse.findFirst({
+      where: {
+        teamId,
+        userId,
+        standupDate: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+      include: {
+        user: true,
+      },
+      // Most recent submission wins if the user re-submitted
+      orderBy: {
+        submittedAt: "desc",
+      },
+    });
+  }
+
   async saveStandupPost(teamId, date, messageTs, channelId) {
     const standupDate = dayjs(date).toDate();
 
-    console.log(
+    logger.info(
       `💾 Saving standup post for team ID ${teamId} on ${standupDate}...`
     );
 
@@ -210,11 +242,11 @@ class StandupService {
           userId: user.id,
         },
         orderBy: {
-          standupDate: 'desc',
+          standupDate: "desc",
         },
       });
     } catch (error) {
-      console.error('Error getting last standup response:', error);
+      logger.error("Error getting last standup response:", error);
       return null;
     }
   }
@@ -240,10 +272,7 @@ class StandupService {
       include: {
         team: true,
       },
-      orderBy: [
-        { standupDate: "desc" },
-        { submittedAt: "asc" },
-      ],
+      orderBy: [{ standupDate: "desc" }, { submittedAt: "asc" }],
     });
   }
 
@@ -294,34 +323,16 @@ class StandupService {
       // Use modified version of createUserResponseBlocks to match existing format
       blocks.push(createSectionBlock(`*👤 ${responseData.userMention}*`));
 
-      const fields = [];
-      if (responseData.yesterdayTasks) {
-        fields.push({
-          type: "mrkdwn",
-          text: `*📄 Last Working Day*\n${responseData.yesterdayTasks}`,
-        });
-      }
-      if (responseData.todayTasks) {
-        fields.push({
-          type: "mrkdwn",
-          text: `*🎯 Today*\n${responseData.todayTasks}`,
-        });
-      }
-      if (fields.length > 0) {
-        blocks.push(createFieldsBlock(fields));
-      }
+      blocks.push(
+        ...createTaskFieldBlocks(
+          responseData.yesterdayTasks,
+          responseData.todayTasks
+        )
+      );
 
       // Blockers section (using existing context format)
       if (responseData.blockers && responseData.blockers.trim()) {
-        blocks.push({
-          type: "context",
-          elements: [
-            {
-              type: "mrkdwn",
-              text: `⚠️ *Blocker:* _${responseData.blockers}_`,
-            },
-          ],
-        });
+        blocks.push(createBlockerContextBlock(responseData.blockers));
       }
 
       blocks.push(createDividerBlock());
@@ -358,7 +369,29 @@ class StandupService {
     };
   }
 
+  async formatIndividualResponseMessage(response) {
+    const responseData = {
+      userMention: getUserMention(response.user),
+      yesterdayTasks: formatTasks(response.yesterdayTasks),
+      todayTasks: formatTasks(response.todayTasks),
+      blockers: response.blockers,
+    };
+
+    return {
+      text: `Standup from ${getDisplayName(response.user)}`,
+      blocks: createUserResponseBlocks(responseData),
+    };
+  }
+
   async postTeamStandup(team, date, slackApp) {
+    const existingPost = await this.getStandupPost(team.id, date);
+    if (existingPost && existingPost.slackMessageTs) {
+      logger.info(
+        `postTeamStandup skipped — already posted for team=${team.id} date=${dayjs(date).format("YYYY-MM-DD")} ts=${existingPost.slackMessageTs}`
+      );
+      return { skipped: true, post: existingPost };
+    }
+
     const targetDate = dayjs(date).tz(team.timezone);
 
     // Check if it's a working day for the organization (general check)
@@ -400,28 +433,23 @@ class StandupService {
 
     // Get members who are active, not on leave, and not admins
     const eligibleMembers = allMembers.filter(
-      (m) => !leaveUserIds.has(m.userId) && m.role !== 'ADMIN'
+      (m) => !leaveUserIds.has(m.userId) && m.role !== "ADMIN"
     );
 
     // Get members who would be shown in the standup (not hidden from mentions)
-    const visibleMembers = eligibleMembers.filter((m) => !m.hideFromNotResponded);
+    const visibleMembers = eligibleMembers.filter(
+      (m) => !m.hideFromNotResponded
+    );
 
-    // Skip posting if there are no visible members (all are hidden/mention=off)
+    // Skip posting when nobody submitted and every eligible member is hidden
+    // from the "not responded" list (hideFromNotResponded) — the post would
+    // contain nothing. Note: a second check here previously tested
+    // `eligibleMembers.every((m) => m.hideFromNotResponded)` under a comment
+    // about "disabled reminders"; that condition is equivalent to
+    // `visibleMembers.length === 0` and was unreachable dead code.
     if (visibleMembers.length === 0 && responses.length === 0) {
-      console.log(
+      logger.info(
         `⏭️ Skipping standup post for team ${team.name} - no visible members and no standup submissions`
-      );
-      return;
-    }
-
-    // Check if all eligible members have disabled reminders
-    const allMembersDisabledReminders = eligibleMembers.length > 0 &&
-      eligibleMembers.every((m) => m.hideFromNotResponded);
-
-    // If all members disabled reminders AND no one submitted standups, skip posting
-    if (allMembersDisabledReminders && responses.length === 0) {
-      console.log(
-        `⏭️ Skipping standup post for team ${team.name} - all members have disabled reminders and no standups submitted`
       );
       return;
     }
@@ -429,10 +457,11 @@ class StandupService {
     // Calculate not submitted (exclude admins and those who opted out)
     const notSubmitted = allMembers
       .filter(
-        (m) => !respondedUserIds.has(m.userId) &&
-               !leaveUserIds.has(m.userId) &&
-               m.role !== 'ADMIN' &&
-               !m.hideFromNotResponded
+        (m) =>
+          !respondedUserIds.has(m.userId) &&
+          !leaveUserIds.has(m.userId) &&
+          m.role !== "ADMIN" &&
+          !m.hideFromNotResponded
       )
       .map((m) => ({
         slackUserId: m.user.slackUserId,
@@ -456,16 +485,16 @@ class StandupService {
     );
 
     try {
-      console.log(`📤 Posting standup message for team ${team.name}...`);
+      logger.info(`📤 Posting standup message for team ${team.name}...`);
       const result = await slackApp.client.chat.postMessage({
         channel: team.slackChannelId,
         ...message,
       });
 
-      console.log(
+      logger.info(
         `✅ Message posted successfully with timestamp: ${result.ts}`
       );
-      console.log(`💾 Saving standup post to database...`);
+      logger.info(`💾 Saving standup post to database...`);
 
       // Save message timestamp for threading late responses
       try {
@@ -475,11 +504,11 @@ class StandupService {
           result.ts,
           team.slackChannelId
         );
-        console.log(
+        logger.info(
           `✅ Standup post saved successfully with ID: ${savedPost.id}`
         );
       } catch (saveError) {
-        console.error(
+        logger.error(
           `❌ Failed to save standup post for team ${team.name}:`,
           saveError
         );
@@ -487,11 +516,11 @@ class StandupService {
       }
 
       // Post any existing late responses as threaded replies
-      console.log(`📝 Checking for late responses...`);
+      logger.info(`📝 Checking for late responses...`);
       try {
         await this.postLateResponses(team, targetDate.toDate(), slackApp);
       } catch (lateResponseError) {
-        console.error(
+        logger.error(
           `❌ Failed to post late responses for team ${team.name}:`,
           lateResponseError
         );
@@ -500,7 +529,7 @@ class StandupService {
 
       return result;
     } catch (error) {
-      console.error(
+      logger.error(
         `❌ Failed to post standup for team ${team.name}:`,
         error,
         team
@@ -530,7 +559,10 @@ class StandupService {
         },
       });
 
-      const allMembers = await this.getActiveMembers(team.id, targetDate.toDate());
+      const allMembers = await this.getActiveMembers(
+        team.id,
+        targetDate.toDate()
+      );
 
       // Get members on leave
       const membersOnLeave = await prisma.teamMember.findMany({
@@ -557,10 +589,11 @@ class StandupService {
       // Calculate not submitted (exclude admins and those who opted out)
       const notSubmitted = allMembers
         .filter(
-          (m) => !respondedUserIds.has(m.userId) &&
-                 !leaveUserIds.has(m.userId) &&
-                 m.role !== 'ADMIN' &&
-                 !m.hideFromNotResponded
+          (m) =>
+            !respondedUserIds.has(m.userId) &&
+            !leaveUserIds.has(m.userId) &&
+            m.role !== "ADMIN" &&
+            !m.hideFromNotResponded
         )
         .map((m) => ({
           slackUserId: m.user.slackUserId,
@@ -583,13 +616,17 @@ class StandupService {
         targetDate
       );
 
-      console.log(`📤 Posting on-demand standup message for team ${team.name}...`);
+      logger.info(
+        `📤 Posting on-demand standup message for team ${team.name}...`
+      );
       const result = await slackApp.client.chat.postMessage({
         channel: team.slackChannelId,
         ...message,
       });
 
-      console.log(`✅ Message posted successfully with timestamp: ${result.ts}`);
+      logger.info(
+        `✅ Message posted successfully with timestamp: ${result.ts}`
+      );
 
       // Save message timestamp for threading future late responses
       await this.saveStandupPost(
@@ -601,7 +638,7 @@ class StandupService {
 
       return result;
     } catch (error) {
-      console.error(
+      logger.error(
         `❌ Failed to post on-demand standup for team ${team.name}:`,
         error
       );
@@ -614,7 +651,7 @@ class StandupService {
       // Get the standup post for threading
       const standupPost = await this.getStandupPost(team.id, date);
       if (!standupPost || !standupPost.slackMessageTs) {
-        console.log(
+        logger.info(
           `No standup post found for team ${team.name} on ${dayjs(date).format(
             "YYYY-MM-DD"
           )}`
@@ -637,13 +674,53 @@ class StandupService {
       }
 
       if (lateResponses.length > 0) {
-        console.log(
+        logger.info(
           `✅ Posted ${lateResponses.length} late responses for team ${team.name}`
         );
       }
     } catch (error) {
-      console.error(
+      logger.error(
         `Failed to post late responses for team ${team.name}:`,
+        error
+      );
+      throw error;
+    }
+  }
+
+  async postIndividualResponse(team, date, response, slackApp) {
+    try {
+      // Ensure a team standup thread exists; auto-create it if missing.
+      let standupPost = await this.getStandupPost(team.id, date);
+      if (!standupPost || !standupPost.slackMessageTs) {
+        await this.postTeamStandup(team, date, slackApp);
+        standupPost = await this.getStandupPost(team.id, date);
+      }
+
+      if (!standupPost || !standupPost.slackMessageTs) {
+        throw new Error(
+          "Could not find or create a standup thread to post into"
+        );
+      }
+
+      const message = await this.formatIndividualResponseMessage(response);
+
+      const result = await slackApp.client.chat.postMessage({
+        channel: standupPost.channelId,
+        thread_ts: standupPost.slackMessageTs,
+        reply_broadcast: true,
+        ...message,
+      });
+
+      logger.info(
+        `✅ Posted individual standup for ${getDisplayName(
+          response.user
+        )} in team ${team.name}`
+      );
+
+      return { ts: result.ts, channel: standupPost.channelId };
+    } catch (error) {
+      logger.error(
+        `Failed to post individual standup for team ${team.name}:`,
         error
       );
       throw error;

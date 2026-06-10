@@ -1,4 +1,5 @@
 const teamService = require("../services/teamService");
+const userService = require("../services/userService");
 const schedulerService = require("../services/schedulerService");
 const { ackWithProcessing, getChannelName } = require("../utils/commandHelper");
 const { getDisplayName } = require("../utils/userHelper");
@@ -7,6 +8,42 @@ const {
   createSectionBlock,
   createCommandErrorBlocks,
 } = require("../utils/blockHelper");
+const { parseTimeString } = require("../utils/timeHelper");
+const { sanitizeError } = require("../utils/errorHelper");
+
+function parseUserMention(token) {
+  if (!token) return null;
+  const match = token.match(/<@([A-Z0-9]+)(\|[^>]+)?>/);
+  return match ? match[1] : null;
+}
+
+// Resolve a slash-command target token to a Slack user ID. Tries, in order:
+//   1. Slack mention token `<@U123|name>` (active users autocompleted in chat)
+//   2. Raw Slack user ID `U0123ABCD` / `W0123ABCD` (globally unique)
+//   3. `@username` or `username` looked up against our DB, scoped to the
+//      admin's organization
+// (2) and (3) exist so admins can target users who've already been
+// deactivated in Slack and can no longer be @-mentioned.
+async function resolveTargetSlackUserId(token, organizationId) {
+  if (!token) return null;
+
+  const mentionId = parseUserMention(token);
+  if (mentionId) return mentionId;
+
+  if (/^[UW][A-Z0-9]{6,}$/i.test(token)) {
+    return token.toUpperCase();
+  }
+
+  if (!organizationId) return null;
+  const username = token.replace(/^@/, "").trim();
+  if (!username) return null;
+
+  const user = await userService.findUserByUsernameInOrg(
+    username,
+    organizationId
+  );
+  return user ? user.slackUserId : null;
+}
 
 async function createTeam({ command, ack, respond, client }) {
   const updateResponse = await ackWithProcessing(
@@ -64,13 +101,24 @@ async function createTeam({ command, ack, respond, client }) {
       return;
     }
 
+    let parsedStandup, parsedPosting;
+    try {
+      parsedStandup = parseTimeString(standupTime);
+      parsedPosting = parseTimeString(postingTime);
+    } catch (err) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(sanitizeError(err)),
+      });
+      return;
+    }
+
     const team = await teamService.createTeam(
       command.user_id,
       command.channel_id,
       {
         name,
-        standupTime,
-        postingTime,
+        standupTime: parsedStandup.normalized,
+        postingTime: parsedPosting.normalized,
       },
       client
     );
@@ -80,14 +128,14 @@ async function createTeam({ command, ack, respond, client }) {
 
     await updateResponse({
       text: `✅ Team "${name}" created successfully!\n- Standup reminder: ${formatTime12Hour(
-        standupTime
-      )}\n- Posting time: ${formatTime12Hour(postingTime)}\n- Timezone: ${
+        parsedStandup.normalized
+      )}\n- Posting time: ${formatTime12Hour(parsedPosting.normalized)}\n- Timezone: ${
         team.timezone
       }\n- Cron jobs scheduled ✓`,
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -110,13 +158,10 @@ async function joinTeam({ command, ack, respond, client }) {
 
       if (!team) {
         await updateResponse({
-          blocks: createCommandErrorBlocks(
-            "No team found in this channel.",
-            [
-              "Run `/dd-team-join [TeamName]` to join a specific team",
-              "Or run `/dd-team-join` inside a team channel",
-            ]
-          ),
+          blocks: createCommandErrorBlocks("No team found in this channel.", [
+            "Run `/dd-team-join [TeamName]` to join a specific team",
+            "Or run `/dd-team-join` inside a team channel",
+          ]),
         });
         return;
       }
@@ -145,7 +190,7 @@ async function joinTeam({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -168,13 +213,10 @@ async function leaveTeam({ command, ack, respond, client }) {
 
       if (!team) {
         await updateResponse({
-          blocks: createCommandErrorBlocks(
-            "No team found in this channel.",
-            [
-              "Run `/dd-team-leave [TeamName]` to leave a specific team",
-              "Or run `/dd-team-leave` inside a team channel",
-            ]
-          ),
+          blocks: createCommandErrorBlocks("No team found in this channel.", [
+            "Run `/dd-team-leave [TeamName]` to leave a specific team",
+            "Or run `/dd-team-leave` inside a team channel",
+          ]),
         });
         return;
       }
@@ -197,7 +239,7 @@ async function leaveTeam({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -211,12 +253,16 @@ async function listTeams({ command, ack, respond }) {
   );
 
   try {
-    const teams = await teamService.listTeams(command.user_id);
+    const { teams, scope, organization } = await teamService.listTeamsForUser(
+      command.user_id
+    );
 
     if (teams.length === 0) {
-      await updateResponse({
-        text: "📋 No teams found in your organization",
-      });
+      const emptyText =
+        scope === "all"
+          ? "📋 No teams found in your organization"
+          : "📋 You are not a member of any teams in this organization";
+      await updateResponse({ text: emptyText });
       return;
     }
 
@@ -233,14 +279,17 @@ async function listTeams({ command, ack, respond }) {
       )
       .join("\n\n");
 
+    const heading =
+      scope === "all"
+        ? `*📋 Teams in ${organization.name}:*`
+        : `*📋 Your teams:*`;
+
     await updateResponse({
-      blocks: [
-        createSectionBlock(`*📋 Teams in your organization:*\n\n${teamList}`),
-      ],
+      blocks: [createSectionBlock(`${heading}\n\n${teamList}`)],
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -263,13 +312,10 @@ async function listMembers({ command, ack, respond }) {
 
       if (!team) {
         await updateResponse({
-          blocks: createCommandErrorBlocks(
-            "No team found in this channel.",
-            [
-              "Run `/dd-team-members [TeamName]` to view a specific team",
-              "Or run `/dd-team-members` inside a team channel",
-            ]
-          ),
+          blocks: createCommandErrorBlocks("No team found in this channel.", [
+            "Run `/dd-team-members [TeamName]` to view a specific team",
+            "Or run `/dd-team-members` inside a team channel",
+          ]),
         });
         return;
       }
@@ -314,7 +360,7 @@ async function listMembers({ command, ack, respond }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -339,14 +385,11 @@ async function updateTeam({ command, ack, respond, client }) {
 
       if (!team) {
         await updateResponse({
-          blocks: createCommandErrorBlocks(
-            "No team found in this channel.",
-            [
-              "Usage: `/dd-team-update [TeamName] [parameters]`",
-              "Parameters: `name=NewName`, `standup=HH:MM`, `posting=HH:MM`, `notifications=true/false`",
-              "Example: `/dd-team-update Engineering standup=09:00`",
-            ]
-          ),
+          blocks: createCommandErrorBlocks("No team found in this channel.", [
+            "Usage: `/dd-team-update [TeamName] [parameters]`",
+            "Parameters: `name=NewName`, `standup=HH:MM`, `posting=HH:MM`, `notifications=true/false`",
+            "Example: `/dd-team-update Engineering standup=09:00`",
+          ]),
         });
         return;
       }
@@ -359,10 +402,9 @@ async function updateTeam({ command, ack, respond, client }) {
 
         if (!team) {
           await updateResponse({
-            blocks: createCommandErrorBlocks(
-              "No team found in this channel.",
-              ["Provide team name: `/dd-team-update [TeamName] [parameters]`"]
-            ),
+            blocks: createCommandErrorBlocks("No team found in this channel.", [
+              "Provide team name: `/dd-team-update [TeamName] [parameters]`",
+            ]),
           });
           return;
         }
@@ -415,12 +457,30 @@ async function updateTeam({ command, ack, respond, client }) {
           updates.push(`Name: ${value}`);
           break;
         case "standup":
-          updateData.standupTime = value;
-          updates.push(`Standup time: ${formatTime12Hour(value)}`);
+          try {
+            updateData.standupTime = parseTimeString(value).normalized;
+          } catch (err) {
+            await updateResponse({
+              blocks: createCommandErrorBlocks(sanitizeError(err)),
+            });
+            return;
+          }
+          updates.push(
+            `Standup time: ${formatTime12Hour(updateData.standupTime)}`
+          );
           break;
         case "posting":
-          updateData.postingTime = value;
-          updates.push(`Posting time: ${formatTime12Hour(value)}`);
+          try {
+            updateData.postingTime = parseTimeString(value).normalized;
+          } catch (err) {
+            await updateResponse({
+              blocks: createCommandErrorBlocks(sanitizeError(err)),
+            });
+            return;
+          }
+          updates.push(
+            `Posting time: ${formatTime12Hour(updateData.postingTime)}`
+          );
           break;
         case "notifications":
           if (value !== "true" && value !== "false") {
@@ -468,7 +528,275 @@ async function updateTeam({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
+    });
+  }
+}
+
+async function suspendTeamMember({ command, ack, respond, client }) {
+  return handleTeamSuspension({ command, ack, respond, client, suspend: true });
+}
+
+async function unsuspendTeamMember({ command, ack, respond, client }) {
+  return handleTeamSuspension({
+    command,
+    ack,
+    respond,
+    client,
+    suspend: false,
+  });
+}
+
+async function handleTeamSuspension({
+  command,
+  ack,
+  respond,
+  client,
+  suspend,
+}) {
+  const action = suspend ? "Suspending" : "Reactivating";
+  const verb = suspend ? "suspended" : "reactivated";
+  const cmdName = suspend ? "/dd-team-suspend" : "/dd-team-unsuspend";
+
+  const updateResponse = await ackWithProcessing(
+    ack,
+    respond,
+    `${action} team member...`,
+    command
+  );
+
+  try {
+    const parts = command.text.trim().split(/\s+/).filter(Boolean);
+
+    if (parts.length === 0) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          `Usage: \`${cmdName} @user [TeamName]\``,
+          [
+            `\`${cmdName} @john\` (uses current channel's team)`,
+            `\`${cmdName} @john Engineering\``,
+          ]
+        ),
+      });
+      return;
+    }
+
+    const teamName = parts.slice(1).join(" ").trim();
+    let team;
+    if (teamName) {
+      team = await teamService.findTeamByName(teamName);
+      if (!team) {
+        await updateResponse({
+          blocks: createCommandErrorBlocks(`Team "${teamName}" not found`),
+        });
+        return;
+      }
+    } else {
+      team = await teamService.findTeamByChannel(command.channel_id);
+      if (!team) {
+        await updateResponse({
+          blocks: createCommandErrorBlocks("No team found in this channel.", [
+            `Run \`${cmdName} @user [TeamName]\` to target a specific team`,
+            `Or run \`${cmdName} @user\` inside a team channel`,
+          ]),
+        });
+        return;
+      }
+    }
+
+    const targetSlackUserId = await resolveTargetSlackUserId(
+      parts[0],
+      team.organizationId
+    );
+    if (!targetSlackUserId) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks("Could not resolve target user.", [
+          "Use `@user` mention (e.g., `@john`)",
+          "Or pass the Slack user ID directly (e.g., `U0123ABCD`)",
+          "Or pass the username for already-deactivated users (e.g., `@john` or `john`)",
+        ]),
+      });
+      return;
+    }
+
+    await teamService.setTeamMemberActive(
+      command.user_id,
+      targetSlackUserId,
+      team.id,
+      !suspend,
+      client
+    );
+
+    await updateResponse({
+      text: `✅ <@${targetSlackUserId}> has been ${verb} ${
+        suspend ? "from" : "in"
+      } team "${team.name}".`,
+    });
+  } catch (error) {
+    await updateResponse({
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
+    });
+  }
+}
+
+async function suspendOrgMember({ command, ack, respond, client }) {
+  return handleOrgSuspension({ command, ack, respond, client, suspend: true });
+}
+
+async function unsuspendOrgMember({ command, ack, respond, client }) {
+  return handleOrgSuspension({ command, ack, respond, client, suspend: false });
+}
+
+async function handleOrgSuspension({ command, ack, respond, client, suspend }) {
+  const action = suspend ? "Suspending" : "Reactivating";
+  const verb = suspend ? "suspended" : "reactivated";
+  const cmdName = suspend ? "/dd-org-suspend" : "/dd-org-unsuspend";
+
+  const updateResponse = await ackWithProcessing(
+    ack,
+    respond,
+    `${action} organization member...`,
+    command
+  );
+
+  try {
+    const parts = command.text.trim().split(/\s+/).filter(Boolean);
+
+    if (parts.length === 0) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(`Usage: \`${cmdName} @user\``, [
+          `\`${cmdName} @john\``,
+        ]),
+      });
+      return;
+    }
+
+    const adminOrg = await userService.getUserOrganization(command.user_id);
+    const targetSlackUserId = await resolveTargetSlackUserId(
+      parts[0],
+      adminOrg ? adminOrg.id : null
+    );
+    if (!targetSlackUserId) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks("Could not resolve target user.", [
+          "Use `@user` mention (e.g., `@john`)",
+          "Or pass the Slack user ID directly (e.g., `U0123ABCD`)",
+          "Or pass the username for already-deactivated users (e.g., `@john` or `john`)",
+        ]),
+      });
+      return;
+    }
+
+    const result = await userService.setOrganizationMemberActive(
+      command.user_id,
+      targetSlackUserId,
+      !suspend,
+      client
+    );
+
+    const detail = suspend
+      ? `${result.teamMembershipsUpdated} active team membership(s) suspended.`
+      : `Use \`/dd-team-unsuspend @user [TeamName]\` to restore team memberships.`;
+
+    await updateResponse({
+      text: `✅ <@${targetSlackUserId}> has been ${verb} ${
+        suspend ? "from" : "in"
+      } organization "${result.organization.name}". ${detail}`,
+    });
+  } catch (error) {
+    await updateResponse({
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
+    });
+  }
+}
+
+async function promoteOrgMember({ command, ack, respond, client }) {
+  const updateResponse = await ackWithProcessing(
+    ack,
+    respond,
+    "Promoting member...",
+    command
+  );
+
+  try {
+    const parts = command.text.trim().split(/\s+/).filter(Boolean);
+
+    if (parts.length === 0) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          "Usage: `/dd-org-promote @user [TeamName]`",
+          [
+            "`/dd-org-promote @john` — promote to organization admin",
+            "`/dd-org-promote @john Engineering` — promote to team admin in Engineering",
+          ]
+        ),
+      });
+      return;
+    }
+
+    const teamName = parts.slice(1).join(" ").trim();
+    const adminOrg = await userService.getUserOrganization(command.user_id);
+
+    if (teamName && !adminOrg) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          "You must belong to an organization to promote a team member."
+        ),
+      });
+      return;
+    }
+
+    const targetSlackUserId = await resolveTargetSlackUserId(
+      parts[0],
+      adminOrg ? adminOrg.id : null
+    );
+    if (!targetSlackUserId) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks("Could not resolve target user.", [
+          "Use `@user` mention (e.g., `@john`)",
+          "Or pass the Slack user ID directly (e.g., `U0123ABCD`)",
+          "Or pass the username (e.g., `@john` or `john`)",
+        ]),
+      });
+      return;
+    }
+
+    if (teamName) {
+      const team = await teamService.findTeamByName(teamName, adminOrg.id);
+      if (!team) {
+        await updateResponse({
+          blocks: createCommandErrorBlocks(
+            `Team "${teamName}" not found in your organization`
+          ),
+        });
+        return;
+      }
+
+      const result = await teamService.promoteTeamMember(
+        command.user_id,
+        targetSlackUserId,
+        team.id,
+        client
+      );
+
+      await updateResponse({
+        text: `✅ <@${targetSlackUserId}> has been promoted to team admin in "${result.team.name}".`,
+      });
+      return;
+    }
+
+    const result = await userService.promoteOrganizationMember(
+      command.user_id,
+      targetSlackUserId,
+      client
+    );
+
+    await updateResponse({
+      text: `✅ <@${targetSlackUserId}> has been promoted to organization admin in "${result.organization.name}".`,
+    });
+  } catch (error) {
+    await updateResponse({
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -480,4 +808,9 @@ module.exports = {
   listTeams,
   listMembers,
   updateTeam,
+  suspendTeamMember,
+  unsuspendTeamMember,
+  suspendOrgMember,
+  unsuspendOrgMember,
+  promoteOrgMember,
 };

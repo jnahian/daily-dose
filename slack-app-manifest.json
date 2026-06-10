@@ -1,235 +1,277 @@
 {
-    "display_information": {
-        "name": "Daily Dose",
-        "description": "Automated daily standup bot for teams with multi-tenant organization support",
-        "background_color": "#2c3e50",
-        "long_description": "Daily Dose helps teams stay connected with automated daily standups. Features include scheduled reminders, team management, leave tracking, and comprehensive standup reporting across multiple organizations."
+  "display_information": {
+    "name": "Daily Dose",
+    "description": "Standups without the meeting. Automated daily standups, reminders, and team summaries for Slack.",
+    "background_color": "#2c3e50",
+    "long_description": "Daily Dose automates your team's daily standups so you can skip the meeting and keep moving.\n\nEvery morning, team members get a DM reminder with a one-click standup form — three quick fields and they're done. Responses are collected and posted as a formatted summary to your team channel automatically.\n\nKey features:\n• Scheduled reminders at your team's standup time\n• Interactive modal for fast, frictionless submissions\n• Automatic channel summaries with per-member response cards\n• Update or edit submissions for any date\n• Leave management — set leave dates to skip reminders automatically\n• Holiday support — org-wide holidays skip all reminders\n• Work day configuration per member\n• Multi-team and multi-organization support\n• Timezone-aware scheduling per team\n• Admin controls: manual remind, post, preview, and follow-up commands\n\nLearn more and see it in action at dd.jnahian.me"
+  },
+  "features": {
+    "app_home": {
+      "home_tab_enabled": true,
+      "messages_tab_enabled": true,
+      "messages_tab_read_only_enabled": false
     },
-    "features": {
-        "bot_user": {
-            "display_name": "Daily Dose",
-            "always_online": true
-        },
-        "slash_commands": [
-            {
-                "command": "/dd-team-create",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Create a new team with standup schedule",
-                "usage_hint": "[TeamName] 09:30 10:00",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-team-join",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Join a team",
-                "usage_hint": "[TeamName]",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-team-leave",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Leave a team",
-                "usage_hint": "[TeamName]",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-team-list",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "List all teams in your organization",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-team-members",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "View team members",
-                "usage_hint": "[TeamName]",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-team-update",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Update team settings (admin only)",
-                "usage_hint": "[TeamName] name=NewName standup=09:00",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-leave-set",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Set leave dates to skip standup reminders",
-                "usage_hint": "YYYY-MM-DD [YYYY-MM-DD] [reason]",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-leave-cancel",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Cancel previously set leave",
-                "usage_hint": "leave-id",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-leave-list",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "List your upcoming leaves",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-leave-set-member",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Set leave for team member (admin only)",
-                "usage_hint": "@user [team-name] YYYY-MM-DD [YYYY-MM-DD] [reason]",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-leave-cancel-member",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Cancel team member's leave (admin only)",
-                "usage_hint": "@user leave-id [team-name]",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-leave-list-member",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "List team member's leaves (admin only)",
-                "usage_hint": "@user [team-name]",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-workdays-set",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Set your personal work days",
-                "usage_hint": "1,2,3,4,7 (1=Mon, 7=Sun)",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-workdays-show",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Show your current work day settings",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-standup",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Submit standup manually outside scheduled time",
-                "usage_hint": "[TeamName]",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-standup-update",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Update standup for any day (default today)",
-                "usage_hint": "TeamName [YYYY-MM-DD]",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-standup-history",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "View your submitted standups across all teams",
-                "usage_hint": "[start-date] [end-date]",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-standup-remind",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Send standup reminders to team members (admin/owner)",
-                "usage_hint": "[team-name]",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-standup-post",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Post standup summary to channel (admin/owner)",
-                "usage_hint": "[YYYY-MM-DD] [team-name]",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-standup-preview",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Preview standup summary before posting (admin/owner)",
-                "usage_hint": "[YYYY-MM-DD] [team-name]",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-standup-followup",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Send followup reminders to non-responders (admin/owner)",
-                "usage_hint": "[team-name]",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-holiday-set",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Set holidays for single day or date range (admin only)",
-                "usage_hint": "YYYY-MM-DD [YYYY-MM-DD] [name]",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-holiday-update",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Update existing holiday name (admin only)",
-                "usage_hint": "YYYY-MM-DD new name",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-holiday-delete",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Delete holidays for single day or date range (admin only)",
-                "usage_hint": "YYYY-MM-DD [YYYY-MM-DD]",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-holiday-list",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "List holidays for any date range or time period",
-                "usage_hint": "[YYYY|YYYY-MM|YYYY-MM-DD] [YYYY-MM-DD]",
-                "should_escape": false
-            },
-            {
-                "command": "/dd-standup-reminder",
-                "url": "{{APP_URL}}/slack/events",
-                "description": "Configure standup reminder preferences",
-                "usage_hint": "[TeamName] mention=on/off notify=on/off",
-                "should_escape": false
-            }
-        ]
+    "bot_user": {
+      "display_name": "Daily Dose",
+      "always_online": true
     },
-    "oauth_config": {
-        "scopes": {
-            "bot": [
-                "channels:read",
-                "chat:write",
-                "chat:write.public",
-                "commands",
-                "users:read",
-                "users:read.email",
-                "im:write",
-                "im:read",
-                "groups:read",
-                "app_mentions:read",
-                "channels:history",
-                "groups:history",
-                "im:history",
-                "mpim:history",
-                "team:read"
-            ]
-        }
-    },
-    "settings": {
-        "event_subscriptions": {
-            "request_url": "{{APP_URL}}/slack/events",
-            "bot_events": [
-                "app_mention",
-                "message.channels",
-                "message.groups",
-                "message.im",
-                "team_join"
-            ]
-        },
-        "interactivity": {
-            "is_enabled": true,
-            "request_url": "{{APP_URL}}/slack/events"
-        },
-        "org_deploy_enabled": true,
-        "socket_mode_enabled": false,
-        "token_rotation_enabled": false
+    "slash_commands": [
+      {
+        "command": "/dd-team-create",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Create a new team with standup schedule",
+        "usage_hint": "[TeamName] 09:30 10:00",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-team-join",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Join a team",
+        "usage_hint": "[TeamName]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-team-leave",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Leave a team",
+        "usage_hint": "[TeamName]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-team-list",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "List all teams in your organization",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-team-members",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "View team members",
+        "usage_hint": "[TeamName]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-team-update",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Update team settings (admin only)",
+        "usage_hint": "[TeamName] name=NewName standup=09:00",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-team-suspend",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Suspend a member from a team (admin only)",
+        "usage_hint": "@user [TeamName]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-team-unsuspend",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Reactivate a suspended team member (admin only)",
+        "usage_hint": "@user [TeamName]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-org-suspend",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Suspend a member from the entire organization (org owner/admin only)",
+        "usage_hint": "@user",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-org-unsuspend",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Reactivate a suspended organization member (org owner/admin only)",
+        "usage_hint": "@user",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-org-promote",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Promote a user to organization admin, or team admin if a team is specified (org owner/admin only)",
+        "usage_hint": "@user [TeamName]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-leave-set",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Set leave dates to skip standup reminders",
+        "usage_hint": "YYYY-MM-DD [YYYY-MM-DD] [reason]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-leave-cancel",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Cancel previously set leave",
+        "usage_hint": "leave-id",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-leave-list",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "List your upcoming leaves",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-leave-set-member",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Set leave for team member (admin only)",
+        "usage_hint": "@user [team-name] YYYY-MM-DD [YYYY-MM-DD] [reason]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-leave-cancel-member",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Cancel team member's leave (admin only)",
+        "usage_hint": "@user leave-id [team-name]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-leave-list-member",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "List team member's leaves (admin only)",
+        "usage_hint": "@user [team-name]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-workdays-set",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Set your personal work days",
+        "usage_hint": "1,2,3,4,7 (1=Mon, 7=Sun)",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-workdays-show",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Show your current work day settings",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-standup",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Submit standup manually outside scheduled time",
+        "usage_hint": "[TeamName]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-standup-update",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Update standup for any day (default today)",
+        "usage_hint": "TeamName [YYYY-MM-DD]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-standup-history",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "View your submitted standups across all teams",
+        "usage_hint": "[start-date] [end-date]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-standup-remind",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Send standup reminders to team members (admin/owner)",
+        "usage_hint": "[team-name]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-standup-post",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Post team standup, or a member's standup, to channel (admin/owner)",
+        "usage_hint": "[YYYY-MM-DD] [team-name] [@user]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-standup-preview",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Preview team or a member's standup before posting (admin/owner)",
+        "usage_hint": "[YYYY-MM-DD] [team-name] [@user]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-standup-followup",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Send followup reminders to non-responders (admin/owner)",
+        "usage_hint": "[team-name]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-holiday-set",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Set holidays for single day or date range (admin only)",
+        "usage_hint": "YYYY-MM-DD [YYYY-MM-DD] [name]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-holiday-update",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Update existing holiday name (admin only)",
+        "usage_hint": "YYYY-MM-DD new name",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-holiday-delete",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Delete holidays for single day or date range (admin only)",
+        "usage_hint": "YYYY-MM-DD [YYYY-MM-DD]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-holiday-list",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "List holidays for any date range or time period",
+        "usage_hint": "[YYYY|YYYY-MM|YYYY-MM-DD] [YYYY-MM-DD]",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-standup-reminder",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Configure standup reminder preferences",
+        "usage_hint": "[TeamName] mention=on/off notify=on/off",
+        "should_escape": false
+      }
+    ]
+  },
+  "oauth_config": {
+    "scopes": {
+      "bot": [
+        "channels:read",
+        "chat:write",
+        "chat:write.public",
+        "commands",
+        "users:read",
+        "users:read.email",
+        "im:write",
+        "im:read",
+        "groups:read",
+        "app_mentions:read",
+        "channels:history",
+        "groups:history",
+        "im:history",
+        "mpim:history",
+        "team:read"
+      ]
     }
+  },
+  "settings": {
+    "event_subscriptions": {
+      "request_url": "{{APP_URL}}/slack/events",
+      "bot_events": [
+        "app_home_opened",
+        "app_mention",
+        "message.channels",
+        "message.groups",
+        "message.im",
+        "team_join",
+        "user_change"
+      ]
+    },
+    "interactivity": {
+      "is_enabled": true,
+      "request_url": "{{APP_URL}}/slack/events"
+    },
+    "org_deploy_enabled": true,
+    "socket_mode_enabled": false,
+    "token_rotation_enabled": false
+  }
 }

@@ -1,4 +1,8 @@
 const teamService = require("./teamService");
+const logger = require("../utils/logger");
+const {
+  createAdminSubmissionNotificationBlocks,
+} = require("../utils/blockHelper");
 
 class NotificationService {
   /**
@@ -18,13 +22,13 @@ class NotificationService {
     user,
     team,
     client,
-    options = {}
+    options = {},
   }) {
     const { isUpdate = false, isLate = false, date = null } = options;
 
     try {
       const teamAdmins = await teamService.getTeamAdmins(teamId);
-      
+
       for (const admin of teamAdmins) {
         // Don't notify the admin if they are the one submitting
         // Also check if the admin has notifications enabled
@@ -36,12 +40,12 @@ class NotificationService {
             client,
             isUpdate,
             isLate,
-            date
+            date,
           });
         }
       }
     } catch (error) {
-      console.error("Error notifying team admins:", error);
+      logger.error("Error notifying team admins:", error);
       // Don't throw here - submission was successful, notification failure shouldn't break the flow
     }
   }
@@ -64,36 +68,19 @@ class NotificationService {
     client,
     isUpdate,
     isLate,
-    date
+    date,
   }) {
     const userName = user.real_name || user.name || user.id;
     const actionText = isUpdate ? "updated" : "submitted";
     const dateText = date ? ` (${date})` : "";
     const lateText = isLate ? " (late submission)" : "";
-    
+
     const notificationText = `📝 ${userName} ${actionText} their standup for ${team.name}${dateText}${lateText}`;
-    
+
     await client.chat.postMessage({
       channel: admin.user.slackUserId,
       text: notificationText,
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: notificationText,
-          },
-        },
-        {
-          type: "context",
-          elements: [
-            {
-              type: "mrkdwn",
-              text: `Team: *${team.name}* | Channel: <#${team.slackChannelId}>`,
-            },
-          ],
-        },
-      ],
+      blocks: createAdminSubmissionNotificationBlocks(notificationText, team),
     });
   }
 
@@ -111,14 +98,17 @@ class NotificationService {
     excludeUserId = null,
     client,
     message,
-    blocks = null
+    blocks = null,
   }) {
     try {
       const teamAdmins = await teamService.getTeamAdmins(teamId);
-      
+
       for (const admin of teamAdmins) {
         // Skip if this admin should be excluded or has notifications disabled
-        if ((excludeUserId && admin.user.slackUserId === excludeUserId) || !admin.receiveNotifications) {
+        if (
+          (excludeUserId && admin.user.slackUserId === excludeUserId) ||
+          !admin.receiveNotifications
+        ) {
           continue;
         }
 
@@ -134,7 +124,7 @@ class NotificationService {
         await client.chat.postMessage(messagePayload);
       }
     } catch (error) {
-      console.error("Error notifying team admins:", error);
+      logger.error("Error notifying team admins:", error);
       // Don't throw here - original operation should not be affected by notification failures
     }
   }

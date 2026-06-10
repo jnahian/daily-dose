@@ -2,7 +2,7 @@
  * Utility functions for generating Slack Block Kit components
  */
 
-const { convertTextToRichText } = require('./messageHelper');
+const { convertTextToRichText } = require("./messageHelper");
 
 /**
  * Create a basic section block with markdown text
@@ -31,6 +31,139 @@ function createFieldsBlock(fields) {
   };
 }
 
+// Slack Block Kit limits: a section `fields[].text` caps at 2000 chars, a
+// section `text` at 3000. Standup task lists with long pasted URLs can exceed
+// the field cap, which makes Slack reject the whole message with
+// `invalid_blocks`. Keep the compact two-column layout when everything fits;
+// otherwise fall back to full-width sections and truncate only pathological
+// content — on a line boundary, so links aren't cut mid-URL.
+const SLACK_FIELD_MAX = 2000;
+const SLACK_TEXT_MAX = 3000;
+
+function truncateForSlack(text, max) {
+  if (text.length <= max) return text;
+  const marker = "\n… _(truncated)_";
+  const slice = text.slice(0, max - marker.length);
+  const lastNewline = slice.lastIndexOf("\n");
+  const safe = lastNewline > 0 ? slice.slice(0, lastNewline) : slice;
+  return safe + marker;
+}
+
+/**
+ * Build the per-user task blocks (yesterday/today) within Slack's limits.
+ * Two-column fields when each entry fits the 2000-char field cap; otherwise
+ * full-width section blocks (3000-char cap, safely truncated).
+ * @param {string} [yesterdayTasks]
+ * @param {string} [todayTasks]
+ * @returns {Array<object>} Slack blocks (possibly empty)
+ */
+function createTaskFieldBlocks(yesterdayTasks, todayTasks) {
+  const entries = [];
+  if (yesterdayTasks) entries.push(`*📄 Last Working Day*\n${yesterdayTasks}`);
+  if (todayTasks) entries.push(`*🎯 Today*\n${todayTasks}`);
+  if (entries.length === 0) return [];
+
+  if (entries.every((text) => text.length <= SLACK_FIELD_MAX)) {
+    return [
+      createFieldsBlock(entries.map((text) => ({ type: "mrkdwn", text }))),
+    ];
+  }
+
+  return entries.map((text) =>
+    createSectionBlock(truncateForSlack(text, SLACK_TEXT_MAX))
+  );
+}
+
+/**
+ * Create a context block with a single mrkdwn element
+ * @param {string} text - mrkdwn text
+ * @returns {object} Slack context block
+ */
+function createContextBlock(text) {
+  return {
+    type: "context",
+    elements: [
+      {
+        type: "mrkdwn",
+        text,
+      },
+    ],
+  };
+}
+
+/**
+ * Build the blocker line for a standup response as a section block.
+ * The user-supplied text is truncated to Slack's section cap. It is NOT
+ * wrapped in `_…_` italics: blockers are multi-line mrkdwn that may itself
+ * contain `_`, and nested/unbalanced markers corrupt the rendering.
+ * @param {string} blockers - Blocker text (already mrkdwn, from rich text extraction)
+ * @returns {object} Slack section block
+ */
+function createBlockerSectionBlock(blockers) {
+  return createSectionBlock(
+    `⚠️ *Blocker:* ${truncateForSlack(blockers, SLACK_TEXT_MAX - 50)}`
+  );
+}
+
+/**
+ * Same as createBlockerSectionBlock but as a context block (used for late
+ * submissions). Context elements cap at 2000 chars.
+ * @param {string} blockers - Blocker text (already mrkdwn, from rich text extraction)
+ * @returns {object} Slack context block
+ */
+function createBlockerContextBlock(blockers) {
+  return createContextBlock(
+    `⚠️ *Blocker:* ${truncateForSlack(blockers, SLACK_FIELD_MAX - 50)}`
+  );
+}
+
+/**
+ * Create the DM blocks notifying a team admin that a member submitted or
+ * updated their standup
+ * @param {string} notificationText - Pre-formatted notification line
+ * @param {object} team - Team with name and slackChannelId
+ * @returns {Array<object>} Slack blocks
+ */
+function createAdminSubmissionNotificationBlocks(notificationText, team) {
+  return [
+    createSectionBlock(notificationText),
+    createContextBlock(
+      `Team: *${team.name}* | Channel: <#${team.slackChannelId}>`
+    ),
+  ];
+}
+
+/**
+ * Create the Slack message blocks for a website contact-form submission.
+ * All values are user input from an unauthenticated public endpoint, so they
+ * are rendered as plain_text (never mrkdwn) — Slack treats plain_text
+ * literally, which neutralises mention/link/formatting injection.
+ * @param {object} submission
+ * @param {string} submission.name
+ * @param {string} submission.email
+ * @param {string} submission.subject
+ * @param {string} submission.message
+ * @returns {Array<object>} Slack blocks
+ */
+function createContactNotificationBlocks({ name, email, subject, message }) {
+  return [
+    createSectionBlock("*📬 New contact form submission*"),
+    createFieldsBlock([
+      { type: "plain_text", text: `From: ${name}` },
+      { type: "plain_text", text: `Email: ${email}` },
+    ]),
+    {
+      type: "section",
+      text: { type: "plain_text", text: `Subject: ${subject}` },
+    },
+    createDividerBlock(),
+    {
+      type: "section",
+      text: { type: "plain_text", text: message },
+    },
+  ];
+}
+
 /**
  * Create a divider block
  * @returns {object} Slack divider block
@@ -52,7 +185,6 @@ function createActionsBlock(elements) {
     elements,
   };
 }
-
 
 /**
  * Create a button element
@@ -90,7 +222,14 @@ function createButton(text, actionId, value, style = null) {
  * @param {string} elementType - Type of input element (rich_text_input, plain_text_input, etc.)
  * @returns {object} Slack input block
  */
-function createInputBlock(blockId, label, actionId, placeholder, optional = false, elementType = "rich_text_input") {
+function createInputBlock(
+  blockId,
+  label,
+  actionId,
+  placeholder,
+  optional = false,
+  elementType = "rich_text_input"
+) {
   return {
     type: "input",
     block_id: blockId,
@@ -119,9 +258,17 @@ function createInputBlock(blockId, label, actionId, placeholder, optional = fals
  * @param {object} lastResponse - Last standup response to prefill today's tasks (optional)
  * @returns {object} Complete modal view structure
  */
-function createStandupModal(teamName, teamId, today, existingResponse = null, lastResponse = null) {
+function createStandupModal(
+  teamName,
+  teamId,
+  today,
+  existingResponse = null,
+  lastResponse = null
+) {
   const blocks = [
-    createSectionBlock(`*📊 ${teamName} - ${today}*${existingResponse ? " (Update)" : ""}`),
+    createSectionBlock(
+      `*📊 ${teamName} - ${today}*${existingResponse ? " (Update)" : ""}`
+    ),
     createDividerBlock(),
     createInputBlock(
       "yesterday_tasks",
@@ -148,7 +295,9 @@ function createStandupModal(teamName, teamId, today, existingResponse = null, la
 
   // Add initial values if lastResponse exists (prefill yesterday's tasks with last response's today's tasks)
   if (lastResponse && lastResponse.todayTasks) {
-    const yesterdayTasksBlock = blocks.find(block => block.block_id === "yesterday_tasks");
+    const yesterdayTasksBlock = blocks.find(
+      (block) => block.block_id === "yesterday_tasks"
+    );
     if (yesterdayTasksBlock) {
       const richTextValue = convertTextToRichText(lastResponse.todayTasks);
       if (richTextValue) {
@@ -188,12 +337,7 @@ function createStandupReminderBlocks(message, teamName, teamId) {
   return [
     createSectionBlock(message),
     createActionsBlock([
-      createButton(
-        "📝 Submit Standup",
-        "submit_standup",
-        teamId,
-        "primary"
-      ),
+      createButton("📝 Submit Standup", "submit_standup", teamId, "primary"),
     ]),
   ];
 }
@@ -221,32 +365,14 @@ function createStandupSummaryHeader(teamName, date, totalMembers, submitted) {
  * @returns {Array<object>} Array of blocks for user response
  */
 function createUserResponseBlocks(response) {
-  const blocks = [
-    createSectionBlock(`*👤 ${response.userMention}*`),
-  ];
+  const blocks = [createSectionBlock(`*👤 ${response.userMention}*`)];
 
-  const fields = [];
-  
-  if (response.yesterdayTasks) {
-    fields.push({
-      type: "mrkdwn",
-      text: `*📄 Last Working Day*\n${response.yesterdayTasks}`,
-    });
-  }
-
-  if (response.todayTasks) {
-    fields.push({
-      type: "mrkdwn",
-      text: `*🎯 Today*\n${response.todayTasks}`,
-    });
-  }
-
-  if (fields.length > 0) {
-    blocks.push(createFieldsBlock(fields));
-  }
+  blocks.push(
+    ...createTaskFieldBlocks(response.yesterdayTasks, response.todayTasks)
+  );
 
   if (response.blockers && response.blockers.trim()) {
-    blocks.push(createSectionBlock(`⚠️ *Blocker:* _${response.blockers}_`));
+    blocks.push(createBlockerSectionBlock(response.blockers));
   }
 
   blocks.push(createDividerBlock());
@@ -265,36 +391,12 @@ function createLateResponseBlocks(response) {
     createSectionBlock(`*👤 ${response.userMention}*`),
   ];
 
-  const fields = [];
-
-  if (response.yesterdayTasks) {
-    fields.push({
-      type: "mrkdwn",
-      text: `*📄 Last Working Day*\n${response.yesterdayTasks}`,
-    });
-  }
-
-  if (response.todayTasks) {
-    fields.push({
-      type: "mrkdwn",
-      text: `*🎯 Today*\n${response.todayTasks}`,
-    });
-  }
-
-  if (fields.length > 0) {
-    blocks.push(createFieldsBlock(fields));
-  }
+  blocks.push(
+    ...createTaskFieldBlocks(response.yesterdayTasks, response.todayTasks)
+  );
 
   if (response.blockers && response.blockers.trim()) {
-    blocks.push({
-      type: "context",
-      elements: [
-        {
-          type: "mrkdwn",
-          text: `⚠️ *Blocker:* _${response.blockers}_`,
-        },
-      ],
-    });
+    blocks.push(createBlockerContextBlock(response.blockers));
   }
 
   return blocks;
@@ -312,9 +414,7 @@ function createNotRespondedBlocks(notResponded) {
     .map((m) => `• <@${m.slackUserId}>`)
     .join("\n");
 
-  return [
-    createSectionBlock(`*📝 Not Responded*\n${notRespondedText}`),
-  ];
+  return [createSectionBlock(`*📝 Not Responded*\n${notRespondedText}`)];
 }
 
 /**
@@ -325,13 +425,9 @@ function createNotRespondedBlocks(notResponded) {
 function createOnLeaveBlocks(onLeave) {
   if (onLeave.length === 0) return [];
 
-  const onLeaveText = onLeave
-    .map((m) => `• <@${m.slackUserId}>`)
-    .join("\n");
+  const onLeaveText = onLeave.map((m) => `• <@${m.slackUserId}>`).join("\n");
 
-  return [
-    createSectionBlock(`*🌴 On Leave*\n${onLeaveText}`),
-  ];
+  return [createSectionBlock(`*🌴 On Leave*\n${onLeaveText}`)];
 }
 
 /**
@@ -348,9 +444,7 @@ function createTeamSelectionBlocks(teams, actionId = "select_team_standup") {
   return [
     createSectionBlock(`*📝 Select a team for standup:*\n${teamList}`),
     createActionsBlock(
-      teams.map((team) =>
-        createButton(team.name, actionId, team.id.toString())
-      )
+      teams.map((team) => createButton(team.name, actionId, team.id.toString()))
     ),
   ];
 }
@@ -361,9 +455,7 @@ function createTeamSelectionBlocks(teams, actionId = "select_team_standup") {
  * @returns {Array<object>} Array of blocks for error message
  */
 function createErrorBlocks(message) {
-  return [
-    createSectionBlock(`❌ ${message}`),
-  ];
+  return [createSectionBlock(`❌ ${message}`)];
 }
 
 /**
@@ -372,9 +464,7 @@ function createErrorBlocks(message) {
  * @returns {Array<object>} Array of blocks for success message
  */
 function createSuccessBlocks(message) {
-  return [
-    createSectionBlock(`✅ ${message}`),
-  ];
+  return [createSectionBlock(`✅ ${message}`)];
 }
 
 /**
@@ -386,14 +476,20 @@ function createSuccessBlocks(message) {
  * @param {object} existingResponse - Existing response data (optional)
  * @returns {object} Complete modal view structure for updating
  */
-function createStandupUpdateModal(teamName, teamId, today, standupDate, existingResponse = null) {
+function createStandupUpdateModal(
+  teamName,
+  teamId,
+  today,
+  standupDate,
+  existingResponse = null
+) {
   return {
     type: "modal",
     callback_id: "standup_update_modal",
-    private_metadata: JSON.stringify({ 
-      teamId, 
+    private_metadata: JSON.stringify({
+      teamId,
       standupDate,
-      isUpdate: !!existingResponse
+      isUpdate: !!existingResponse,
     }),
     title: {
       type: "plain_text",
@@ -408,7 +504,9 @@ function createStandupUpdateModal(teamName, teamId, today, standupDate, existing
       text: "Cancel",
     },
     blocks: [
-      createSectionBlock(`*📊 ${teamName} - ${today}*${existingResponse ? " (Update)" : ""}`),
+      createSectionBlock(
+        `*📊 ${teamName} - ${today}*${existingResponse ? " (Update)" : ""}`
+      ),
       createDividerBlock(),
       createInputBlock(
         "yesterday_tasks",
@@ -434,12 +532,12 @@ function createStandupUpdateModal(teamName, teamId, today, standupDate, existing
         true,
         "rich_text_input"
       ),
-    ].map(block => {
+    ].map((block) => {
       // Add initial values to input blocks if existingResponse exists
       if (block.type === "input" && existingResponse) {
         const blockId = block.block_id;
         let initialText = "";
-        
+
         if (blockId === "yesterday_tasks" && existingResponse.yesterdayTasks) {
           initialText = existingResponse.yesterdayTasks;
         } else if (blockId === "today_tasks" && existingResponse.todayTasks) {
@@ -447,22 +545,16 @@ function createStandupUpdateModal(teamName, teamId, today, standupDate, existing
         } else if (blockId === "blockers" && existingResponse.blockers) {
           initialText = existingResponse.blockers;
         }
-        
+
         if (initialText) {
-          block.element.initial_value = {
-            type: "rich_text",
-            elements: [
-              {
-                type: "rich_text_section",
-                elements: [
-                  {
-                    type: "text",
-                    text: initialText
-                  }
-                ]
-              }
-            ]
-          };
+          // Rebuild rich text from the stored mrkdwn so links/mentions become
+          // structured elements again and escaped entities are restored —
+          // inserting the stored string as a raw text element would re-escape
+          // it on every edit/resubmit cycle.
+          const richTextValue = convertTextToRichText(initialText);
+          if (richTextValue) {
+            block.element.initial_value = richTextValue;
+          }
         }
       }
       return block;
@@ -477,9 +569,7 @@ function createStandupUpdateModal(teamName, teamId, today, standupDate, existing
  * @returns {Array<object>} Array of blocks for success response
  */
 function createCommandSuccessBlocks(message, details = null) {
-  const blocks = [
-    createSectionBlock(`✅ ${message}`),
-  ];
+  const blocks = [createSectionBlock(`✅ ${message}`)];
 
   if (details) {
     const detailsText = Object.entries(details)
@@ -507,9 +597,7 @@ function createCommandSuccessBlocks(message, details = null) {
  * @returns {Array<object>} Array of blocks for error response
  */
 function createCommandErrorBlocks(message, suggestions = null) {
-  const blocks = [
-    createSectionBlock(`❌ ${message}`),
-  ];
+  const blocks = [createSectionBlock(`❌ ${message}`)];
 
   if (suggestions && suggestions.length > 0) {
     const suggestionsText = suggestions
@@ -531,9 +619,10 @@ function createCommandErrorBlocks(message, suggestions = null) {
  * @returns {Array<object>} Array of blocks for permission denied response
  */
 function createPermissionDeniedBlocks(requiredRole = "ADMIN") {
-  const roleText = requiredRole === "OWNER"
-    ? "organization owner"
-    : "team admin or organization owner";
+  const roleText =
+    requiredRole === "OWNER"
+      ? "organization owner"
+      : "team admin or organization owner";
 
   return [
     createSectionBlock(`❌ *Permission Denied*`),
@@ -588,6 +677,94 @@ function createStandupPreviewHeaderBlocks(teamName, date, isToday = true) {
  * @param {string} date - Optional date string
  * @returns {Array<object>} Array of blocks for no data message
  */
+function createHomeTabView(appUrl = "https://dd.jnahian.me") {
+  const webUrl = appUrl.replace(/\/$/, "");
+  const docsUrl = `${webUrl}/docs`;
+  const changelogUrl = `${webUrl}/changelog`;
+  const videoUrl = "https://www.youtube.com/watch?v=bQrJqBpSlBU";
+
+  return {
+    type: "home",
+    blocks: [
+      {
+        type: "header",
+        text: {
+          type: "plain_text",
+          text: "👋 Welcome to Daily Dose",
+          emoji: true,
+        },
+      },
+      createSectionBlock(
+        "Automated daily standups for your team — reminders, submissions, and channel summaries, all without a meeting."
+      ),
+      createActionsBlock([
+        {
+          type: "button",
+          text: {
+            type: "plain_text",
+            text: "▶️  Watch intro video",
+            emoji: true,
+          },
+          url: videoUrl,
+          action_id: "home_open_video",
+        },
+        {
+          type: "button",
+          text: { type: "plain_text", text: "🌐  Website", emoji: true },
+          url: webUrl,
+          action_id: "home_open_website",
+        },
+        {
+          type: "button",
+          text: { type: "plain_text", text: "📖  Docs", emoji: true },
+          url: docsUrl,
+          action_id: "home_open_docs",
+        },
+        {
+          type: "button",
+          text: { type: "plain_text", text: "📝  Changelog", emoji: true },
+          url: changelogUrl,
+          action_id: "home_open_changelog",
+        },
+      ]),
+      createDividerBlock(),
+      {
+        type: "header",
+        text: { type: "plain_text", text: "🚀 Get started", emoji: true },
+      },
+      createSectionBlock(
+        "*1.* Create a team in your standup channel:\n" +
+          "`/dd-team-create [TeamName] 09:30 10:00`\n\n" +
+          "*2.* Invite teammates to join:\n" +
+          "`/dd-team-join [TeamName]`\n\n" +
+          "*3.* Submit standups any time:\n" +
+          "`/dd-standup [TeamName]`"
+      ),
+      createDividerBlock(),
+      {
+        type: "header",
+        text: { type: "plain_text", text: "💡 Handy commands", emoji: true },
+      },
+      createSectionBlock(
+        "• `/dd-team-list` — list teams in your org\n" +
+          "• `/dd-standup-history` — view your past submissions\n" +
+          "• `/dd-leave-set YYYY-MM-DD` — skip reminders for leave\n" +
+          "• `/dd-workdays-set 1,2,3,4,5` — set your work days\n" +
+          "• `/dd-standup-reminder notify=off` — pause reminder DMs"
+      ),
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `Need more? See the <${docsUrl}|full docs> or visit <${webUrl}|${webUrl.replace(/^https?:\/\//, "")}>.`,
+          },
+        ],
+      },
+    ],
+  };
+}
+
 function createNoDataBlocks(context = "data", date = null) {
   const dateText = date ? ` for ${date}` : "";
 
@@ -608,6 +785,12 @@ function createNoDataBlocks(context = "data", date = null) {
 module.exports = {
   createSectionBlock,
   createFieldsBlock,
+  createTaskFieldBlocks,
+  createContextBlock,
+  createAdminSubmissionNotificationBlocks,
+  createContactNotificationBlocks,
+  createBlockerSectionBlock,
+  createBlockerContextBlock,
   createDividerBlock,
   createActionsBlock,
   createButton,
@@ -628,4 +811,5 @@ module.exports = {
   createPermissionDeniedBlocks,
   createStandupPreviewHeaderBlocks,
   createNoDataBlocks,
+  createHomeTabView,
 };

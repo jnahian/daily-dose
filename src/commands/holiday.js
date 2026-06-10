@@ -432,7 +432,7 @@ async function listHolidays({ command, ack, respond, client }) {
       command.user_id,
       client
     );
-    const user = await userService.findOrCreateUser(command.user_id, userData);
+    await userService.findOrCreateUser(command.user_id, userData);
     const org = await userService.getUserOrganization(command.user_id);
 
     if (!org) {

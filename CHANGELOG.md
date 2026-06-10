@@ -7,6 +7,223 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-06-10
+
+### Added
+
+- Website contact form now actually sends messages (#23): new `POST /api/contact` endpoint forwards submissions to the Slack channel/user configured via `CONTACT_SLACK_CHANNEL` (503 with a friendly error when unset). Inputs are length-capped, rendered as `plain_text` blocks (no mrkdwn injection from an unauthenticated endpoint), and rate-limited to 5 submissions per 10 minutes per IP. The form previously simulated submission with a `setTimeout` and discarded the message; it now reports real success/failure. New `blockHelper.createContactNotificationBlocks`; Vite dev proxy for `/api`. (`src/app.js`, `src/utils/blockHelper.js`, `web/src/components/home/ContactForm.tsx`, `web/vite.config.ts`, `.env.example`, `README.md`, `DEPLOYMENT.md`)
+- Team timezones are validated as IANA identifiers on create/update (#25): new `timeHelper.validateTimezone` (via `Intl.DateTimeFormat`) throws a user-facing error for typos like `America/NewYork`, which previously stored fine and silently broke the team's cron scheduling. (`src/utils/timeHelper.js`, `src/services/teamService.js`, `test/utils/timeHelper.test.js`)
+
+### Changed
+
+- Scheduler safety-net refresh runs hourly instead of daily at UTC midnight (#22). Team create/update already calls `refreshTeamSchedule()` directly (the issue's staleness concern was largely moot); the periodic job only recovers from drift, and hourly keeps that recovery from lagging up to a day for non-UTC teams. (`src/services/schedulerService.js`)
+- `seedOrg.js` now prints the target database host and seed data, then requires interactive `yes` confirmation (or `--confirm`) before upserting — it previously wrote hardcoded org/user/team data with no prompt (#24). (`scripts/seedOrg.js`)
+- `logCommand` truncates slash-command text to 100 chars at the `info` level (full text moved to `debug`) so pasted sensitive content isn't retained in default logs (#30). (`src/utils/logger.js`)
+
+### Fixed
+
+- Removed unreachable dead code in `postTeamStandup` (#21): the "all members disabled reminders" skip checked `eligibleMembers.every((m) => m.hideFromNotResponded)`, which is equivalent to the `visibleMembers.length === 0` condition already returned on a few lines earlier — and its comment referenced the wrong flag (reminders vs. hide-from-not-responded). The surviving check's comment now describes the actual semantics. (`src/services/standupService.js`)
+- `validateDateFormat` uses strict dayjs parsing instead of the native `Date` constructor (#32): `2025-02-30` is now rejected instead of rolling over to March 2, and parsing semantics match the rest of the codebase. Documented `toIsoDate()`'s UTC contract. (`src/utils/teamHelper.js`, `src/utils/dateHelper.js`, `test/utils/teamHelper.test.js`)
+- Open Graph/Twitter URL meta tags are now absolute `https://dd.jnahian.me/...` URLs on all pages; Home's were empty and Scripts' pointed at the nonexistent `/scripts-docs` route (#26). Fixed `ContactPage` using the undefined `bg-bg-secondary` Tailwind class (theme defines `bg-bg-surface`) (#31). (`web/src/pages/*.tsx`)
+- Block Kit convention cleanup (#27): admin submission notification blocks and the reminder-DM deadline context block moved from inline literals in `notificationService.js`/`schedulerService.js` into `blockHelper.js` (`createContextBlock`, `createAdminSubmissionNotificationBlocks`).
+- All `console.log`/`console.error` calls in `standupService.js`, `notificationService.js`, and `permissionHelper.js` now go through the project logger (LOG_LEVEL filtering + Sentry forwarding); permission-check errors include user/org/team context instead of being silently swallowed as denials (#28, #29). (`src/services/standupService.js`, `src/services/notificationService.js`, `src/utils/permissionHelper.js`)
+- Standup reminder and follow-up DMs ignored the `TeamMember.receiveNotifications` opt-out (`/dd-standup-reminder notify=off`): `schedulerService.sendStandupReminders` / `sendFollowupReminders` filtered only by `role !== "ADMIN"`, so opted-out members were still DM'd every day. Both filters now also require `receiveNotifications`. Added `test/services/schedulerService.test.js`. (#18) (`src/services/schedulerService.js`)
+- User-typed `&`, `<`, `>` in standup fields was interpolated raw into mrkdwn — pasted snippets like `<script>` or `a < b && b > c` parsed as broken link/mention syntax and could corrupt the posted message. `messageHelper.formatElement` now escapes them in raw text elements (structured link/user/channel elements are untouched). To keep edit/resubmit cycles stable (no `&amp;amp;` growth), modal prefill goes through `convertTextToRichText`, which now unescapes entities first; the second modal builder's raw-text prefill was switched to `convertTextToRichText` accordingly. New `escapeSlackText` / `unescapeSlackText` exports. (#19) (`src/utils/messageHelper.js`, `src/utils/blockHelper.js`)
+- Blocker text in standup posts was wrapped in `_…_` italics with no length cap: user underscores/multi-line content broke the formatting pairing, and an over-limit blocker (e.g. a pasted error log) made Slack reject the whole post with `invalid_blocks`. New `blockHelper.createBlockerSectionBlock` / `createBlockerContextBlock` truncate via `truncateForSlack` and drop the italics wrapper; the three inline blocker block call sites in `standupService.js` and `commands/standup.js` now use them. (#19) (`src/utils/blockHelper.js`, `src/services/standupService.js`, `src/commands/standup.js`)
+- The Basic-Auth gate on `/scripts` only protected direct page loads — the full scripts documentation was bundled into the public SPA (`web/src/data/scripts.json` imported by `Scripts.tsx`), so client-side navigation rendered it without authentication. The content is no longer bundled: Express now serves it at `GET /scripts/data.json` (under the auth-gated `/scripts` path) and the page fetches it, showing a sign-in screen on 401 that triggers a full-page load (and the browser's auth prompt). Added a Vite dev proxy for the endpoint and fixed the page's `og:url`/`twitter:url` meta (`/scripts-docs` → `/scripts`). (#20) (`src/app.js`, `web/src/pages/Scripts.tsx`, `web/vite.config.ts`)
+
+## [1.9.1] - 2026-06-09
+
+### Fixed
+
+- The v1.9.0 individual-standup `@mention` feature never matched the mention: `/dd-standup-post` and `/dd-standup-preview` were registered with the `stripFormatting()` middleware, whose `removeFormatting()` rewrites `<@U123|alice>` to `alice` (its `<…|…>` link rule) before the handler runs, so `parseCommandArguments` saw plain text and fell through to the team path. Removed `stripFormatting()` from both commands so the raw `<@U…|name>` wrapper survives — matching the existing suspension/promote commands, which already skip it for the same reason. (`src/commands/index.js`)
+- Slack manifest: updated `/dd-standup-post` and `/dd-standup-preview` `usage_hint` (`[YYYY-MM-DD] [team-name] [@user]`) and `description` to advertise the optional member `@mention`. (`slack-app-manifest.json`)
+
+## [1.9.0] - 2026-06-08
+
+### Added
+
+- `/dd-standup-preview` and `/dd-standup-post` now accept an optional `@mention` to preview or post a single team member's standup. Preview is ephemeral; post appends the member's response as a threaded reply under the day's team standup post (`reply_broadcast: true`), auto-posting the team summary first if no thread exists yet. New `standupService.getUserResponse`, `formatIndividualResponseMessage`, and `postIndividualResponse`; `teamHelper.parseCommandArguments` now returns `mentionedUserId`; reuses `blockHelper.createUserResponseBlocks` (no admin label). Always appends — no dedup. (`src/commands/standup.js`, `src/services/standupService.js`, `src/utils/teamHelper.js`)
+
+### Changed
+
+- `permissionHelper.canManageTeam` now grants management to organization **admins** (`OrgRole.ADMIN`), not just owners and team admins — applies to all admin commands. New `isOrganizationAdmin` helper. (`src/utils/permissionHelper.js`)
+
+## [1.8.7] - 2026-06-08
+
+### Fixed
+
+- Posting a **late** standup submission failed with Slack `invalid_blocks` (`must be less than 2001 characters [json-pointer:/blocks/2/fields/0/text]`) when the user's tasks contained long pasted content (e.g. URLs). The 1.8.5 fix routed the regular post path through the limit-aware `blockHelper.createTaskFieldBlocks`, but `createLateResponseBlocks` still hand-built the section `fields[]` with no length check, so a late entry over the 2000-char field cap was rejected. `createLateResponseBlocks` now reuses `createTaskFieldBlocks` (compact two-column fields when each entry fits 2000 chars, otherwise full-width sections truncated on a line boundary). Added `test/utils/blockHelper.test.js` covering both the regular and late paths against Slack's field/text limits. (`src/utils/blockHelper.js`, `test/utils/blockHelper.test.js`)
+
+## [1.8.6] - 2026-06-04
+
+### Fixed
+
+- Opening the standup modal failed with Slack `invalid_arguments` (`invalid additional property: style [json-pointer:/view/blocks/2/element/initial_value/elements/0/elements/1]`) whenever the user's previous standup contained an indented (nested) bullet or numbered list. `extractRichTextValue` stores nested list items as space-indented lines, and `convertTextToRichText` rebuilt them via `parseListStructure`, which modeled nesting by placing a child `rich_text_list` inside the parent list's `elements` array — a shape Slack's rich_text schema rejects (a list's `elements` may contain only `rich_text_section`). Replaced `parseListStructure` with `parseListBlocks`, which expresses nesting the way Slack requires: flat sibling `rich_text_list` blocks distinguished by an integer `indent` level, grouping consecutive same-`(indent, style)` items into one block so ordered numbering stays contiguous. Added `test/utils/messageHelper.test.js` covering the crash repro, the Slack schema invariant, indent-based nesting, and round-trip stability. (`src/utils/messageHelper.js`, `test/utils/messageHelper.test.js`)
+
+## [1.8.5] - 2026-06-03
+
+### Changed
+
+- Logging under PM2 now shows a single timestamp: the app logger no longer adds its own ISO timestamp (PM2 already prepends one to every line via `ecosystem.config.js` `time: true`), and slash-command logs show the command at the top level (`COMMAND /dd-standup-post {…}`) via `logger.logCommand` instead of the raw `console.log("Command:", command)` object dump. PM2 `log_date_format` bumped to millisecond precision. Removed the now-unused `dayjs`/`formatTimestamp` from `logger.js`. (`src/utils/logger.js`, `src/middleware/command.js`, `ecosystem.config.js`, `test/utils/logger.test.js`)
+
+### Fixed
+
+- Standup posting and manual reminders crashed with `TypeError: Cannot read properties of undefined (reading 'chat')`. `/dd-standup-post` passed the raw Slack WebClient to `standupService.postTeamStandup`, which expects an app-shaped object (`slackApp.client.chat`); `/dd-standup-remind` and `/dd-standup-followup` re-ran `schedulerService.initialize(client)`, overwriting the singleton's `this.app` (set with the real Bolt app at startup) with the WebClient and re-registering duplicate cron jobs — breaking automated reminders until the next restart. `postStandup` now passes `{ client }` (matching the `postStandupOnDemand` call sites); the erroneous re-init calls are removed. (`src/commands/standup.js`)
+- `/dd-standup-preview` (and posting) failed with Slack `500 invalid_blocks` for long standups, on two independent counts. Rich-text links were rendered as `<url |text>` — a space before the pipe with no trim on the URL — so a link whose URL had trailing whitespace became invalid; now renders `<url|text>` (trimmed). And each user's yesterday/today went into a section `fields[]` entry, which Slack caps at 2000 chars; long pasted task URLs overflowed it. New shared `blockHelper.createTaskFieldBlocks` keeps the two-column fields layout when each entry fits 2000, otherwise renders full-width section blocks (3000 cap, truncated on a line boundary so links aren't cut mid-URL), replacing the duplicated field-building in `standupService` and `blockHelper`. (`src/utils/messageHelper.js`, `src/utils/blockHelper.js`, `src/services/standupService.js`)
+
+## [1.8.4] - 2026-06-03
+
+### Fixed
+
+- `isOrganizationOwner()` in `src/utils/permissionHelper.js` selected `createdBy` off `prisma.organization.findUnique()`, but the `Organization` model has no `createdBy` field — ownership is modelled via `OrganizationMember.role = OWNER`. The query threw `PrismaClientValidationError`, the `catch` returned `false`, so **no user was ever recognized as an org owner**: `canManageTeam()` always fell through to the team-admin check, silently blocking owners from every owner-gated command (standup post/remind/preview/followup, leave admin paths, team update). Now checks `prisma.organizationMember.findUnique({ where: { organizationId_userId }, select: { role, isActive } })` for an active `OWNER` membership.
+- `teamService.updateTeam()` (`/dd-team-update`) gated on the caller's `TeamMember.role === "ADMIN"` directly, so an organization owner who was not a team admin of that specific team got "You need admin permissions to update this team". Now gates via `permissionHelper.canManageTeam()` (org owner **or** team admin), consistent with the standup admin commands.
+- Ran a schema-wide audit validating every Prisma query's field references against `schema.prisma`; these two were the only remaining stale-field references (companions to the 1.8.2 `getUserBySlackId` and 1.8.3 `resolveTeamFromContext` fixes).
+
+## [1.8.3] - 2026-06-03
+
+### Fixed
+
+- `resolveTeamFromContext()` in `src/utils/teamHelper.js` selected `organizationId` off `prisma.user.findUnique()` to scope a team-name lookup to the requester's org, but the `User` model has no `organizationId` scalar (orgs are reached through the `OrganizationMember` junction). Prisma threw `PrismaClientValidationError`, the `catch` returned a generic "An error occurred while finding the team" message, and `/dd-standup-post`/`-remind`/`-preview`/`-followup` failed whenever a team name was passed. Now resolves the org via `prisma.organizationMember.findFirst({ where: { userId, isActive: true } })`, matching the `getUserOrganization` / `listTeamsForUser` convention. Companion to the 1.8.2 `getUserBySlackId` fix; an app-wide audit confirmed these were the only two stale singular-`User`-organization assumptions.
+
+## [1.8.2] - 2026-06-03
+
+### Changed
+
+- CI workflows bumped to current action and runtime versions: `actions/checkout` and `actions/setup-node` to v5, and the setup-node `node-version` to 24 (`.github/workflows/`).
+
+### Fixed
+
+- `getUserBySlackId()` in `src/utils/permissionHelper.js` queried `prisma.user.findUnique()` with `include: { organization: true }`, but the `User` model has no singular `organization` relation (orgs are reached through the `organizations` / `OrganizationMember[]` junction). Prisma threw `PrismaClientValidationError`, which the helper's `catch` swallowed into `null`, causing `/dd-standup-post`, `/dd-standup-remind`, `/dd-standup-preview`, and `/dd-standup-followup` to report "User not found" for every user. Removed the broken (and unused — all callers read only `user.id`) `include`.
+
+## [1.8.1] - 2026-05-27
+
+### Added
+
+- Slack **Home tab** for the bot — surfaces a welcome message, quick-link buttons (intro video, website, docs, changelog), a getting-started checklist, and a handy commands cheat sheet. Implemented as `createHomeTabView()` in `src/utils/blockHelper.js` and published on `app_home_opened` in `src/events/index.js`. Manifest updated: `features.app_home.home_tab_enabled = true` and `app_home_opened` added to bot events.
+
+## [1.8.0] - 2026-05-27
+
+### Added
+
+- Remotion video workspace (`video/`) — programmatic get-started video built with React and Remotion. Includes six scenes (Hook, Reminder, Modal, Commands, Summary, CTA), per-scene OpenAI TTS voiceover clips, Suno background music, and two output compositions: `MainVideo` (1920×1080) and `Reel` (1080×1920 social media variant). Brand tokens mirror the web theme (`video/src/data/brand.ts`). Scripts: `npm run video:studio`, `video:render`, `video:render:reel`, `video:vo`.
+- Per-command subtitles in the Commands scene — each of the six command slides now shows a caption via the global `CAPTION_SCHEDULE` in `video/src/data/script.ts`.
+
+### Changed
+
+- Homepage hero (`web/src/components/home/Hero.tsx`) now embeds the YouTube video (`youtu.be/bQrJqBpSlBU`) via the IFrame Player API. Autoplays muted and looped; YouTube title/control overlays are clipped by extending the iframe 60px beyond the container. A custom fullscreen button unmutes audio on enter and remutes on exit.
+- README now includes a YouTube thumbnail link to the demo video below the project description.
+- Slack app manifest `description` and `long_description` updated to reflect current feature set and link to `dd.jnahian.me`.
+
+### Removed
+
+- `web/public/daily-dose-intro.mp4` — local video file replaced by the YouTube embed.
+
+## [1.7.1] - 2026-05-20
+
+### Removed
+
+- Client-side `BasicAuth` React gate on the `/scripts` page (`web/src/components/auth/`, `web/.env.example`, `VITE_ADMIN_USERNAME` / `VITE_ADMIN_PASSWORD`). It was a redundant second login layered on top of the server-side BasicAuth added in 1.7.0, and — as a build-time-baked credential check shipped in the client bundle — provided no real security. `/scripts` remains protected at the Express layer via `SCRIPTS_AUTH_USERNAME` / `SCRIPTS_AUTH_PASSWORD`.
+
+## [1.7.0] - 2026-05-20
+
+### Added
+
+- Server-side BasicAuth gate on `/scripts` route (`src/middleware/basicAuth.js`, `src/app.js`). Replaces the React-only client-side gate that was bypassable by direct URL access. Application refuses to start if `SCRIPTS_AUTH_USERNAME` or `SCRIPTS_AUTH_PASSWORD` is unset.
+- `UserFacingError` class and `sanitizeError(err, fallback?)` helper in `src/utils/errorHelper.js`. Command handlers now emit a generic `Something went wrong (ref: ...)` message for unknown errors; service-provided messages are only rendered verbatim when the service throws `UserFacingError`.
+- `parseTimeString(input)` validator and `TimeFormatError` in `src/utils/timeHelper.js`. Rejects malformed `HH:MM` input at command boundaries before scheduler registration.
+- Jest test harness at the repo root (`jest.config.js`, `npm test`, `npm run test:watch`, `npm run test:coverage`). 32 tests across `timeHelper`, `errorHelper`, and `basicAuth` middleware.
+- Composite database index `@@index([teamId, standupDate])` on `StandupResponse` (migration `20260520044120_standup_response_team_date_index`). The existing `@@unique([teamId, userId, standupDate])` constraint cannot serve team + date-range queries without a `userId`, the shape used by `getTeamResponses`, `getLateResponses`, and the response counting in `postTeamStandup`.
+- `isWorkingDayPure({ date, workDays, holidayDateSet })`, `getHolidayDateSet()`, and `getOrgDefaultWorkDays()` in `src/utils/dateHelper.js` — a pure work-day check plus batch holiday lookup for hot-path callers. `test/utils/dateHelper.test.js` adds 7 tests.
+- Sentry error reporting (`@sentry/node`). New `src/config/sentry.js` initializes Sentry once at process start when `SENTRY_DSN` is set and is a silent no-op otherwise. Wired into `src/app.js`. `SENTRY_DSN` was documented for months but never installed or initialized.
+- Level-aware logging in `src/utils/logger.js`: `logger.debug/info/warn/error` honor the `LOG_LEVEL` env var (`debug` < `info` < `warn` < `error`, default `info`). `logger.error` forwards `Error` instances to Sentry when initialized. The existing typed loggers are preserved and now participate in level filtering.
+- `runScheduledJob(name, fn)` wrapper in `schedulerService` — every cron callback (standup, followup, posting, midnight schedule-refresh) logs start/end with duration and routes failures through `logger.error` → Sentry.
+- Root ESLint flat config (`eslint.config.js`) covering backend `.js` files (`web/` and `public/` have their own tooling and are ignored), plus `npm run lint` / `lint:fix` scripts. ESLint 9 was an unused devDependency.
+- Root `.env.example` — a template mirroring every env var the app reads, so onboarding no longer requires cross-referencing `DEPLOYMENT.md`.
+- husky + lint-staged pre-commit hook — staged backend files are auto-linted (`eslint --fix`) and formatted (`prettier --write`) on commit.
+- CI lint + test gate: `deploy.yml` gains a `lint-and-test` job and `deploy-version.yml`'s `validate` job gains lint + test steps. A failing `npm run lint` or `npm test` now blocks deploy in both workflows.
+
+### Changed
+
+- `/dd-team-create` and `/dd-team-update` now validate time inputs and reject invalid formats (e.g. `99:99`) before scheduler registration.
+- `schedulerService.scheduleTeam` defensively re-parses stored team times and skips registration with a logged warning for teams with invalid stored data.
+- Command-handler catch blocks in `src/commands/team.js`, `src/commands/standup.js`, `src/commands/leave.js` route errors through `sanitizeError` rather than rendering raw `error.message`.
+- `userService.promoteOrganizationMember` and `userService.setOrganizationMemberActive` convert all user-facing throws to `UserFacingError` so messages such as "You cannot promote yourself" and "Target user not found" are preserved through `sanitizeError` instead of being redacted.
+- `teamService.promoteTeamMember` converts all user-facing throws to `UserFacingError` for the same reason; adds `UserFacingError` import to `teamService.js`.
+- `parseTimeString` catch blocks in `/dd-team-create` and `/dd-team-update` route through `sanitizeError` for pattern consistency (behavior unchanged since `TimeFormatError.userFacing === true`).
+- `standupService.getActiveMembers` batches its holiday and work-day lookups instead of calling the per-member async `isWorkingDay`, which re-fetched the same organization settings and per-user `workDays` every iteration. Query count is now O(1) in team size (~3 queries) instead of 2N+1 (~21 for a 10-person team, ~101 for 50). `isWorkingDay` is retained as a thin async wrapper for low-volume one-off callers and short-circuits on non-work days before its holiday query.
+- `schedulerService` cron callbacks no longer use inline `try/catch` + `console.error` (which left failures invisible in production); `console.*` calls in that file migrated to `logger.*`.
+- Prettier is now unified on the root `.prettierrc.json` (double quotes, `printWidth` 80). The duplicate `web/.prettierrc` (single quotes) is deleted and `web/` reformatted to match, so running Prettier from any directory produces consistent output.
+
+### Fixed
+
+- `postTeamStandup` is now idempotent: a duplicate posting-cron firing for the same `(teamId, standupDate)` used to post a second Slack message and overwrite the first message's `slackMessageTs`, orphaning late-reply threads. It now checks for an existing `StandupPost` with a non-null `slackMessageTs` and returns early. Operator-facing call sites (`/dd-standup-post`, `sendManualStandup`) report "already posted" instead of a blank timestamp.
+- `handleStandupUpdateSubmission` destructured `isUpdate` inside its `try` block but referenced it in the `catch` handler; block scope meant the catch threw a `ReferenceError` instead of reporting the real error. `isUpdate` is now declared before the `try`. (Caught by the newly-added ESLint config.)
+
+### Security
+
+- `/scripts` is no longer reachable without valid `SCRIPTS_AUTH_USERNAME` / `SCRIPTS_AUTH_PASSWORD` credentials.
+- Removed hardcoded `admin`/`daily-dose-admin` default credentials from `basicAuth` middleware.
+
+## [1.6.2] - 2026-05-19
+
+### Added
+
+- `/dd-org-promote @user [TeamName]` — promotes a user to admin role (org owner/admin only)
+  - With no `TeamName`: promotes the target's `OrganizationMember.role` from `MEMBER` to `ADMIN` in the actor's organization
+  - With a `TeamName`: promotes the target's `TeamMember.role` from `MEMBER` to `ADMIN` in that team
+  - Permission gate: actor must have an active `OrganizationMember` with role `OWNER` or `ADMIN`; team-scope path checks the team's org, not the channel
+  - Guards: target must be an active member of the relevant scope (org or team); rejects self-promotion, already-admin targets, and org owners (already at the highest role)
+  - Service layer: added `userService.promoteOrganizationMember()` and `teamService.promoteTeamMember()`
+  - Accepts the same three target formats as the suspend commands (mention, raw Slack user ID, bare `@username`/`username`) via the existing `resolveTargetSlackUserId` helper
+  - Command registered without `stripFormatting` so `<@U…|name>` mention tokens survive for `parseUserMention`
+  - Team-scope lookup is scoped to the actor's organization to prevent cross-tenant collisions when a team of the same name exists in another org
+  - Slash command added to `slack-app-manifest.json`
+
+### Changed
+
+- `teamService.findTeamByName(teamName, organizationId = null)` now accepts an optional `organizationId` filter; existing call sites that omit it retain the previous global behavior
+
+## [1.6.1] - 2026-05-17
+
+### Changed
+
+- `/dd-team-list` is now scoped by role. Members and team admins see only the teams they are an active member of; org owners, org admins, and active super admins continue to see every team in the organization.
+  - Added `teamService.listTeamsForUser(slackUserId)` returning `{ teams, scope, organization }` — single `findUnique` on `User` with `super_admins` and active `organizations` includes, then a filtered `team.findMany` (privileged: all org teams; unprivileged: filtered via `members: { some: { userId, isActive: true } }`)
+  - "Privileged" = `OrganizationMember.role` in `OWNER`/`ADMIN`, or an active row in `super_admins` (no `revoked_at`)
+  - `/dd-team-list` heading now reads `Teams in <Org Name>:` for privileged users and `Your teams:` for regular members; empty-state message differs accordingly
+  - Existing `teamService.listTeams` left untouched; its callers in `src/commands/standup.js` use it for separate semantics
+- Replaced the npm-script release flow with a Claude Code `/release` skill (`.claude/commands/release.md`). Removed `version:patch`, `version:minor`, `version:major`, `version:check`, `preversion`, `postversion`, and `release` scripts from `package.json` and deleted `scripts/checkVersion.js`. Removed the now-redundant `create-release` job from `.github/workflows/deploy-version.yml` — the skill creates the GitHub release before pushing the tag, so the in-workflow create would fail with "release exists"
+
+### Fixed
+
+- `/dd-team-suspend`, `/dd-team-unsuspend`, `/dd-org-suspend`, and `/dd-org-unsuspend` now accept additional input formats so admins can target Slack users who have already been deactivated and can no longer be @-mentioned in chat:
+  - Raw Slack user ID (e.g., `U0123ABCD` / `W0123ABCD`) — globally unique, accepted without an org lookup
+  - Bare `@username` or `username` — resolved via the user's stored Slack `username` field, scoped to the admin's organization (since `User.username` is `String?` and not `@unique` in `schema.prisma`)
+  - The standard `<@U…|name>` mention token remains the primary path for active users
+- Added `userService.findUserByUsernameInOrg(username, organizationId)` and a `resolveTargetSlackUserId(token, organizationId)` helper in `src/commands/team.js` covering all three formats in priority order
+- `handleTeamSuspension` now resolves the team first so `team.organizationId` is available for the username lookup; `handleOrgSuspension` pre-fetches the admin's org via `userService.getUserOrganization`
+- Error message in `parseUserMention`'s "invalid mention" branch updated to list all three supported input formats
+
+## [1.6.0] - 2026-05-17
+
+### Added
+
+- Member suspension feature
+  - `/dd-team-suspend @user [TeamName]` — team admin (or org owner/admin) can suspend a member from a single team; falls back to channel's team when no name given
+  - `/dd-team-unsuspend @user [TeamName]` — reactivate a suspended team member
+  - `/dd-org-suspend @user` — org owner/admin suspends a member across the entire organization (cascades to currently-active `TeamMember` rows in that org)
+  - `/dd-org-unsuspend @user` — reactivates the user's `OrganizationMember` only; does **not** resurrect team memberships (admin must use `/dd-team-unsuspend` per team) to avoid silently re-adding users who had left or been team-suspended independently
+  - Suspension is implemented by toggling `TeamMember.isActive` / `OrganizationMember.isActive` — no new schema or migration required
+  - Service layer: `teamService.setTeamMemberActive()` and `userService.setOrganizationMemberActive()` enforce permission checks and prevent self-suspension, suspending the only active team admin (per-team and org-wide), non-owners changing an owner's status, and team-reactivating a user who is currently org-suspended
+  - Cascade and org-membership update wrapped in a Prisma transaction
+- Auto-suspension when a Slack workspace user is deactivated
+  - New `user_change` bot event subscription (`slack-app-manifest.json`)
+  - `src/events/index.js` handles the event; when `event.user.deleted === true` calls `userService.suspendUserSystemWide(slackUserId)` which deactivates every active `OrganizationMember` and `TeamMember` row for that user across all orgs
+  - System-triggered path bypasses admin-permission and sole-active-admin guards — the deactivated Slack user can no longer act, so suspension must apply regardless
+  - Idempotent (only touches `isActive: true` rows); no-op when the Slack user isn't in our DB
+  - Commands registered in `src/commands/index.js`; slash commands added to `slack-app-manifest.json`
+
 ## [1.5.1] - 2026-04-30
 
 ### Fixed
@@ -350,7 +567,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.5.1...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.10.0...HEAD
+[1.10.0]: https://github.com/jnahian/daily-dose/compare/v1.9.1...v1.10.0
+[1.9.1]: https://github.com/jnahian/daily-dose/compare/v1.9.0...v1.9.1
+[1.9.0]: https://github.com/jnahian/daily-dose/compare/v1.8.7...v1.9.0
+[1.8.7]: https://github.com/jnahian/daily-dose/compare/v1.8.6...v1.8.7
+[1.8.6]: https://github.com/jnahian/daily-dose/compare/v1.8.5...v1.8.6
+[1.8.5]: https://github.com/jnahian/daily-dose/compare/v1.8.4...v1.8.5
+[1.8.4]: https://github.com/jnahian/daily-dose/compare/v1.8.3...v1.8.4
+[1.8.3]: https://github.com/jnahian/daily-dose/compare/v1.8.2...v1.8.3
+[1.8.2]: https://github.com/jnahian/daily-dose/compare/v1.8.1...v1.8.2
+[1.8.1]: https://github.com/jnahian/daily-dose/compare/v1.8.0...v1.8.1
+[1.8.0]: https://github.com/jnahian/daily-dose/compare/v1.7.1...v1.8.0
+[1.7.1]: https://github.com/jnahian/daily-dose/compare/v1.7.0...v1.7.1
+[1.7.0]: https://github.com/jnahian/daily-dose/compare/v1.6.2...v1.7.0
+[1.6.2]: https://github.com/jnahian/daily-dose/compare/v1.6.1...v1.6.2
+[1.6.1]: https://github.com/jnahian/daily-dose/compare/v1.6.0...v1.6.1
+[1.6.0]: https://github.com/jnahian/daily-dose/compare/v1.5.1...v1.6.0
 [1.5.1]: https://github.com/jnahian/daily-dose/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/jnahian/daily-dose/compare/v1.4.6...v1.5.0
 [1.4.6]: https://github.com/jnahian/daily-dose/compare/v1.4.5...v1.4.6

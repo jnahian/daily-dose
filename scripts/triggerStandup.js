@@ -100,7 +100,8 @@ async function triggerFollowupReminder(teamName) {
 
 async function triggerAllTeamsReminders(type) {
   try {
-    const actionType = type === "reminder" ? "standup reminders" : "follow-up reminders";
+    const actionType =
+      type === "reminder" ? "standup reminders" : "follow-up reminders";
     console.log(`🚀 Preparing to send ${actionType} to all active teams...\n`);
 
     // Get all active teams with at least one active member
@@ -134,7 +135,9 @@ async function triggerAllTeamsReminders(type) {
     }
 
     // Display teams that will receive reminders
-    console.log(`📋 Found ${teams.length} active team(s) with active members:\n`);
+    console.log(
+      `📋 Found ${teams.length} active team(s) with active members:\n`
+    );
     const tableData = teams.map((team) => ({
       "Team Name": team.name,
       "Active Members": team._count.members,
@@ -144,7 +147,9 @@ async function triggerAllTeamsReminders(type) {
     console.table(tableData);
 
     // Ask for confirmation
-    console.log(`\n⚠️  This will send ${actionType} to ${teams.length} team(s).`);
+    console.log(
+      `\n⚠️  This will send ${actionType} to ${teams.length} team(s).`
+    );
     const confirmed = await confirmAction("Do you want to proceed?");
 
     if (!confirmed) {
@@ -188,7 +193,9 @@ async function triggerAllTeamsReminders(type) {
     console.log(`${"=".repeat(60)}\n`);
 
     if (failureCount > 0) {
-      console.log("⚠️  Some teams failed to receive reminders. Check logs above.");
+      console.log(
+        "⚠️  Some teams failed to receive reminders. Check logs above."
+      );
     } else {
       console.log(`✅ All ${actionType} sent successfully!`);
     }
@@ -326,7 +333,7 @@ process.on("SIGINT", async () => {
   process.exit(0);
 });
 
-main().catch(async error => {
+main().catch(async (error) => {
   console.error("❌ Unexpected error:", error);
   await prisma.$disconnect();
   process.exit(1);

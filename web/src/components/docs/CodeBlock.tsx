@@ -1,5 +1,3 @@
-
-
 interface CodeBlockProps {
   children: string;
 }

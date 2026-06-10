@@ -1,5 +1,8 @@
 const prisma = require("../config/prisma");
 const userService = require("./userService");
+const permissionHelper = require("../utils/permissionHelper");
+const { UserFacingError } = require("../utils/errorHelper");
+const { validateTimezone } = require("../utils/timeHelper");
 const dayjs = require("dayjs");
 const customParseFormat = require("dayjs/plugin/customParseFormat");
 
@@ -54,7 +57,7 @@ class TeamService {
           slackChannelId: channelId,
           standupTime: validateTimeString(teamData.standupTime),
           postingTime: validateTimeString(teamData.postingTime),
-          timezone: teamData.timezone || org.defaultTimezone,
+          timezone: validateTimezone(teamData.timezone || org.defaultTimezone),
         },
       });
 
@@ -152,6 +155,55 @@ class TeamService {
         },
       },
     });
+  }
+
+  // Scoped variant for /dd-team-list: privileged users (org OWNER/ADMIN or
+  // active super admin) see every team in the org; regular members and team
+  // admins see only the teams they are an active member of. Returns the org
+  // so the command can use its name in the response heading.
+  async listTeamsForUser(slackUserId) {
+    const user = await prisma.user.findUnique({
+      where: { slackUserId },
+      include: {
+        super_admins: true,
+        organizations: {
+          where: { isActive: true },
+          include: { organization: true },
+        },
+      },
+    });
+
+    if (!user || user.organizations.length === 0) {
+      return { teams: [], scope: "own", organization: null };
+    }
+
+    const membership = user.organizations[0];
+    const organization = membership.organization;
+    const isSuperAdmin =
+      !!user.super_admins && user.super_admins.revoked_at === null;
+    const isOrgPrivileged = ["OWNER", "ADMIN"].includes(membership.role);
+    const seeAll = isSuperAdmin || isOrgPrivileged;
+
+    const teams = await prisma.team.findMany({
+      where: {
+        organizationId: organization.id,
+        isActive: true,
+        ...(seeAll
+          ? {}
+          : {
+              members: {
+                some: { userId: user.id, isActive: true },
+              },
+            }),
+      },
+      include: {
+        _count: {
+          select: { members: true },
+        },
+      },
+    });
+
+    return { teams, scope: seeAll ? "all" : "own", organization };
   }
 
   async getTeamMembers(teamId) {
@@ -259,7 +311,7 @@ class TeamService {
     });
   }
 
-  async findTeamByName(teamName) {
+  async findTeamByName(teamName, organizationId = null) {
     return await prisma.team.findFirst({
       where: {
         name: {
@@ -267,6 +319,7 @@ class TeamService {
           mode: "insensitive",
         },
         isActive: true,
+        ...(organizationId ? { organizationId } : {}),
       },
       include: {
         organization: true,
@@ -298,9 +351,6 @@ class TeamService {
       where: { id: teamId },
       include: {
         organization: true,
-        members: {
-          where: { userId: user.id, isActive: true },
-        },
       },
     });
 
@@ -308,9 +358,9 @@ class TeamService {
       throw new Error("Team not found");
     }
 
-    // Check if user is an admin of this team
-    const membership = team.members[0];
-    if (!membership || membership.role !== "ADMIN") {
+    // Permission: team admin or organization owner
+    const permission = await permissionHelper.canManageTeam(user.id, teamId);
+    if (!permission.canManage) {
       throw new Error("You need admin permissions to update this team");
     }
 
@@ -326,7 +376,7 @@ class TeamService {
       updateFields.name = updateData.name;
     }
     if (updateData.timezone) {
-      updateFields.timezone = updateData.timezone;
+      updateFields.timezone = validateTimezone(updateData.timezone);
     }
 
     // Handle notification preference update for the admin
@@ -335,12 +385,12 @@ class TeamService {
         where: {
           teamId_userId: {
             teamId: teamId,
-            userId: user.id
-          }
+            userId: user.id,
+          },
         },
         data: {
-          receiveNotifications: updateData.receiveNotifications
-        }
+          receiveNotifications: updateData.receiveNotifications,
+        },
       });
     }
 
@@ -366,8 +416,16 @@ class TeamService {
     });
   }
 
-  async updateTeamMemberPreferences(slackUserId, teamId, preferences, slackClient = null) {
-    const userData = await userService.fetchSlackUserData(slackUserId, slackClient);
+  async updateTeamMemberPreferences(
+    slackUserId,
+    teamId,
+    preferences,
+    slackClient = null
+  ) {
+    const userData = await userService.fetchSlackUserData(
+      slackUserId,
+      slackClient
+    );
     const user = await userService.findOrCreateUser(slackUserId, userData);
 
     // Check if user is a member of the team
@@ -398,7 +456,10 @@ class TeamService {
   }
 
   async isTeamAdmin(slackUserId, teamId, slackClient = null) {
-    const userData = await userService.fetchSlackUserData(slackUserId, slackClient);
+    const userData = await userService.fetchSlackUserData(
+      slackUserId,
+      slackClient
+    );
     const user = await userService.findOrCreateUser(slackUserId, userData);
 
     const membership = await prisma.teamMember.findUnique({
@@ -414,8 +475,250 @@ class TeamService {
     return membership && membership.role === "ADMIN";
   }
 
+  async setTeamMemberActive(
+    adminSlackUserId,
+    targetSlackUserId,
+    teamId,
+    isActive,
+    slackClient = null
+  ) {
+    const adminUserData = await userService.fetchSlackUserData(
+      adminSlackUserId,
+      slackClient
+    );
+    const adminUser = await userService.findOrCreateUser(
+      adminSlackUserId,
+      adminUserData
+    );
+
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      include: { organization: true },
+    });
+
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    // Permission: team admin or org owner/admin
+    const adminMembership = await prisma.teamMember.findUnique({
+      where: {
+        teamId_userId: { teamId, userId: adminUser.id },
+      },
+    });
+
+    const orgMembership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: team.organizationId,
+          userId: adminUser.id,
+        },
+      },
+    });
+
+    const isTeamAdmin =
+      adminMembership &&
+      adminMembership.isActive &&
+      adminMembership.role === "ADMIN";
+    const isOrgManager =
+      orgMembership &&
+      orgMembership.isActive &&
+      ["OWNER", "ADMIN"].includes(orgMembership.role);
+
+    if (!isTeamAdmin && !isOrgManager) {
+      throw new Error(
+        "You need team admin or organization owner/admin permissions for this action"
+      );
+    }
+
+    const targetUser = await prisma.user.findUnique({
+      where: { slackUserId: targetSlackUserId },
+    });
+
+    if (!targetUser) {
+      throw new Error("Target user not found");
+    }
+
+    if (targetUser.id === adminUser.id) {
+      throw new Error("You cannot change your own team membership status");
+    }
+
+    const targetMembership = await prisma.teamMember.findUnique({
+      where: {
+        teamId_userId: { teamId, userId: targetUser.id },
+      },
+    });
+
+    if (!targetMembership) {
+      throw new Error("Target user is not a member of this team");
+    }
+
+    const targetOrgMembership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: team.organizationId,
+          userId: targetUser.id,
+        },
+      },
+    });
+
+    // Block reactivating a team membership when the user is org-suspended
+    if (isActive && targetOrgMembership && !targetOrgMembership.isActive) {
+      throw new Error(
+        "This member is suspended from the organization. Use /dd-org-unsuspend first."
+      );
+    }
+
+    // Only org owners can change an org owner's team membership
+    if (
+      targetOrgMembership &&
+      targetOrgMembership.role === "OWNER" &&
+      (!orgMembership || orgMembership.role !== "OWNER")
+    ) {
+      throw new Error(
+        "Only organization owners can change an organization owner's team membership"
+      );
+    }
+
+    if (targetMembership.isActive === isActive) {
+      throw new Error(
+        isActive
+          ? "Member is already active in this team"
+          : "Member is already suspended from this team"
+      );
+    }
+
+    // Prevent removing the only active admin
+    if (!isActive && targetMembership.role === "ADMIN") {
+      const otherActiveAdmins = await prisma.teamMember.count({
+        where: {
+          teamId,
+          role: "ADMIN",
+          isActive: true,
+          userId: { not: targetUser.id },
+        },
+      });
+      if (otherActiveAdmins === 0) {
+        throw new Error(
+          "Cannot suspend the only active admin of this team. Promote another admin first."
+        );
+      }
+    }
+
+    return await prisma.teamMember.update({
+      where: {
+        teamId_userId: { teamId, userId: targetUser.id },
+      },
+      data: { isActive },
+    });
+  }
+
+  async promoteTeamMember(
+    adminSlackUserId,
+    targetSlackUserId,
+    teamId,
+    slackClient = null
+  ) {
+    const adminUserData = await userService.fetchSlackUserData(
+      adminSlackUserId,
+      slackClient
+    );
+    const adminUser = await userService.findOrCreateUser(
+      adminSlackUserId,
+      adminUserData
+    );
+
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      include: { organization: true },
+    });
+
+    if (!team) {
+      throw new UserFacingError("Team not found");
+    }
+
+    // Permission: org owner or org admin only (per /dd-org-promote requirements)
+    const orgMembership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: team.organizationId,
+          userId: adminUser.id,
+        },
+      },
+    });
+
+    if (
+      !orgMembership ||
+      !orgMembership.isActive ||
+      !["OWNER", "ADMIN"].includes(orgMembership.role)
+    ) {
+      throw new UserFacingError(
+        "You need organization owner or admin permissions for this action"
+      );
+    }
+
+    const targetUser = await prisma.user.findUnique({
+      where: { slackUserId: targetSlackUserId },
+    });
+
+    if (!targetUser) {
+      throw new UserFacingError("Target user not found");
+    }
+
+    if (targetUser.id === adminUser.id) {
+      throw new UserFacingError("You cannot promote yourself");
+    }
+
+    const targetMembership = await prisma.teamMember.findUnique({
+      where: {
+        teamId_userId: { teamId, userId: targetUser.id },
+      },
+    });
+
+    if (!targetMembership || !targetMembership.isActive) {
+      throw new UserFacingError(
+        "Target user is not an active member of this team"
+      );
+    }
+
+    const targetOrgMembership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: team.organizationId,
+          userId: targetUser.id,
+        },
+      },
+    });
+
+    if (targetOrgMembership?.role === "OWNER") {
+      throw new UserFacingError(
+        "Target user is the organization owner and cannot be promoted further"
+      );
+    }
+
+    if (targetMembership.role === "ADMIN") {
+      throw new UserFacingError("Target user is already a team admin");
+    }
+
+    const updated = await prisma.teamMember.update({
+      where: {
+        teamId_userId: { teamId, userId: targetUser.id },
+      },
+      data: { role: "ADMIN" },
+    });
+
+    return {
+      teamMember: updated,
+      team,
+      previousRole: targetMembership.role,
+    };
+  }
+
   async getUserTeams(slackUserId, slackClient = null) {
-    const userData = await userService.fetchSlackUserData(slackUserId, slackClient);
+    const userData = await userService.fetchSlackUserData(
+      slackUserId,
+      slackClient
+    );
     const user = await userService.findOrCreateUser(slackUserId, userData);
 
     const memberships = await prisma.teamMember.findMany({
@@ -431,7 +734,7 @@ class TeamService {
       },
     });
 
-    return memberships.map(m => m.team);
+    return memberships.map((m) => m.team);
   }
 }
 

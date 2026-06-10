@@ -8,6 +8,12 @@
 Daily Dose is a Slack bot that automates daily standup meetings for teams. It sends reminders, collects responses, and posts formatted standup summaries to team channels.
 </p>
 
+<p align="center">
+  <a href="https://youtu.be/bQrJqBpSlBU">
+    <img src="https://img.youtube.com/vi/bQrJqBpSlBU/maxresdefault.jpg" alt="Daily Dose demo video" width="720">
+  </a>
+</p>
+
 ## ✨ Features
 
 - **Automated Standup Reminders**: Sends DM reminders at configured times
@@ -23,6 +29,7 @@ Daily Dose is a Slack bot that automates daily standup meetings for teams. It se
 Daily Dose now includes a professional landing page accessible at the base URL of your deployment. The landing page provides:
 
 ### Features
+
 - **Professional Design**: Clean, responsive interface showcasing the bot's capabilities
 - **Feature Showcase**: Detailed overview of automation features and benefits
 - **How It Works**: Step-by-step guide explaining the standup automation process
@@ -31,12 +38,14 @@ Daily Dose now includes a professional landing page accessible at the base URL o
 - **Mobile Responsive**: Optimized for all device types and screen sizes
 
 ### Technical Implementation
+
 - **Static File Serving**: All assets served from `/public` directory via Express
 - **Tailwind CSS**: Modern utility-first CSS framework for styling
 - **Interactive JavaScript**: Smooth scrolling, mobile menu, and animations
 - **Accessibility**: ARIA labels and semantic HTML for screen readers
 
 ### Accessing the Landing Page
+
 - **Local Development**: http://localhost:3000/
 - **Production**: Available at your deployment's base URL
 - **Assets**: Logo, CSS, and JavaScript files served from `/public` directory
@@ -46,6 +55,7 @@ Daily Dose now includes a professional landing page accessible at the base URL o
 Daily Dose includes a comprehensive administrative scripts documentation interface accessible at `/scripts-docs`. This protected route provides detailed documentation for all administrative scripts in the project.
 
 ### Features
+
 - **Complete Script Coverage**: Documentation for all 8 administrative scripts including:
   - `seedOrg.js` - Organization seeding
   - `check-team-members.js` - Team member verification
@@ -61,26 +71,27 @@ Daily Dose includes a comprehensive administrative scripts documentation interfa
 - **Professional Interface**: Clean, responsive design matching the landing page
 
 ### Accessing Scripts Documentation
+
 - **URL**: `/scripts-docs` (relative to your deployment base URL)
 - **Local Development**: http://localhost:3000/scripts-docs
 - **Production**: Available at your deployment's base URL + `/scripts-docs`
 - **Authentication**: Protected with HTTP Basic Auth
-  - **Default Username**: `admin`
-  - **Default Password**: `daily-dose-admin`
-  - **Configurable**: Set via environment variables (see configuration section)
+  - **Credentials**: Set via the `SCRIPTS_AUTH_USERNAME` and `SCRIPTS_AUTH_PASSWORD` environment variables (see configuration section)
+  - **No defaults**: both variables are required — the app refuses to start until they are set
 
 ### Authentication Configuration
 
 The scripts documentation route is protected with configurable HTTP Basic Authentication:
 
 ```bash
-# Environment Variables for Scripts Documentation Auth
-SCRIPTS_AUTH_USERNAME=admin              # Default: "admin"
-SCRIPTS_AUTH_PASSWORD=daily-dose-admin    # Default: "daily-dose-admin"
+# Environment Variables for Scripts Documentation Auth (both required — no defaults)
+SCRIPTS_AUTH_USERNAME=your-username
+SCRIPTS_AUTH_PASSWORD=your-strong-password
 ```
 
 **Security Recommendations:**
-- Change default credentials before deploying to production
+
+- Both variables are required — there are no default credentials, and the app will not start until they are set
 - Use strong, unique passwords for the documentation interface
 - Restrict access to authorized administrators only
 - Consider additional network-level security for production deployments
@@ -108,7 +119,7 @@ When you first interact with the bot, you'll be automatically added to your orga
 /dd-team-list                         # See available teams with timing info
 /dd-team-join                         # Join team in current channel
 /dd-team-join Engineering             # Join specific team by name
-/dd-team-leave                        # Leave team in current channel  
+/dd-team-leave                        # Leave team in current channel
 /dd-team-leave Engineering            # Leave specific team by name
 /dd-team-members                      # View members of team in current channel
 /dd-team-members Engineering          # View members of specific team
@@ -116,6 +127,13 @@ When you first interact with the bot, you'll be automatically added to your orga
 /dd-team-create MyTeam 09:30 10:00    # Create new team with custom name ⚠️ (admin only)
 /dd-team-update standup=09:00         # Update team in current channel ⚠️ (admin only)
 /dd-team-update Engineering standup=09:00  # Update specific team ⚠️ (admin only)
+/dd-team-suspend @user                # Suspend member from team in current channel ⚠️ (admin only)
+/dd-team-suspend @user Engineering    # Suspend member from a specific team ⚠️ (admin only)
+/dd-team-unsuspend @user [TeamName]   # Reactivate a suspended team member ⚠️ (admin only)
+/dd-org-suspend @user                 # Suspend member from entire organization ⚠️ (org owner/admin)
+/dd-org-unsuspend @user               # Reactivate suspended org member ⚠️ (org owner/admin)
+/dd-org-promote @user                 # Promote to organization admin ⚠️ (org owner/admin)
+/dd-org-promote @user Engineering     # Promote to team admin in a specific team ⚠️ (org owner/admin)
 ```
 
 ### 3. Submit Your Daily Standup
@@ -170,19 +188,22 @@ The bot will send you a DM reminder at your team's configured time. Click the "S
 These commands allow team admins and organization owners to manually trigger standup operations that are normally automated by the scheduler.
 
 **Permission Requirements:**
+
 - **Team Admins**: Can use commands in their team's channel without specifying team name
+- **Organization Admins**: Can run admin commands in any team's channel without specifying a team name (channel-based resolution, like team admins), for any team in the organization — or specify a team name explicitly to act from any channel
 - **Organization Owners**: Can use commands from any channel but must specify team name
 
 #### Command Overview
 
 - `/dd-standup-remind [team-name]` - Send standup reminders to team members ⚠️ **(admin/owner only)**
-- `/dd-standup-post [YYYY-MM-DD] [team-name]` - Post standup summary to channel ⚠️ **(admin/owner only)**
-- `/dd-standup-preview [YYYY-MM-DD] [team-name]` - Preview standup summary before posting ⚠️ **(admin/owner only)**
+- `/dd-standup-post [YYYY-MM-DD] [team-name] [@user]` - Post standup summary to channel, or append a single member's standup as a threaded reply when you @mention them ⚠️ **(admin/owner only)**
+- `/dd-standup-preview [YYYY-MM-DD] [team-name] [@user]` - Preview the team summary, or a single member's standup when you @mention them (ephemeral) ⚠️ **(admin/owner only)**
 - `/dd-standup-followup [team-name]` - Send followup reminders to non-responders ⚠️ **(admin/owner only)**
 
 #### Context-Aware Behavior
 
 **For Team Admins (in team channel):**
+
 ```bash
 # Send reminders to all team members (uses current channel's team)
 /dd-standup-remind
@@ -204,6 +225,7 @@ These commands allow team admins and organization owners to manually trigger sta
 ```
 
 **For Organization Owners (from any channel):**
+
 ```bash
 # Send reminders to Engineering team members
 /dd-standup-remind Engineering
@@ -227,6 +249,7 @@ These commands allow team admins and organization owners to manually trigger sta
 #### Detailed Command Documentation
 
 **Standup Remind** - `/dd-standup-remind [team-name]`
+
 - **Purpose**: Manually send standup reminders to all eligible team members
 - **Who receives reminders**: Active team members who are not on leave, not on holidays, and have notifications enabled
 - **Context-aware**:
@@ -237,10 +260,12 @@ These commands allow team admins and organization owners to manually trigger sta
   - Send additional reminders if team members forgot
   - Test reminder functionality for new teams
 
-**Standup Post** - `/dd-standup-post [YYYY-MM-DD] [team-name]`
-- **Purpose**: Manually post standup summary to the team channel
+**Standup Post** - `/dd-standup-post [YYYY-MM-DD] [team-name] [@user]`
+
+- **Purpose**: Manually post standup summary to the team channel, or append a single member's standup as a threaded reply
 - **Date format**: YYYY-MM-DD (e.g., 2024-12-20)
 - **Default**: Posts today's standup if no date specified
+- **Individual post**: When an @mention is provided, appends that member's standup response as a threaded reply under the day's team standup post (broadcast to channel). If no team standup thread exists yet for that date, the team summary is auto-posted first to create the thread.
 - **Context-aware**:
   - Admins in team channel: `/dd-standup-post` or `/dd-standup-post 2024-12-20`
   - Owners from anywhere: `/dd-standup-post Engineering` or `/dd-standup-post 2024-12-20 Engineering`
@@ -248,12 +273,15 @@ These commands allow team admins and organization owners to manually trigger sta
   - Post summary early before scheduled posting time
   - Re-post summary if original was deleted
   - Post past standup summaries that were missed
+  - Share a single team member's standup into the thread on demand
 
-**Standup Preview** - `/dd-standup-preview [YYYY-MM-DD] [team-name]`
+**Standup Preview** - `/dd-standup-preview [YYYY-MM-DD] [team-name] [@user]`
+
 - **Purpose**: Preview standup summary before posting to channel (ephemeral message)
 - **Date format**: YYYY-MM-DD (e.g., 2024-12-20)
 - **Default**: Previews today's standup if no date specified
 - **Visibility**: Only visible to you (ephemeral)
+- **Individual preview**: When an @mention is provided, previews only that member's standup response instead of the full team summary (still ephemeral).
 - **Context-aware**:
   - Admins in team channel: `/dd-standup-preview` or `/dd-standup-preview 2024-12-20`
   - Owners from anywhere: `/dd-standup-preview Engineering` or `/dd-standup-preview 2024-12-20 Engineering`
@@ -261,8 +289,10 @@ These commands allow team admins and organization owners to manually trigger sta
   - Check what the summary looks like before posting
   - Verify all expected submissions are included
   - Review standup data without posting to channel
+  - Inspect a specific team member's standup privately
 
 **Standup Followup** - `/dd-standup-followup [team-name]`
+
 - **Purpose**: Send followup reminders to team members who haven't submitted today's standup
 - **Who receives**: Active team members who haven't submitted and have notifications enabled
 - **Context-aware**:
@@ -296,6 +326,7 @@ These commands allow team admins and organization owners to manually trigger sta
 #### Example Workflows
 
 **Scenario 1: Admin sending early reminder**
+
 ```bash
 # Admin in #engineering channel wants to send reminder at 9:00 instead of scheduled 9:30
 /dd-standup-remind
@@ -303,6 +334,7 @@ These commands allow team admins and organization owners to manually trigger sta
 ```
 
 **Scenario 2: Owner posting multiple team summaries**
+
 ```bash
 # Owner from #general channel posts summaries for multiple teams
 /dd-standup-post Engineering
@@ -312,6 +344,7 @@ These commands allow team admins and organization owners to manually trigger sta
 ```
 
 **Scenario 3: Preview before posting**
+
 ```bash
 # Admin wants to check standup participation before posting
 /dd-standup-preview
@@ -322,6 +355,7 @@ These commands allow team admins and organization owners to manually trigger sta
 ```
 
 **Scenario 4: Following up on low participation**
+
 ```bash
 # Admin checks preview at 9:45 (posting time is 10:00)
 /dd-standup-preview
@@ -336,6 +370,7 @@ These commands allow team admins and organization owners to manually trigger sta
 ```
 
 **Scenario 5: Posting historical standup**
+
 ```bash
 # Owner realizes yesterday's standup wasn't posted
 /dd-standup-preview 2024-12-19 Engineering
@@ -369,10 +404,26 @@ These commands allow team admins and organization owners to manually trigger sta
   - **Name-based**: `/dd-team-update Engineering standup=09:00 posting=10:30 notifications=false` (updates specific team from any channel)
   - **Parameters**: `name=NewName`, `standup=HH:MM`, `posting=HH:MM`, `notifications=true/false`
   - The `notifications` parameter controls whether team admins receive standup submission notifications (default: true)
+- `/dd-team-suspend @user [team-name]` - Suspend a member from a team ⚠️ **(team admin or org owner/admin)**
+  - **Channel-based**: `/dd-team-suspend @john` (suspends from team in current channel)
+  - **Name-based**: `/dd-team-suspend @john Engineering` (suspends from a specific team)
+  - Suspended members stop receiving reminders, are excluded from standup posts, and cannot submit standups for that team
+- `/dd-team-unsuspend @user [team-name]` - Reactivate a suspended team member ⚠️ **(team admin or org owner/admin)**
+- `/dd-org-suspend @user` - Suspend a member across the entire organization ⚠️ **(org owner/admin only)**
+  - Cascades the suspension to every team in the organization
+  - Blocked if the user is the only active admin of any team in the org
+- `/dd-org-unsuspend @user` - Reactivate a suspended organization member ⚠️ **(org owner/admin only)**
+  - Restores org membership only; use `/dd-team-unsuspend` to re-add the user to specific teams
+- `/dd-org-promote @user [team-name]` - Promote a user to admin role ⚠️ **(org owner/admin only)**
+  - **Org scope**: `/dd-org-promote @john` (promotes to organization admin)
+  - **Team scope**: `/dd-org-promote @john Engineering` (promotes to team admin in a specific team)
+  - Target must already be an active member of the relevant scope
+  - Cannot promote yourself or an existing admin/owner
 
 ### 🌴 Leave Management
 
 **Personal Leave Management (All Users)**
+
 - `/dd-leave-list` - View your upcoming leaves
 - `/dd-leave-set <start-date> [end-date] [reason]` - Set leave dates
   - Single day: `/dd-leave-set 2024-12-25 Holiday`
@@ -380,6 +431,7 @@ These commands allow team admins and organization owners to manually trigger sta
 - `/dd-leave-cancel <leave-id>` - Cancel a leave (use ID from list command)
 
 **Admin Leave Management ⚠️ (Admin Only)**
+
 - `/dd-leave-set-member @user [team-name] <start-date> [end-date] [reason]` - Set leave for team member ⚠️ **(admin only)**
   - **With team name**: `/dd-leave-set-member @john Engineering 2024-12-25 Holiday`
   - **Single team admin**: `/dd-leave-set-member @john 2024-12-25 Holiday` (auto-detects team)
@@ -398,18 +450,20 @@ These commands allow team admins and organization owners to manually trigger sta
 
 - `/dd-workdays-show` - View your current work days
 - `/dd-workdays-set <days>` - Set your working days
-  - Example: `/dd-workdays-set 1,2,3,4,5` (Monday-Friday)  
+  - Example: `/dd-workdays-set 1,2,3,4,5` (Monday-Friday)
   - Numbers: 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday, 7=Sunday
 
 ### 🎉 Holiday Management
 
 **Viewing Holidays (All Users)**
-- `/dd-holiday-list` - List all upcoming holidays  
+
+- `/dd-holiday-list` - List all upcoming holidays
 - `/dd-holiday-list <year>` - List holidays for specific year (e.g., 2024)
-- `/dd-holiday-list <year-month>` - List holidays for specific month (e.g., 2024-12)  
+- `/dd-holiday-list <year-month>` - List holidays for specific month (e.g., 2024-12)
 - `/dd-holiday-list <start-date> <end-date>` - List holidays in date range
 
 **Managing Holidays ⚠️ (Admin Only)**
+
 - `/dd-holiday-set <start-date> [end-date] [name]` - Set holidays for single day or date range ⚠️ **(admin only)**
   - Single day: `/dd-holiday-set 2024-12-25 Christmas Day`
   - Date range: `/dd-holiday-set 2024-12-24 2024-12-26 Christmas Holiday`
@@ -478,6 +532,7 @@ Team admins can control whether they receive notifications when team members sub
 ```
 
 **Notification Behavior:**
+
 - **Enabled (default)**: Team admins receive a DM notification each time a team member submits their standup
 - **Disabled**: Admins will not receive these submission notifications, reducing notification volume for large teams
 - This setting only affects admin notifications, not team member reminders or team summary posting
@@ -593,6 +648,7 @@ The command requires at least one of the following parameters:
 ### Use Cases
 
 This feature is useful for:
+
 - **Team admins** who want to reduce notification noise from team member submissions (use `notify=off`)
 - **Part-time team members** who don't submit daily but contribute occasionally
 - **Consultants or contractors** with irregular schedules
@@ -629,6 +685,7 @@ This feature is useful for:
 ### Example Workflows
 
 **Scenario 1: Team admin wants to stop submission notifications**
+
 ```bash
 # You're a team admin receiving too many notifications about member submissions
 /dd-standup-reminder notify=off              # Disable ALL notifications (reminders + submissions)
@@ -637,6 +694,7 @@ This feature is useful for:
 ```
 
 **Scenario 2: Working from team channel**
+
 ```bash
 # You're in the #engineering channel where the Engineering team is configured
 /dd-standup-reminder mention=off            # Opt out of "not responded" list for Engineering team
@@ -645,6 +703,7 @@ This feature is useful for:
 ```
 
 **Scenario 3: Working from different channel**
+
 ```bash
 # You're in #general but want to manage Marketing team preferences
 /dd-standup-reminder Marketing mention=off  # Opt out of Marketing team "not responded" list
@@ -652,6 +711,7 @@ This feature is useful for:
 ```
 
 **Scenario 4: Managing multiple teams with different needs**
+
 ```bash
 # Modify preferences for different teams
 /dd-standup-reminder Marketing mention=off          # Opt out of Marketing mentions but keep notifications
@@ -660,6 +720,7 @@ This feature is useful for:
 ```
 
 **Scenario 5: Part-time team member setup**
+
 ```bash
 # Configure for part-time participation - no reminders but can submit when needed
 /dd-standup-reminder Engineering mention=off notify=off  # Remove from mentions and disable reminders
@@ -699,6 +760,7 @@ Admins can manage organization-wide holidays that affect standup schedules:
 ### Holiday Effects
 
 When holidays are set:
+
 - No standup reminders are sent on holiday dates
 - Team members are automatically excluded from standup expectations
 - Holiday status is reflected in team summaries
@@ -734,6 +796,7 @@ When you're on leave:
 ### Admin Leave Management ⚠️ (Admin Only)
 
 Team admins can manage leave for any member in their teams. This is useful for:
+
 - **Emergency situations** when team members are suddenly unavailable
 - **Planned absences** where the admin wants to set up leaves in advance
 - **Bulk leave management** for team events or company-wide holidays
@@ -810,6 +873,7 @@ Team admins can manage leave for any member in their teams. This is useful for:
 #### Example Workflows
 
 **Scenario 1: Emergency leave setup**
+
 ```bash
 # Team member calls in sick, admin sets leave immediately
 /dd-leave-set-member @john Engineering 2024-11-02 Sick leave
@@ -817,6 +881,7 @@ Team admins can manage leave for any member in their teams. This is useful for:
 ```
 
 **Scenario 2: Planned vacation coordination**
+
 ```bash
 # View member's existing leaves first
 /dd-leave-list-member @jane Engineering
@@ -827,6 +892,7 @@ Team admins can manage leave for any member in their teams. This is useful for:
 ```
 
 **Scenario 3: Cancel incorrect leave**
+
 ```bash
 # View leaves to get ID
 /dd-leave-list-member @john Engineering
@@ -838,6 +904,7 @@ Team admins can manage leave for any member in their teams. This is useful for:
 ```
 
 **Scenario 4: Team-wide event**
+
 ```bash
 # Set leave for all team members attending offsite
 /dd-leave-set-member @john Engineering 2024-11-15 Team offsite
@@ -968,6 +1035,7 @@ The bot needs these Slack permissions:
 Daily Dose requires several environment variables for proper operation:
 
 **Core Application Settings:**
+
 ```bash
 PORT=3000                                 # Server port (default: 3000)
 APP_URL=https://your-domain.com           # Your application's base URL
@@ -976,6 +1044,7 @@ LOG_LEVEL=info                           # Logging level (debug, info, warn, err
 ```
 
 **Slack Integration:**
+
 ```bash
 SLACK_BOT_TOKEN=xoxb-your-bot-token      # Slack Bot User OAuth Token
 SLACK_SIGNING_SECRET=your-signing-secret  # Slack App Signing Secret
@@ -984,18 +1053,27 @@ SLACK_USER_TOKEN=xoxp-your-user-token    # Slack User OAuth Token (for manifest 
 ```
 
 **Database Configuration:**
+
 ```bash
 DATABASE_URL=postgresql://user:pass@host:port/db     # Primary database connection
 DIRECT_URL=postgresql://user:pass@host:port/db       # Direct database connection
 ```
 
 **Scripts Documentation Authentication:**
+
 ```bash
-SCRIPTS_AUTH_USERNAME=admin              # Username for /scripts-docs access (default: "admin")
-SCRIPTS_AUTH_PASSWORD=daily-dose-admin    # Password for /scripts-docs access (default: "daily-dose-admin")
+SCRIPTS_AUTH_USERNAME=your-username           # Required — no default; app will not start if unset
+SCRIPTS_AUTH_PASSWORD=your-strong-password    # Required — no default; app will not start if unset
+```
+
+**Contact Form (optional):**
+
+```bash
+CONTACT_SLACK_CHANNEL=C0123456789              # Slack channel or user ID that receives contact-form messages
 ```
 
 **Optional Monitoring:**
+
 ```bash
 SENTRY_DSN=https://your-sentry-dsn       # Sentry error tracking (optional)
 ```
@@ -1076,4 +1154,4 @@ git tag --list
 
 ---
 
-For technical setup and administration, see the [Complete Implementation Guide](docs/daily-dose-complete-guide.md).
+For deployment and infrastructure, see [DEPLOYMENT.md](DEPLOYMENT.md). For architecture and development guidance, see [CLAUDE.md](CLAUDE.md).
