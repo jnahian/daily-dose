@@ -1,9 +1,45 @@
 {
   "versions": [
     {
+      "version": "1.10.0",
+      "date": "2026-06-10",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Contact form now sends your message",
+          "items": [
+            "Submitting the contact form on the website now delivers your message to the team instead of silently doing nothing"
+          ]
+        },
+        {
+          "type": "added",
+          "title": "Team timezones are validated when you set them",
+          "items": [
+            "Setting or updating a team's timezone now catches typos (like America/NewYork) right away, instead of silently breaking the team's standup schedule"
+          ]
+        },
+        {
+          "type": "fixed",
+          "title": "Reminder opt-out is respected",
+          "items": [
+            "Turning off notifications with /dd-standup-reminder notify=off now stops standup reminder and follow-up DMs, instead of still messaging you every day"
+          ]
+        },
+        {
+          "type": "fixed",
+          "title": "Standups with special characters and long content post reliably",
+          "items": [
+            "Updates containing characters like &, <, or > no longer break the posted summary's formatting",
+            "Very long blockers no longer prevent a standup from posting"
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.9.1",
       "date": "2026-06-09",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "fixed",

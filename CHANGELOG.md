@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-06-10
+
 ### Added
 
 - Website contact form now actually sends messages (#23): new `POST /api/contact` endpoint forwards submissions to the Slack channel/user configured via `CONTACT_SLACK_CHANNEL` (503 with a friendly error when unset). Inputs are length-capped, rendered as `plain_text` blocks (no mrkdwn injection from an unauthenticated endpoint), and rate-limited to 5 submissions per 10 minutes per IP. The form previously simulated submission with a `setTimeout` and discarded the message; it now reports real success/failure. New `blockHelper.createContactNotificationBlocks`; Vite dev proxy for `/api`. (`src/app.js`, `src/utils/blockHelper.js`, `web/src/components/home/ContactForm.tsx`, `web/vite.config.ts`, `.env.example`, `README.md`, `DEPLOYMENT.md`)
@@ -565,7 +567,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.9.1...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.10.0...HEAD
+[1.10.0]: https://github.com/jnahian/daily-dose/compare/v1.9.1...v1.10.0
 [1.9.1]: https://github.com/jnahian/daily-dose/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/jnahian/daily-dose/compare/v1.8.7...v1.9.0
 [1.8.7]: https://github.com/jnahian/daily-dose/compare/v1.8.6...v1.8.7
