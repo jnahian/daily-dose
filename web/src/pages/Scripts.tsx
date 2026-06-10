@@ -61,7 +61,8 @@ const Scripts = () => {
   // The docs content is deliberately not bundled with the SPA — it is served
   // from /scripts/data.json behind HTTP Basic Auth. Navigating here
   // client-side therefore shows an auth screen until the browser has
-  // credentials for the realm (obtained via a full page load of /scripts).
+  // credentials for the realm, obtained by visiting /scripts/auth (an
+  // auth-gated redirect that works in production and via the Vite dev proxy).
   const [data, setData] = useState<ScriptsData | null>(null);
   const [status, setStatus] = useState<
     "loading" | "ready" | "unauthorized" | "error"
@@ -123,7 +124,7 @@ const Scripts = () => {
                     : "Something went wrong while loading the scripts documentation. Please try again."}
                 </p>
                 <button
-                  onClick={() => window.location.assign("/scripts")}
+                  onClick={() => window.location.assign("/scripts/auth")}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
                 >
                   {status === "unauthorized" ? "Sign in" : "Retry"}

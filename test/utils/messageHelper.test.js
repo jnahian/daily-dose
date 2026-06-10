@@ -108,6 +108,23 @@ describe("mrkdwn control character escaping", () => {
     expect(reExtracted).toBe(extracted);
   });
 
+  it("keeps user-typed literal mention/link syntax literal across edit cycles", () => {
+    // User TYPES the text "<@U123>" (not a real mention element). It must
+    // stay literal text forever — never get promoted to an actual mention.
+    const extracted = extractRichTextValue(
+      richTextWith([{ type: "text", text: "ping <@U123> manually" }])
+    );
+    expect(extracted).toBe("ping &lt;@U123&gt; manually");
+
+    const prefilled = convertTextToRichText(extracted);
+    const textElements = JSON.stringify(prefilled);
+    // No structured user element may appear from the escaped literal…
+    expect(textElements).not.toContain('"type":"user"');
+    // …and the re-extracted stored value is unchanged.
+    const reExtracted = extractRichTextValue({ rich_text_value: prefilled });
+    expect(reExtracted).toBe(extracted);
+  });
+
   it("unescapeSlackText inverts escapeSlackText", () => {
     const raw = "a < b && b > c &amp; pre-escaped";
     expect(unescapeSlackText(escapeSlackText(raw))).toBe(raw);

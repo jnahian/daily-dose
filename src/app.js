@@ -53,6 +53,14 @@ receiver.app.get("/scripts/data.json", (req, res) => {
   res.sendFile(path.join(__dirname, "../web/src/data/scripts.json"));
 });
 
+// Auth-trigger endpoint for the SPA's "Sign in" button. Sits behind the
+// /scripts Basic Auth gate, so navigating here forces the browser's auth
+// prompt and then bounces back to the page. Works in production and via the
+// Vite dev proxy (where a direct /scripts load is served by Vite, unauthed).
+receiver.app.get("/scripts/auth", (req, res) => {
+  res.redirect("/scripts");
+});
+
 receiver.app.use(express.static(path.join(__dirname, "../web/dist")));
 
 // SPA fallback - serve index.html for all other routes (client-side routing)

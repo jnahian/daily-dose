@@ -76,9 +76,13 @@ function escapeSlackText(text) {
     .replace(/>/g, "&gt;");
 }
 
-// Inverse of escapeSlackText, used when feeding stored mrkdwn back into a
-// rich_text_input as a raw text element (modal prefill). Without this, every
-// edit/resubmit cycle would escape the entities again (& → &amp; → &amp;amp;).
+// Inverse of escapeSlackText. Applied when emitting raw `text` elements
+// while rebuilding rich text for modal prefill — AFTER the structured
+// patterns (mentions/links) have been matched against the still-escaped
+// string. Without it every edit/resubmit cycle would re-escape the entities
+// (& → &amp; → &amp;amp;); applying it any earlier would let escaped
+// literals like `&lt;@U123&gt;` re-match the mention pattern and become a
+// real mention.
 function unescapeSlackText(text) {
   return text
     .replace(/&lt;/g, "<")
@@ -196,11 +200,13 @@ function extractRichTextValue(richTextValue) {
 function convertTextToRichText(text) {
   if (!text || typeof text !== "string") return null;
 
-  // Stored task text has &, <, > escaped (see escapeSlackText). Restore the
-  // raw characters before feeding them back into a rich_text_input, so the
-  // user edits what they originally typed and extraction doesn't re-escape
-  // the entities.
-  text = unescapeSlackText(text);
+  // Stored task text has &, <, > escaped in raw-text runs (see
+  // escapeSlackText) while structured syntax (<@U…>, <url|text>) is stored
+  // raw. Parsing happens on the escaped string and the entities are restored
+  // only when emitting `text` elements (here for code/quote blocks, and in
+  // parseInlineFormatting for everything else). Unescaping up front would
+  // let previously-escaped literals like `&lt;@U123&gt;` re-match the
+  // mention pattern and turn into a real mention after one edit cycle.
 
   const elements = [];
   const lines = text.split("\n");
@@ -226,6 +232,9 @@ function convertTextToRichText(text) {
             type: "rich_text_section",
             elements: [
               {
+                // Extraction does not escape entities inside preformatted
+                // blocks (they bypass formatElement), so no unescape here —
+                // the stored text is already the raw user input.
                 type: "text",
                 text: codeLines.join("\n"),
               },
@@ -251,6 +260,7 @@ function convertTextToRichText(text) {
             type: "rich_text_section",
             elements: [
               {
+                // Same as preformatted: quote text is extracted unescaped.
                 type: "text",
                 text: quoteLines.join("\n"),
               },
@@ -486,7 +496,7 @@ function parseInlineFormatting(text) {
       if (plainText) {
         elements.push({
           type: "text",
-          text: plainText,
+          text: unescapeSlackText(plainText),
         });
       }
     }
@@ -511,7 +521,7 @@ function parseInlineFormatting(text) {
     } else if (match.style) {
       elements.push({
         type: "text",
-        text: match.content,
+        text: unescapeSlackText(match.content),
         style: match.style,
       });
     }
@@ -525,7 +535,7 @@ function parseInlineFormatting(text) {
     if (remainingText) {
       elements.push({
         type: "text",
-        text: remainingText,
+        text: unescapeSlackText(remainingText),
       });
     }
   }
@@ -534,7 +544,7 @@ function parseInlineFormatting(text) {
   if (elements.length === 0) {
     elements.push({
       type: "text",
-      text: text,
+      text: unescapeSlackText(text),
     });
   }
 

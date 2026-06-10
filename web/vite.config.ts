@@ -6,9 +6,11 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      // Scripts docs content is served by the bot's Express server behind
-      // Basic Auth (see src/app.js); proxy it during local development.
+      // Scripts docs content and the auth-trigger route are served by the
+      // bot's Express server behind Basic Auth (see src/app.js); proxy them
+      // during local development so the browser's auth prompt works.
       "/scripts/data.json": "http://localhost:3000",
+      "/scripts/auth": "http://localhost:3000",
     },
   },
   build: {
