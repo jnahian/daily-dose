@@ -36,6 +36,7 @@ receiver.app.get("/health", (req, res) => {
 
 // Serve static files from web/dist directory (React SPA)
 const express = require("express");
+const logger = require("./utils/logger");
 
 // Gate the /scripts route at the server level before the SPA fallback can
 // hand out index.html to an unauthenticated user. The middleware factory
@@ -50,7 +51,16 @@ receiver.app.use("/scripts", scriptsAuth);
 // navigation). The Scripts page fetches it from this endpoint, which sits
 // under the auth-gated /scripts path.
 receiver.app.get("/scripts/data.json", (req, res) => {
-  res.sendFile(path.join(__dirname, "../web/src/data/scripts.json"));
+  const scriptsDataPath = path.join(__dirname, "../web/src/data/scripts.json");
+  res.sendFile(scriptsDataPath, (err) => {
+    if (err && !res.headersSent) {
+      logger.error(
+        `Failed to serve scripts docs from ${scriptsDataPath}:`,
+        err
+      );
+      res.status(500).json({ error: "Unable to load scripts documentation" });
+    }
+  });
 });
 
 // Auth-trigger endpoint for the SPA's "Sign in" button. Sits behind the

@@ -53,11 +53,12 @@ describe("schedulerService reminder eligibility", () => {
     expect(recipients).toEqual(["U_MEMBER"]);
   });
 
-  it("sendFollowupReminders skips opted-out members and prior responders", async () => {
+  it("sendFollowupReminders skips opted-out members, admins, and prior responders", async () => {
     standupService.getActiveMembers.mockResolvedValue([
       member("U_MEMBER"),
       member("U_OPTED_OUT", { receiveNotifications: false }),
       member("U_RESPONDED"),
+      member("U_ADMIN", { role: "ADMIN" }),
     ]);
     standupService.getTeamResponses.mockResolvedValue([
       { userId: "U_RESPONDED" },

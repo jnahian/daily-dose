@@ -84,6 +84,10 @@ const Scripts = () => {
         }
         const json = (await res.json()) as ScriptsData;
         if (cancelled) return;
+        if (!Array.isArray(json?.categories)) {
+          setStatus("error");
+          return;
+        }
         setData(json);
         setActiveScript(json.categories[0]?.scripts[0]?.id || "");
         setStatus("ready");
