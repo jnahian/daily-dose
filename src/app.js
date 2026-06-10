@@ -36,6 +36,85 @@ receiver.app.get("/health", (req, res) => {
 
 // Serve static files from web/dist directory (React SPA)
 const express = require("express");
+const logger = require("./utils/logger");
+const { createContactNotificationBlocks } = require("./utils/blockHelper");
+
+// --- Contact form endpoint ---------------------------------------------
+// Forwards website contact-form submissions to the Slack channel (or user
+// DM) configured via CONTACT_SLACK_CHANNEL. Unauthenticated and public, so
+// inputs are length-capped and rate-limited per IP.
+const CONTACT_LIMITS = { name: 200, email: 320, subject: 200, message: 2900 };
+const CONTACT_RATE_WINDOW_MS = 10 * 60 * 1000;
+const CONTACT_RATE_MAX = 5;
+const contactHits = new Map(); // ip -> [timestamps]
+
+function isContactRateLimited(ip) {
+  const now = Date.now();
+  const hits = (contactHits.get(ip) || []).filter(
+    (t) => now - t < CONTACT_RATE_WINDOW_MS
+  );
+  if (hits.length >= CONTACT_RATE_MAX) return true;
+  hits.push(now);
+  contactHits.set(ip, hits);
+  // Opportunistic prune so the map can't grow unbounded.
+  if (contactHits.size > 1000) {
+    for (const [key, stamps] of contactHits) {
+      if (stamps.every((t) => now - t >= CONTACT_RATE_WINDOW_MS)) {
+        contactHits.delete(key);
+      }
+    }
+  }
+  return false;
+}
+
+receiver.app.post(
+  "/api/contact",
+  express.json({ limit: "16kb" }),
+  (req, res) => {
+    (async () => {
+      const channel = process.env.CONTACT_SLACK_CHANNEL;
+      if (!channel) {
+        return res.status(503).json({
+          error:
+            "Contact form is not configured. Please open an issue on GitHub instead.",
+        });
+      }
+
+      if (isContactRateLimited(req.ip)) {
+        return res
+          .status(429)
+          .json({ error: "Too many messages. Please try again later." });
+      }
+
+      const fields = {};
+      for (const [field, max] of Object.entries(CONTACT_LIMITS)) {
+        const value = req.body?.[field];
+        if (typeof value !== "string" || value.trim().length === 0) {
+          return res.status(400).json({ error: `Missing field: ${field}` });
+        }
+        if (value.length > max) {
+          return res.status(400).json({
+            error: `Field too long: ${field} (max ${max} characters)`,
+          });
+        }
+        fields[field] = value.trim();
+      }
+
+      await app.client.chat.postMessage({
+        channel,
+        text: `📬 Contact form: ${fields.subject} — from ${fields.name} (${fields.email})`,
+        blocks: createContactNotificationBlocks(fields),
+      });
+
+      res.status(200).json({ ok: true });
+    })().catch((error) => {
+      logger.error("Contact form submission failed:", error);
+      res.status(500).json({
+        error: "Failed to send your message. Please try again later.",
+      });
+    });
+  }
+);
 
 // Gate the /scripts route at the server level before the SPA fallback can
 // hand out index.html to an unauthenticated user. The middleware factory

@@ -30,7 +30,7 @@ export const meta = () => {
     },
     { name: "author", content: "Daily Dose" },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: "/changelog" },
+    { property: "og:url", content: "https://dd.jnahian.me/changelog" },
     {
       property: "og:title",
       content: "Daily Dose Changelog - Release Notes & Updates",
@@ -42,7 +42,7 @@ export const meta = () => {
     },
     { property: "og:image", content: "/logo.png" },
     { property: "twitter:card", content: "summary_large_image" },
-    { property: "twitter:url", content: "/changelog" },
+    { property: "twitter:url", content: "https://dd.jnahian.me/changelog" },
     {
       property: "twitter:title",
       content: "Daily Dose Changelog - Release Notes & Updates",

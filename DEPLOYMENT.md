@@ -91,21 +91,22 @@ This creates all tables defined in `prisma/schema.prisma`.
 
 Create a `.env` file at the project root and fill in the values below.
 
-| Variable                | Required | Description                                                                          |
-| ----------------------- | -------- | ------------------------------------------------------------------------------------ |
-| `SLACK_BOT_TOKEN`       | Yes      | Bot OAuth token (`xoxb-...`)                                                         |
-| `SLACK_SIGNING_SECRET`  | Yes      | Slack app signing secret                                                             |
-| `SLACK_APP_TOKEN`       | No       | App-level token — not required for HTTP mode                                         |
-| `SLACK_USER_TOKEN`      | Yes      | User OAuth token (`xoxp-...`)                                                        |
-| `DATABASE_URL`          | Yes      | Supabase pooled connection URL                                                       |
-| `DIRECT_URL`            | Yes      | Supabase direct connection URL                                                       |
-| `PORT`                  | No       | HTTP port (default: `3000`)                                                          |
-| `DEFAULT_TIMEZONE`      | No       | Fallback timezone (default: `America/New_York`)                                      |
-| `APP_URL`               | Yes      | Public base URL of the app (e.g. `https://dd.example.com`)                           |
-| `LOG_LEVEL`             | No       | Log verbosity: `debug`, `info`, `warn`, `error` (default: `info`)                    |
-| `SENTRY_DSN`            | No       | Sentry DSN for error tracking (optional)                                             |
-| `SCRIPTS_AUTH_USERNAME` | **Yes**  | Username for `/scripts` route — Required. The app will refuse to start without this. |
-| `SCRIPTS_AUTH_PASSWORD` | **Yes**  | Password for `/scripts` route — Required. The app will refuse to start without this. |
+| Variable                | Required | Description                                                                                    |
+| ----------------------- | -------- | ---------------------------------------------------------------------------------------------- |
+| `SLACK_BOT_TOKEN`       | Yes      | Bot OAuth token (`xoxb-...`)                                                                   |
+| `SLACK_SIGNING_SECRET`  | Yes      | Slack app signing secret                                                                       |
+| `SLACK_APP_TOKEN`       | No       | App-level token — not required for HTTP mode                                                   |
+| `SLACK_USER_TOKEN`      | Yes      | User OAuth token (`xoxp-...`)                                                                  |
+| `DATABASE_URL`          | Yes      | Supabase pooled connection URL                                                                 |
+| `DIRECT_URL`            | Yes      | Supabase direct connection URL                                                                 |
+| `PORT`                  | No       | HTTP port (default: `3000`)                                                                    |
+| `DEFAULT_TIMEZONE`      | No       | Fallback timezone (default: `America/New_York`)                                                |
+| `APP_URL`               | Yes      | Public base URL of the app (e.g. `https://dd.example.com`)                                     |
+| `LOG_LEVEL`             | No       | Log verbosity: `debug`, `info`, `warn`, `error` (default: `info`)                              |
+| `SENTRY_DSN`            | No       | Sentry DSN for error tracking (optional)                                                       |
+| `SCRIPTS_AUTH_USERNAME` | **Yes**  | Username for `/scripts` route — Required. The app will refuse to start without this.           |
+| `SCRIPTS_AUTH_PASSWORD` | **Yes**  | Password for `/scripts` route — Required. The app will refuse to start without this.           |
+| `CONTACT_SLACK_CHANNEL` | No       | Slack channel/user ID that receives website contact-form submissions (form disabled if unset). |
 
 ---
 

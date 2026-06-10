@@ -189,7 +189,7 @@ class StandupService {
   async saveStandupPost(teamId, date, messageTs, channelId) {
     const standupDate = dayjs(date).toDate();
 
-    console.log(
+    logger.info(
       `💾 Saving standup post for team ID ${teamId} on ${standupDate}...`
     );
 
@@ -245,7 +245,7 @@ class StandupService {
         },
       });
     } catch (error) {
-      console.error("Error getting last standup response:", error);
+      logger.error("Error getting last standup response:", error);
       return null;
     }
   }
@@ -448,23 +448,15 @@ class StandupService {
       (m) => !m.hideFromNotResponded
     );
 
-    // Skip posting if there are no visible members (all are hidden/mention=off)
+    // Skip posting when nobody submitted and every eligible member is hidden
+    // from the "not responded" list (hideFromNotResponded) — the post would
+    // contain nothing. Note: a second check here previously tested
+    // `eligibleMembers.every((m) => m.hideFromNotResponded)` under a comment
+    // about "disabled reminders"; that condition is equivalent to
+    // `visibleMembers.length === 0` and was unreachable dead code.
     if (visibleMembers.length === 0 && responses.length === 0) {
-      console.log(
+      logger.info(
         `⏭️ Skipping standup post for team ${team.name} - no visible members and no standup submissions`
-      );
-      return;
-    }
-
-    // Check if all eligible members have disabled reminders
-    const allMembersDisabledReminders =
-      eligibleMembers.length > 0 &&
-      eligibleMembers.every((m) => m.hideFromNotResponded);
-
-    // If all members disabled reminders AND no one submitted standups, skip posting
-    if (allMembersDisabledReminders && responses.length === 0) {
-      console.log(
-        `⏭️ Skipping standup post for team ${team.name} - all members have disabled reminders and no standups submitted`
       );
       return;
     }
@@ -500,16 +492,16 @@ class StandupService {
     );
 
     try {
-      console.log(`📤 Posting standup message for team ${team.name}...`);
+      logger.info(`📤 Posting standup message for team ${team.name}...`);
       const result = await slackApp.client.chat.postMessage({
         channel: team.slackChannelId,
         ...message,
       });
 
-      console.log(
+      logger.info(
         `✅ Message posted successfully with timestamp: ${result.ts}`
       );
-      console.log(`💾 Saving standup post to database...`);
+      logger.info(`💾 Saving standup post to database...`);
 
       // Save message timestamp for threading late responses
       try {
@@ -519,11 +511,11 @@ class StandupService {
           result.ts,
           team.slackChannelId
         );
-        console.log(
+        logger.info(
           `✅ Standup post saved successfully with ID: ${savedPost.id}`
         );
       } catch (saveError) {
-        console.error(
+        logger.error(
           `❌ Failed to save standup post for team ${team.name}:`,
           saveError
         );
@@ -531,11 +523,11 @@ class StandupService {
       }
 
       // Post any existing late responses as threaded replies
-      console.log(`📝 Checking for late responses...`);
+      logger.info(`📝 Checking for late responses...`);
       try {
         await this.postLateResponses(team, targetDate.toDate(), slackApp);
       } catch (lateResponseError) {
-        console.error(
+        logger.error(
           `❌ Failed to post late responses for team ${team.name}:`,
           lateResponseError
         );
@@ -544,7 +536,7 @@ class StandupService {
 
       return result;
     } catch (error) {
-      console.error(
+      logger.error(
         `❌ Failed to post standup for team ${team.name}:`,
         error,
         team
@@ -631,7 +623,7 @@ class StandupService {
         targetDate
       );
 
-      console.log(
+      logger.info(
         `📤 Posting on-demand standup message for team ${team.name}...`
       );
       const result = await slackApp.client.chat.postMessage({
@@ -639,7 +631,7 @@ class StandupService {
         ...message,
       });
 
-      console.log(
+      logger.info(
         `✅ Message posted successfully with timestamp: ${result.ts}`
       );
 
@@ -653,7 +645,7 @@ class StandupService {
 
       return result;
     } catch (error) {
-      console.error(
+      logger.error(
         `❌ Failed to post on-demand standup for team ${team.name}:`,
         error
       );
@@ -666,7 +658,7 @@ class StandupService {
       // Get the standup post for threading
       const standupPost = await this.getStandupPost(team.id, date);
       if (!standupPost || !standupPost.slackMessageTs) {
-        console.log(
+        logger.info(
           `No standup post found for team ${team.name} on ${dayjs(date).format(
             "YYYY-MM-DD"
           )}`
@@ -689,12 +681,12 @@ class StandupService {
       }
 
       if (lateResponses.length > 0) {
-        console.log(
+        logger.info(
           `✅ Posted ${lateResponses.length} late responses for team ${team.name}`
         );
       }
     } catch (error) {
-      console.error(
+      logger.error(
         `Failed to post late responses for team ${team.name}:`,
         error
       );
@@ -726,7 +718,7 @@ class StandupService {
         ...message,
       });
 
-      console.log(
+      logger.info(
         `✅ Posted individual standup for ${getDisplayName(
           response.user
         )} in team ${team.name}`
@@ -734,7 +726,7 @@ class StandupService {
 
       return { ts: result.ts, channel: standupPost.channelId };
     } catch (error) {
-      console.error(
+      logger.error(
         `Failed to post individual standup for team ${team.name}:`,
         error
       );

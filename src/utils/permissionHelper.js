@@ -1,4 +1,5 @@
 const prisma = require("../config/prisma");
+const logger = require("../utils/logger");
 
 /**
  * Check if a user is the owner of an organization
@@ -15,7 +16,10 @@ async function isOrganizationOwner(userId, organizationId) {
 
     return !!membership && membership.isActive && membership.role === "OWNER";
   } catch (error) {
-    console.error("Error checking organization owner:", error);
+    logger.error(
+      `Error checking organization owner (userId=${userId}, organizationId=${organizationId}):`,
+      error
+    );
     return false;
   }
 }
@@ -35,7 +39,10 @@ async function isOrganizationAdmin(userId, organizationId) {
 
     return !!membership && membership.isActive && membership.role === "ADMIN";
   } catch (error) {
-    console.error("Error checking organization admin:", error);
+    logger.error(
+      `Error checking organization admin (userId=${userId}, organizationId=${organizationId}):`,
+      error
+    );
     return false;
   }
 }
@@ -59,7 +66,10 @@ async function isTeamAdmin(userId, teamId) {
 
     return !!teamMember;
   } catch (error) {
-    console.error("Error checking team admin:", error);
+    logger.error(
+      `Error checking team admin (userId=${userId}, teamId=${teamId}):`,
+      error
+    );
     return false;
   }
 }
@@ -122,7 +132,10 @@ async function canManageTeam(userId, teamId) {
       reason: "User is not an admin or owner",
     };
   } catch (error) {
-    console.error("Error checking team management permission:", error);
+    logger.error(
+      `Error checking team management permission (userId=${userId}, teamId=${teamId}):`,
+      error
+    );
     return {
       canManage: false,
       role: null,
@@ -144,7 +157,10 @@ async function getUserBySlackId(slackUserId) {
 
     return user;
   } catch (error) {
-    console.error("Error fetching user by Slack ID:", error);
+    logger.error(
+      `Error fetching user by Slack ID (slackUserId=${slackUserId}):`,
+      error
+    );
     return null;
   }
 }

@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Website contact form now actually sends messages (#23): new `POST /api/contact` endpoint forwards submissions to the Slack channel/user configured via `CONTACT_SLACK_CHANNEL` (503 with a friendly error when unset). Inputs are length-capped, rendered as `plain_text` blocks (no mrkdwn injection from an unauthenticated endpoint), and rate-limited to 5 submissions per 10 minutes per IP. The form previously simulated submission with a `setTimeout` and discarded the message; it now reports real success/failure. New `blockHelper.createContactNotificationBlocks`; Vite dev proxy for `/api`. (`src/app.js`, `src/utils/blockHelper.js`, `web/src/components/home/ContactForm.tsx`, `web/vite.config.ts`, `.env.example`, `README.md`, `DEPLOYMENT.md`)
+- Team timezones are validated as IANA identifiers on create/update (#25): new `timeHelper.validateTimezone` (via `Intl.DateTimeFormat`) throws a user-facing error for typos like `America/NewYork`, which previously stored fine and silently broke the team's cron scheduling. (`src/utils/timeHelper.js`, `src/services/teamService.js`, `test/utils/timeHelper.test.js`)
+
+### Changed
+
+- Scheduler safety-net refresh runs hourly instead of daily at UTC midnight (#22). Team create/update already calls `refreshTeamSchedule()` directly (the issue's staleness concern was largely moot); the periodic job only recovers from drift, and hourly keeps that recovery from lagging up to a day for non-UTC teams. (`src/services/schedulerService.js`)
+- `seedOrg.js` now prints the target database host and seed data, then requires interactive `yes` confirmation (or `--confirm`) before upserting — it previously wrote hardcoded org/user/team data with no prompt (#24). (`scripts/seedOrg.js`)
+- `logCommand` truncates slash-command text to 100 chars at the `info` level (full text moved to `debug`) so pasted sensitive content isn't retained in default logs (#30). (`src/utils/logger.js`)
+
+### Fixed
+
+- Removed unreachable dead code in `postTeamStandup` (#21): the "all members disabled reminders" skip checked `eligibleMembers.every((m) => m.hideFromNotResponded)`, which is equivalent to the `visibleMembers.length === 0` condition already returned on a few lines earlier — and its comment referenced the wrong flag (reminders vs. hide-from-not-responded). The surviving check's comment now describes the actual semantics. (`src/services/standupService.js`)
+- `validateDateFormat` uses strict dayjs parsing instead of the native `Date` constructor (#32): `2025-02-30` is now rejected instead of rolling over to March 2, and parsing semantics match the rest of the codebase. Documented `toIsoDate()`'s UTC contract. (`src/utils/teamHelper.js`, `src/utils/dateHelper.js`, `test/utils/teamHelper.test.js`)
+- Open Graph/Twitter URL meta tags are now absolute `https://dd.jnahian.me/...` URLs on all pages; Home's were empty and Scripts' pointed at the nonexistent `/scripts-docs` route (#26). Fixed `ContactPage` using the undefined `bg-bg-secondary` Tailwind class (theme defines `bg-bg-surface`) (#31). (`web/src/pages/*.tsx`)
+- Block Kit convention cleanup (#27): admin submission notification blocks and the reminder-DM deadline context block moved from inline literals in `notificationService.js`/`schedulerService.js` into `blockHelper.js` (`createContextBlock`, `createAdminSubmissionNotificationBlocks`).
+- All `console.log`/`console.error` calls in `standupService.js`, `notificationService.js`, and `permissionHelper.js` now go through the project logger (LOG_LEVEL filtering + Sentry forwarding); permission-check errors include user/org/team context instead of being silently swallowed as denials (#28, #29). (`src/services/standupService.js`, `src/services/notificationService.js`, `src/utils/permissionHelper.js`)
+
 ## [1.9.1] - 2026-06-09
 
 ### Fixed

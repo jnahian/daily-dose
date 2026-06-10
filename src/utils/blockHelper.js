@@ -75,6 +75,70 @@ function createTaskFieldBlocks(yesterdayTasks, todayTasks) {
 }
 
 /**
+ * Create a context block with a single mrkdwn element
+ * @param {string} text - mrkdwn text
+ * @returns {object} Slack context block
+ */
+function createContextBlock(text) {
+  return {
+    type: "context",
+    elements: [
+      {
+        type: "mrkdwn",
+        text,
+      },
+    ],
+  };
+}
+
+/**
+ * Create the DM blocks notifying a team admin that a member submitted or
+ * updated their standup
+ * @param {string} notificationText - Pre-formatted notification line
+ * @param {object} team - Team with name and slackChannelId
+ * @returns {Array<object>} Slack blocks
+ */
+function createAdminSubmissionNotificationBlocks(notificationText, team) {
+  return [
+    createSectionBlock(notificationText),
+    createContextBlock(
+      `Team: *${team.name}* | Channel: <#${team.slackChannelId}>`
+    ),
+  ];
+}
+
+/**
+ * Create the Slack message blocks for a website contact-form submission.
+ * All values are user input from an unauthenticated public endpoint, so they
+ * are rendered as plain_text (never mrkdwn) — Slack treats plain_text
+ * literally, which neutralises mention/link/formatting injection.
+ * @param {object} submission
+ * @param {string} submission.name
+ * @param {string} submission.email
+ * @param {string} submission.subject
+ * @param {string} submission.message
+ * @returns {Array<object>} Slack blocks
+ */
+function createContactNotificationBlocks({ name, email, subject, message }) {
+  return [
+    createSectionBlock("*📬 New contact form submission*"),
+    createFieldsBlock([
+      { type: "plain_text", text: `From: ${name}` },
+      { type: "plain_text", text: `Email: ${email}` },
+    ]),
+    {
+      type: "section",
+      text: { type: "plain_text", text: `Subject: ${subject}` },
+    },
+    createDividerBlock(),
+    {
+      type: "section",
+      text: { type: "plain_text", text: message },
+    },
+  ];
+}
+
+/**
  * Create a divider block
  * @returns {object} Slack divider block
  */
@@ -710,6 +774,9 @@ module.exports = {
   createSectionBlock,
   createFieldsBlock,
   createTaskFieldBlocks,
+  createContextBlock,
+  createAdminSubmissionNotificationBlocks,
+  createContactNotificationBlocks,
   createDividerBlock,
   createActionsBlock,
   createButton,

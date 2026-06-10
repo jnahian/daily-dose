@@ -2,6 +2,7 @@ const prisma = require("../config/prisma");
 const userService = require("./userService");
 const permissionHelper = require("../utils/permissionHelper");
 const { UserFacingError } = require("../utils/errorHelper");
+const { validateTimezone } = require("../utils/timeHelper");
 const dayjs = require("dayjs");
 const customParseFormat = require("dayjs/plugin/customParseFormat");
 
@@ -56,7 +57,7 @@ class TeamService {
           slackChannelId: channelId,
           standupTime: validateTimeString(teamData.standupTime),
           postingTime: validateTimeString(teamData.postingTime),
-          timezone: teamData.timezone || org.defaultTimezone,
+          timezone: validateTimezone(teamData.timezone || org.defaultTimezone),
         },
       });
 
@@ -375,7 +376,7 @@ class TeamService {
       updateFields.name = updateData.name;
     }
     if (updateData.timezone) {
-      updateFields.timezone = updateData.timezone;
+      updateFields.timezone = validateTimezone(updateData.timezone);
     }
 
     // Handle notification preference update for the admin

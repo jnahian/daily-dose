@@ -13,6 +13,14 @@ function getDayOfWeekIso(date) {
   return dow === 0 ? 7 : dow;
 }
 
+/**
+ * Format a date as YYYY-MM-DD **in UTC**. Holiday dates are stored as
+ * UTC-midnight timestamps, so both sides of a holiday comparison must go
+ * through this same function. Do NOT pass a Date that represents "today" in
+ * a team's local timezone expecting the local calendar day back — near
+ * midnight the UTC day can differ. For "today in timezone X" use
+ * `dayjs().tz(tz).format("YYYY-MM-DD")` instead.
+ */
 function toIsoDate(date) {
   return dayjs.utc(date).format("YYYY-MM-DD");
 }

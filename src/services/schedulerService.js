@@ -17,6 +17,7 @@ const {
   createSectionBlock,
   createButton,
   createActionsBlock,
+  createContextBlock,
 } = require("../utils/blockHelper");
 const { parseTimeString } = require("../utils/timeHelper");
 
@@ -46,9 +47,14 @@ class SchedulerService {
     this.app = app;
     await this.scheduleAllTeams();
 
-    // Refresh schedules daily at midnight
+    // Safety-net refresh. Team create/update already calls
+    // refreshTeamSchedule() directly, so this only exists to recover from
+    // drift (direct DB edits, a failed schedule, a missed refresh call).
+    // Hourly instead of daily-at-UTC-midnight so recovery doesn't lag up to
+    // a full day for teams in non-UTC timezones. scheduleTeam() is
+    // idempotent: it stops and replaces a team's existing jobs.
     cron.schedule(
-      "0 0 * * *",
+      "0 * * * *",
       runScheduledJob("schedule-refresh", () => this.scheduleAllTeams())
     );
   }
@@ -195,15 +201,9 @@ class SchedulerService {
                 "primary"
               ),
             ]),
-            {
-              type: "context",
-              elements: [
-                {
-                  type: "mrkdwn",
-                  text: `⏰ Deadline: ${formatTime12Hour(team.postingTime)}`,
-                },
-              ],
-            },
+            createContextBlock(
+              `⏰ Deadline: ${formatTime12Hour(team.postingTime)}`
+            ),
           ],
         });
       } catch (error) {
@@ -253,15 +253,9 @@ class SchedulerService {
                 "primary"
               ),
             ]),
-            {
-              type: "context",
-              elements: [
-                {
-                  type: "mrkdwn",
-                  text: `⏰ Deadline: ${formatTime12Hour(team.postingTime)}`,
-                },
-              ],
-            },
+            createContextBlock(
+              `⏰ Deadline: ${formatTime12Hour(team.postingTime)}`
+            ),
           ],
         });
       } catch (error) {

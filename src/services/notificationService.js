@@ -1,4 +1,8 @@
 const teamService = require("./teamService");
+const logger = require("../utils/logger");
+const {
+  createAdminSubmissionNotificationBlocks,
+} = require("../utils/blockHelper");
 
 class NotificationService {
   /**
@@ -41,7 +45,7 @@ class NotificationService {
         }
       }
     } catch (error) {
-      console.error("Error notifying team admins:", error);
+      logger.error("Error notifying team admins:", error);
       // Don't throw here - submission was successful, notification failure shouldn't break the flow
     }
   }
@@ -76,24 +80,7 @@ class NotificationService {
     await client.chat.postMessage({
       channel: admin.user.slackUserId,
       text: notificationText,
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: notificationText,
-          },
-        },
-        {
-          type: "context",
-          elements: [
-            {
-              type: "mrkdwn",
-              text: `Team: *${team.name}* | Channel: <#${team.slackChannelId}>`,
-            },
-          ],
-        },
-      ],
+      blocks: createAdminSubmissionNotificationBlocks(notificationText, team),
     });
   }
 
@@ -137,7 +124,7 @@ class NotificationService {
         await client.chat.postMessage(messagePayload);
       }
     } catch (error) {
-      console.error("Error notifying team admins:", error);
+      logger.error("Error notifying team admins:", error);
       // Don't throw here - original operation should not be affected by notification failures
     }
   }

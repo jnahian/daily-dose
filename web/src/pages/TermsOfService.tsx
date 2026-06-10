@@ -14,7 +14,7 @@ export const meta = () => {
     },
     { name: "author", content: "Daily Dose" },
     { property: "og:type", content: "website" },
-    { property: "og:url", content: "/terms" },
+    { property: "og:url", content: "https://dd.jnahian.me/terms" },
     { property: "og:title", content: "Terms of Service - Daily Dose" },
     {
       property: "og:description",

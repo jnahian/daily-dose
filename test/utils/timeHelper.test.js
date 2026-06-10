@@ -60,3 +60,19 @@ describe("parseTimeString", () => {
     });
   });
 });
+
+const { validateTimezone } = require("../../src/utils/timeHelper");
+
+describe("validateTimezone", () => {
+  it("accepts valid IANA identifiers", () => {
+    expect(validateTimezone("Asia/Dhaka")).toBe("Asia/Dhaka");
+    expect(validateTimezone("America/New_York")).toBe("America/New_York");
+    expect(validateTimezone("UTC")).toBe("UTC");
+  });
+
+  it("rejects typos and garbage with a user-facing error", () => {
+    for (const bad of ["America/NewYork", "Dhaka", "GMT+6h", "", undefined]) {
+      expect(() => validateTimezone(bad)).toThrow(TimeFormatError);
+    }
+  });
+});
