@@ -24,6 +24,7 @@ interface MenuItem {
 export const Navbar = () => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const isLanding = currentPath === "/";
   const [isOpen, setIsOpen] = React.useState(false);
 
   // Determine page type
@@ -110,7 +111,13 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="fixed w-full z-50 bg-bg-primary/80 backdrop-blur-md border-b border-border-default transition-colors duration-300">
+    <nav
+      className={`fixed w-full z-50 backdrop-blur-md border-b transition-colors duration-300 ${
+        isLanding
+          ? "bg-[#0A0E16]/80 border-slate-800"
+          : "bg-bg-primary/80 border-border-default"
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -124,7 +131,11 @@ export const Navbar = () => {
               alt="Daily Dose Logo"
               className="w-8 h-8 rounded-lg"
             />
-            <span className="text-text-primary font-bold text-xl tracking-tight">
+            <span
+              className={`font-bold text-xl tracking-tight ${
+                isLanding ? "text-white" : "text-text-primary"
+              }`}
+            >
               Daily Dose
             </span>
           </Link>
@@ -140,7 +151,9 @@ export const Navbar = () => {
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
                     isActive(item.path)
                       ? "text-brand-cyan"
-                      : "text-text-secondary hover:text-brand-cyan"
+                      : isLanding
+                        ? "text-slate-400 hover:text-brand-cyan"
+                        : "text-text-secondary hover:text-brand-cyan"
                   }`}
                 >
                   {item.icon}
@@ -159,17 +172,23 @@ export const Navbar = () => {
               GitHub
             </a>
 
-            <div className="ml-2 pl-2 border-l border-border-default">
-              <ThemeToggle />
-            </div>
+            {!isLanding && (
+              <div className="ml-2 pl-2 border-l border-border-default">
+                <ThemeToggle />
+              </div>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
           <div className="flex items-center gap-4 md:hidden">
-            <ThemeToggle />
+            {!isLanding && <ThemeToggle />}
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-text-secondary hover:text-text-primary p-2"
+              className={`p-2 ${
+                isLanding
+                  ? "text-slate-400 hover:text-white"
+                  : "text-text-secondary hover:text-text-primary"
+              }`}
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -179,7 +198,13 @@ export const Navbar = () => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-bg-primary border-b border-border-default">
+        <div
+          className={`md:hidden border-b ${
+            isLanding
+              ? "bg-[#0A0E16] border-slate-800"
+              : "bg-bg-primary border-border-default"
+          }`}
+        >
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {activeMenuItem.submenu?.map((item) => (
               <Link
@@ -189,7 +214,9 @@ export const Navbar = () => {
                 className={`flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium ${
                   isActive(item.path)
                     ? "text-brand-cyan"
-                    : "text-text-secondary hover:text-text-primary"
+                    : isLanding
+                      ? "text-slate-400 hover:text-white"
+                      : "text-text-secondary hover:text-text-primary"
                 }`}
               >
                 {item.icon}

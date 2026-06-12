@@ -7,3 +7,5 @@ node_modules
 web/dist
 web/node_modules
 coverage/
+# Brainstorming scratch files
+.superpowers/
