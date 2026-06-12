@@ -1,9 +1,25 @@
 {
   "versions": [
     {
+      "version": "1.11.0",
+      "date": "2026-06-12",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "added",
+          "title": "A brand-new website landing page",
+          "items": [
+            "The Daily Dose homepage has been completely redesigned with a refined dark look — see what a day with Daily Dose feels like, browse features, stats, and FAQs at a glance",
+            "Animations are smooth and scroll-triggered, and automatically tone down if your device prefers reduced motion",
+            "Prefer the old homepage? It's still available at /v1"
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.10.0",
       "date": "2026-06-10",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "added",

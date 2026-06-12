@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.0] - 2026-06-12
+
 ### Added
 
 - Complete landing page redesign ("Refined Dark"): new `web/src/components/landing/` component set — hero with Slack summary mockup, "A day with Daily Dose" walkthrough timeline (`#walkthrough`), features bento (`#features`), curated stats strip (`web/src/data/landingStats.json`), how-it-works steps (`#how-it-works`), FAQ accordion, final CTA band, and dark footer — assembled by `web/src/pages/Home.tsx`. Reusable Slack mock primitives live in `web/src/components/landing/slack/`. The previous landing page is preserved unchanged at `/v1` (`web/src/pages/HomeV1.tsx`, robots noindex). Navbar forces dark styling and hides the theme toggle on `/` only; all other routes keep the light/dark toggle. Landing animations are scroll-triggered Framer Motion reveals respecting `prefers-reduced-motion`.
@@ -571,7 +573,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.10.0...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.11.0...HEAD
+[1.11.0]: https://github.com/jnahian/daily-dose/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/jnahian/daily-dose/compare/v1.9.1...v1.10.0
 [1.9.1]: https://github.com/jnahian/daily-dose/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/jnahian/daily-dose/compare/v1.8.7...v1.9.0
