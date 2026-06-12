@@ -21,7 +21,7 @@ const HomeV1 = () => {
     tag.content = "noindex";
     document.head.appendChild(tag);
     return () => {
-      document.head.removeChild(tag);
+      tag.remove();
     };
   }, []);
 

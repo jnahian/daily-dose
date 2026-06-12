@@ -3,7 +3,13 @@ import { useReveal } from "./motion";
 import statsData from "../../data/landingStats.json";
 
 export const StatsStrip = () => (
-  <section className="px-4 py-16 sm:px-6 lg:px-8">
+  <section
+    aria-labelledby="stats-heading"
+    className="px-4 py-16 sm:px-6 lg:px-8"
+  >
+    <h2 id="stats-heading" className="sr-only">
+      Daily Dose by the numbers
+    </h2>
     <motion.div
       {...useReveal()}
       className="mx-auto grid max-w-4xl grid-cols-1 divide-y divide-slate-800 rounded-2xl border border-slate-800 bg-[#0F1626] sm:grid-cols-3 sm:divide-x sm:divide-y-0"
