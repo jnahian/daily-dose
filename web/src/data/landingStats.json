@@ -1,0 +1,8 @@
+{
+  "_note": "Curated manually — update values periodically. Shown on the landing page stats strip.",
+  "stats": [
+    { "value": "10+", "label": "Teams running standups" },
+    { "value": "5,000+", "label": "Standups automated" },
+    { "value": "100%", "label": "Open source, MIT licensed" }
+  ]
+}
