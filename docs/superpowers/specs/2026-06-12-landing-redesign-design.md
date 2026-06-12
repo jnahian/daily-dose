@@ -33,7 +33,7 @@ Drivers (user-stated):
 - **`web/src/pages/Home.tsx`**: rewritten to render the new landing from `web/src/components/landing/`. Existing SEO meta tags (title, description, OG, Twitter) carried over unchanged.
 - **New directory** `web/src/components/landing/`:
   - `LandingHero.tsx`
-  - `DayTimeline.tsx` (section id `how-it-works`)
+  - `DayTimeline.tsx` (section id `walkthrough`)
   - `FeaturesBento.tsx` (section id `features`)
   - `StatsStrip.tsx`
   - `HowItWorksSteps.tsx`
