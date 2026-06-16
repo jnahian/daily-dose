@@ -20,24 +20,39 @@ function validateTimeString(timeString) {
 }
 
 class TeamService {
-  async createTeam(slackUserId, channelId, teamData, slackClient = null) {
+  async createTeam(
+    slackUserId,
+    channelId,
+    teamData,
+    slackWorkspaceId = null,
+    slackClient = null
+  ) {
     // Get user and their organization
     const userData = await userService.fetchSlackUserData(
       slackUserId,
       slackClient
     );
     const user = await userService.findOrCreateUser(slackUserId, userData);
-    const org = await userService.getUserOrganization(slackUserId);
+    let org = await userService.getUserOrganization(slackUserId);
 
+    // If the creator isn't an organization member yet, place them in the org
+    // that owns this Slack workspace and add them as a MEMBER (mirrors how
+    // joinTeam auto-onboards). This removes the "ask an admin to add you"
+    // barrier — anyone in the workspace can propose a team.
     if (!org) {
-      throw new Error("You must belong to an organization to create teams");
+      org = await userService.getOrganizationByWorkspaceId(slackWorkspaceId);
+      if (!org) {
+        throw new Error(
+          "This Slack workspace isn't set up with Daily Dose yet. Please ask an organization admin to set it up."
+        );
+      }
+      await userService.addUserToOrganization(user.id, org.id);
     }
 
-    // Check permissions
-    const canCreate = await userService.canCreateTeam(user.id, org.id);
-    if (!canCreate) {
-      throw new Error("You need admin permissions to create teams");
-    }
+    // Org owners/admins create teams that are active immediately. Everyone else
+    // creates a team that stays PENDING until an org admin approves it.
+    const isPrivileged = await userService.canCreateTeam(user.id, org.id);
+    const status = isPrivileged ? "ACTIVE" : "PENDING";
 
     // Check if channel already has a team
     const existingTeam = await prisma.team.findUnique({
@@ -49,8 +64,8 @@ class TeamService {
     }
 
     // Create team with transaction
-    return await prisma.$transaction(async (tx) => {
-      const team = await tx.team.create({
+    const team = await prisma.$transaction(async (tx) => {
+      const created = await tx.team.create({
         data: {
           organizationId: org.id,
           name: teamData.name,
@@ -58,20 +73,105 @@ class TeamService {
           standupTime: validateTimeString(teamData.standupTime),
           postingTime: validateTimeString(teamData.postingTime),
           timezone: validateTimezone(teamData.timezone || org.defaultTimezone),
+          status,
         },
       });
 
       // Add creator as team admin
       await tx.teamMember.create({
         data: {
-          teamId: team.id,
+          teamId: created.id,
           userId: user.id,
           role: "ADMIN",
         },
       });
 
-      return team;
+      return created;
     });
+
+    return { team, status, organization: org, creatorSlackUserId: slackUserId };
+  }
+
+  // Resolve and authorize an org admin acting on a PENDING team, returning the
+  // team (with its creator) for approve/reject handlers.
+  async getPendingTeamForDecision(
+    adminSlackUserId,
+    teamId,
+    slackClient = null
+  ) {
+    const userData = await userService.fetchSlackUserData(
+      adminSlackUserId,
+      slackClient
+    );
+    const adminUser = await userService.findOrCreateUser(
+      adminSlackUserId,
+      userData
+    );
+
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      include: {
+        organization: true,
+        members: {
+          where: { role: "ADMIN" },
+          include: { user: true },
+          orderBy: { createdAt: "asc" },
+        },
+      },
+    });
+
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    const isOwner = await permissionHelper.isOrganizationOwner(
+      adminUser.id,
+      team.organizationId
+    );
+    const isOrgAdmin = await permissionHelper.isOrganizationAdmin(
+      adminUser.id,
+      team.organizationId
+    );
+    if (!isOwner && !isOrgAdmin) {
+      throw new Error("Only organization admins can approve or reject teams");
+    }
+
+    if (team.status !== "PENDING") {
+      throw new Error(
+        `This team has already been ${team.status.toLowerCase()}`
+      );
+    }
+
+    return { team, creatorSlackUserId: team.members[0]?.user?.slackUserId };
+  }
+
+  async approveTeam(adminSlackUserId, teamId, slackClient = null) {
+    const { creatorSlackUserId } = await this.getPendingTeamForDecision(
+      adminSlackUserId,
+      teamId,
+      slackClient
+    );
+
+    const updated = await prisma.team.update({
+      where: { id: teamId },
+      data: { status: "ACTIVE" },
+    });
+
+    return { team: updated, creatorSlackUserId };
+  }
+
+  async rejectTeam(adminSlackUserId, teamId, slackClient = null) {
+    const { team, creatorSlackUserId } = await this.getPendingTeamForDecision(
+      adminSlackUserId,
+      teamId,
+      slackClient
+    );
+
+    // Delete the rejected team so the channel is freed for a fresh proposal.
+    // Cascade deletes remove the creator's TeamMember record.
+    await prisma.team.delete({ where: { id: teamId } });
+
+    return { team, creatorSlackUserId };
   }
 
   async joinTeam(slackUserId, teamId, slackClient = null) {
@@ -235,6 +335,7 @@ class TeamService {
     return await prisma.team.findMany({
       where: {
         isActive: true,
+        status: "ACTIVE",
         organization: {
           isActive: true,
         },

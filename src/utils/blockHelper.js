@@ -343,6 +343,52 @@ function createStandupReminderBlocks(message, teamName, teamId) {
 }
 
 /**
+ * Build the DM sent to org admins asking them to approve/reject a new team
+ * proposed by a non-admin member.
+ * @param {object} params
+ * @param {object} params.team - Team record (id, name, standupTime, postingTime, timezone)
+ * @param {string} params.creatorSlackUserId - Slack user ID of the proposer
+ * @returns {Array<object>} Block Kit blocks with approve/reject buttons
+ */
+function createTeamApprovalRequestBlocks({ team, creatorSlackUserId }) {
+  return [
+    createSectionBlock(
+      `🆕 *New team pending approval*\n*Team:* ${team.name}\n*Channel:* <#${team.slackChannelId}>\n*Requested by:* <@${creatorSlackUserId}>`
+    ),
+    createContextBlock(
+      `Standup ${team.standupTime} • Posting ${team.postingTime} • ${team.timezone}`
+    ),
+    createActionsBlock([
+      createButton("✅ Approve", `approve_team_${team.id}`, team.id, "primary"),
+      createButton("❌ Reject", `reject_team_${team.id}`, team.id, "danger"),
+    ]),
+  ];
+}
+
+/**
+ * Replacement blocks shown after an org admin approves/rejects a team, so the
+ * original request message no longer offers stale buttons.
+ * @param {object} params
+ * @param {string} params.teamName - Team name
+ * @param {string} params.channelId - Slack channel ID of the team
+ * @param {string} params.decidedBySlackUserId - Slack user ID of the deciding admin
+ * @param {boolean} params.approved - Whether the team was approved
+ * @returns {Array<object>} Block Kit blocks describing the decision
+ */
+function createTeamApprovalResultBlocks({
+  teamName,
+  channelId,
+  decidedBySlackUserId,
+  approved,
+}) {
+  const status = approved ? "✅ *Approved*" : "❌ *Rejected*";
+  return [
+    createSectionBlock(`${status} — team *${teamName}* (<#${channelId}>)`),
+    createContextBlock(`Decision by <@${decidedBySlackUserId}>`),
+  ];
+}
+
+/**
  * Create standup summary header blocks
  * @param {string} teamName - Team name
  * @param {string} date - Date string
@@ -798,6 +844,8 @@ module.exports = {
   createStandupModal,
   createStandupUpdateModal,
   createStandupReminderBlocks,
+  createTeamApprovalRequestBlocks,
+  createTeamApprovalResultBlocks,
   createStandupSummaryHeader,
   createUserResponseBlocks,
   createLateResponseBlocks,

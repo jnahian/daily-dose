@@ -1,7 +1,9 @@
 const teamService = require("./teamService");
+const userService = require("./userService");
 const logger = require("../utils/logger");
 const {
   createAdminSubmissionNotificationBlocks,
+  createTeamApprovalRequestBlocks,
 } = require("../utils/blockHelper");
 
 class NotificationService {
@@ -126,6 +128,47 @@ class NotificationService {
     } catch (error) {
       logger.error("Error notifying team admins:", error);
       // Don't throw here - original operation should not be affected by notification failures
+    }
+  }
+
+  /**
+   * DM every org admin/owner to ask them to approve or reject a team proposed
+   * by a non-admin member. The proposer is skipped if they happen to be an
+   * admin (they aren't, in practice, since admins create active teams).
+   * @param {Object} params
+   * @param {Object} params.team - The pending team record
+   * @param {Object} params.organization - The owning organization
+   * @param {string} params.creatorSlackUserId - Slack user ID of the proposer
+   * @param {Object} params.client - Slack client
+   */
+  async notifyOrgAdminsOfPendingTeam({
+    team,
+    organization,
+    creatorSlackUserId,
+    client,
+  }) {
+    try {
+      const admins = await userService.getOrganizationAdmins(organization.id);
+      const text = `🆕 <@${creatorSlackUserId}> proposed a new team "${team.name}" that needs your approval.`;
+      const blocks = createTeamApprovalRequestBlocks({
+        team,
+        creatorSlackUserId,
+      });
+
+      for (const admin of admins) {
+        if (admin.user.slackUserId === creatorSlackUserId) {
+          continue;
+        }
+
+        await client.chat.postMessage({
+          channel: admin.user.slackUserId,
+          text,
+          blocks,
+        });
+      }
+    } catch (error) {
+      logger.error("Error notifying org admins of pending team:", error);
+      // Don't throw - team creation succeeded; notification failure shouldn't break the flow
     }
   }
 }
