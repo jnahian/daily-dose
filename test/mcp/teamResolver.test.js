@@ -1,19 +1,19 @@
-jest.mock("../../src/services/teamService", () => ({
-  listTeams: jest.fn(),
+jest.mock("../../src/config/prisma", () => ({
+  teamMember: { findMany: jest.fn() },
 }));
 
-const teamService = require("../../src/services/teamService");
+const prisma = require("../../src/config/prisma");
 const { resolveTeam } = require("../../src/mcp/teamResolver");
 
-const teams = [
-  { id: "t1", name: "Engineering" },
-  { id: "t2", name: "Design" },
+const memberships = [
+  { team: { id: "t1", name: "Engineering" } },
+  { team: { id: "t2", name: "Design" } },
 ];
 
 describe("resolveTeam", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    teamService.listTeams.mockResolvedValue(teams);
+    prisma.teamMember.findMany.mockResolvedValue(memberships);
   });
 
   it("matches by case-insensitive name", async () => {
@@ -34,8 +34,20 @@ describe("resolveTeam", () => {
   });
 
   it("returns an error when the user has no teams", async () => {
-    teamService.listTeams.mockResolvedValue([]);
+    prisma.teamMember.findMany.mockResolvedValue([]);
     const { error } = await resolveTeam("U1", "Engineering");
     expect(error).toMatch(/not a member of any teams/i);
+  });
+
+  it("passes the correct where clause to prisma", async () => {
+    await resolveTeam("U1", "Engineering");
+    expect(prisma.teamMember.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          isActive: true,
+          user: { slackUserId: "U1" },
+        }),
+      })
+    );
   });
 });

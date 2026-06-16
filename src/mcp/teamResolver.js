@@ -1,30 +1,38 @@
-const teamService = require("../services/teamService");
+const prisma = require("../config/prisma");
 
 /**
  * Resolve a team identifier (UUID or case-insensitive name) to a team the
- * given Slack user can submit standups for, within their organization.
+ * given Slack user is an active member of.
  * @returns {Promise<{team?: object, error?: string}>}
  */
 async function resolveTeam(slackUserId, identifier) {
-  const teams = await teamService.listTeams(slackUserId);
-  if (teams.length === 0) {
+  const memberships = await prisma.teamMember.findMany({
+    where: {
+      isActive: true,
+      team: { isActive: true },
+      user: { slackUserId },
+    },
+    include: { team: true },
+  });
+
+  if (memberships.length === 0) {
     return { error: "You are not a member of any teams." };
   }
 
   const needle = String(identifier || "")
     .trim()
     .toLowerCase();
-  const team = teams.find(
-    (t) => t.id === identifier || t.name.toLowerCase() === needle
+  const membership = memberships.find(
+    (m) => m.team.id === identifier || m.team.name.toLowerCase() === needle
   );
 
-  if (!team) {
-    const names = teams.map((t) => t.name).join(", ");
+  if (!membership) {
+    const names = memberships.map((m) => m.team.name).join(", ");
     return {
       error: `Team "${identifier}" not found. Available teams: ${names}`,
     };
   }
-  return { team };
+  return { team: membership.team };
 }
 
 module.exports = { resolveTeam };
