@@ -116,19 +116,29 @@ router.get("/tokens", requireMcpSession, async (req, res) => {
 
 // POST /api/mcp/tokens — mint a token (raw value returned ONCE)
 router.post("/tokens", requireMcpSession, async (req, res) => {
-  const name =
-    typeof req.body?.name === "string" ? req.body.name.slice(0, 100) : null;
-  const { rawToken, id, expiresAt } = await tokenService.mintToken(
-    req.mcpSessionUser.id,
-    name
-  );
-  res.status(201).json({ id, token: rawToken, expiresAt });
+  try {
+    const name =
+      typeof req.body?.name === "string" ? req.body.name.slice(0, 100) : null;
+    const { rawToken, id, expiresAt } = await tokenService.mintToken(
+      req.mcpSessionUser.id,
+      name
+    );
+    res.status(201).json({ id, token: rawToken, expiresAt });
+  } catch (err) {
+    console.error("POST /tokens error:", err.message);
+    res.status(500).json({ error: "Failed to mint token" });
+  }
 });
 
 // DELETE /api/mcp/tokens/:id — revoke
 router.delete("/tokens/:id", requireMcpSession, async (req, res) => {
-  await tokenService.revokeToken(req.mcpSessionUser.id, req.params.id);
-  res.json({ ok: true });
+  try {
+    await tokenService.revokeToken(req.mcpSessionUser.id, req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("DELETE /tokens/:id error:", err.message);
+    res.status(500).json({ error: "Failed to revoke token" });
+  }
 });
 
 module.exports = { router };
