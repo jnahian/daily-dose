@@ -1077,11 +1077,61 @@ SCRIPTS_AUTH_PASSWORD=your-strong-password    # Required — no default; app wil
 CONTACT_SLACK_CHANNEL=C0123456789              # Slack channel or user ID that receives contact-form messages
 ```
 
+**MCP Server:**
+
+```bash
+MCP_OAUTH_REDIRECT_URI=https://<your-host>/api/mcp/auth/callback   # Register this URL in the Slack app's OAuth redirect URIs
+```
+
 **Optional Monitoring:**
 
 ```bash
 SENTRY_DSN=https://your-sentry-dsn       # Sentry error tracking (optional)
 ```
+
+## 🤖 MCP Server
+
+Daily Dose exposes an MCP (Model Context Protocol) server so you can operate standups directly from any AI agent — Claude Desktop, Cursor, or any MCP-compatible tool — without leaving your workflow.
+
+### Getting a Token
+
+1. Visit `https://<your-host>/mcp-tokens`
+2. Sign in with Slack
+3. Click **Generate Token**
+4. Copy the token — it is shown **only once**
+
+### Connecting Your AI Tool
+
+Configure your MCP client with:
+
+```
+URL: https://<your-host>/mcp
+Authorization: Bearer ddm_<your-token>
+```
+
+For example, in Claude Desktop's `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "daily-dose": {
+      "url": "https://<your-host>/mcp",
+      "headers": {
+        "Authorization": "Bearer ddm_<your-token>"
+      }
+    }
+  }
+}
+```
+
+### Available Tools
+
+| Tool                     | What it does                                   |
+| ------------------------ | ---------------------------------------------- |
+| `list_my_teams`          | List the teams you belong to                   |
+| `submit_standup`         | Submit today's standup for a team              |
+| `update_standup`         | Submit or update a standup for a specific date |
+| `get_my_standup_history` | View your recent standup submissions           |
 
 ### Server Requirements
 

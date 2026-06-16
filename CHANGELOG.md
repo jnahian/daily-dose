@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- MCP server at `POST /mcp` (Streamable HTTP, `@modelcontextprotocol/sdk` v1.29.0): team members can submit and view standups from any AI agent using a bearer token. (`src/mcp/server.js`, `src/mcp/tools.js`)
+- Phase 1 MCP tools: `list_my_teams`, `submit_standup`, `update_standup`, `get_my_standup_history`. (`src/mcp/tools.js`)
+- `submitStandup` shared service method extracted from Slack command handler — handles isLate computation, admin notification, and late→thread/parent-post logic. Both Slack and MCP now call the same code path. (`src/services/standupService.js`)
+- `mcp_tokens` table and migration (`20260616180944_add_mcp_tokens`) for bearer token storage (SHA-256 hashed, 90-day TTL, revocable). (`prisma/schema.prisma`, `prisma/migrations/`)
+- `mcpTokenService`: mint, validate, list, and revoke MCP tokens. (`src/services/mcpTokenService.js`)
+- Member-gated Slack OAuth flow at `/api/mcp/auth/*` for MCP identity (any registered user, no admin requirement). (`src/routes/mcpAuth.js`)
+- Token management web page at `/mcp-tokens`: sign in, generate, list, and revoke tokens. (`web/src/pages/McpTokens.tsx`)
+- `MCP_OAUTH_REDIRECT_URI` environment variable for the MCP OAuth callback URL.
+
+### Changed
+
+- `handleStandupSubmission` and `handleStandupUpdateSubmission` in `src/commands/standup.js` now delegate to `standupService.submitStandup` (refactor, no behavior change).
+
 ## [1.13.0] - 2026-06-16
 
 ### Added
