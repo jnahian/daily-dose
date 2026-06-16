@@ -5,6 +5,7 @@ const prisma = require("../config/prisma");
 const { WebClient } = require("@slack/web-api");
 const slackClient = new WebClient(process.env.BOT_TOKEN);
 const crypto = require("crypto");
+const schedulerService = require("../services/schedulerService");
 
 // In-memory OAuth state store (state → expiry timestamp)
 const oauthStates = new Map();
@@ -98,14 +99,33 @@ router.get("/me", requireAuth, async (req, res) => {
     const sa = await prisma.super_admins.findUnique({
       where: { user_id: req.adminUser.id },
     });
-    const memberships = await prisma.organizationMember.findMany({
-      where: {
-        userId: req.adminUser.id,
-        role: { in: ["OWNER", "ADMIN"] },
-        isActive: true,
-      },
-      include: { organization: true },
-    });
+    const isSuperAdmin = !!(sa && !sa.revoked_at);
+
+    let organizations;
+    if (isSuperAdmin) {
+      const orgs = await prisma.organization.findMany({
+        where: { deletedAt: null },
+      });
+      organizations = orgs.map((o) => ({
+        id: o.id,
+        name: o.name,
+        role: null,
+      }));
+    } else {
+      const memberships = await prisma.organizationMember.findMany({
+        where: {
+          userId: req.adminUser.id,
+          role: { in: ["OWNER", "ADMIN"] },
+          isActive: true,
+        },
+        include: { organization: true },
+      });
+      organizations = memberships.map((m) => ({
+        id: m.organization.id,
+        name: m.organization.name,
+        role: m.role,
+      }));
+    }
 
     res.json({
       user: {
@@ -114,12 +134,8 @@ router.get("/me", requireAuth, async (req, res) => {
         name: req.adminUser.username || req.adminUser.slackUserId,
         avatar: null,
       },
-      isSuperAdmin: !!(sa && !sa.revoked_at),
-      organizations: memberships.map((m) => ({
-        id: m.organization.id,
-        name: m.organization.name,
-        role: m.role,
-      })),
+      isSuperAdmin,
+      organizations,
     });
   } catch (err) {
     console.error("GET /me error:", err.message);
@@ -149,13 +165,18 @@ router.get("/auth/callback", async (req, res) => {
 
   if (!state || !expiry || Date.now() > expiry) {
     oauthStates.delete(state);
-    return res.redirect("/admin/login?error=invalid_state");
+    return res.redirect(
+      `${process.env.APP_URL || ""}/admin/login?error=invalid_state`
+    );
   }
 
   oauthStates.delete(state);
 
   try {
-    if (!code) return res.redirect("/admin/login?error=oauth_denied");
+    if (!code)
+      return res.redirect(
+        `${process.env.APP_URL || ""}/admin/login?error=oauth_denied`
+      );
 
     const slack = new WebClient();
     const result = await slack.oauth.v2.access({
@@ -178,7 +199,9 @@ router.get("/auth/callback", async (req, res) => {
 
     const user = await prisma.user.findUnique({ where: { slackUserId } });
     if (!user) {
-      return res.redirect("/admin/login?error=not_registered");
+      return res.redirect(
+        `${process.env.APP_URL || ""}/admin/login?error=not_registered`
+      );
     }
 
     const isSuperAdmin = !!(await prisma.super_admins.findFirst({
@@ -194,7 +217,9 @@ router.get("/auth/callback", async (req, res) => {
     }));
 
     if (!isSuperAdmin && !isOrgAdmin) {
-      return res.redirect("/admin/login?error=not_authorized");
+      return res.redirect(
+        `${process.env.APP_URL || ""}/admin/login?error=not_authorized`
+      );
     }
 
     const token = crypto.randomBytes(32).toString("hex");
@@ -222,7 +247,7 @@ router.get("/auth/callback", async (req, res) => {
     res.redirect(`${appUrl}/admin/dashboard`);
   } catch (err) {
     console.error("OAuth callback error:", err);
-    res.redirect("/admin/login?error=oauth_failed");
+    res.redirect(`${process.env.APP_URL || ""}/admin/login?error=oauth_failed`);
   }
 });
 
@@ -634,7 +659,7 @@ router.get("/members", requireAuth, async (req, res) => {
       include: {
         user: {
           include: {
-            teamMemberships: {
+            teams: {
               where: {
                 team: { organizationId: orgId },
                 isActive: true,
@@ -643,6 +668,7 @@ router.get("/members", requireAuth, async (req, res) => {
               include: { team: { select: { id: true, name: true } } },
             },
             standupResponses: {
+              where: { team: { organizationId: orgId } },
               orderBy: { standupDate: "desc" },
               take: 1,
               select: { standupDate: true },
@@ -659,13 +685,12 @@ router.get("/members", requireAuth, async (req, res) => {
         slackUserId: m.user.slackUserId,
         name: m.user.username || m.user.slackUserId,
         role: m.role,
-        teams: m.user.teamMemberships.map((tm) => ({
+        teams: m.user.teams.map((tm) => ({
           teamMemberId: tm.id,
           id: tm.team.id,
           name: tm.team.name,
         })),
-        receiveNotifications:
-          m.user.teamMemberships[0]?.receiveNotifications ?? true,
+        receiveNotifications: m.user.teams[0]?.receiveNotifications ?? true,
         lastStandupDate: m.user.standupResponses[0]?.standupDate ?? null,
         joinedAt: m.joinedAt,
       }))
@@ -770,6 +795,14 @@ router.delete("/members/:id", requireAuth, async (req, res) => {
     await prisma.organizationMember.update({
       where: { id: req.params.id },
       data: { deletedAt: new Date(), isActive: false },
+    });
+    await prisma.teamMember.updateMany({
+      where: {
+        userId: member.userId,
+        team: { organizationId: member.organizationId },
+        isActive: true,
+      },
+      data: { isActive: false, deletedAt: new Date() },
     });
     res.status(204).end();
   } catch (err) {
@@ -939,19 +972,17 @@ router.get("/standups", requireAuth, async (req, res) => {
     const { orgId, startDate, endDate } = req.query;
     const allowed = await verifyOrgAccess(req, res, orgId);
     if (!allowed) return;
+    const gte = new Date(
+      startDate || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    );
+    const lte = new Date(endDate || new Date());
     const posts = await prisma.standupPost.findMany({
       where: {
         team: { organizationId: orgId },
-        standupDate: {
-          gte: new Date(
-            startDate || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-          ),
-          lte: new Date(endDate || new Date()),
-        },
+        standupDate: { gte, lte },
       },
       include: {
         team: { select: { id: true, name: true } },
-        _count: { select: { responses: true } },
       },
       orderBy: { standupDate: "desc" },
     });
@@ -963,13 +994,28 @@ router.get("/standups", requireAuth, async (req, res) => {
     const countMap = Object.fromEntries(
       teamMemberCounts.map((t) => [t.teamId, t._count.id])
     );
+    const responseCounts = await prisma.standupResponse.groupBy({
+      by: ["teamId", "standupDate"],
+      where: {
+        team: { organizationId: orgId },
+        standupDate: { gte, lte },
+      },
+      _count: { id: true },
+    });
+    const submittedMap = Object.fromEntries(
+      responseCounts.map((r) => [
+        `${r.teamId}_${r.standupDate.toISOString()}`,
+        r._count.id,
+      ])
+    );
     res.json(
       posts.map((p) => ({
         id: p.id,
         teamId: p.team.id,
         teamName: p.team.name,
         standupDate: p.standupDate,
-        submittedCount: p._count.responses,
+        submittedCount:
+          submittedMap[`${p.teamId}_${p.standupDate.toISOString()}`] ?? 0,
         totalMembers: countMap[p.team.id] || 0,
         postedAt: p.postedAt,
       }))
@@ -1020,7 +1066,6 @@ router.get("/standups/:teamId/:date", requireAuth, async (req, res) => {
 // GET /api/admin/scheduler?orgId=
 router.get("/scheduler", requireAuth, async (req, res) => {
   try {
-    const schedulerService = require("../services/schedulerService");
     const { orgId } = req.query;
     const allowed = await verifyOrgAccess(req, res, orgId);
     if (!allowed) return;
