@@ -34,6 +34,7 @@ model Team {
   postingTime      String            @map("posting_time")
   timezone         String            @default("America/New_York")
   isActive         Boolean           @default(true) @map("is_active")
+  status           TeamStatus        @default(ACTIVE) @map("status")
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
   standupPosts     StandupPost[]
@@ -197,4 +198,10 @@ enum OrgRole {
 enum TeamRole {
   ADMIN
   MEMBER
+}
+
+enum TeamStatus {
+  PENDING
+  ACTIVE
+  REJECTED
 }

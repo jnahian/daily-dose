@@ -1,9 +1,25 @@
 {
   "versions": [
     {
+      "version": "1.12.0",
+      "date": "2026-06-16",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Anyone can create a team — with admin approval",
+          "items": [
+            "You no longer need to be added to the organization first: just run /dd-team-create and you'll be onboarded automatically",
+            "If you're a regular member, your new team is sent to an organization admin for a quick Approve or Reject — you'll be notified the moment they decide, and standups start as soon as it's approved",
+            "Organization owners and admins still get instant team creation, no approval needed"
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.11.0",
       "date": "2026-06-12",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "added",

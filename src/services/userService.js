@@ -80,6 +80,33 @@ class UserService {
     return user.organizations[0].organization;
   }
 
+  // Resolve the organization for a Slack workspace. Used when a user who is not
+  // yet an organization member runs a command (e.g. creating a team) — we can
+  // still place them in the right org based on the workspace the command came
+  // from. Returns null if the workspace has no Daily Dose organization.
+  async getOrganizationByWorkspaceId(slackWorkspaceId) {
+    if (!slackWorkspaceId) return null;
+
+    // Only resolve active organizations so onboarding/team creation can't be
+    // routed into a deactivated org (the scheduler also filters on isActive).
+    return await prisma.organization.findFirst({
+      where: { slackWorkspaceId, isActive: true },
+    });
+  }
+
+  // List the active OWNER/ADMIN members of an organization, including their
+  // user records. Used to notify org admins of actions that need approval.
+  async getOrganizationAdmins(organizationId) {
+    return await prisma.organizationMember.findMany({
+      where: {
+        organizationId,
+        role: { in: ["OWNER", "ADMIN"] },
+        isActive: true,
+      },
+      include: { user: true },
+    });
+  }
+
   // Look up a user by Slack username (without the leading @) within a given
   // organization. Used to resolve targets for admin commands when the Slack
   // user can no longer be @-mentioned (e.g., already deactivated in Slack).
