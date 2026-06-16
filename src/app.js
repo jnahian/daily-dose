@@ -57,6 +57,12 @@ receiver.app.use(cookieParser());
 receiver.app.use(express.json());
 receiver.app.use("/api/admin", adminRouter);
 
+const { router: mcpAuthRouter } = require("./routes/mcpAuth");
+const { validateMcpToken, createMcpHandler } = require("./mcp/server");
+
+receiver.app.use("/api/mcp", mcpAuthRouter);
+receiver.app.post("/mcp", validateMcpToken, createMcpHandler(app));
+
 const CONTACT_LIMITS = { name: 200, email: 320, subject: 200, message: 2900 };
 const CONTACT_RATE_WINDOW_MS = 10 * 60 * 1000;
 const CONTACT_RATE_MAX = 5;
