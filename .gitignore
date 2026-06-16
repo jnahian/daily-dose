@@ -6,3 +6,9 @@ node_modules
 .vscode
 web/dist
 web/node_modules
+ngrok.yml
+coverage/
+Daily Dose/
+video/
+# Brainstorming scratch files
+.superpowers/

@@ -1,11 +1,12 @@
 const { removeFormatting } = require("../utils/commandHelper");
+const logger = require("../utils/logger");
 
 function stripFormatting() {
   return async ({ command, next }) => {
-    console.log("Command:", command);
+    logger.logCommand(command);
     if (command.text) {
       // remove Slack-style formatting
-      let clean = removeFormatting(command.text);
+      const clean = removeFormatting(command.text);
       command.text = clean;
     }
 

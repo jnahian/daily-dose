@@ -3,11 +3,15 @@ const teamService = require("../services/teamService");
 const prisma = require("../config/prisma");
 const dayjs = require("dayjs");
 const { ackWithProcessing } = require("../utils/commandHelper");
-const { createSectionBlock } = require("../utils/blockHelper");
+const {
+  createSectionBlock,
+  createCommandErrorBlocks,
+} = require("../utils/blockHelper");
 const permissionHelper = require("../utils/permissionHelper");
+const { sanitizeError } = require("../utils/errorHelper");
 
 async function setLeave({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Setting leave...",
@@ -20,7 +24,13 @@ async function setLeave({ command, ack, respond, client }) {
 
     if (parts.length < 1 || !parts[0]) {
       await updateResponse({
-        text: "❌ Usage: `/dd-leave-set YYYY-MM-DD [YYYY-MM-DD] [reason]`\nExamples:\n- Single day: `/dd-leave-set 2024-12-25 Holiday`\n- Date range: `/dd-leave-set 2024-12-25 2024-12-26 Holiday break`",
+        blocks: createCommandErrorBlocks(
+          "Usage: `/dd-leave-set YYYY-MM-DD [YYYY-MM-DD] [reason]`",
+          [
+            "Single day: `/dd-leave-set 2024-12-25 Holiday`",
+            "Date range: `/dd-leave-set 2024-12-25 2024-12-26 Holiday break`",
+          ]
+        ),
       });
       return;
     }
@@ -29,7 +39,9 @@ async function setLeave({ command, ack, respond, client }) {
 
     if (!startDate.isValid()) {
       await updateResponse({
-        text: "❌ Invalid start date format. Use YYYY-MM-DD",
+        blocks: createCommandErrorBlocks(
+          "Invalid start date format. Use YYYY-MM-DD"
+        ),
       });
       return;
     }
@@ -47,7 +59,9 @@ async function setLeave({ command, ack, respond, client }) {
 
         if (startDate > endDate) {
           await updateResponse({
-            text: "❌ Start date must be before or equal to end date",
+            blocks: createCommandErrorBlocks(
+              "Start date must be before or equal to end date"
+            ),
           });
           return;
         }
@@ -68,21 +82,21 @@ async function setLeave({ command, ack, respond, client }) {
     const dateText = startDate.isSame(endDate, "day")
       ? `on ${startDate.format("MMM DD, YYYY")}`
       : `from ${startDate.format("MMM DD, YYYY")} to ${endDate.format(
-        "MMM DD, YYYY"
-      )}`;
+          "MMM DD, YYYY"
+        )}`;
 
     await updateResponse({
       text: `✅ Leave set ${dateText}\nReason: ${reason}`,
     });
   } catch (error) {
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
 
 async function cancelLeave({ command, ack, respond }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Cancelling leave...",
@@ -94,7 +108,10 @@ async function cancelLeave({ command, ack, respond }) {
 
     if (!leaveId) {
       await updateResponse({
-        text: "❌ Usage: `/dd-leave-cancel [leave-id]`\nUse `/dd-leave-list` to see your leaves",
+        blocks: createCommandErrorBlocks(
+          "Usage: `/dd-leave-cancel [leave-id]`",
+          ["Use `/dd-leave-list` to see your leaves"]
+        ),
       });
       return;
     }
@@ -106,13 +123,13 @@ async function cancelLeave({ command, ack, respond }) {
     });
   } catch (error) {
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
 
 async function listLeaves({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Loading leaves...",
@@ -149,8 +166,9 @@ async function listLeaves({ command, ack, respond, client }) {
         const endDate = dayjs(leave.endDate).format("MMM DD, YYYY");
         const dateRange =
           startDate === endDate ? startDate : `${startDate} - ${endDate}`;
-        return `- ${dateRange}: ${leave.reason || "No reason"
-          } (ID: ${leave.id.slice(0, 8)})`;
+        return `- ${dateRange}: ${
+          leave.reason || "No reason"
+        } (ID: ${leave.id.slice(0, 8)})`;
       })
       .join("\n");
 
@@ -170,13 +188,13 @@ async function listLeaves({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
 
 async function setWorkDays({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Setting work days...",
@@ -189,7 +207,13 @@ async function setWorkDays({ command, ack, respond, client }) {
 
     if (!workDaysText) {
       await updateResponse({
-        text: "❌ Usage: `/dd-workdays-set 1,2,3,4,7`\nNumbers: 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday, 7=Sunday\nExample: `/dd-workdays-set 1,2,3,4,7` for Monday-Thursday, Sunday",
+        blocks: createCommandErrorBlocks(
+          "Usage: `/dd-workdays-set 1,2,3,4,7`",
+          [
+            "Numbers: 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat, 7=Sun",
+            "Example: `/dd-workdays-set 1,2,3,4,7` for Mon–Thu, Sun",
+          ]
+        ),
       });
       return;
     }
@@ -226,13 +250,13 @@ async function setWorkDays({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
 
 async function showWorkDays({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Loading work days...",
@@ -244,7 +268,7 @@ async function showWorkDays({ command, ack, respond, client }) {
 
     if (!workDays) {
       await updateResponse({
-        text: "❌ Unable to retrieve work days",
+        blocks: createCommandErrorBlocks("Unable to retrieve work days"),
       });
       return;
     }
@@ -300,13 +324,13 @@ async function showWorkDays({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
 
 async function setMemberLeave({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Setting member leave...",
@@ -320,7 +344,14 @@ async function setMemberLeave({ command, ack, respond, client }) {
 
     if (parts.length < 2) {
       await updateResponse({
-        text: "❌ Usage: `/dd-leave-set-member @user [team-name] YYYY-MM-DD [YYYY-MM-DD] [reason]`\nExamples:\n- Single day: `/dd-leave-set-member @john 2024-12-25 Holiday`\n- With team: `/dd-leave-set-member @john Engineering 2024-12-25 Holiday`\n- Date range: `/dd-leave-set-member @john 2024-12-25 2024-12-26 Holiday break`",
+        blocks: createCommandErrorBlocks(
+          "Usage: `/dd-leave-set-member @user [team-name] YYYY-MM-DD [YYYY-MM-DD] [reason]`",
+          [
+            "Single day: `/dd-leave-set-member @john 2024-12-25 Holiday`",
+            "With team: `/dd-leave-set-member @john Engineering 2024-12-25 Holiday`",
+            "Date range: `/dd-leave-set-member @john 2024-12-25 2024-12-26 Holiday break`",
+          ]
+        ),
       });
       return;
     }
@@ -331,7 +362,9 @@ async function setMemberLeave({ command, ack, respond, client }) {
 
     if (!userIdMatch) {
       await updateResponse({
-        text: "❌ Invalid user mention. Please use @mention format (e.g., @john)",
+        blocks: createCommandErrorBlocks(
+          "Invalid user mention. Please use @mention format (e.g., @john)"
+        ),
       });
       return;
     }
@@ -353,7 +386,9 @@ async function setMemberLeave({ command, ack, respond, client }) {
     const userOrg = await userService.getUserOrganization(command.user_id);
     if (!userOrg) {
       await updateResponse({
-        text: "❌ You must belong to an organization to set member leave",
+        blocks: createCommandErrorBlocks(
+          "You must belong to an organization to set member leave"
+        ),
       });
       return;
     }
@@ -376,14 +411,19 @@ async function setMemberLeave({ command, ack, respond, client }) {
 
       if (!targetTeam) {
         await updateResponse({
-          text: `❌ Team "${teamName}" not found in your organization`,
+          blocks: createCommandErrorBlocks(
+            `Team "${teamName}" not found in your organization`
+          ),
         });
         return;
       }
     } else {
       // No team specified - check if user can manage any teams
       // First, check if user is an Org Owner
-      const isOwner = await permissionHelper.isOrganizationOwner(command.user_id, userOrg.id);
+      const isOwner = await permissionHelper.isOrganizationOwner(
+        command.user_id,
+        userOrg.id
+      );
 
       if (isOwner) {
         // Owner can manage all teams
@@ -393,33 +433,52 @@ async function setMemberLeave({ command, ack, respond, client }) {
 
         if (allTeams.length === 0) {
           await updateResponse({
-            text: "❌ No active teams found in your organization",
+            blocks: createCommandErrorBlocks(
+              "No active teams found in your organization"
+            ),
           });
           return;
         } else if (allTeams.length === 1) {
           targetTeam = allTeams[0];
         } else {
-          const teamList = allTeams.map(t => `• ${t.name}`).join("\n");
+          const teamList = allTeams.map((t) => t.name).join(", ");
           await updateResponse({
-            text: `❌ Multiple teams found. Please specify which team:\n${teamList}\n\nUsage: \`/dd-leave-set-member @user team-name YYYY-MM-DD [YYYY-MM-DD] [reason]\``,
+            blocks: createCommandErrorBlocks(
+              "Multiple teams found. Please specify which team.",
+              [
+                `Available teams: ${teamList}`,
+                "Usage: `/dd-leave-set-member @user team-name YYYY-MM-DD [YYYY-MM-DD] [reason]`",
+              ]
+            ),
           });
           return;
         }
       } else {
         // Not an owner, check team memberships
-        const userTeams = await teamService.getUserTeams(command.user_id, client);
+        const userTeams = await teamService.getUserTeams(
+          command.user_id,
+          client
+        );
 
         if (userTeams.length === 0) {
           await updateResponse({
-            text: "❌ You must be a member of at least one team or an organization owner to set member leave",
+            blocks: createCommandErrorBlocks(
+              "You must be a member of at least one team or an organization owner to set member leave"
+            ),
           });
           return;
         } else if (userTeams.length === 1) {
           targetTeam = userTeams[0];
         } else {
-          const teamList = userTeams.map(t => `• ${t.name}`).join("\n");
+          const teamList = userTeams.map((t) => t.name).join(", ");
           await updateResponse({
-            text: `❌ You are a member of multiple teams. Please specify which team:\n${teamList}\n\nUsage: \`/dd-leave-set-member @user team-name YYYY-MM-DD [YYYY-MM-DD] [reason]\``,
+            blocks: createCommandErrorBlocks(
+              "You are a member of multiple teams. Please specify which team.",
+              [
+                `Your teams: ${teamList}`,
+                "Usage: `/dd-leave-set-member @user team-name YYYY-MM-DD [YYYY-MM-DD] [reason]`",
+              ]
+            ),
           });
           return;
         }
@@ -427,22 +486,31 @@ async function setMemberLeave({ command, ack, respond, client }) {
     }
 
     // Check permissions using helper
-    const permission = await permissionHelper.canManageTeam(command.user_id, targetTeam.id);
+    const permission = await permissionHelper.canManageTeam(
+      command.user_id,
+      targetTeam.id
+    );
 
     if (!permission.canManage) {
       await updateResponse({
-        text: `❌ You need admin permissions or organization ownership to set member leave for team "${targetTeam.name}"`,
+        blocks: createCommandErrorBlocks(
+          `You need admin permissions or organization ownership to set member leave for team "${targetTeam.name}"`
+        ),
       });
       return;
     }
 
     // Verify target user is a member of the team
     const teamMembers = await teamService.getTeamMembers(targetTeam.id);
-    const isMember = teamMembers.some(m => m.user.slackUserId === targetSlackUserId);
+    const isMember = teamMembers.some(
+      (m) => m.user.slackUserId === targetSlackUserId
+    );
 
     if (!isMember) {
       await updateResponse({
-        text: `❌ <@${targetSlackUserId}> is not a member of team "${targetTeam.name}"`,
+        blocks: createCommandErrorBlocks(
+          `<@${targetSlackUserId}> is not a member of team "${targetTeam.name}"`
+        ),
       });
       return;
     }
@@ -450,7 +518,9 @@ async function setMemberLeave({ command, ack, respond, client }) {
     // Parse dates
     if (parts.length < dateStartIndex + 1) {
       await updateResponse({
-        text: "❌ Missing start date. Usage: `/dd-leave-set-member @user [team-name] YYYY-MM-DD [YYYY-MM-DD] [reason]`",
+        blocks: createCommandErrorBlocks("Missing start date.", [
+          "Usage: `/dd-leave-set-member @user [team-name] YYYY-MM-DD [YYYY-MM-DD] [reason]`",
+        ]),
       });
       return;
     }
@@ -459,7 +529,9 @@ async function setMemberLeave({ command, ack, respond, client }) {
 
     if (!startDate.isValid()) {
       await updateResponse({
-        text: "❌ Invalid start date format. Use YYYY-MM-DD",
+        blocks: createCommandErrorBlocks(
+          "Invalid start date format. Use YYYY-MM-DD"
+        ),
       });
       return;
     }
@@ -477,7 +549,9 @@ async function setMemberLeave({ command, ack, respond, client }) {
 
         if (startDate > endDate) {
           await updateResponse({
-            text: "❌ Start date must be before or equal to end date",
+            blocks: createCommandErrorBlocks(
+              "Start date must be before or equal to end date"
+            ),
           });
           return;
         }
@@ -485,7 +559,8 @@ async function setMemberLeave({ command, ack, respond, client }) {
       // If next parameter is not a valid date, treat it as part of reason
     }
 
-    const reason = parts.slice(reasonStartIndex).join(" ") || "Leave set by admin";
+    const reason =
+      parts.slice(reasonStartIndex).join(" ") || "Leave set by admin";
 
     await userService.setMemberLeave(
       targetSlackUserId,
@@ -504,13 +579,13 @@ async function setMemberLeave({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
 
 async function cancelMemberLeave({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Cancelling member leave...",
@@ -523,7 +598,13 @@ async function cancelMemberLeave({ command, ack, respond, client }) {
 
     if (parts.length < 2) {
       await updateResponse({
-        text: "❌ Usage: `/dd-leave-cancel-member @user leave-id [team-name]`\nExamples:\n- `/dd-leave-cancel-member @john abc123`\n- `/dd-leave-cancel-member @john abc123 Engineering`",
+        blocks: createCommandErrorBlocks(
+          "Usage: `/dd-leave-cancel-member @user leave-id [team-name]`",
+          [
+            "`/dd-leave-cancel-member @john abc123`",
+            "`/dd-leave-cancel-member @john abc123 Engineering`",
+          ]
+        ),
       });
       return;
     }
@@ -534,7 +615,9 @@ async function cancelMemberLeave({ command, ack, respond, client }) {
 
     if (!userIdMatch) {
       await updateResponse({
-        text: "❌ Invalid user mention. Please use @mention format (e.g., @john)",
+        blocks: createCommandErrorBlocks(
+          "Invalid user mention. Please use @mention format (e.g., @john)"
+        ),
       });
       return;
     }
@@ -544,7 +627,9 @@ async function cancelMemberLeave({ command, ack, respond, client }) {
 
     if (!leaveId) {
       await updateResponse({
-        text: "❌ Missing leave ID. Usage: `/dd-leave-cancel-member @user leave-id [team-name]`",
+        blocks: createCommandErrorBlocks("Missing leave ID.", [
+          "Usage: `/dd-leave-cancel-member @user leave-id [team-name]`",
+        ]),
       });
       return;
     }
@@ -556,7 +641,9 @@ async function cancelMemberLeave({ command, ack, respond, client }) {
     const userOrg = await userService.getUserOrganization(command.user_id);
     if (!userOrg) {
       await updateResponse({
-        text: "❌ You must belong to an organization to cancel member leave",
+        blocks: createCommandErrorBlocks(
+          "You must belong to an organization to cancel member leave"
+        ),
       });
       return;
     }
@@ -579,14 +666,19 @@ async function cancelMemberLeave({ command, ack, respond, client }) {
 
       if (!targetTeam) {
         await updateResponse({
-          text: `❌ Team "${teamName}" not found in your organization`,
+          blocks: createCommandErrorBlocks(
+            `Team "${teamName}" not found in your organization`
+          ),
         });
         return;
       }
     } else {
       // No team specified - check if user can manage any teams
       // First, check if user is an Org Owner
-      const isOwner = await permissionHelper.isOrganizationOwner(command.user_id, userOrg.id);
+      const isOwner = await permissionHelper.isOrganizationOwner(
+        command.user_id,
+        userOrg.id
+      );
 
       if (isOwner) {
         // Owner can manage all teams
@@ -596,33 +688,52 @@ async function cancelMemberLeave({ command, ack, respond, client }) {
 
         if (allTeams.length === 0) {
           await updateResponse({
-            text: "❌ No active teams found in your organization",
+            blocks: createCommandErrorBlocks(
+              "No active teams found in your organization"
+            ),
           });
           return;
         } else if (allTeams.length === 1) {
           targetTeam = allTeams[0];
         } else {
-          const teamList = allTeams.map(t => `• ${t.name}`).join("\n");
+          const teamList = allTeams.map((t) => t.name).join(", ");
           await updateResponse({
-            text: `❌ Multiple teams found. Please specify which team:\n${teamList}\n\nUsage: \`/dd-leave-cancel-member @user leave-id team-name\``,
+            blocks: createCommandErrorBlocks(
+              "Multiple teams found. Please specify which team.",
+              [
+                `Available teams: ${teamList}`,
+                "Usage: `/dd-leave-cancel-member @user leave-id team-name`",
+              ]
+            ),
           });
           return;
         }
       } else {
         // Not an owner, check team memberships
-        const userTeams = await teamService.getUserTeams(command.user_id, client);
+        const userTeams = await teamService.getUserTeams(
+          command.user_id,
+          client
+        );
 
         if (userTeams.length === 0) {
           await updateResponse({
-            text: "❌ You must be a member of at least one team or an organization owner to cancel member leave",
+            blocks: createCommandErrorBlocks(
+              "You must be a member of at least one team or an organization owner to cancel member leave"
+            ),
           });
           return;
         } else if (userTeams.length === 1) {
           targetTeam = userTeams[0];
         } else {
-          const teamList = userTeams.map(t => `• ${t.name}`).join("\n");
+          const teamList = userTeams.map((t) => t.name).join(", ");
           await updateResponse({
-            text: `❌ You are a member of multiple teams. Please specify which team:\n${teamList}\n\nUsage: \`/dd-leave-cancel-member @user leave-id team-name\``,
+            blocks: createCommandErrorBlocks(
+              "You are a member of multiple teams. Please specify which team.",
+              [
+                `Your teams: ${teamList}`,
+                "Usage: `/dd-leave-cancel-member @user leave-id team-name`",
+              ]
+            ),
           });
           return;
         }
@@ -630,22 +741,31 @@ async function cancelMemberLeave({ command, ack, respond, client }) {
     }
 
     // Check permissions using helper
-    const permission = await permissionHelper.canManageTeam(command.user_id, targetTeam.id);
+    const permission = await permissionHelper.canManageTeam(
+      command.user_id,
+      targetTeam.id
+    );
 
     if (!permission.canManage) {
       await updateResponse({
-        text: `❌ You need admin permissions or organization ownership to cancel member leave for team "${targetTeam.name}"`,
+        blocks: createCommandErrorBlocks(
+          `You need admin permissions or organization ownership to cancel member leave for team "${targetTeam.name}"`
+        ),
       });
       return;
     }
 
     // Verify target user is a member of the team
     const teamMembers = await teamService.getTeamMembers(targetTeam.id);
-    const isMember = teamMembers.some(m => m.user.slackUserId === targetSlackUserId);
+    const isMember = teamMembers.some(
+      (m) => m.user.slackUserId === targetSlackUserId
+    );
 
     if (!isMember) {
       await updateResponse({
-        text: `❌ <@${targetSlackUserId}> is not a member of team "${targetTeam.name}"`,
+        blocks: createCommandErrorBlocks(
+          `<@${targetSlackUserId}> is not a member of team "${targetTeam.name}"`
+        ),
       });
       return;
     }
@@ -657,13 +777,13 @@ async function cancelMemberLeave({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
 
 async function listMemberLeaves({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Loading member leaves...",
@@ -676,7 +796,13 @@ async function listMemberLeaves({ command, ack, respond, client }) {
 
     if (parts.length < 1 || !parts[0]) {
       await updateResponse({
-        text: "❌ Usage: `/dd-leave-list-member @user [team-name]`\nExamples:\n- `/dd-leave-list-member @john`\n- `/dd-leave-list-member @john Engineering`",
+        blocks: createCommandErrorBlocks(
+          "Usage: `/dd-leave-list-member @user [team-name]`",
+          [
+            "`/dd-leave-list-member @john`",
+            "`/dd-leave-list-member @john Engineering`",
+          ]
+        ),
       });
       return;
     }
@@ -687,7 +813,9 @@ async function listMemberLeaves({ command, ack, respond, client }) {
 
     if (!userIdMatch) {
       await updateResponse({
-        text: "❌ Invalid user mention. Please use @mention format (e.g., @john)",
+        blocks: createCommandErrorBlocks(
+          "Invalid user mention. Please use @mention format (e.g., @john)"
+        ),
       });
       return;
     }
@@ -699,7 +827,9 @@ async function listMemberLeaves({ command, ack, respond, client }) {
     const userOrg = await userService.getUserOrganization(command.user_id);
     if (!userOrg) {
       await updateResponse({
-        text: "❌ You must belong to an organization to view member leave",
+        blocks: createCommandErrorBlocks(
+          "You must belong to an organization to view member leave"
+        ),
       });
       return;
     }
@@ -722,14 +852,19 @@ async function listMemberLeaves({ command, ack, respond, client }) {
 
       if (!targetTeam) {
         await updateResponse({
-          text: `❌ Team "${teamName}" not found in your organization`,
+          blocks: createCommandErrorBlocks(
+            `Team "${teamName}" not found in your organization`
+          ),
         });
         return;
       }
     } else {
       // No team specified - check if user can manage any teams
       // First, check if user is an Org Owner
-      const isOwner = await permissionHelper.isOrganizationOwner(command.user_id, userOrg.id);
+      const isOwner = await permissionHelper.isOrganizationOwner(
+        command.user_id,
+        userOrg.id
+      );
 
       if (isOwner) {
         // Owner can manage all teams
@@ -739,33 +874,52 @@ async function listMemberLeaves({ command, ack, respond, client }) {
 
         if (allTeams.length === 0) {
           await updateResponse({
-            text: "❌ No active teams found in your organization",
+            blocks: createCommandErrorBlocks(
+              "No active teams found in your organization"
+            ),
           });
           return;
         } else if (allTeams.length === 1) {
           targetTeam = allTeams[0];
         } else {
-          const teamList = allTeams.map(t => `• ${t.name}`).join("\n");
+          const teamList = allTeams.map((t) => t.name).join(", ");
           await updateResponse({
-            text: `❌ Multiple teams found. Please specify which team:\n${teamList}\n\nUsage: \`/dd-leave-list-member @user team-name\``,
+            blocks: createCommandErrorBlocks(
+              "Multiple teams found. Please specify which team.",
+              [
+                `Available teams: ${teamList}`,
+                "Usage: `/dd-leave-list-member @user team-name`",
+              ]
+            ),
           });
           return;
         }
       } else {
         // Not an owner, check team memberships
-        const userTeams = await teamService.getUserTeams(command.user_id, client);
+        const userTeams = await teamService.getUserTeams(
+          command.user_id,
+          client
+        );
 
         if (userTeams.length === 0) {
           await updateResponse({
-            text: "❌ You must be a member of at least one team or an organization owner to view member leave",
+            blocks: createCommandErrorBlocks(
+              "You must be a member of at least one team or an organization owner to view member leave"
+            ),
           });
           return;
         } else if (userTeams.length === 1) {
           targetTeam = userTeams[0];
         } else {
-          const teamList = userTeams.map(t => `• ${t.name}`).join("\n");
+          const teamList = userTeams.map((t) => t.name).join(", ");
           await updateResponse({
-            text: `❌ You are a member of multiple teams. Please specify which team:\n${teamList}\n\nUsage: \`/dd-leave-list-member @user team-name\``,
+            blocks: createCommandErrorBlocks(
+              "You are a member of multiple teams. Please specify which team.",
+              [
+                `Your teams: ${teamList}`,
+                "Usage: `/dd-leave-list-member @user team-name`",
+              ]
+            ),
           });
           return;
         }
@@ -773,27 +927,39 @@ async function listMemberLeaves({ command, ack, respond, client }) {
     }
 
     // Check permissions using helper
-    const permission = await permissionHelper.canManageTeam(command.user_id, targetTeam.id);
+    const permission = await permissionHelper.canManageTeam(
+      command.user_id,
+      targetTeam.id
+    );
 
     if (!permission.canManage) {
       await updateResponse({
-        text: `❌ You need admin permissions or organization ownership to view member leave for team "${targetTeam.name}"`,
+        blocks: createCommandErrorBlocks(
+          `You need admin permissions or organization ownership to view member leave for team "${targetTeam.name}"`
+        ),
       });
       return;
     }
 
     // Verify target user is a member of the team
     const teamMembers = await teamService.getTeamMembers(targetTeam.id);
-    const isMember = teamMembers.some(m => m.user.slackUserId === targetSlackUserId);
+    const isMember = teamMembers.some(
+      (m) => m.user.slackUserId === targetSlackUserId
+    );
 
     if (!isMember) {
       await updateResponse({
-        text: `❌ <@${targetSlackUserId}> is not a member of team "${targetTeam.name}"`,
+        blocks: createCommandErrorBlocks(
+          `<@${targetSlackUserId}> is not a member of team "${targetTeam.name}"`
+        ),
       });
       return;
     }
 
-    const leaves = await userService.listMemberLeaves(targetSlackUserId, client);
+    const leaves = await userService.listMemberLeaves(
+      targetSlackUserId,
+      client
+    );
 
     if (leaves.length === 0) {
       await updateResponse({
@@ -814,7 +980,9 @@ async function listMemberLeaves({ command, ack, respond, client }) {
 
     await updateResponse({
       blocks: [
-        createSectionBlock(`*📅 Upcoming Leaves for <@${targetSlackUserId}>:*\nTeam: ${targetTeam.name}\n\n${leaveList}`),
+        createSectionBlock(
+          `*📅 Upcoming Leaves for <@${targetSlackUserId}>:*\nTeam: ${targetTeam.name}\n\n${leaveList}`
+        ),
         {
           type: "context",
           elements: [
@@ -828,7 +996,7 @@ async function listMemberLeaves({ command, ack, respond, client }) {
     });
   } catch (error) {
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }

@@ -1,4 +1,8 @@
 const prisma = require("../config/prisma");
+const dayjs = require("dayjs");
+const customParseFormat = require("dayjs/plugin/customParseFormat");
+
+dayjs.extend(customParseFormat);
 
 /**
  * Resolve team from context (channel or team name)
@@ -12,7 +16,11 @@ const prisma = require("../config/prisma");
  * @param {number|null} userId - The user ID for additional context (optional)
  * @returns {Promise<{team: object|null, error: string|null}>} Team object and error message
  */
-async function resolveTeamFromContext(channelId = null, teamName = null, userId = null) {
+async function resolveTeamFromContext(
+  channelId = null,
+  teamName = null,
+  userId = null
+) {
   try {
     let team = null;
 
@@ -21,11 +29,11 @@ async function resolveTeamFromContext(channelId = null, teamName = null, userId 
       let organizationIdFilter = null;
 
       if (userId) {
-        const requestingUser = await prisma.user.findUnique({
-          where: { id: userId },
+        const membership = await prisma.organizationMember.findFirst({
+          where: { userId, isActive: true },
           select: { organizationId: true },
         });
-        organizationIdFilter = requestingUser?.organizationId ?? null;
+        organizationIdFilter = membership?.organizationId ?? null;
       }
 
       const normalizedName = teamName.trim();
@@ -71,7 +79,8 @@ async function resolveTeamFromContext(channelId = null, teamName = null, userId 
       if (!team) {
         return {
           team: null,
-          error: "This channel is not associated with any team. Please provide a team name.",
+          error:
+            "This channel is not associated with any team. Please provide a team name.",
         };
       }
 
@@ -81,7 +90,8 @@ async function resolveTeamFromContext(channelId = null, teamName = null, userId 
     // No context provided
     return {
       team: null,
-      error: "Please provide a team name or run this command in a team channel.",
+      error:
+        "Please provide a team name or run this command in a team channel.",
     };
   } catch (error) {
     console.error("Error resolving team from context:", error);
@@ -181,16 +191,27 @@ function parseTeamName(commandText) {
  * - "team name" 2025-01-15
  *
  * @param {string} commandText - The command text to parse
- * @returns {{date: string|null, teamName: string|null}} Parsed date and team name
+ * @returns {{date: string|null, teamName: string|null, mentionedUserId: string|null}} Parsed date, team name, and mentioned user ID
  */
 function parseCommandArguments(commandText) {
   if (!commandText || !commandText.trim()) {
-    return { date: null, teamName: null };
+    return { date: null, teamName: null, mentionedUserId: null };
   }
 
-  const text = commandText.trim();
+  let text = commandText.trim();
   let date = null;
   let teamName = null;
+  let mentionedUserId = null;
+
+  // Mention pattern: <@U123> or <@U123|name>. Slack user IDs are uppercase
+  // alphanumeric. Use the first mention; strip all before date/team parsing.
+  const mentionPattern = /<@([A-Z0-9]+)(?:\|[^>]+)?>/g;
+  const firstMention = mentionPattern.exec(text);
+  if (firstMention) {
+    mentionedUserId = firstMention[1];
+    mentionPattern.lastIndex = 0; // reset stateful /g regex before reuse
+    text = text.replace(mentionPattern, "").trim();
+  }
 
   // Date pattern: YYYY-MM-DD
   const datePattern = /\b(\d{4}-\d{2}-\d{2})\b/;
@@ -198,17 +219,15 @@ function parseCommandArguments(commandText) {
 
   if (dateMatch) {
     date = dateMatch[1];
-    // Remove date from text to extract team name
     const remainingText = text.replace(dateMatch[0], "").trim();
     if (remainingText) {
       teamName = parseTeamName(remainingText);
     }
-  } else {
-    // No date, entire text is team name
+  } else if (text) {
     teamName = parseTeamName(text);
   }
 
-  return { date, teamName };
+  return { date, teamName, mentionedUserId };
 }
 
 /**
@@ -225,13 +244,15 @@ function validateDateFormat(dateStr) {
   if (!datePattern.test(dateStr)) {
     return {
       isValid: false,
-      error: "Invalid date format. Please use YYYY-MM-DD format (e.g., 2025-01-15).",
+      error:
+        "Invalid date format. Please use YYYY-MM-DD format (e.g., 2025-01-15).",
     };
   }
 
-  // Check if date is valid
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) {
+  // Strict dayjs parsing for consistency with the rest of the codebase.
+  // The native Date constructor parses YYYY-MM-DD as UTC and silently rolls
+  // invalid dates like 2025-02-30 over to the next month.
+  if (!dayjs(dateStr, "YYYY-MM-DD", true).isValid()) {
     return {
       isValid: false,
       error: "Invalid date. Please provide a valid date in YYYY-MM-DD format.",

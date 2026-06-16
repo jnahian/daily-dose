@@ -10,7 +10,10 @@ const timezone = require("dayjs/plugin/timezone");
 const { ackWithProcessing } = require("../utils/commandHelper");
 const { getUserMention, getUserLogIdentifier } = require("../utils/userHelper");
 const { extractRichTextValue } = require("../utils/messageHelper");
-const { canManageTeam, getUserBySlackId } = require("../utils/permissionHelper");
+const {
+  canManageTeam,
+  getUserBySlackId,
+} = require("../utils/permissionHelper");
 const {
   resolveTeamFromContext,
   parseCommandArguments,
@@ -19,22 +22,25 @@ const {
 const {
   createStandupModal,
   createStandupUpdateModal,
-  createTeamSelectionBlocks,
   createButton,
   createActionsBlock,
   createSectionBlock,
+  createFieldsBlock,
+  createBlockerContextBlock,
+  createDividerBlock,
   createCommandSuccessBlocks,
   createCommandErrorBlocks,
   createPermissionDeniedBlocks,
   createStandupPreviewHeaderBlocks,
   createNoDataBlocks,
 } = require("../utils/blockHelper");
+const { sanitizeError } = require("../utils/errorHelper");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 async function submitManual({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Loading standup form...",
@@ -47,7 +53,9 @@ async function submitManual({ command, ack, respond, client }) {
 
     if (teams.length === 0) {
       await updateResponse({
-        text: "❌ You're not a member of any teams. Join a team first with `/dd-team-join [TeamName]`",
+        blocks: createCommandErrorBlocks("You're not a member of any teams.", [
+          "Join a team first with `/dd-team-join [TeamName]`",
+        ]),
       });
       return;
     }
@@ -60,26 +68,25 @@ async function submitManual({ command, ack, respond, client }) {
       team = await teamService.findTeamByChannel(command.channel_id);
 
       if (!team) {
-        // Show team selection if no team found in channel
+        const teamList = teams.map((t) => t.name).join(", ");
         await updateResponse({
-          blocks: [
-            ...createTeamSelectionBlocks(teams, "select_team_standup"),
-            createSectionBlock("Usage: `/dd-standup [TeamName]`\n- Run without team name to submit standup for the team in current channel\n- Or specify team name: `/dd-standup Engineering`"),
-          ],
+          blocks: createCommandErrorBlocks("No team found in this channel.", [
+            "Run `/dd-standup [TeamName]` to submit for a specific team",
+            "Or run `/dd-standup` inside a team channel",
+            `Your teams: ${teamList}`,
+          ]),
         });
         return;
       }
     } else {
       // Find team by name
-      team = teams.find(
-        (t) => t.name.toLowerCase() === teamName.toLowerCase()
-      );
+      team = teams.find((t) => t.name.toLowerCase() === teamName.toLowerCase());
 
       if (!team) {
         await updateResponse({
-          text: `❌ Team "${teamName}" not found. Available teams: ${teams
-            .map((t) => t.name)
-            .join(", ")}`,
+          blocks: createCommandErrorBlocks(`Team "${teamName}" not found`, [
+            `Available teams: ${teams.map((t) => t.name).join(", ")}`,
+          ]),
         });
         return;
       }
@@ -90,9 +97,18 @@ async function submitManual({ command, ack, respond, client }) {
 
     try {
       // Get user's last standup response to prefill today's tasks
-      const lastResponse = await standupService.getLastStandupResponse(team.id, command.user_id);
+      const lastResponse = await standupService.getLastStandupResponse(
+        team.id,
+        command.user_id
+      );
 
-      const modalView = createStandupModal(team.name, team.id, today, null, lastResponse);
+      const modalView = createStandupModal(
+        team.name,
+        team.id,
+        today,
+        null,
+        lastResponse
+      );
       await client.views.open({
         trigger_id: command.trigger_id,
         view: modalView,
@@ -116,9 +132,8 @@ async function submitManual({ command, ack, respond, client }) {
       });
     }
   } catch (error) {
-    console.error("Error in submitManual:", error);
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -165,9 +180,18 @@ async function openStandupModal({ body, ack, client }, teamId = null) {
     await ack();
 
     // Get user's last standup response to prefill today's tasks
-    const lastResponse = await standupService.getLastStandupResponse(teamId, body.user.id);
+    const lastResponse = await standupService.getLastStandupResponse(
+      teamId,
+      body.user.id
+    );
 
-    const modalView = createStandupModal(team.name, teamId, today, null, lastResponse);
+    const modalView = createStandupModal(
+      team.name,
+      teamId,
+      today,
+      null,
+      lastResponse
+    );
     await client.views.open({
       trigger_id: body.trigger_id,
       view: modalView,
@@ -305,9 +329,8 @@ async function handleStandupSubmission({ ack, body, view, client }) {
           blockers,
         };
 
-        const message = await standupService.formatLateResponseMessage(
-          lateResponse
-        );
+        const message =
+          await standupService.formatLateResponseMessage(lateResponse);
 
         await client.chat.postMessage({
           channel: standupPost.channelId,
@@ -321,22 +344,22 @@ async function handleStandupSubmission({ ack, body, view, client }) {
         console.log(
           `📝 No parent standup post found for ${team.name}. Creating full standup post from late submission...`
         );
-        await standupService.postStandupOnDemand(team, now.toDate(), { client });
+        await standupService.postStandupOnDemand(team, now.toDate(), {
+          client,
+        });
       }
     }
   } catch (error) {
-    console.error("Error handling standup submission:", error);
-
     // Send error message to user
     await client.chat.postMessage({
       channel: body.user.id,
-      text: `❌ Error submitting standup: ${error.message}`,
+      text: sanitizeError(error, "❌ Error submitting standup."),
     });
   }
 }
 
 async function updateStandup({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Loading standup update...",
@@ -352,7 +375,9 @@ async function updateStandup({ command, ack, respond, client }) {
 
     if (teams.length === 0) {
       await updateResponse({
-        text: "❌ You're not a member of any teams. Join a team first with `/dd-team-join [TeamName]`",
+        blocks: createCommandErrorBlocks("You're not a member of any teams.", [
+          "Join a team first with `/dd-team-join [TeamName]`",
+        ]),
       });
       return;
     }
@@ -369,7 +394,11 @@ async function updateStandup({ command, ack, respond, client }) {
       if (!targetTeam) {
         const teamList = teams.map((t) => t.name).join(", ");
         await updateResponse({
-          text: `❌ No team found in this channel. Usage: \`/dd-standup-update [TeamName] [YYYY-MM-DD]\`\n- Run without team name to update standup for the team in current channel\n- Or specify team name: \`/dd-standup-update Engineering\`\nAvailable teams: ${teamList}`,
+          blocks: createCommandErrorBlocks("No team found in this channel.", [
+            "Usage: `/dd-standup-update [TeamName] [YYYY-MM-DD]`",
+            "Or run inside a team channel without the team name",
+            `Your teams: ${teamList}`,
+          ]),
         });
         return;
       }
@@ -377,18 +406,20 @@ async function updateStandup({ command, ack, respond, client }) {
     } else {
       // Check if first argument is a date (YYYY-MM-DD format)
       const isDate = /^\d{4}-\d{2}-\d{2}$/.test(args[0]);
-      
+
       if (isDate) {
         // First arg is a date, try to find team in current channel
         targetTeam = await teamService.findTeamByChannel(command.channel_id);
-        
+
         if (!targetTeam) {
           await updateResponse({
-            text: "❌ No team found in this channel. Please provide team name: `/dd-standup-update [TeamName] [YYYY-MM-DD]`",
+            blocks: createCommandErrorBlocks("No team found in this channel.", [
+              "Provide team name: `/dd-standup-update [TeamName] [YYYY-MM-DD]`",
+            ]),
           });
           return;
         }
-        
+
         targetDate = args[0];
         startIndex = 1;
       } else {
@@ -400,9 +431,9 @@ async function updateStandup({ command, ack, respond, client }) {
 
         if (!targetTeam) {
           await updateResponse({
-            text: `❌ Team "${teamName}" not found. Available teams: ${teams
-              .map((t) => t.name)
-              .join(", ")}`,
+            blocks: createCommandErrorBlocks(`Team "${teamName}" not found`, [
+              `Available teams: ${teams.map((t) => t.name).join(", ")}`,
+            ]),
           });
           return;
         }
@@ -417,7 +448,10 @@ async function updateStandup({ command, ack, respond, client }) {
         targetDate = args[startIndex];
       } else {
         await updateResponse({
-          text: `❌ Invalid date format: ${args[startIndex]}. Use YYYY-MM-DD format.\nUsage: \`/dd-standup-update ${targetTeam.name} [YYYY-MM-DD]\``,
+          blocks: createCommandErrorBlocks(
+            `Invalid date format: ${args[startIndex]}. Use YYYY-MM-DD format.`,
+            [`Usage: \`/dd-standup-update ${targetTeam.name} [YYYY-MM-DD]\``]
+          ),
         });
         return;
       }
@@ -427,7 +461,9 @@ async function updateStandup({ command, ack, respond, client }) {
     const parsedDate = dayjs(targetDate, "YYYY-MM-DD", true);
     if (!parsedDate.isValid()) {
       await updateResponse({
-        text: `❌ Invalid date format: ${targetDate}. Use YYYY-MM-DD format.`,
+        blocks: createCommandErrorBlocks(
+          `Invalid date format: ${targetDate}. Use YYYY-MM-DD format.`
+        ),
       });
       return;
     }
@@ -469,13 +505,14 @@ async function updateStandup({ command, ack, respond, client }) {
     } catch (modalError) {
       console.error("Error opening update modal:", modalError);
       await updateResponse({
-        text: `❌ Error opening update form: ${modalError.message}`,
+        blocks: createCommandErrorBlocks(
+          `Error opening update form: ${modalError.message}`
+        ),
       });
     }
   } catch (error) {
-    console.error("Error in standup update:", error);
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
     });
   }
 }
@@ -483,9 +520,11 @@ async function updateStandup({ command, ack, respond, client }) {
 async function handleStandupUpdateSubmission({ ack, body, view, client }) {
   await ack();
 
+  let isUpdate = false;
   try {
     const metadata = JSON.parse(view.private_metadata);
-    const { teamId, standupDate, isUpdate } = metadata;
+    const { teamId, standupDate } = metadata;
+    isUpdate = metadata.isUpdate;
     const values = view.state.values;
 
     const yesterdayTasks =
@@ -518,10 +557,14 @@ async function handleStandupUpdateSubmission({ ack, body, view, client }) {
 
     const team = await teamService.getTeamById(teamId);
     const targetDate = dayjs(standupDate, "YYYY-MM-DD");
-    
+
     // Determine if submission is late (only if it's for today or future)
     let isLate = false;
-    if ((targetDate.isSame(dayjs().startOf('day')) || targetDate.isAfter(dayjs().startOf('day'))) && team) {
+    if (
+      (targetDate.isSame(dayjs().startOf("day")) ||
+        targetDate.isAfter(dayjs().startOf("day"))) &&
+      team
+    ) {
       const [postingHour, postingMinute] = team.postingTime
         .split(":")
         .map(Number);
@@ -551,7 +594,7 @@ async function handleStandupUpdateSubmission({ ack, body, view, client }) {
     );
 
     const updateText = isUpdate ? "updated" : "submitted";
-    
+
     // Send confirmation as ephemeral message to the channel
     await client.chat.postEphemeral({
       channel: team.slackChannelId,
@@ -567,15 +610,15 @@ async function handleStandupUpdateSubmission({ ack, body, view, client }) {
       user: body.user,
       team,
       client,
-      options: { 
-        isUpdate, 
-        isLate, 
-        date: targetDate.format("MMM DD, YYYY") 
-      }
+      options: {
+        isUpdate,
+        isLate,
+        date: targetDate.format("MMM DD, YYYY"),
+      },
     });
 
     // If this is for today and it's after posting time, post to thread or create parent if doesn't exist
-    if (isLate && targetDate.isSame(dayjs(), 'day') && team) {
+    if (isLate && targetDate.isSame(dayjs(), "day") && team) {
       const standupPost = await standupService.getStandupPost(
         teamId,
         targetDate.toDate()
@@ -593,9 +636,8 @@ async function handleStandupUpdateSubmission({ ack, body, view, client }) {
           blockers,
         };
 
-        const message = await standupService.formatLateResponseMessage(
-          lateResponse
-        );
+        const message =
+          await standupService.formatLateResponseMessage(lateResponse);
 
         await client.chat.postMessage({
           channel: standupPost.channelId,
@@ -609,17 +651,20 @@ async function handleStandupUpdateSubmission({ ack, body, view, client }) {
       } else {
         // No parent post exists - create the full standup post
         console.log(
-          `📝 No parent standup post found for ${team.name}. Creating full standup post from late ${isUpdate ? 'update' : 'submission'}...`
+          `📝 No parent standup post found for ${team.name}. Creating full standup post from late ${isUpdate ? "update" : "submission"}...`
         );
-        await standupService.postStandupOnDemand(team, targetDate.toDate(), { client });
+        await standupService.postStandupOnDemand(team, targetDate.toDate(), {
+          client,
+        });
       }
     }
   } catch (error) {
-    console.error("Error handling standup update submission:", error);
-
     await client.chat.postMessage({
       channel: body.user.id,
-      text: `❌ Error ${isUpdate ? "updating" : "submitting"} standup: ${error.message}`,
+      text: sanitizeError(
+        error,
+        `❌ Error ${isUpdate ? "updating" : "submitting"} standup.`
+      ),
     });
   }
 }
@@ -628,8 +673,8 @@ async function handleStandupUpdateSubmission({ ack, body, view, client }) {
  * Admin/Owner command: Send standup reminders to team members
  * Usage: /dd-standup-remind [team-name]
  */
-async function sendReminders({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+async function sendReminders({ command, ack, respond }) {
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Sending standup reminders...",
@@ -660,13 +705,10 @@ async function sendReminders({ command, ack, respond, client }) {
 
     if (error || !team) {
       await updateResponse({
-        blocks: createCommandErrorBlocks(
-          error || "Team not found",
-          [
-            "Ensure you're in a team channel or provide a team name",
-            "Use `/dd-team-list` to see available teams",
-          ]
-        ),
+        blocks: createCommandErrorBlocks(error || "Team not found", [
+          "Ensure you're in a team channel or provide a team name",
+          "Use `/dd-team-list` to see available teams",
+        ]),
       });
       return;
     }
@@ -680,19 +722,23 @@ async function sendReminders({ command, ack, respond, client }) {
       return;
     }
 
-    // Initialize scheduler service and send reminders
-    await schedulerService.initialize(client);
+    // Scheduler is already initialized with the Bolt app at startup (app.js).
+    // Do NOT re-initialize here: passing the WebClient would overwrite this.app
+    // (breaking this.app.client.chat) and re-register duplicate cron jobs.
     await schedulerService.sendStandupReminders(team);
 
     // Get count of active members for confirmation
     const now = dayjs().tz(team.timezone);
-    const members = await standupService.getActiveMembers(team.id, now.toDate());
+    const members = await standupService.getActiveMembers(
+      team.id,
+      now.toDate()
+    );
 
     await updateResponse({
       blocks: createCommandSuccessBlocks(
         `Standup reminders sent for *${team.name}*`,
         {
-          "Team": team.name,
+          Team: team.name,
           "Members notified": members.length,
           "Your role": permission.role,
         }
@@ -703,10 +749,9 @@ async function sendReminders({ command, ack, respond, client }) {
       `📧 ${getUserLogIdentifier(user)} sent standup reminders for team ${team.name} (${members.length} members)`
     );
   } catch (error) {
-    console.error("Error in sendReminders command:", error);
     await updateResponse({
       blocks: createCommandErrorBlocks(
-        `Failed to send reminders: ${error.message}`,
+        sanitizeError(error, "Failed to send reminders."),
         ["Check team configuration", "Verify bot permissions in team channel"]
       ),
     });
@@ -718,7 +763,7 @@ async function sendReminders({ command, ack, respond, client }) {
  * Usage: /dd-standup-post [date] [team-name]
  */
 async function postStandup({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Posting standup summary...",
@@ -738,7 +783,11 @@ async function postStandup({ command, ack, respond, client }) {
     }
 
     // Parse command arguments (date and/or team name)
-    const { date: dateStr, teamName } = parseCommandArguments(command.text);
+    const {
+      date: dateStr,
+      teamName,
+      mentionedUserId,
+    } = parseCommandArguments(command.text);
 
     // Validate date format if provided
     if (dateStr) {
@@ -762,13 +811,10 @@ async function postStandup({ command, ack, respond, client }) {
 
     if (error || !team) {
       await updateResponse({
-        blocks: createCommandErrorBlocks(
-          error || "Team not found",
-          [
-            "Ensure you're in a team channel or provide a team name",
-            "Use `/dd-team-list` to see available teams",
-          ]
-        ),
+        blocks: createCommandErrorBlocks(error || "Team not found", [
+          "Ensure you're in a team channel or provide a team name",
+          "Use `/dd-team-list` to see available teams",
+        ]),
       });
       return;
     }
@@ -787,6 +833,62 @@ async function postStandup({ command, ack, respond, client }) {
       ? dayjs(dateStr).tz(team.timezone)
       : dayjs().tz(team.timezone);
 
+    // Individual member post (ephemeral errors + confirmation)
+    if (mentionedUserId) {
+      const { targetUser, error: memberError } = await resolveTargetMember(
+        team.id,
+        mentionedUserId
+      );
+      if (memberError) {
+        await updateResponse({
+          blocks: createCommandErrorBlocks(memberError),
+          response_type: "ephemeral",
+        });
+        return;
+      }
+
+      const response = await standupService.getUserResponse(
+        team.id,
+        targetUser.id,
+        targetDate.toDate()
+      );
+      if (!response) {
+        await updateResponse({
+          blocks: createNoDataBlocks(
+            `standup from ${getUserMention(targetUser)}`,
+            targetDate.format("MMM DD, YYYY")
+          ),
+          response_type: "ephemeral",
+        });
+        return;
+      }
+
+      const result = await standupService.postIndividualResponse(
+        team,
+        targetDate.toDate(),
+        response,
+        { client }
+      );
+
+      await updateResponse({
+        blocks: createCommandSuccessBlocks(
+          `Posted ${getUserMention(targetUser)}'s standup to *${team.name}*`,
+          {
+            Date: targetDate.format("MMM DD, YYYY"),
+            "Message timestamp": result.ts,
+          }
+        ),
+        response_type: "ephemeral",
+      });
+
+      console.log(
+        `📊 ${getUserLogIdentifier(user)} posted ${getUserMention(
+          targetUser
+        )}'s standup for team ${team.name} (${targetDate.format("YYYY-MM-DD")})`
+      );
+      return;
+    }
+
     // Check if responses exist
     const responses = await standupService.getTeamResponses(
       team.id,
@@ -796,11 +898,6 @@ async function postStandup({ command, ack, respond, client }) {
       team.id,
       targetDate.toDate()
     );
-    const allMembers = await standupService.getActiveMembers(
-      team.id,
-      targetDate.toDate()
-    );
-
     if (responses.length === 0 && lateResponses.length === 0) {
       await updateResponse({
         blocks: createNoDataBlocks(
@@ -811,33 +908,43 @@ async function postStandup({ command, ack, respond, client }) {
       return;
     }
 
-    // Post standup using service
+    // Post standup using service. postTeamStandup expects an app-shaped object
+    // (it calls slackApp.client.chat), so wrap the WebClient as { client }.
     const result = await standupService.postTeamStandup(
       team,
       targetDate.toDate(),
-      client
+      { client }
     );
 
+    if (result?.skipped) {
+      await updateResponse({
+        blocks: createCommandSuccessBlocks(
+          `Standup for *${team.name}* was already posted`,
+          {
+            Date: targetDate.format("MMM DD, YYYY"),
+            "Message timestamp": result.post.slackMessageTs,
+          }
+        ),
+      });
+      return;
+    }
+
     await updateResponse({
-      blocks: createCommandSuccessBlocks(
-        `Standup posted for *${team.name}*`,
-        {
-          "Date": targetDate.format("MMM DD, YYYY"),
-          "Responses": responses.length,
-          "Late responses": lateResponses.length,
-          "Message timestamp": result.ts,
-        }
-      ),
+      blocks: createCommandSuccessBlocks(`Standup posted for *${team.name}*`, {
+        Date: targetDate.format("MMM DD, YYYY"),
+        Responses: responses.length,
+        "Late responses": lateResponses.length,
+        "Message timestamp": result.ts,
+      }),
     });
 
     console.log(
       `📊 ${getUserLogIdentifier(user)} posted standup for team ${team.name} (${targetDate.format("YYYY-MM-DD")})`
     );
   } catch (error) {
-    console.error("Error in postStandup command:", error);
     await updateResponse({
       blocks: createCommandErrorBlocks(
-        `Failed to post standup: ${error.message}`,
+        sanitizeError(error, "Failed to post standup."),
         [
           "Check if bot has access to team channel",
           "Verify standup responses exist for the date",
@@ -848,11 +955,34 @@ async function postStandup({ command, ack, respond, client }) {
 }
 
 /**
+ * Resolve a mentioned Slack user to an active member of the given team.
+ * @param {string} teamId
+ * @param {string} mentionedUserId - Slack user ID from the command mention
+ * @returns {Promise<{targetUser?: object, error?: string}>}
+ */
+async function resolveTargetMember(teamId, mentionedUserId) {
+  const targetUser = await getUserBySlackId(mentionedUserId);
+  if (!targetUser) {
+    return { error: "That user isn't registered in the system." };
+  }
+
+  const membership = await prisma.teamMember.findUnique({
+    where: { teamId_userId: { teamId, userId: targetUser.id } },
+  });
+
+  if (!membership || !membership.isActive) {
+    return { error: "That user isn't an active member of this team." };
+  }
+
+  return { targetUser };
+}
+
+/**
  * Admin/Owner command: Preview standup summary
  * Usage: /dd-standup-preview [date] [team-name]
  */
-async function previewStandup({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+async function previewStandup({ command, ack, respond }) {
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Generating standup preview...",
@@ -873,7 +1003,11 @@ async function previewStandup({ command, ack, respond, client }) {
     }
 
     // Parse command arguments
-    const { date: dateStr, teamName } = parseCommandArguments(command.text);
+    const {
+      date: dateStr,
+      teamName,
+      mentionedUserId,
+    } = parseCommandArguments(command.text);
 
     // Validate date format if provided
     if (dateStr) {
@@ -898,13 +1032,10 @@ async function previewStandup({ command, ack, respond, client }) {
 
     if (error || !team) {
       await updateResponse({
-        blocks: createCommandErrorBlocks(
-          error || "Team not found",
-          [
-            "Ensure you're in a team channel or provide a team name",
-            "Use `/dd-team-list` to see available teams",
-          ]
-        ),
+        blocks: createCommandErrorBlocks(error || "Team not found", [
+          "Ensure you're in a team channel or provide a team name",
+          "Use `/dd-team-list` to see available teams",
+        ]),
         response_type: "ephemeral",
       });
       return;
@@ -924,6 +1055,59 @@ async function previewStandup({ command, ack, respond, client }) {
     const targetDate = dateStr
       ? dayjs(dateStr).tz(team.timezone)
       : dayjs().tz(team.timezone);
+
+    // Individual member preview
+    if (mentionedUserId) {
+      const { targetUser, error: memberError } = await resolveTargetMember(
+        team.id,
+        mentionedUserId
+      );
+      if (memberError) {
+        await updateResponse({
+          blocks: createCommandErrorBlocks(memberError),
+          response_type: "ephemeral",
+        });
+        return;
+      }
+
+      const response = await standupService.getUserResponse(
+        team.id,
+        targetUser.id,
+        targetDate.toDate()
+      );
+      if (!response) {
+        await updateResponse({
+          blocks: createNoDataBlocks(
+            `standup from ${getUserMention(targetUser)}`,
+            targetDate.format("MMM DD, YYYY")
+          ),
+          response_type: "ephemeral",
+        });
+        return;
+      }
+
+      const message =
+        await standupService.formatIndividualResponseMessage(response);
+
+      await updateResponse({
+        blocks: [
+          createSectionBlock(
+            `🔍 *Preview — ${getUserMention(targetUser)}'s standup* · ${targetDate.format(
+              "MMM DD, YYYY"
+            )}`
+          ),
+          ...message.blocks,
+        ],
+        response_type: "ephemeral",
+      });
+
+      console.log(
+        `🔍 ${getUserLogIdentifier(user)} previewed ${getUserMention(
+          targetUser
+        )}'s standup for team ${team.name} (${targetDate.format("YYYY-MM-DD")})`
+      );
+      return;
+    }
 
     // Get standup data
     const responses = await standupService.getTeamResponses(
@@ -1017,10 +1201,9 @@ async function previewStandup({ command, ack, respond, client }) {
       `🔍 ${getUserLogIdentifier(user)} previewed standup for team ${team.name} (${targetDate.format("YYYY-MM-DD")})`
     );
   } catch (error) {
-    console.error("Error in previewStandup command:", error);
     await updateResponse({
       blocks: createCommandErrorBlocks(
-        `Failed to generate preview: ${error.message}`
+        sanitizeError(error, "Failed to generate preview.")
       ),
       response_type: "ephemeral",
     });
@@ -1031,8 +1214,8 @@ async function previewStandup({ command, ack, respond, client }) {
  * Admin/Owner command: Send followup reminders to non-responders
  * Usage: /dd-standup-followup [team-name]
  */
-async function sendFollowupReminders({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+async function sendFollowupReminders({ command, ack, respond }) {
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Sending followup reminders...",
@@ -1063,13 +1246,10 @@ async function sendFollowupReminders({ command, ack, respond, client }) {
 
     if (error || !team) {
       await updateResponse({
-        blocks: createCommandErrorBlocks(
-          error || "Team not found",
-          [
-            "Ensure you're in a team channel or provide a team name",
-            "Use `/dd-team-list` to see available teams",
-          ]
-        ),
+        blocks: createCommandErrorBlocks(error || "Team not found", [
+          "Ensure you're in a team channel or provide a team name",
+          "Use `/dd-team-list` to see available teams",
+        ]),
       });
       return;
     }
@@ -1083,22 +1263,30 @@ async function sendFollowupReminders({ command, ack, respond, client }) {
       return;
     }
 
-    // Initialize scheduler service and send followup reminders
-    await schedulerService.initialize(client);
+    // Scheduler is already initialized with the Bolt app at startup (app.js);
+    // do NOT re-initialize here (see sendReminders above).
     await schedulerService.sendFollowupReminders(team);
 
     // Get count of pending members for confirmation
     const now = dayjs().tz(team.timezone);
-    const allMembers = await standupService.getActiveMembers(team.id, now.toDate());
-    const responses = await standupService.getTeamResponses(team.id, now.toDate());
+    const allMembers = await standupService.getActiveMembers(
+      team.id,
+      now.toDate()
+    );
+    const responses = await standupService.getTeamResponses(
+      team.id,
+      now.toDate()
+    );
     const respondedUserIds = new Set(responses.map((r) => r.userId));
-    const pendingCount = allMembers.filter((m) => !respondedUserIds.has(m.userId)).length;
+    const pendingCount = allMembers.filter(
+      (m) => !respondedUserIds.has(m.userId)
+    ).length;
 
     await updateResponse({
       blocks: createCommandSuccessBlocks(
         `Followup reminders sent for *${team.name}*`,
         {
-          "Team": team.name,
+          Team: team.name,
           "Pending members": pendingCount,
           "Your role": permission.role,
         }
@@ -1109,11 +1297,149 @@ async function sendFollowupReminders({ command, ack, respond, client }) {
       `🔔 ${getUserLogIdentifier(user)} sent followup reminders for team ${team.name} (${pendingCount} pending)`
     );
   } catch (error) {
-    console.error("Error in sendFollowupReminders command:", error);
     await updateResponse({
       blocks: createCommandErrorBlocks(
-        `Failed to send followup reminders: ${error.message}`,
+        sanitizeError(error, "Failed to send followup reminders."),
         ["Check team configuration", "Verify bot permissions"]
+      ),
+    });
+  }
+}
+
+async function showHistory({ command, ack, respond }) {
+  const updateResponse = await ackWithProcessing(
+    ack,
+    respond,
+    "Loading your standup history...",
+    command
+  );
+
+  try {
+    const args = (command.text || "").trim().split(/\s+/).filter(Boolean);
+
+    if (args.length > 2) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks("Too many arguments", [
+          "Usage: `/dd-standup-history [start-date] [end-date]`",
+          "Dates must be in YYYY-MM-DD format",
+        ]),
+      });
+      return;
+    }
+
+    for (const arg of args) {
+      const validation = validateDateFormat(arg);
+      if (!validation.isValid) {
+        await updateResponse({
+          blocks: createCommandErrorBlocks(validation.error, [
+            "Use format: YYYY-MM-DD (e.g., 2025-01-15)",
+          ]),
+        });
+        return;
+      }
+    }
+
+    let startDate;
+    let endDate;
+    let rangeLabel;
+
+    if (args.length === 0) {
+      const lastDate = await standupService.getUserLastSubmissionDate(
+        command.user_id
+      );
+
+      if (!lastDate) {
+        await updateResponse({
+          blocks: createNoDataBlocks("standup submissions"),
+        });
+        return;
+      }
+
+      startDate = dayjs(lastDate).format("YYYY-MM-DD");
+      endDate = startDate;
+      rangeLabel = `last submitted day (${dayjs(lastDate).format("MMM DD, YYYY")})`;
+    } else if (args.length === 1) {
+      startDate = args[0];
+      endDate = args[0];
+      rangeLabel = dayjs(startDate).format("MMM DD, YYYY");
+    } else {
+      const [first, second] = args;
+      if (dayjs(first).isAfter(dayjs(second))) {
+        startDate = second;
+        endDate = first;
+      } else {
+        startDate = first;
+        endDate = second;
+      }
+      rangeLabel = `${dayjs(startDate).format("MMM DD, YYYY")} – ${dayjs(endDate).format("MMM DD, YYYY")}`;
+    }
+
+    const responses = await standupService.getUserStandupHistory(
+      command.user_id,
+      startDate,
+      endDate
+    );
+
+    if (responses.length === 0) {
+      await updateResponse({
+        blocks: createNoDataBlocks("your standup submissions", rangeLabel),
+      });
+      return;
+    }
+
+    const blocks = [
+      {
+        type: "header",
+        text: {
+          type: "plain_text",
+          text: `📚 Your Standup History`,
+          emoji: true,
+        },
+      },
+      createSectionBlock(
+        `*Range:* ${rangeLabel}  •  *Entries:* ${responses.length}`
+      ),
+      createDividerBlock(),
+    ];
+
+    for (const response of responses) {
+      const dateStr = dayjs(response.standupDate).format("ddd, MMM DD, YYYY");
+      const lateTag = response.isLate ? "  🕐 _late_" : "";
+      blocks.push(
+        createSectionBlock(
+          `*🗓️ ${dateStr}  •  #${response.team.name}*${lateTag}`
+        )
+      );
+
+      const fields = [];
+      if (response.yesterdayTasks) {
+        fields.push({
+          type: "mrkdwn",
+          text: `*📄 Last Working Day*\n${response.yesterdayTasks}`,
+        });
+      }
+      if (response.todayTasks) {
+        fields.push({
+          type: "mrkdwn",
+          text: `*🎯 Today*\n${response.todayTasks}`,
+        });
+      }
+      if (fields.length > 0) {
+        blocks.push(createFieldsBlock(fields));
+      }
+
+      if (response.blockers && response.blockers.trim()) {
+        blocks.push(createBlockerContextBlock(response.blockers));
+      }
+
+      blocks.push(createDividerBlock());
+    }
+
+    await updateResponse({ blocks });
+  } catch (error) {
+    await updateResponse({
+      blocks: createCommandErrorBlocks(
+        sanitizeError(error, "Failed to load standup history.")
       ),
     });
   }
@@ -1129,4 +1455,5 @@ module.exports = {
   postStandup,
   previewStandup,
   sendFollowupReminders,
+  showHistory,
 };

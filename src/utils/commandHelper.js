@@ -65,11 +65,13 @@ function withFormattingRemoval(handler) {
 async function getChannelName(client, channelId) {
   try {
     const channelInfo = await client.conversations.info({
-      channel: channelId
+      channel: channelId,
     });
     return channelInfo.channel.name;
-  } catch (error) {
-    throw new Error("Failed to get channel information. Please provide a team name explicitly.");
+  } catch {
+    throw new Error(
+      "Failed to get channel information. Please provide a team name explicitly."
+    );
   }
 }
 
@@ -82,7 +84,7 @@ async function getChannelName(client, channelId) {
  * @param {Object} command - Slack command object (optional) to show command name
  * @returns {Function} updateResponse - Function to send the final response
  */
-function ackWithProcessing(
+async function ackWithProcessing(
   ack,
   respond,
   processingMessage = "⏳ Processing...",
@@ -97,7 +99,7 @@ function ackWithProcessing(
   }
 
   // Acknowledge immediately with processing message
-  ack({
+  await ack({
     text: message,
     response_type: "ephemeral",
   });

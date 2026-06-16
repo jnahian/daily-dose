@@ -11,7 +11,10 @@ async function promoteTeamMember(teamNameOrId, slackUserId) {
 
     // Find the team
     let team;
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(teamNameOrId);
+    const isUUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        teamNameOrId
+      );
 
     if (isUUID) {
       team = await prisma.team.findFirst({
@@ -46,7 +49,9 @@ async function promoteTeamMember(teamNameOrId, slackUserId) {
       return;
     }
 
-    console.log(`✅ Found user: ${user.name || "Unknown"} (${user.slackUserId})`);
+    console.log(
+      `✅ Found user: ${user.name || "Unknown"} (${user.slackUserId})`
+    );
 
     // Check if user is a member of the team
     const teamMember = await prisma.teamMember.findFirst({
@@ -63,7 +68,7 @@ async function promoteTeamMember(teamNameOrId, slackUserId) {
     }
 
     // Check current role
-    if (teamMember.role === 'ADMIN') {
+    if (teamMember.role === "ADMIN") {
       console.log(`ℹ️  User is already an admin of team: ${team.name}`);
       return;
     }
@@ -73,7 +78,7 @@ async function promoteTeamMember(teamNameOrId, slackUserId) {
     // Promote to admin
     const updatedMember = await prisma.teamMember.update({
       where: { id: teamMember.id },
-      data: { role: 'ADMIN' },
+      data: { role: "ADMIN" },
       include: {
         user: true,
         team: {
@@ -85,7 +90,9 @@ async function promoteTeamMember(teamNameOrId, slackUserId) {
     });
 
     console.log(`🎉 Successfully promoted user to team admin!`);
-    console.log(`   👑 ${updatedMember.user.name || "Unknown"} (${updatedMember.user.slackUserId})`);
+    console.log(
+      `   👑 ${updatedMember.user.name || "Unknown"} (${updatedMember.user.slackUserId})`
+    );
     console.log(`   📋 Team: ${updatedMember.team.name}`);
     console.log(`   🏢 Organization: ${updatedMember.team.organization.name}`);
     console.log(`   📅 Updated at: ${new Date().toISOString()}`);
@@ -96,21 +103,24 @@ async function promoteTeamMember(teamNameOrId, slackUserId) {
       where: {
         teamId: team.id,
         isActive: true,
-        role: 'ADMIN',
+        role: "ADMIN",
       },
       include: { user: true },
-      orderBy: { joinedAt: 'asc' },
+      orderBy: { joinedAt: "asc" },
     });
 
     allAdmins.forEach((admin, index) => {
-      console.log(`   ${index + 1}. 👑 ${admin.user.name || "Unknown"} (${admin.user.slackUserId})`);
+      console.log(
+        `   ${index + 1}. 👑 ${admin.user.name || "Unknown"} (${admin.user.slackUserId})`
+      );
     });
-
   } catch (error) {
     console.error("❌ Error promoting team member:", error);
-    
-    if (error.code === 'P2025') {
-      console.log("💡 This usually means the record was not found or has been deleted.");
+
+    if (error.code === "P2025") {
+      console.log(
+        "💡 This usually means the record was not found or has been deleted."
+      );
     }
   } finally {
     await prisma.$disconnect();
@@ -122,7 +132,12 @@ const args = process.argv.slice(2);
 const teamNameOrId = args[0];
 const slackUserId = args[1];
 
-if (args.includes("--help") || args.includes("-h") || !teamNameOrId || !slackUserId) {
+if (
+  args.includes("--help") ||
+  args.includes("-h") ||
+  !teamNameOrId ||
+  !slackUserId
+) {
   console.log(`
 👑 Team Member Promotion Script
 

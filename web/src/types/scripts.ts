@@ -22,7 +22,7 @@ export interface Script {
   iconColor: string;
   purpose: string;
   usageNote?: {
-    type: 'info' | 'warning' | 'success' | 'danger';
+    type: "info" | "warning" | "success" | "danger";
     title: string;
     description: string;
   };

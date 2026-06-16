@@ -1,5 +1,5 @@
-
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight } from "lucide-react";
+import { formatDate } from "../../utils/dateUtils";
 
 interface TableOfContentsProps {
   versions: Array<{ version: string; date: string }>;
@@ -22,14 +22,16 @@ export const TableOfContents = ({
 
       window.scrollTo({
         top: offsetPosition,
-        behavior: 'smooth',
+        behavior: "smooth",
       });
     }
   };
 
   return (
     <div className="sticky top-24 bg-bg-surface border border-border-default rounded-xl p-6 h-fit">
-      <h3 className="font-semibold text-text-primary mb-4 text-sm uppercase tracking-wide">Versions</h3>
+      <h3 className="font-semibold text-text-primary mb-4 text-sm uppercase tracking-wide">
+        Versions
+      </h3>
       <nav className="space-y-2">
         {versions.map((version) => (
           <button
@@ -37,16 +39,20 @@ export const TableOfContents = ({
             onClick={() => scrollToVersion(version.version)}
             className={`
               w-full text-left text-sm px-3 py-2 rounded-md transition-colors flex items-center gap-2
-              ${activeVersion === version.version ? 'bg-brand-cyan/10 text-brand-cyan' : 'text-text-secondary hover:text-text-primary hover:bg-bg-primary'}
+              ${activeVersion === version.version ? "bg-brand-cyan/10 text-brand-cyan" : "text-text-secondary hover:text-text-primary hover:bg-bg-primary"}
             `}
           >
             <ChevronRight
               size={14}
-              className={activeVersion === version.version ? 'opacity-100' : 'opacity-0'}
+              className={
+                activeVersion === version.version ? "opacity-100" : "opacity-0"
+              }
             />
             <div className="flex-1">
               <div className="font-semibold">v{version.version}</div>
-              <div className="text-xs opacity-75">{version.date}</div>
+              <div className="text-xs opacity-75">
+                {formatDate(version.date)}
+              </div>
             </div>
           </button>
         ))}

@@ -1,27 +1,27 @@
-import { Mail, Github, MessageSquare } from 'lucide-react';
+import { Mail, Github, MessageSquare } from "lucide-react";
 
 export const meta = () => {
   return [
-    { title: 'Contact Us - Daily Dose | Slack Bot' },
+    { title: "Contact Us - Daily Dose | Slack Bot" },
     {
-      name: 'description',
+      name: "description",
       content:
-        'Get in touch with the Daily Dose team. We are here to help with any questions or feedback about our Slack bot.',
+        "Get in touch with the Daily Dose team. We are here to help with any questions or feedback about our Slack bot.",
     },
     {
-      name: 'keywords',
-      content: 'contact us, support, feedback, daily dose, slack bot',
+      name: "keywords",
+      content: "contact us, support, feedback, daily dose, slack bot",
     },
-    { name: 'author', content: 'Daily Dose' },
-    { property: 'og:type', content: 'website' },
-    { property: 'og:url', content: '/contact' },
-    { property: 'og:title', content: 'Contact Us - Daily Dose' },
+    { name: "author", content: "Daily Dose" },
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: "https://dd.jnahian.me/contact" },
+    { property: "og:title", content: "Contact Us - Daily Dose" },
     {
-      property: 'og:description',
+      property: "og:description",
       content:
-        'Get in touch with the Daily Dose team for support and feedback.',
+        "Get in touch with the Daily Dose team for support and feedback.",
     },
-    { property: 'og:image', content: '/logo.png' },
+    { property: "og:image", content: "/logo.png" },
   ];
 };
 
@@ -40,15 +40,15 @@ const ContactPage = () => {
             href="https://github.com/jnahian/daily-dose"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-8 rounded-lg border border-border-default bg-bg-secondary hover:border-brand-cyan/50 transition-all duration-300 hover:shadow-lg hover:shadow-brand-cyan/10"
+            className="p-8 rounded-lg border border-border-default bg-bg-surface hover:border-brand-cyan/50 transition-all duration-300 hover:shadow-lg hover:shadow-brand-cyan/10"
           >
             <div className="flex items-start gap-4">
               <Github className="w-8 h-8 text-brand-cyan flex-shrink-0 mt-1" />
               <div>
                 <h3 className="text-xl font-bold mb-2">GitHub Issues</h3>
                 <p className="text-text-secondary mb-4">
-                  Found a bug or have a feature request? Open an issue on our GitHub
-                  repository.
+                  Found a bug or have a feature request? Open an issue on our
+                  GitHub repository.
                 </p>
                 <p className="text-brand-cyan font-medium flex items-center gap-2">
                   github.com/jnahian/daily-dose
@@ -62,15 +62,15 @@ const ContactPage = () => {
             href="https://github.com/jnahian/daily-dose/discussions"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-8 rounded-lg border border-border-default bg-bg-secondary hover:border-brand-cyan/50 transition-all duration-300 hover:shadow-lg hover:shadow-brand-cyan/10"
+            className="p-8 rounded-lg border border-border-default bg-bg-surface hover:border-brand-cyan/50 transition-all duration-300 hover:shadow-lg hover:shadow-brand-cyan/10"
           >
             <div className="flex items-start gap-4">
               <MessageSquare className="w-8 h-8 text-brand-cyan flex-shrink-0 mt-1" />
               <div>
                 <h3 className="text-xl font-bold mb-2">GitHub Discussions</h3>
                 <p className="text-text-secondary mb-4">
-                  Have questions or want to discuss ideas? Start a discussion with our
-                  community.
+                  Have questions or want to discuss ideas? Start a discussion
+                  with our community.
                 </p>
                 <p className="text-brand-cyan font-medium flex items-center gap-2">
                   Join the conversation
@@ -81,30 +81,30 @@ const ContactPage = () => {
         </div>
 
         {/* Additional Contact Section */}
-        <div className="bg-bg-secondary border border-border-default rounded-lg p-8">
+        <div className="bg-bg-surface border border-border-default rounded-lg p-8">
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
             <Mail className="w-6 h-6 text-brand-cyan" />
             Other Ways to Reach Us
           </h2>
           <div className="space-y-4 text-text-secondary">
             <p>
-              <strong>For general inquiries:</strong> You can open an issue on GitHub
-              or participate in GitHub Discussions.
+              <strong>For general inquiries:</strong> You can open an issue on
+              GitHub or participate in GitHub Discussions.
             </p>
             <p>
-              <strong>For security concerns:</strong> Please open an issue on GitHub
-              and mark it as a security concern. Do not publicly disclose security
-              vulnerabilities.
+              <strong>For security concerns:</strong> Please open an issue on
+              GitHub and mark it as a security concern. Do not publicly disclose
+              security vulnerabilities.
             </p>
             <p>
-              <strong>For feedback and suggestions:</strong> We'd love to hear your
-              ideas! Please share them on GitHub Discussions or open a feature request
-              as an issue.
+              <strong>For feedback and suggestions:</strong> We'd love to hear
+              your ideas! Please share them on GitHub Discussions or open a
+              feature request as an issue.
             </p>
             <p>
-              <strong>For documentation issues:</strong> If you find any errors or have
-              suggestions for improving our documentation, please open an issue on
-              GitHub.
+              <strong>For documentation issues:</strong> If you find any errors
+              or have suggestions for improving our documentation, please open
+              an issue on GitHub.
             </p>
           </div>
         </div>
@@ -113,8 +113,8 @@ const ContactPage = () => {
         <div className="mt-12 p-8 rounded-lg border border-brand-cyan/20 bg-brand-cyan/5">
           <h2 className="text-2xl font-bold mb-4">Join Our Community</h2>
           <p className="text-text-secondary mb-6">
-            We're building Daily Dose in the open. Join us on GitHub to stay updated
-            on new features, improvements, and releases.
+            We're building Daily Dose in the open. Join us on GitHub to stay
+            updated on new features, improvements, and releases.
           </p>
           <a
             href="https://github.com/jnahian/daily-dose"

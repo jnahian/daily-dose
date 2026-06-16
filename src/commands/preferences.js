@@ -1,9 +1,12 @@
 const teamService = require("../services/teamService");
 const { ackWithProcessing } = require("../utils/commandHelper");
-const { createSectionBlock } = require("../utils/blockHelper");
+const {
+  createSectionBlock,
+  createCommandErrorBlocks,
+} = require("../utils/blockHelper");
 
 async function toggleStandupReminder({ command, ack, respond, client }) {
-  const updateResponse = ackWithProcessing(
+  const updateResponse = await ackWithProcessing(
     ack,
     respond,
     "Updating standup reminder preferences...",
@@ -26,7 +29,11 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
         mentionIndex = i;
       } else if (args[i].startsWith("notify=")) {
         notifyIndex = i;
-      } else if (!args[i].startsWith("mention=") && !args[i].startsWith("notify=") && teamNameIndex === -1) {
+      } else if (
+        !args[i].startsWith("mention=") &&
+        !args[i].startsWith("notify=") &&
+        teamNameIndex === -1
+      ) {
         // First non-parameter argument is team name
         teamNameIndex = i;
       }
@@ -37,7 +44,9 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
       const mentionValue = args[mentionIndex].split("=")[1];
       if (mentionValue !== "on" && mentionValue !== "off") {
         await updateResponse({
-          text: "❌ Invalid mention parameter. Use `mention=on` or `mention=off`",
+          blocks: createCommandErrorBlocks(
+            "Invalid mention parameter. Use `mention=on` or `mention=off`"
+          ),
         });
         return;
       }
@@ -48,7 +57,9 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
       const notifyValue = args[notifyIndex].split("=")[1];
       if (notifyValue !== "on" && notifyValue !== "off") {
         await updateResponse({
-          text: "❌ Invalid notify parameter. Use `notify=on` or `notify=off`",
+          blocks: createCommandErrorBlocks(
+            "Invalid notify parameter. Use `notify=on` or `notify=off`"
+          ),
         });
         return;
       }
@@ -58,7 +69,15 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
     // Validate that at least one of mention or notify is provided
     if (mentionParam === undefined && notifyParam === undefined) {
       await updateResponse({
-        text: "❌ You must specify at least one parameter: `mention=on/off` or `notify=on/off`\n\nUsage examples:\n- `/dd-standup-reminder mention=off` - Stop being mentioned in non-responded list\n- `/dd-standup-reminder notify=off` - Stop receiving reminders AND admin submission notifications\n- `/dd-standup-reminder TeamName mention=on notify=off` - Be mentioned but don't receive notifications\n- `/dd-standup-reminder mention=on notify=on` - Enable all notifications",
+        blocks: createCommandErrorBlocks(
+          "You must specify at least one parameter: `mention=on/off` or `notify=on/off`",
+          [
+            "`/dd-standup-reminder mention=off` — stop being mentioned in non-responded list",
+            "`/dd-standup-reminder notify=off` — stop reminders and admin submission notifications",
+            "`/dd-standup-reminder TeamName mention=on notify=off`",
+            "`/dd-standup-reminder mention=on notify=on` — enable all notifications",
+          ]
+        ),
       });
       return;
     }
@@ -69,7 +88,7 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
       team = await teamService.findTeamByName(teamName);
       if (!team) {
         await updateResponse({
-          text: `❌ Team "${teamName}" not found`,
+          blocks: createCommandErrorBlocks(`Team "${teamName}" not found`),
         });
         return;
       }
@@ -78,7 +97,10 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
       team = await teamService.findTeamByChannel(command.channel_id);
       if (!team) {
         await updateResponse({
-          text: "❌ No team found in this channel. Please specify team name or run from team channel.\n\nUsage: `/dd-standup-reminder [TeamName] mention=on/off notify=on/off`",
+          blocks: createCommandErrorBlocks("No team found in this channel.", [
+            "Usage: `/dd-standup-reminder [TeamName] mention=on/off notify=on/off`",
+            "Or run inside a team channel without the team name",
+          ]),
         });
         return;
       }
@@ -86,11 +108,16 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
     }
 
     // Check if user is a member of the team
-    const membership = await teamService.getUserTeamMembership(command.user_id, team.id);
+    const membership = await teamService.getUserTeamMembership(
+      command.user_id,
+      team.id
+    );
 
     if (!membership) {
       await updateResponse({
-        text: `❌ You are not a member of team "${teamName}"`,
+        blocks: createCommandErrorBlocks(
+          `You are not a member of team "${teamName}"`
+        ),
       });
       return;
     }
@@ -108,7 +135,9 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
     if (notifyParam !== undefined) {
       updates.receiveNotifications = notifyParam === "on";
       const notifyStatus = notifyParam === "on" ? "enabled" : "disabled";
-      statusMessages.push(`Notifications (reminders + team submissions): *${notifyStatus}*`);
+      statusMessages.push(
+        `Notifications (reminders + team submissions): *${notifyStatus}*`
+      );
     }
 
     // Update preferences
@@ -120,26 +149,33 @@ async function toggleStandupReminder({ command, ack, respond, client }) {
     );
 
     // Get current status after update
-    const updatedMembership = await teamService.getUserTeamMembership(command.user_id, team.id);
+    const updatedMembership = await teamService.getUserTeamMembership(
+      command.user_id,
+      team.id
+    );
 
-    const currentMentionStatus = updatedMembership.hideFromNotResponded ? "disabled" : "enabled";
-    const currentNotifyStatus = updatedMembership.receiveNotifications ? "enabled" : "disabled";
+    const currentMentionStatus = updatedMembership.hideFromNotResponded
+      ? "disabled"
+      : "enabled";
+    const currentNotifyStatus = updatedMembership.receiveNotifications
+      ? "enabled"
+      : "disabled";
 
     await updateResponse({
       blocks: [
         createSectionBlock(
           `*🔔 Standup Preferences Updated for ${teamName}*\n\n` +
-          statusMessages.join("\n") +
-          `\n\n*Current Settings:*\n` +
-          `• Mentions in non-responded list: *${currentMentionStatus}*\n` +
-          `• Notifications (reminders + submissions): *${currentNotifyStatus}*\n\n` +
-          `*Note:* When notifications are disabled, you won't receive standup reminders or admin notifications about team member submissions. You can still submit standups manually.`
-        )
+            statusMessages.join("\n") +
+            `\n\n*Current Settings:*\n` +
+            `• Mentions in non-responded list: *${currentMentionStatus}*\n` +
+            `• Notifications (reminders + submissions): *${currentNotifyStatus}*\n\n` +
+            `*Note:* When notifications are disabled, you won't receive standup reminders or admin notifications about team member submissions. You can still submit standups manually.`
+        ),
       ],
     });
   } catch (error) {
     await updateResponse({
-      text: `❌ Error: ${error.message}`,
+      blocks: createCommandErrorBlocks(`Error: ${error.message}`),
     });
   }
 }

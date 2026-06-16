@@ -1,4 +1,11 @@
 const teamService = require("./teamService");
+const userService = require("./userService");
+const logger = require("../utils/logger");
+const { escapeSlackText } = require("../utils/messageHelper");
+const {
+  createAdminSubmissionNotificationBlocks,
+  createTeamApprovalRequestBlocks,
+} = require("../utils/blockHelper");
 
 class NotificationService {
   /**
@@ -18,13 +25,13 @@ class NotificationService {
     user,
     team,
     client,
-    options = {}
+    options = {},
   }) {
     const { isUpdate = false, isLate = false, date = null } = options;
 
     try {
       const teamAdmins = await teamService.getTeamAdmins(teamId);
-      
+
       for (const admin of teamAdmins) {
         // Don't notify the admin if they are the one submitting
         // Also check if the admin has notifications enabled
@@ -36,12 +43,12 @@ class NotificationService {
             client,
             isUpdate,
             isLate,
-            date
+            date,
           });
         }
       }
     } catch (error) {
-      console.error("Error notifying team admins:", error);
+      logger.error("Error notifying team admins:", error);
       // Don't throw here - submission was successful, notification failure shouldn't break the flow
     }
   }
@@ -64,36 +71,19 @@ class NotificationService {
     client,
     isUpdate,
     isLate,
-    date
+    date,
   }) {
     const userName = user.real_name || user.name || user.id;
     const actionText = isUpdate ? "updated" : "submitted";
     const dateText = date ? ` (${date})` : "";
     const lateText = isLate ? " (late submission)" : "";
-    
+
     const notificationText = `📝 ${userName} ${actionText} their standup for ${team.name}${dateText}${lateText}`;
-    
+
     await client.chat.postMessage({
       channel: admin.user.slackUserId,
       text: notificationText,
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: notificationText,
-          },
-        },
-        {
-          type: "context",
-          elements: [
-            {
-              type: "mrkdwn",
-              text: `Team: *${team.name}* | Channel: <#${team.slackChannelId}>`,
-            },
-          ],
-        },
-      ],
+      blocks: createAdminSubmissionNotificationBlocks(notificationText, team),
     });
   }
 
@@ -111,14 +101,17 @@ class NotificationService {
     excludeUserId = null,
     client,
     message,
-    blocks = null
+    blocks = null,
   }) {
     try {
       const teamAdmins = await teamService.getTeamAdmins(teamId);
-      
+
       for (const admin of teamAdmins) {
         // Skip if this admin should be excluded or has notifications disabled
-        if ((excludeUserId && admin.user.slackUserId === excludeUserId) || !admin.receiveNotifications) {
+        if (
+          (excludeUserId && admin.user.slackUserId === excludeUserId) ||
+          !admin.receiveNotifications
+        ) {
           continue;
         }
 
@@ -134,8 +127,60 @@ class NotificationService {
         await client.chat.postMessage(messagePayload);
       }
     } catch (error) {
-      console.error("Error notifying team admins:", error);
+      logger.error("Error notifying team admins:", error);
       // Don't throw here - original operation should not be affected by notification failures
+    }
+  }
+
+  /**
+   * DM every org admin/owner to ask them to approve or reject a team proposed
+   * by a non-admin member. The proposer is skipped if they happen to be an
+   * admin (they aren't, in practice, since admins create active teams).
+   * @param {Object} params
+   * @param {Object} params.team - The pending team record
+   * @param {Object} params.organization - The owning organization
+   * @param {string} params.creatorSlackUserId - Slack user ID of the proposer
+   * @param {Object} params.client - Slack client
+   */
+  async notifyOrgAdminsOfPendingTeam({
+    team,
+    organization,
+    creatorSlackUserId,
+    client,
+  }) {
+    try {
+      const admins = await userService.getOrganizationAdmins(organization.id);
+      const text = `🆕 <@${creatorSlackUserId}> proposed a new team "${escapeSlackText(
+        team.name
+      )}" that needs your approval.`;
+      const blocks = createTeamApprovalRequestBlocks({
+        team,
+        creatorSlackUserId,
+      });
+
+      for (const admin of admins) {
+        if (admin.user.slackUserId === creatorSlackUserId) {
+          continue;
+        }
+
+        // Isolate per-recipient failures so one bad DM (e.g. a deactivated
+        // admin) doesn't stop the rest of the fan-out.
+        try {
+          await client.chat.postMessage({
+            channel: admin.user.slackUserId,
+            text,
+            blocks,
+          });
+        } catch (postError) {
+          logger.error(
+            `Failed pending-team DM to org admin ${admin.user.slackUserId}:`,
+            postError
+          );
+        }
+      }
+    } catch (error) {
+      logger.error("Error notifying org admins of pending team:", error);
+      // Don't throw - team creation succeeded; notification failure shouldn't break the flow
     }
   }
 }

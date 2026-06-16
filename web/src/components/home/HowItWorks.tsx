@@ -1,5 +1,5 @@
-import { HowItWorksAnimation } from './HowItWorksAnimation';
-import { LordIcon } from '../LordIcon';
+import { HowItWorksAnimation } from "./HowItWorksAnimation";
+import { LordIcon } from "../LordIcon";
 
 interface StepProps {
   number: string;
@@ -27,7 +27,10 @@ const Step = ({ number, title, description, isLast }: StepProps) => (
 
 export const HowItWorks = () => {
   return (
-    <section id="how-it-works" className="py-24 bg-bg-surface/30 border-y border-border-default">
+    <section
+      id="how-it-works"
+      className="py-24 bg-bg-surface/30 border-y border-border-default"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-text-primary mb-4 flex flex-col items-center justify-center gap-4">
@@ -40,9 +43,7 @@ export const HowItWorks = () => {
                 size={40}
               />
             </div>
-            <span>
-              How it works
-            </span>
+            <span>How it works</span>
           </h2>
           <p className="text-text-secondary max-w-2xl mx-auto">
             Get started in minutes. No complex configuration required.
@@ -50,8 +51,6 @@ export const HowItWorks = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-
-
           <div className="space-y-2">
             <Step
               number="1"

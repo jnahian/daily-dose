@@ -1,9 +1,445 @@
 {
   "versions": [
     {
+      "version": "1.12.0",
+      "date": "2026-06-16",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Anyone can create a team — with admin approval",
+          "items": [
+            "You no longer need to be added to the organization first: just run /dd-team-create and you'll be onboarded automatically",
+            "If you're a regular member, your new team is sent to an organization admin for a quick Approve or Reject — you'll be notified the moment they decide, and standups start as soon as it's approved",
+            "Organization owners and admins still get instant team creation, no approval needed"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.11.0",
+      "date": "2026-06-12",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "added",
+          "title": "A brand-new website landing page",
+          "items": [
+            "The Daily Dose homepage has been completely redesigned with a refined dark look — see what a day with Daily Dose feels like, browse features, stats, and FAQs at a glance",
+            "Animations are smooth and scroll-triggered, and automatically tone down if your device prefers reduced motion",
+            "Prefer the old homepage? It's still available at /v1"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.10.0",
+      "date": "2026-06-10",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Contact form now sends your message",
+          "items": [
+            "Submitting the contact form on the website now delivers your message to the team instead of silently doing nothing"
+          ]
+        },
+        {
+          "type": "added",
+          "title": "Team timezones are validated when you set them",
+          "items": [
+            "Setting or updating a team's timezone now catches typos (like America/NewYork) right away, instead of silently breaking the team's standup schedule"
+          ]
+        },
+        {
+          "type": "fixed",
+          "title": "Reminder opt-out is respected",
+          "items": [
+            "Turning off notifications with /dd-standup-reminder notify=off now stops standup reminder and follow-up DMs, instead of still messaging you every day"
+          ]
+        },
+        {
+          "type": "fixed",
+          "title": "Standups with special characters and long content post reliably",
+          "items": [
+            "Updates containing characters like &, <, or > no longer break the posted summary's formatting",
+            "Very long blockers no longer prevent a standup from posting"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.9.1",
+      "date": "2026-06-09",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "fixed",
+          "title": "Posting a member's standup by @mention now works",
+          "items": [
+            "Mentioning a member in /dd-standup-post or /dd-standup-preview now correctly targets that person instead of the whole team"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.9.0",
+      "date": "2026-06-08",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Preview and post a single member's standup",
+          "items": [
+            "Admins can preview or post one team member's standup by mentioning them, e.g. /dd-standup-preview @alice or /dd-standup-post @alice",
+            "Posting a member adds their update as a reply under the day's team standup, and posts the team summary first if it isn't up yet"
+          ]
+        },
+        {
+          "type": "changed",
+          "title": "Organization admins get admin access",
+          "items": [
+            "Organization admins can now run admin standup commands, alongside owners and team admins"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.8.7",
+      "date": "2026-06-08",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "fixed",
+          "title": "Late standups post reliably",
+          "items": [
+            "Fixed late standup submissions failing to post when an update contained long content such as pasted links"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.8.6",
+      "date": "2026-06-04",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "fixed",
+          "title": "Standup form opens reliably",
+          "items": [
+            "Fixed the standup form failing to open when your previous update included indented or nested bullet/numbered lists"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.8.5",
+      "date": "2026-06-03",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "fixed",
+          "title": "More reliable standups",
+          "items": [
+            "Fixed errors that could stop standup posting, reminders, and previews from working",
+            "Long updates with lots of links no longer fail to post"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.8.1",
+      "date": "2026-05-27",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Slack App Home Tab",
+          "items": [
+            "The Daily Dose bot now has a Home tab in Slack with a quick welcome and one-click buttons to the intro video, website, docs, and changelog",
+            "Includes a get-started checklist and a handy commands cheat sheet so new teammates can ramp up without leaving Slack"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.8.0",
+      "date": "2026-05-27",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Get-Started Video on Homepage",
+          "items": [
+            "The homepage now features an embedded demo video showing Daily Dose in action — reminders, standup submission, slash commands, and team summaries",
+            "Click the fullscreen button on the video to watch with audio"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.7.0",
+      "date": "2026-05-20",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "changed",
+          "title": "Stricter Time Validation",
+          "items": [
+            "`/dd-team-create` and `/dd-team-update` now reject malformed times like `99:99` right away with a clear message, instead of failing silently later",
+            "Times are normalized on save — entering `9:5` is accepted and stored as `09:05`"
+          ]
+        },
+        {
+          "type": "changed",
+          "title": "Friendlier Error Messages",
+          "items": [
+            "Unexpected errors now show a short message with a reference code instead of raw internal details",
+            "Clear, expected messages (like \"You cannot promote yourself\") are still shown in full"
+          ]
+        },
+        {
+          "type": "fixed",
+          "title": "No More Duplicate Standup Posts",
+          "items": [
+            "When the posting job ran twice for the same team and day, the bot used to post the standup summary again and lose the thread for late replies — it now detects the existing post and skips"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.6.2",
+      "date": "2026-05-19",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Promote Members to Admin",
+          "items": [
+            "Organization owners and admins can now promote a member to admin with `/dd-org-promote @user`",
+            "Add a team name to scope the promotion to a single team — e.g. `/dd-org-promote @john Engineering` makes them a team admin in Engineering",
+            "Accepts the same target formats as the suspend commands: `@mention`, raw Slack user ID, or bare username",
+            "Safety guards prevent self-promotion, promoting an existing admin, or trying to promote the organization owner"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.6.1",
+      "date": "2026-05-17",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "changed",
+          "title": "`/dd-team-list` Now Respects Your Role",
+          "items": [
+            "Members and team admins now see only the teams they belong to when running `/dd-team-list`",
+            "Organization owners, organization admins, and super admins continue to see every team in the organization",
+            "The response heading changes accordingly — \"Your teams:\" for members vs \"Teams in <Organization>:\" for admins"
+          ]
+        },
+        {
+          "type": "fixed",
+          "title": "Suspend Already-Deactivated Members",
+          "items": [
+            "Suspend commands now accept a Slack username or user ID, so admins can clean up members who were already deactivated in Slack and can no longer be @-mentioned"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.6.0",
+      "date": "2026-05-17",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Suspend Inactive Members",
+          "items": [
+            "Team admins can now suspend a member from a single team with `/dd-team-suspend @user [team-name]` (and reactivate with `/dd-team-unsuspend`)",
+            "Organization owners and admins can suspend a member across the entire organization with `/dd-org-suspend @user` (reactivate with `/dd-org-unsuspend`)",
+            "Suspended members cannot submit standups, stop receiving reminders, and are excluded from posted summaries",
+            "Daily Dose now automatically suspends members when they're deactivated in Slack — no manual cleanup needed",
+            "Safety guards prevent suspending the only active admin of a team or accidentally changing an organization owner's status"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.5.1",
+      "date": "2026-04-30",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "fixed",
+          "title": "`/dd-standup` No Longer Errors in DMs",
+          "items": [
+            "Running `/dd-standup` without a team name in a DM with the bot (or in a non-team channel) used to return a 500 error if you were on more than five teams",
+            "Now it shows a clean usage hint listing your available teams"
+          ]
+        },
+        {
+          "type": "changed",
+          "title": "Cleaner Error Messages Across All Commands",
+          "items": [
+            "All slash-command error responses now share a consistent format: a primary message plus bulleted suggestions",
+            "Affects usage hints, validation errors, and 'team not found' messages across team, leave, holiday, standup, and preferences commands"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.5.0",
+      "date": "2026-04-30",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "added",
+          "title": "View Your Standup History",
+          "items": [
+            "New `/dd-standup-history` command lets you privately review your own standup submissions across all your teams",
+            "Run with no arguments to see your most recent submitted day",
+            "Pass a single date (`/dd-standup-history 2024-12-20`) to see that day, or two dates for a range",
+            "Date order doesn't matter — the bot figures it out"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.4.6",
+      "date": "2026-03-30",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "changed",
+          "title": "GitHub Repository Link",
+          "items": [
+            "The 'Add to Slack' button now links to the GitHub repository",
+            "Easily access the source code directly from the homepage"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.4.5",
+      "date": "2026-03-30",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "fixed",
+          "title": "Slash Commands Now Work Reliably",
+          "items": [
+            "Fixed a critical issue where all /dd-* slash commands failed with 'app did not respond'",
+            "Commands now respond immediately and consistently in all environments"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.4.4",
+      "date": "2026-03-18",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Web Application Enhancements",
+          "items": [
+            "Added favicon and app icons for better branding across all devices",
+            "Progressive Web App (PWA) support with manifest file",
+            "iOS home screen icon support for a native app-like experience",
+            "Multiple icon sizes for optimal display on any device"
+          ]
+        },
+        {
+          "type": "added",
+          "title": "Development Tools",
+          "items": [
+            "Docker Compose configuration for easier local development setup",
+            "Git Town configuration for streamlined branch management",
+            "Environment setup examples for admin configuration"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.4.3",
+      "date": "2026-02-05",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Bulk Standup Management",
+          "items": [
+            "Send standup reminders to all teams at once with a single command",
+            "Post standup summaries for all teams simultaneously",
+            "Safety confirmation prompt before bulk operations",
+            "Preview which teams will be affected before proceeding",
+            "Detailed success and failure reports for each team"
+          ]
+        },
+        {
+          "type": "changed",
+          "title": "Improved Administrative Tools",
+          "items": [
+            "Administrators can now manage standups across all teams more efficiently",
+            "Better error handling ensures operations continue even if one team fails",
+            "Preview mode allows testing before sending actual messages"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.4.2",
+      "date": "2026-02-05",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "fixed",
+          "title": "Holiday System Improvements",
+          "items": [
+            "Fixed an issue preventing holiday schedules from working correctly",
+            "Resolved errors that were blocking standup automation during holidays"
+          ]
+        },
+        {
+          "type": "changed",
+          "title": "Organization-Specific Holidays",
+          "items": [
+            "Each organization can now manage its own holiday schedule independently",
+            "Holidays are no longer shared across different workspaces",
+            "Better support for teams in different countries and regions"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.4.1",
+      "date": "2025-02-03",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "changed",
+          "title": "Better Notification Controls",
+          "items": [
+            "Team admins can now turn off all standup notifications if they prefer",
+            "Clearer documentation on how notification settings work",
+            "Better control over when you receive reminders and alerts"
+          ]
+        },
+        {
+          "type": "fixed",
+          "title": "Bug Fixes",
+          "items": [
+            "Fixed preferences command to work as documented",
+            "Improved command documentation accuracy"
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.4.0",
       "date": "2025-11-26",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "added",
@@ -60,44 +496,21 @@
       "changes": [
         {
           "type": "added",
-          "title": "Manual Standup Trigger Commands",
+          "title": "Manual Standup Controls",
           "items": [
-            "/dd-standup-remind [team-name] - Send standup reminders to team members",
-            "/dd-standup-post [YYYY-MM-DD] [team-name] - Post standup summary for specific date",
-            "/dd-standup-preview [YYYY-MM-DD] [team-name] - Preview standup summary (ephemeral)",
-            "/dd-standup-followup [team-name] - Send followup reminders to non-responders"
+            "Send standup reminders manually anytime, not just at scheduled times",
+            "Post standup summaries for any past date",
+            "Preview standup summaries before posting them to the channel",
+            "Send follow-up reminders to team members who haven't responded yet"
           ]
         },
         {
           "type": "added",
-          "title": "Permission System",
+          "title": "Smarter Permissions",
           "items": [
-            "Role-based access control with permissionHelper.js utility",
-            "isOrganizationOwner(), isTeamAdmin(), and canManageTeam() functions",
-            "Context-aware team resolution in teamHelper.js",
-            "Admins can run commands from team channel without specifying team name",
-            "Owners must specify team name when running from any location",
-            "resolveTeamFromContext() function for automatic team detection",
-            "parseCommandArguments() for flexible date and team name parsing"
-          ]
-        },
-        {
-          "type": "added",
-          "title": "Block Helper Functions",
-          "items": [
-            "createCommandSuccessBlocks() - Success messages with details",
-            "createCommandErrorBlocks() - Error messages with suggestions",
-            "createPermissionDeniedBlocks() - Permission error messages",
-            "createStandupPreviewHeaderBlocks() - Preview header formatting",
-            "createNoDataBlocks() - No data available messages"
-          ]
-        },
-        {
-          "type": "added",
-          "title": "Documentation & Logging",
-          "items": [
-            "Comprehensive audit logging for all admin actions",
-            "User stories and implementation plan documentation"
+            "Team admins can now manage their teams more easily",
+            "Commands are context-aware - no need to specify team name when you're already in the team channel",
+            "Better error messages when you don't have permission to perform an action"
           ]
         }
       ]
@@ -109,13 +522,11 @@
       "changes": [
         {
           "type": "changed",
-          "title": "Late Standup Submissions",
+          "title": "Better Late Submission Handling",
           "items": [
-            "Late submissions now create full standup posts when no parent message exists",
-            "First late submission creates a complete standup post with all sections",
-            "Subsequent late submissions are added as threaded replies",
-            "Applies to both /dd-standup submissions and /dd-standup-update updates",
-            "New postStandupOnDemand() method in StandupService"
+            "Late standup submissions now appear in the channel even if no summary was posted yet",
+            "Your late submission won't be lost - it creates a new post if needed",
+            "Multiple late submissions are neatly organized in a thread"
           ]
         }
       ]
@@ -129,35 +540,10 @@
           "type": "added",
           "title": "Admin Leave Management",
           "items": [
-            "/dd-leave-set-member - Set leave for any team member (admin only)",
-            "/dd-leave-cancel-member - Cancel team member's leave (admin only)",
-            "/dd-leave-list-member - List team member's upcoming leaves (admin only)",
-            "isTeamAdmin() method in TeamService",
-            "getUserTeams() method in TeamService",
-            "setMemberLeave(), cancelMemberLeave(), and listMemberLeaves() methods in UserService",
-            "Support for @mentions in admin leave commands",
-            "Smart team detection for single-team admins",
-            "Comprehensive permission checks for admin leave operations"
-          ]
-        },
-        {
-          "type": "added",
-          "title": "Deployment & Versioning",
-          "items": [
-            "Slack app manifest auto-update during deployment",
-            "Release workflow separating version bump from tag creation",
-            "Admin leave management documentation in README"
-          ]
-        },
-        {
-          "type": "changed",
-          "title": "Documentation & Workflows",
-          "items": [
-            "Leave management section in README reorganized",
-            "Slack manifest updated with new admin leave commands",
-            "Version commands now only bump version without creating tags",
-            "Release command creates tags and triggers deployment",
-            "Manifest update script always uses SLACK_APP_ID from environment"
+            "Team admins can now set leave for team members",
+            "Manage leaves for your entire team from Slack",
+            "Use @mentions to quickly set someone's leave status",
+            "View all upcoming leaves for your team members"
           ]
         }
       ]
@@ -168,24 +554,12 @@
       "isLatest": false,
       "changes": [
         {
-          "type": "added",
-          "title": "Version Management",
-          "items": [
-            "Git-based package versioning with SemVer policy",
-            "Automated deployment on version tag push",
-            "Version management scripts (patch, minor, major)",
-            "Pre-version checks for clean git state",
-            "GitHub Actions workflow for version releases",
-            "Changelog page with version history",
-            "CHANGELOG.md for tracking version history"
-          ]
-        },
-        {
           "type": "changed",
-          "title": "Standup Logic Improvements",
+          "title": "Smarter Standup Posting",
           "items": [
-            "Standup posting logic to skip when no eligible members exist",
-            "Standup messages exclude mention=off members from display"
+            "Bot now skips posting if no one on the team is available",
+            "Team members who opt out of mentions won't be shown in 'not responded' lists",
+            "Cleaner standup summaries with better formatting"
           ]
         }
       ]

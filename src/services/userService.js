@@ -1,4 +1,5 @@
 const prisma = require("../config/prisma");
+const { UserFacingError } = require("../utils/errorHelper");
 
 class UserService {
   async fetchSlackUserData(slackUserId, slackClient) {
@@ -77,6 +78,49 @@ class UserService {
     }
 
     return user.organizations[0].organization;
+  }
+
+  // Resolve the organization for a Slack workspace. Used when a user who is not
+  // yet an organization member runs a command (e.g. creating a team) — we can
+  // still place them in the right org based on the workspace the command came
+  // from. Returns null if the workspace has no Daily Dose organization.
+  async getOrganizationByWorkspaceId(slackWorkspaceId) {
+    if (!slackWorkspaceId) return null;
+
+    // Only resolve active organizations so onboarding/team creation can't be
+    // routed into a deactivated org (the scheduler also filters on isActive).
+    return await prisma.organization.findFirst({
+      where: { slackWorkspaceId, isActive: true },
+    });
+  }
+
+  // List the active OWNER/ADMIN members of an organization, including their
+  // user records. Used to notify org admins of actions that need approval.
+  async getOrganizationAdmins(organizationId) {
+    return await prisma.organizationMember.findMany({
+      where: {
+        organizationId,
+        role: { in: ["OWNER", "ADMIN"] },
+        isActive: true,
+      },
+      include: { user: true },
+    });
+  }
+
+  // Look up a user by Slack username (without the leading @) within a given
+  // organization. Used to resolve targets for admin commands when the Slack
+  // user can no longer be @-mentioned (e.g., already deactivated in Slack).
+  // Username is not @unique in the schema, so we scope by org membership —
+  // Slack itself enforces username uniqueness per workspace.
+  async findUserByUsernameInOrg(username, organizationId) {
+    if (!username || !organizationId) return null;
+    return await prisma.user.findFirst({
+      where: {
+        username,
+        organizations: { some: { organizationId } },
+      },
+      select: { id: true, slackUserId: true, username: true },
+    });
   }
 
   async canCreateTeam(userId, organizationId) {
@@ -230,8 +274,318 @@ class UserService {
     });
   }
 
-  async setMemberLeave(targetSlackUserId, startDate, endDate, reason, slackClient = null) {
-    const userData = await this.fetchSlackUserData(targetSlackUserId, slackClient);
+  async promoteOrganizationMember(
+    adminSlackUserId,
+    targetSlackUserId,
+    slackClient = null
+  ) {
+    const adminUserData = await this.fetchSlackUserData(
+      adminSlackUserId,
+      slackClient
+    );
+    const adminUser = await this.findOrCreateUser(
+      adminSlackUserId,
+      adminUserData
+    );
+
+    const adminOrg = await this.getUserOrganization(adminSlackUserId);
+    if (!adminOrg) {
+      throw new UserFacingError(
+        "You must belong to an organization to manage members"
+      );
+    }
+
+    const adminOrgMembership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: adminOrg.id,
+          userId: adminUser.id,
+        },
+      },
+    });
+
+    if (
+      !adminOrgMembership ||
+      !adminOrgMembership.isActive ||
+      !["OWNER", "ADMIN"].includes(adminOrgMembership.role)
+    ) {
+      throw new UserFacingError(
+        "You need organization owner or admin permissions for this action"
+      );
+    }
+
+    const targetUser = await prisma.user.findUnique({
+      where: { slackUserId: targetSlackUserId },
+    });
+
+    if (!targetUser) {
+      throw new UserFacingError("Target user not found");
+    }
+
+    if (targetUser.id === adminUser.id) {
+      throw new UserFacingError("You cannot promote yourself");
+    }
+
+    const targetOrgMembership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: adminOrg.id,
+          userId: targetUser.id,
+        },
+      },
+    });
+
+    if (!targetOrgMembership || !targetOrgMembership.isActive) {
+      throw new UserFacingError(
+        "Target user is not an active member of your organization"
+      );
+    }
+
+    if (targetOrgMembership.role === "OWNER") {
+      throw new UserFacingError(
+        "Target user is the organization owner and cannot be promoted further"
+      );
+    }
+
+    if (targetOrgMembership.role === "ADMIN") {
+      throw new UserFacingError("Target user is already an organization admin");
+    }
+
+    const updated = await prisma.organizationMember.update({
+      where: {
+        organizationId_userId: {
+          organizationId: adminOrg.id,
+          userId: targetUser.id,
+        },
+      },
+      data: { role: "ADMIN" },
+    });
+
+    return {
+      organizationMember: updated,
+      organization: adminOrg,
+      previousRole: targetOrgMembership.role,
+    };
+  }
+
+  async setOrganizationMemberActive(
+    adminSlackUserId,
+    targetSlackUserId,
+    isActive,
+    slackClient = null
+  ) {
+    const adminUserData = await this.fetchSlackUserData(
+      adminSlackUserId,
+      slackClient
+    );
+    const adminUser = await this.findOrCreateUser(
+      adminSlackUserId,
+      adminUserData
+    );
+
+    const adminOrg = await this.getUserOrganization(adminSlackUserId);
+    if (!adminOrg) {
+      throw new UserFacingError(
+        "You must belong to an organization to manage members"
+      );
+    }
+
+    const adminOrgMembership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: adminOrg.id,
+          userId: adminUser.id,
+        },
+      },
+    });
+
+    if (
+      !adminOrgMembership ||
+      !adminOrgMembership.isActive ||
+      !["OWNER", "ADMIN"].includes(adminOrgMembership.role)
+    ) {
+      throw new UserFacingError(
+        "You need organization owner or admin permissions for this action"
+      );
+    }
+
+    const targetUser = await prisma.user.findUnique({
+      where: { slackUserId: targetSlackUserId },
+    });
+
+    if (!targetUser) {
+      throw new UserFacingError("Target user not found");
+    }
+
+    if (targetUser.id === adminUser.id) {
+      throw new UserFacingError(
+        "You cannot change your own organization membership status"
+      );
+    }
+
+    const targetOrgMembership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: adminOrg.id,
+          userId: targetUser.id,
+        },
+      },
+    });
+
+    if (!targetOrgMembership) {
+      throw new UserFacingError(
+        "Target user is not a member of your organization"
+      );
+    }
+
+    // Owner status can only be changed by another owner
+    if (
+      targetOrgMembership.role === "OWNER" &&
+      adminOrgMembership.role !== "OWNER"
+    ) {
+      throw new UserFacingError(
+        "Only organization owners can change another owner's status"
+      );
+    }
+
+    if (targetOrgMembership.isActive === isActive) {
+      throw new UserFacingError(
+        isActive
+          ? "Member is already active in this organization"
+          : "Member is already suspended from this organization"
+      );
+    }
+
+    const orgTeams = await prisma.team.findMany({
+      where: { organizationId: adminOrg.id, isActive: true },
+      select: { id: true },
+    });
+    const teamIds = orgTeams.map((t) => t.id);
+
+    if (!isActive) {
+      // Pre-check: suspending this user must not leave any team without an active admin.
+      // Single aggregate query — count active admins per team where the target is an
+      // admin, then filter to teams with exactly one (which must be the target).
+      const adminTeams = await prisma.teamMember.findMany({
+        where: {
+          userId: targetUser.id,
+          isActive: true,
+          role: "ADMIN",
+          teamId: { in: teamIds },
+        },
+        select: { teamId: true, team: { select: { name: true } } },
+      });
+
+      if (adminTeams.length > 0) {
+        const adminCounts = await prisma.teamMember.groupBy({
+          by: ["teamId"],
+          where: {
+            teamId: { in: adminTeams.map((m) => m.teamId) },
+            role: "ADMIN",
+            isActive: true,
+          },
+          _count: { _all: true },
+        });
+
+        const countByTeam = new Map(
+          adminCounts.map((c) => [c.teamId, c._count._all])
+        );
+        const orphanedTeams = adminTeams
+          .filter((m) => (countByTeam.get(m.teamId) || 0) <= 1)
+          .map((m) => m.team.name);
+
+        if (orphanedTeams.length > 0) {
+          throw new UserFacingError(
+            `Cannot suspend this member — they are the only active admin of: ${orphanedTeams.join(", ")}. Promote another admin in those teams first.`
+          );
+        }
+      }
+    }
+
+    // On suspend: deactivate all currently-active team memberships in this org.
+    // On unsuspend: reactivate the org membership only — do NOT resurrect team
+    // memberships that were left or team-suspended independently. Admin can
+    // use /dd-team-unsuspend per team to restore those.
+    const ops = [
+      prisma.organizationMember.update({
+        where: {
+          organizationId_userId: {
+            organizationId: adminOrg.id,
+            userId: targetUser.id,
+          },
+        },
+        data: { isActive },
+      }),
+    ];
+
+    if (!isActive) {
+      ops.push(
+        prisma.teamMember.updateMany({
+          where: {
+            userId: targetUser.id,
+            teamId: { in: teamIds },
+            isActive: true,
+          },
+          data: { isActive: false },
+        })
+      );
+    }
+
+    const results = await prisma.$transaction(ops);
+    const orgUpdate = results[0];
+    const teamMembershipsUpdated = isActive ? 0 : results[1].count;
+
+    return {
+      organizationMember: orgUpdate,
+      teamMembershipsUpdated,
+      organization: adminOrg,
+      cascadedTeams: !isActive,
+    };
+  }
+
+  // System-triggered suspension across every org/team the user belongs to.
+  // Used when Slack reports the workspace user as deactivated. Bypasses
+  // admin permission and sole-admin guards (the user no longer exists in
+  // Slack, so the team needs the suspension applied regardless).
+  async suspendUserSystemWide(slackUserId) {
+    const user = await prisma.user.findUnique({
+      where: { slackUserId },
+    });
+
+    if (!user) {
+      return { found: false };
+    }
+
+    const [orgUpdate, teamUpdate] = await prisma.$transaction([
+      prisma.organizationMember.updateMany({
+        where: { userId: user.id, isActive: true },
+        data: { isActive: false },
+      }),
+      prisma.teamMember.updateMany({
+        where: { userId: user.id, isActive: true },
+        data: { isActive: false },
+      }),
+    ]);
+
+    return {
+      found: true,
+      userId: user.id,
+      orgMembershipsSuspended: orgUpdate.count,
+      teamMembershipsSuspended: teamUpdate.count,
+    };
+  }
+
+  async setMemberLeave(
+    targetSlackUserId,
+    startDate,
+    endDate,
+    reason,
+    slackClient = null
+  ) {
+    const userData = await this.fetchSlackUserData(
+      targetSlackUserId,
+      slackClient
+    );
     const user = await this.findOrCreateUser(targetSlackUserId, userData);
 
     return await prisma.leave.create({
@@ -283,7 +637,10 @@ class UserService {
   }
 
   async listMemberLeaves(targetSlackUserId, slackClient = null) {
-    const userData = await this.fetchSlackUserData(targetSlackUserId, slackClient);
+    const userData = await this.fetchSlackUserData(
+      targetSlackUserId,
+      slackClient
+    );
     const user = await this.findOrCreateUser(targetSlackUserId, userData);
 
     return await prisma.leave.findMany({
