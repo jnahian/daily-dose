@@ -17,6 +17,7 @@ const Scripts = lazy(() => import("./pages/Scripts"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
+const McpTokens = lazy(() => import("./pages/McpTokens"));
 
 // Lazy load admin pages
 const AdminLogin = lazy(() => import('./pages/admin/Login'));
@@ -122,6 +123,14 @@ function App() {
               element={
                 <PageTransition>
                   <ContactPage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/mcp-tokens"
+              element={
+                <PageTransition>
+                  <McpTokens />
                 </PageTransition>
               }
             />
