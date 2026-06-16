@@ -1,6 +1,7 @@
 const prisma = require("../config/prisma");
 const logger = require("../utils/logger");
 const userService = require("./userService");
+const notificationService = require("./notificationService");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
@@ -725,6 +726,84 @@ class StandupService {
       );
       throw error;
     }
+  }
+
+  async submitStandup({
+    team,
+    slackUserId,
+    name,
+    fields,
+    standupDate,
+    isUpdate = false,
+    slackClient,
+  }) {
+    const { yesterdayTasks = "", todayTasks = "", blockers = "" } = fields;
+    const targetDate = dayjs(standupDate).tz(team.timezone);
+    const todayStart = dayjs().tz(team.timezone).startOf("day");
+
+    let isLate = false;
+    if (
+      targetDate.startOf("day").isSame(todayStart) ||
+      targetDate.startOf("day").isAfter(todayStart)
+    ) {
+      const [postingHour, postingMinute] = team.postingTime
+        .split(":")
+        .map(Number);
+      const postingTime = dayjs()
+        .tz(team.timezone)
+        .startOf("day")
+        .hour(postingHour)
+        .minute(postingMinute);
+      isLate = dayjs().tz(team.timezone).isAfter(postingTime);
+    }
+
+    await this.saveResponse(
+      team.id,
+      slackUserId,
+      { date: standupDate, yesterdayTasks, todayTasks, blockers },
+      isLate,
+      slackClient
+    );
+
+    await notificationService.notifyAdminsOfStandupSubmission({
+      teamId: team.id,
+      user: { id: slackUserId, name },
+      team,
+      client: slackClient,
+      options: {
+        isUpdate,
+        isLate,
+        date: targetDate.format("MMM DD, YYYY"),
+      },
+    });
+
+    if (isLate && targetDate.isSame(dayjs().tz(team.timezone), "day")) {
+      const standupPost = await this.getStandupPost(team.id, standupDate);
+      if (standupPost?.slackMessageTs) {
+        const lateResponse = {
+          user: { name, slackUserId },
+          yesterdayTasks,
+          todayTasks,
+          blockers,
+        };
+        const message = await this.formatLateResponseMessage(lateResponse);
+        await slackClient.chat.postMessage({
+          channel: standupPost.channelId,
+          thread_ts: standupPost.slackMessageTs,
+          reply_broadcast: true,
+          text: isUpdate
+            ? `🔄 *Update* from ${getUserMention(lateResponse.user)}`
+            : `🕐 *Late Submission* of ${getUserMention(lateResponse.user)}`,
+          ...message,
+        });
+      } else {
+        await this.postStandupOnDemand(team, standupDate, {
+          client: slackClient,
+        });
+      }
+    }
+
+    return { isLate };
   }
 }
 
