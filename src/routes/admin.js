@@ -272,6 +272,7 @@ router.get(
   async (req, res) => {
     try {
       const orgs = await prisma.organization.findMany({
+        where: { deletedAt: null },
         include: { _count: { select: { teams: true, members: true } } },
         orderBy: { createdAt: "desc" },
       });
@@ -305,7 +306,8 @@ router.patch(
       const org = await prisma.organization.findUnique({
         where: { id: req.params.id },
       });
-      if (!org) return res.status(404).json({ error: "Not found" });
+      if (!org || org.deletedAt)
+        return res.status(404).json({ error: "Not found" });
       const updated = await prisma.organization.update({
         where: { id: req.params.id },
         data: { isActive: !org.isActive },
@@ -375,6 +377,12 @@ router.put(
       } = req.body;
       if (!name?.trim())
         return res.status(400).json({ error: "Name is required" });
+      const existing = await prisma.organization.findUnique({
+        where: { id: req.params.id },
+        select: { deletedAt: true },
+      });
+      if (!existing || existing.deletedAt)
+        return res.status(404).json({ error: "Not found" });
       const updated = await prisma.organization.update({
         where: { id: req.params.id },
         data: {
@@ -413,11 +421,38 @@ router.delete(
   requireSuperAdmin,
   async (req, res) => {
     try {
-      await prisma.organization.delete({ where: { id: req.params.id } });
+      const org = await prisma.organization.findUnique({
+        where: { id: req.params.id },
+        select: { deletedAt: true },
+      });
+      if (!org || org.deletedAt)
+        return res.status(404).json({ error: "Not found" });
+
+      // Soft-delete the org and cascade deactivation to its teams, team
+      // memberships, and org memberships. The bot filters on isActive (not
+      // org.deletedAt), so deactivating the children is what actually stops
+      // reminders/posts. Live cron jobs still require a restart — see #37.
+      const now = new Date();
+      await prisma.$transaction([
+        prisma.teamMember.updateMany({
+          where: { team: { organizationId: req.params.id }, isActive: true },
+          data: { isActive: false, deletedAt: now },
+        }),
+        prisma.team.updateMany({
+          where: { organizationId: req.params.id, deletedAt: null },
+          data: { isActive: false, deletedAt: now },
+        }),
+        prisma.organizationMember.updateMany({
+          where: { organizationId: req.params.id, isActive: true },
+          data: { isActive: false, deletedAt: now },
+        }),
+        prisma.organization.update({
+          where: { id: req.params.id },
+          data: { isActive: false, deletedAt: now },
+        }),
+      ]);
       res.status(204).end();
     } catch (err) {
-      if (err.code === "P2025")
-        return res.status(404).json({ error: "Not found" });
       console.error("DELETE /organizations/:id error:", err.message);
       res.status(500).json({ error: "Internal server error" });
     }
@@ -435,7 +470,7 @@ router.get("/stats", requireAuth, async (req, res) => {
     if (isSuperAdmin && !orgId) {
       const [orgCount, teamCount, userCount, todayStandups] = await Promise.all(
         [
-          prisma.organization.count(),
+          prisma.organization.count({ where: { deletedAt: null } }),
           prisma.team.count({ where: { deletedAt: null } }),
           prisma.user.count(),
           prisma.standupResponse.count({
