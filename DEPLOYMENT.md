@@ -85,6 +85,50 @@ npx prisma db push
 
 This creates all tables defined in `prisma/schema.prisma`.
 
+### 4. Baseline committed migrations (one-time, required)
+
+The version deploy workflow (`.github/workflows/deploy-version.yml`) runs
+`npx prisma migrate deploy`, which applies the committed migrations in
+`prisma/migrations/`. On a database that was first provisioned with
+`prisma db push` (step 3), the schema is already current but Prisma's
+migration-history table does not record those migrations as applied — so
+`migrate deploy` tries to run them against the already-current schema and
+fails (e.g. `DROP INDEX ... does not exist`, error `P3018`).
+
+Baseline the database **once** so the history matches reality. First see
+what's recorded:
+
+```bash
+npx prisma migrate status
+```
+
+If a migration is reported as **failed** (a partial `migrate deploy` got
+recorded), clear it before baselining — `resolve` runs no DDL, it only
+updates the history table:
+
+```bash
+# clear the failed record (only if migrate status shows one)
+npx prisma migrate resolve --rolled-back 20260318061742_
+```
+
+Then mark every migration whose changes are already present as applied
+(run against the production `DATABASE_URL`; skip any `migrate status`
+already lists as applied):
+
+```bash
+npx prisma migrate resolve --applied 20250903182624_initial_setup
+npx prisma migrate resolve --applied 20260318061742_
+npx prisma migrate resolve --applied 20260520044120_standup_response_team_date_index
+npx prisma migrate resolve --applied 20260616131600_team_status
+npx prisma migrate resolve --applied 20260616140000_add_soft_delete_columns
+```
+
+Confirm with `npx prisma migrate status` — it should report
+"Database schema is up to date!". After baselining, future releases apply
+only genuinely new migrations automatically. List the names with
+`ls prisma/migrations/`; mark each one created on or before the currently
+deployed version as `--applied`.
+
 ---
 
 ## Environment Variables Reference

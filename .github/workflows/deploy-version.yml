@@ -115,8 +115,10 @@ jobs:
             # Generate Prisma client
             npx prisma generate
 
-            # Run database migrations
-            npx prisma db push
+            # Apply committed migrations (prod must be baselined once with
+            # `prisma migrate resolve --applied <name>` for pre-existing
+            # migrations — see DEPLOYMENT.md)
+            npx prisma migrate deploy
 
             # Build React app
             cd web
