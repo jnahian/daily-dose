@@ -111,7 +111,12 @@ router.get("/me", requireMcpSession, (req, res) => {
 
 // GET /api/mcp/tokens — list caller's tokens (no secrets)
 router.get("/tokens", requireMcpSession, async (req, res) => {
-  res.json(await tokenService.listTokens(req.mcpSessionUser.id));
+  try {
+    res.json(await tokenService.listTokens(req.mcpSessionUser.id));
+  } catch (err) {
+    console.error("GET /tokens error:", err.message);
+    res.status(500).json({ error: "Failed to list tokens" });
+  }
 });
 
 // POST /api/mcp/tokens — mint a token (raw value returned ONCE)
