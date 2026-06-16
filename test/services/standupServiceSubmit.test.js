@@ -88,4 +88,51 @@ describe("standupService.submitStandup", () => {
       { client: expect.anything() }
     );
   });
+
+  it("when late and a parent post exists, threads the reply and skips postStandupOnDemand", async () => {
+    jest
+      .spyOn(standupService, "getStandupPost")
+      .mockResolvedValue({ slackMessageTs: "ts123", channelId: "C123" });
+    jest
+      .spyOn(standupService, "formatLateResponseMessage")
+      .mockResolvedValue({ blocks: [] });
+
+    const args = buildArgs({ team: { ...team, postingTime: "00:00" } });
+    await standupService.submitStandup(args);
+
+    expect(args.slackClient.chat.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        channel: "C123",
+        thread_ts: "ts123",
+        reply_broadcast: true,
+      })
+    );
+    expect(standupService.postStandupOnDemand).not.toHaveBeenCalled();
+  });
+
+  describe("isLate boundary around posting time", () => {
+    beforeEach(() => {
+      // 2026-06-17T11:30:00Z = 17:30 Asia/Dhaka (UTC+6)
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date("2026-06-17T11:30:00Z"));
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it("is late when current time (17:30) is after postingTime 17:00", async () => {
+      const result = await standupService.submitStandup(
+        buildArgs({ team: { ...team, postingTime: "17:00" } })
+      );
+      expect(result.isLate).toBe(true);
+    });
+
+    it("is not late when current time (17:30) is before postingTime 18:00", async () => {
+      const result = await standupService.submitStandup(
+        buildArgs({ team: { ...team, postingTime: "18:00" } })
+      );
+      expect(result.isLate).toBe(false);
+    });
+  });
 });
