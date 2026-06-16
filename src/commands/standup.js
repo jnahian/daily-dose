@@ -1,7 +1,6 @@
 const standupService = require("../services/standupService");
 const teamService = require("../services/teamService");
 const userService = require("../services/userService");
-const notificationService = require("../services/notificationService");
 const schedulerService = require("../services/schedulerService");
 const prisma = require("../config/prisma");
 const dayjs = require("dayjs");
@@ -257,41 +256,18 @@ async function handleStandupSubmission({ ack, body, view, client }) {
       return;
     }
 
-    // Determine if submission is late
     const team = await teamService.getTeamById(teamId);
-    const now = dayjs().tz(team.timezone);
 
-    let isLate = false;
-    if (team) {
-      const [postingHour, postingMinute] = team.postingTime
-        .split(":")
-        .map(Number);
-      const postingTime = dayjs()
-        .tz(team.timezone)
-        .startOf("day")
-        .hour(postingHour)
-        .minute(postingMinute);
-      const nowInTeamTz = dayjs().tz(team.timezone);
-      isLate = nowInTeamTz.isAfter(postingTime);
-    }
+    const { isLate } = await standupService.submitStandup({
+      team,
+      slackUserId: body.user.id,
+      name: body.user.name || body.user.id,
+      fields: { yesterdayTasks, todayTasks, blockers },
+      standupDate: dayjs().tz(team.timezone).toDate(),
+      isUpdate: false,
+      slackClient: client,
+    });
 
-    // Save response
-    const responseData = {
-      date: now.toDate(),
-      yesterdayTasks,
-      todayTasks,
-      blockers,
-    };
-
-    await standupService.saveResponse(
-      teamId,
-      body.user.id,
-      responseData,
-      isLate,
-      client
-    );
-
-    // Send confirmation as ephemeral message to the channel
     await client.chat.postEphemeral({
       channel: team.slackChannelId,
       user: body.user.id,
@@ -299,56 +275,6 @@ async function handleStandupSubmission({ ack, body, view, client }) {
         isLate ? " (marked as late)" : ""
       }`,
     });
-
-    // Notify team admins about the submission
-    await notificationService.notifyAdminsOfStandupSubmission({
-      teamId,
-      user: body.user,
-      team,
-      client,
-      options: { isLate },
-    });
-
-    // If late, add to existing standup post as thread or create parent if doesn't exist
-    if (isLate && team) {
-      const standupPost = await standupService.getStandupPost(
-        teamId,
-        now.toDate()
-      );
-
-      if (standupPost?.slackMessageTs) {
-        // Parent post exists - add as thread reply
-        // Create a response object that matches the expected format
-        const lateResponse = {
-          user: {
-            name: body.user.name || body.user.id,
-            slackUserId: body.user.id,
-          },
-          yesterdayTasks,
-          todayTasks,
-          blockers,
-        };
-
-        const message =
-          await standupService.formatLateResponseMessage(lateResponse);
-
-        await client.chat.postMessage({
-          channel: standupPost.channelId,
-          thread_ts: standupPost.slackMessageTs,
-          reply_broadcast: true, // Send to channel flag - makes the threaded reply visible in the channel
-          text: `🕐 *Late Submission* of ${getUserMention(lateResponse.user)}`,
-          ...message,
-        });
-      } else {
-        // No parent post exists - create the full standup post (first late submission becomes parent)
-        console.log(
-          `📝 No parent standup post found for ${team.name}. Creating full standup post from late submission...`
-        );
-        await standupService.postStandupOnDemand(team, now.toDate(), {
-          client,
-        });
-      }
-    }
   } catch (error) {
     // Send error message to user
     await client.chat.postMessage({
@@ -558,106 +484,24 @@ async function handleStandupUpdateSubmission({ ack, body, view, client }) {
     const team = await teamService.getTeamById(teamId);
     const targetDate = dayjs(standupDate, "YYYY-MM-DD");
 
-    // Determine if submission is late (only if it's for today or future)
-    let isLate = false;
-    if (
-      (targetDate.isSame(dayjs().startOf("day")) ||
-        targetDate.isAfter(dayjs().startOf("day"))) &&
-      team
-    ) {
-      const [postingHour, postingMinute] = team.postingTime
-        .split(":")
-        .map(Number);
-      const postingTime = dayjs()
-        .tz(team.timezone)
-        .startOf("day")
-        .hour(postingHour)
-        .minute(postingMinute);
-      const nowInTeamTz = dayjs().tz(team.timezone);
-      isLate = nowInTeamTz.isAfter(postingTime);
-    }
-
-    // Save or update response
-    const responseData = {
-      date: targetDate.toDate(),
-      yesterdayTasks,
-      todayTasks,
-      blockers,
-    };
-
-    await standupService.saveResponse(
-      teamId,
-      body.user.id,
-      responseData,
-      isLate,
-      client
-    );
+    const { isLate } = await standupService.submitStandup({
+      team,
+      slackUserId: body.user.id,
+      name: body.user.name || body.user.id,
+      fields: { yesterdayTasks, todayTasks, blockers },
+      standupDate: targetDate.toDate(),
+      isUpdate,
+      slackClient: client,
+    });
 
     const updateText = isUpdate ? "updated" : "submitted";
-
-    // Send confirmation as ephemeral message to the channel
     await client.chat.postEphemeral({
       channel: team.slackChannelId,
       user: body.user.id,
-      text: `✅ Standup ${updateText} for ${team?.name || "your team"} (${targetDate.format("MMM DD, YYYY")})!${
-        isLate ? " (marked as late)" : ""
-      }`,
+      text: `✅ Standup ${updateText} for ${team?.name || "your team"} (${targetDate.format(
+        "MMM DD, YYYY"
+      )})!${isLate ? " (marked as late)" : ""}`,
     });
-
-    // Notify team admins about the submission/update
-    await notificationService.notifyAdminsOfStandupSubmission({
-      teamId,
-      user: body.user,
-      team,
-      client,
-      options: {
-        isUpdate,
-        isLate,
-        date: targetDate.format("MMM DD, YYYY"),
-      },
-    });
-
-    // If this is for today and it's after posting time, post to thread or create parent if doesn't exist
-    if (isLate && targetDate.isSame(dayjs(), "day") && team) {
-      const standupPost = await standupService.getStandupPost(
-        teamId,
-        targetDate.toDate()
-      );
-
-      if (standupPost?.slackMessageTs) {
-        // Parent post exists - add as thread reply
-        const lateResponse = {
-          user: {
-            name: body.user.name || body.user.id,
-            slackUserId: body.user.id,
-          },
-          yesterdayTasks,
-          todayTasks,
-          blockers,
-        };
-
-        const message =
-          await standupService.formatLateResponseMessage(lateResponse);
-
-        await client.chat.postMessage({
-          channel: standupPost.channelId,
-          thread_ts: standupPost.slackMessageTs,
-          reply_broadcast: true,
-          text: isUpdate
-            ? `🔄 *Update* from ${getUserMention(lateResponse.user)}`
-            : `🕐 *Late Submission* from ${getUserMention(lateResponse.user)}`,
-          ...message,
-        });
-      } else {
-        // No parent post exists - create the full standup post
-        console.log(
-          `📝 No parent standup post found for ${team.name}. Creating full standup post from late ${isUpdate ? "update" : "submission"}...`
-        );
-        await standupService.postStandupOnDemand(team, targetDate.toDate(), {
-          client,
-        });
-      }
-    }
   } catch (error) {
     await client.chat.postMessage({
       channel: body.user.id,
