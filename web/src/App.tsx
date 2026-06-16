@@ -31,7 +31,7 @@ const AdminActivity = lazy(() => import('./pages/admin/Activity'));
 
 function App() {
   const location = useLocation();
-  const isAdminRoute = location.pathname.startsWith('/admin');
+  const isAdminRoute = location.pathname === '/admin' || location.pathname.startsWith('/admin/');
 
   if (isAdminRoute) {
     return (

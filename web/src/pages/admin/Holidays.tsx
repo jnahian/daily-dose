@@ -19,6 +19,7 @@ export default function AdminHolidays() {
   const [modal, setModal] = useState<'add' | 'edit' | 'delete' | null>(null);
   const [selected, setSelected] = useState<Holiday | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!activeOrgId) return;
@@ -36,40 +37,51 @@ export default function AdminHolidays() {
   const openDelete = (h: Holiday) => { setSelected(h); setModal('delete'); };
 
   const save = async () => {
-    if (modal === 'add') {
-      const res = await fetch('/api/admin/holidays', {
-        method: 'POST', credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, orgId: activeOrgId })
-      });
-      if (res.ok) {
-        const created = await res.json();
-        setHolidays(prev => [...prev, created].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
-        setModal(null);
-      } else {
-        console.error('Failed to save holiday');
+    if (saving) return;
+    setSaving(true);
+    try {
+      if (modal === 'add') {
+        const res = await fetch('/api/admin/holidays', {
+          method: 'POST', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...form, orgId: activeOrgId })
+        });
+        if (res.ok) {
+          const created = await res.json();
+          setHolidays(prev => [...prev, created].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+          setModal(null);
+        } else {
+          console.error('Failed to save holiday');
+        }
+      } else if (modal === 'edit' && selected) {
+        const res = await fetch(`/api/admin/holidays/${selected.id}`, {
+          method: 'PUT', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form)
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setHolidays(prev => prev.map(h => h.id === selected.id ? updated : h));
+          setModal(null);
+        } else {
+          console.error('Failed to save holiday');
+        }
       }
-    } else if (modal === 'edit' && selected) {
-      const res = await fetch(`/api/admin/holidays/${selected.id}`, {
-        method: 'PUT', credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        setHolidays(prev => prev.map(h => h.id === selected.id ? updated : h));
-        setModal(null);
-      } else {
-        console.error('Failed to save holiday');
-      }
+    } finally {
+      setSaving(false);
     }
   };
 
   const confirmDelete = async () => {
-    if (!selected) return;
-    const res = await fetch(`/api/admin/holidays/${selected.id}`, { method: 'DELETE', credentials: 'include' });
-    if (res.ok) setHolidays(prev => prev.filter(h => h.id !== selected.id));
-    setModal(null);
+    if (!selected || saving) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/admin/holidays/${selected.id}`, { method: 'DELETE', credentials: 'include' });
+      if (res.ok) setHolidays(prev => prev.filter(h => h.id !== selected.id));
+      setModal(null);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -90,8 +102,8 @@ export default function AdminHolidays() {
             key: 'actions', label: '',
             render: (h) => (
               <div className="flex items-center gap-3">
-                <button onClick={(e) => { e.stopPropagation(); openEdit(h); }} className="text-white/40 hover:text-[#00CFFF] transition-colors"><Pencil size={14} /></button>
-                <button onClick={(e) => { e.stopPropagation(); openDelete(h); }} className="text-white/40 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                <button aria-label={`Edit ${h.name}`} onClick={(e) => { e.stopPropagation(); openEdit(h); }} className="text-white/40 hover:text-[#00CFFF] transition-colors"><Pencil size={14} /></button>
+                <button aria-label={`Delete ${h.name}`} onClick={(e) => { e.stopPropagation(); openDelete(h); }} className="text-white/40 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
               </div>
             )
           }
@@ -119,7 +131,7 @@ export default function AdminHolidays() {
           ))}
           <div className="flex justify-end gap-3 pt-2">
             <button onClick={() => setModal(null)} className="px-4 py-2 text-sm text-white/50 hover:text-white transition-colors">Cancel</button>
-            <button onClick={save} className="px-4 py-2 text-sm bg-[#00CFFF] text-black font-medium rounded-lg hover:bg-[#00CFFF]/90 transition-colors">Save</button>
+            <button onClick={save} disabled={saving} className="px-4 py-2 text-sm bg-[#00CFFF] text-black font-medium rounded-lg hover:bg-[#00CFFF]/90 transition-colors disabled:opacity-50">{saving ? 'Saving…' : 'Save'}</button>
           </div>
         </div>
       </AdminModal>
@@ -142,7 +154,7 @@ export default function AdminHolidays() {
           ))}
           <div className="flex justify-end gap-3 pt-2">
             <button onClick={() => setModal(null)} className="px-4 py-2 text-sm text-white/50 hover:text-white transition-colors">Cancel</button>
-            <button onClick={save} className="px-4 py-2 text-sm bg-[#00CFFF] text-black font-medium rounded-lg hover:bg-[#00CFFF]/90 transition-colors">Save</button>
+            <button onClick={save} disabled={saving} className="px-4 py-2 text-sm bg-[#00CFFF] text-black font-medium rounded-lg hover:bg-[#00CFFF]/90 transition-colors disabled:opacity-50">{saving ? 'Saving…' : 'Save'}</button>
           </div>
         </div>
       </AdminModal>
@@ -152,7 +164,7 @@ export default function AdminHolidays() {
         </p>
         <div className="flex justify-end gap-3">
           <button onClick={() => setModal(null)} className="px-4 py-2 text-sm text-white/50 hover:text-white transition-colors">Cancel</button>
-          <button onClick={confirmDelete} className="px-4 py-2 text-sm bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-colors">Delete</button>
+          <button onClick={confirmDelete} disabled={saving} className="px-4 py-2 text-sm bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50">{saving ? 'Deleting…' : 'Delete'}</button>
         </div>
       </AdminModal>
     </div>

@@ -6,6 +6,8 @@ import { useAdminAuth } from '../../hooks/useAdminAuth';
 export default function AdminDashboard() {
   const { isSuperAdmin, activeOrgId } = useAdminAuth();
   const [stats, setStats] = useState<Record<string, number> | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!activeOrgId && !isSuperAdmin) return;
@@ -13,12 +15,30 @@ export default function AdminDashboard() {
       ? '/api/admin/stats'
       : `/api/admin/stats?orgId=${activeOrgId}`;
 
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
     fetch(url, { credentials: 'include' })
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data) setStats(data); });
+      .then(r => {
+        if (!r.ok) throw new Error(`Request failed (${r.status})`);
+        return r.json();
+      })
+      .then(data => { if (!cancelled) setStats(data); })
+      .catch(err => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to load stats');
+          setStats(null);
+        }
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+
+    return () => { cancelled = true; };
   }, [isSuperAdmin, activeOrgId]);
 
-  if (!stats) return <div className="text-white/40 text-sm">Loading stats...</div>;
+  if (loading) return <div className="text-white/40 text-sm">Loading stats...</div>;
+  if (error) return <div className="text-red-400 text-sm">Failed to load stats: {error}</div>;
+  if (!stats) return <div className="text-white/40 text-sm">No stats available.</div>;
 
   return (
     <div>

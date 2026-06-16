@@ -19,7 +19,7 @@ interface AdminAuthState {
   organizations: AdminOrg[];
   activeOrgId: string | null;
   isLoading: boolean;
-  setActiveOrgId: (id: string) => void;
+  setActiveOrgId: (id: string | null) => void;
 }
 
 const AdminAuthContext = createContext<AdminAuthState | null>(null);
@@ -39,7 +39,9 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
           setUser(data.user);
           setIsSuperAdmin(data.isSuperAdmin);
           setOrganizations(data.organizations);
-          if (data.organizations.length > 0) {
+          // For super admins, leave activeOrgId null so the global dashboard shows.
+          // Non-super-admin org admins default to their first org.
+          if (!data.isSuperAdmin && data.organizations.length > 0) {
             setActiveOrgId(data.organizations[0].id);
           }
         }

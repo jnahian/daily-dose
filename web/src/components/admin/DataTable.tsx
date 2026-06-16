@@ -37,6 +37,14 @@ export function DataTable<T extends { id: string }>({ columns, rows, onRowClick,
             <tr
               key={row.id}
               onClick={() => onRowClick?.(row)}
+              role={onRowClick ? 'button' : undefined}
+              tabIndex={onRowClick ? 0 : undefined}
+              onKeyDown={onRowClick ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onRowClick(row);
+                }
+              } : undefined}
               className={`border-b border-white/5 last:border-0 transition-colors ${onRowClick ? 'cursor-pointer hover:bg-white/[0.03]' : ''}`}
             >
               {columns.map(col => (

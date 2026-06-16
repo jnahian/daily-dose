@@ -15,12 +15,22 @@ export function AdminTopBar() {
             onClick={() => setOrgMenuOpen(o => !o)}
             className="flex items-center gap-2 text-sm text-white/80 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors"
           >
-            {activeOrg?.name || 'Select org'}
+            {activeOrg?.name || (isSuperAdmin ? 'All Organizations' : 'Select org')}
             <ChevronDown size={14} />
           </button>
         )}
         {orgMenuOpen && (
           <div className="absolute top-full left-0 mt-1 bg-[#161b22] border border-white/10 rounded-lg shadow-xl z-50 min-w-48">
+            {isSuperAdmin && (
+              <button
+                onClick={() => { setActiveOrgId(null); setOrgMenuOpen(false); }}
+                className={`w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition-colors border-b border-white/10 ${
+                  activeOrgId === null ? 'text-[#00CFFF]' : 'text-white/80'
+                }`}
+              >
+                All Organizations
+              </button>
+            )}
             {organizations.map(org => (
               <button
                 key={org.id}

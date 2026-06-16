@@ -17,7 +17,7 @@ interface Team {
 }
 
 type ModalState =
-  | { type: 'create' }
+  | { type: 'create'; orgId: string | null }
   | { type: 'edit'; team: Team }
   | { type: 'delete'; team: Team }
   | null;
@@ -49,7 +49,7 @@ export default function AdminTeams() {
   const openCreate = () => {
     setForm(emptyForm);
     setError('');
-    setModal({ type: 'create' });
+    setModal({ type: 'create', orgId: activeOrgId });
   };
 
   const openEdit = (team: Team) => {
@@ -82,7 +82,7 @@ export default function AdminTeams() {
     const url = isEdit ? `/api/admin/teams/${(modal as { type: 'edit'; team: Team }).team.id}` : '/api/admin/teams';
     const body = isEdit
       ? { name: form.name, standupTime: form.standupTime, postingTime: form.postingTime, timezone: form.timezone, isActive: form.isActive }
-      : { orgId: activeOrgId, name: form.name, channelName: form.channelName, standupTime: form.standupTime, postingTime: form.postingTime, timezone: form.timezone };
+      : { orgId: modal?.type === 'create' ? modal.orgId : activeOrgId, name: form.name, channelName: form.channelName, standupTime: form.standupTime, postingTime: form.postingTime, timezone: form.timezone };
 
     const res = await fetch(url, {
       method: isEdit ? 'PUT' : 'POST',

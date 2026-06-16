@@ -28,7 +28,7 @@ type ModalState =
 const emptyForm = { name: '', slackWorkspaceId: '', slackWorkspaceName: '', defaultTimezone: 'America/New_York', isActive: true };
 
 export default function AdminOrganizations() {
-  const { isSuperAdmin } = useAdminAuth();
+  const { isSuperAdmin, isLoading } = useAdminAuth();
   const navigate = useNavigate();
   const [orgs, setOrgs] = useState<Org[]>([]);
   const [modal, setModal] = useState<ModalState>(null);
@@ -39,11 +39,12 @@ export default function AdminOrganizations() {
   const [memberRole, setMemberRole] = useState('MEMBER');
 
   useEffect(() => {
+    if (isLoading) return;
     if (!isSuperAdmin) { navigate('/admin/dashboard'); return; }
     fetch('/api/admin/organizations', { credentials: 'include' })
       .then(r => r.ok ? r.json() : [])
       .then(setOrgs);
-  }, [isSuperAdmin, navigate]);
+  }, [isLoading, isSuperAdmin, navigate]);
 
   const openCreate = () => {
     setForm(emptyForm);

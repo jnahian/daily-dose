@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { Plus, Pencil, Trash2, Users } from 'lucide-react';
 import { DataTable } from '../../components/admin/DataTable';
 import { StatusBadge } from '../../components/admin/StatusBadge';
@@ -33,8 +33,9 @@ type ModalState =
 const ROLES = ['MEMBER', 'ADMIN', 'OWNER'] as const;
 
 export default function AdminMembers() {
-  const { activeOrgId } = useAdminAuth();
+  const { activeOrgId, setActiveOrgId } = useAdminAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [members, setMembers] = useState<Member[]>([]);
   const [modal, setModal] = useState<ModalState>(null);
   const [slackUserId, setSlackUserId] = useState('');
@@ -46,22 +47,24 @@ export default function AdminMembers() {
   const [addTeamRole, setAddTeamRole] = useState<'MEMBER' | 'ADMIN'>('MEMBER');
   const [managingMember, setManagingMember] = useState<Member | null>(null);
 
-  const effectiveOrgId = (location.state as { orgId?: string } | null)?.orgId || activeOrgId;
-
   useEffect(() => {
-    if (!effectiveOrgId) return;
-    fetch(`/api/admin/members?orgId=${effectiveOrgId}`, { credentials: 'include' })
+    if (!activeOrgId) return;
+    fetch(`/api/admin/members?orgId=${activeOrgId}`, { credentials: 'include' })
       .then(r => r.ok ? r.json() : [])
       .then(setMembers);
-  }, [effectiveOrgId]);
+  }, [activeOrgId]);
 
-  // Auto-open add modal if navigated here with addMember state
+  // Consume route state once: navigations from other pages can carry an org to
+  // switch to and/or an intent to open the add modal. After applying it, clear
+  // the state so the screen follows the topbar's active org thereafter.
   useEffect(() => {
     const state = location.state as { addMember?: boolean; orgId?: string } | null;
-    if (state?.addMember && state?.orgId) {
-      openAdd(state.orgId);
-    }
-  }, []);
+    if (!state?.orgId && !state?.addMember) return;
+    if (state.orgId) setActiveOrgId(state.orgId);
+    if (state.addMember && state.orgId) openAdd(state.orgId);
+    navigate('.', { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.key]);
 
   const openAdd = (orgId: string) => {
     setSlackUserId('');
@@ -82,8 +85,8 @@ export default function AdminMembers() {
     setAddTeamRole('MEMBER');
     setManagingMember(member);
     setModal({ type: 'manageTeams', member });
-    if (!effectiveOrgId) return;
-    const res = await fetch(`/api/admin/teams?orgId=${effectiveOrgId}`, { credentials: 'include' });
+    if (!activeOrgId) return;
+    const res = await fetch(`/api/admin/teams?orgId=${activeOrgId}`, { credentials: 'include' });
     if (res.ok) setTeams(await res.json());
   };
 
@@ -182,9 +185,9 @@ export default function AdminMembers() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold text-white">Members</h1>
-        {effectiveOrgId && (
+        {activeOrgId && (
           <button
-            onClick={() => openAdd(effectiveOrgId)}
+            onClick={() => openAdd(activeOrgId)}
             className="flex items-center gap-2 px-3 py-2 bg-[#00CFFF] hover:bg-[#00CFFF]/90 text-black text-sm font-semibold rounded-lg transition-colors"
           >
             <Plus size={15} />
