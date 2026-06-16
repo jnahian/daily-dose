@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-06-16
+
 ### Added
 
 - Self-service team creation with org-admin approval: anyone in the workspace can now run `/dd-team-create`, even if they aren't yet an organization member. Non-members are auto-onboarded into the workspace's organization as a `MEMBER` (mirroring `joinTeam`'s behavior) by resolving the org from the slash command's `team_id` (`Organization.slackWorkspaceId`). Teams created by org owners/admins go live immediately; teams created by regular members are created with `status = PENDING` and are not scheduled until approved. Org owners/admins receive a DM with Approve/Reject buttons; approval flips the team to `ACTIVE` and schedules it, rejection deletes the team (freeing the channel). The creator is DM'd the decision. (`src/services/teamService.js` — `createTeam` now takes `slackWorkspaceId` and returns `{ team, status, organization, creatorSlackUserId }`, plus new `getPendingTeamForDecision`/`approveTeam`/`rejectTeam`; `src/services/userService.js` — new `getOrganizationByWorkspaceId`/`getOrganizationAdmins`; `src/services/notificationService.js` — new `notifyOrgAdminsOfPendingTeam`; `src/commands/team.js` — `createTeam` handler + `approveTeam`/`rejectTeam` action handlers; `src/commands/index.js` — `approve_team_*`/`reject_team_*` action routes; `src/utils/blockHelper.js` — `createTeamApprovalRequestBlocks`/`createTeamApprovalResultBlocks`)
@@ -586,7 +588,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.11.0...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.12.0...HEAD
+[1.12.0]: https://github.com/jnahian/daily-dose/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/jnahian/daily-dose/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/jnahian/daily-dose/compare/v1.9.1...v1.10.0
 [1.9.1]: https://github.com/jnahian/daily-dose/compare/v1.9.0...v1.9.1
