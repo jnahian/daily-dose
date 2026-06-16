@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-06-16
+
+### Added
+
+- Soft-delete support across core tables: nullable `deleted_at` columns on `organizations`, `teams`, `users`, `organization_members`, `team_members`, `leaves`, `standup_responses`, `standup_posts`, and `holidays`. Migration `20260616140000_add_soft_delete_columns`. (`prisma/schema.prisma`, `prisma/migrations/`)
+
+### Changed
+
+- Docker Compose PostgreSQL port mapping changed from `5433` to `5442`. (`docker-compose.yml`)
+
 ## [1.12.0] - 2026-06-16
 
 ### Added
@@ -588,7 +598,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.12.0...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.13.0...HEAD
+[1.13.0]: https://github.com/jnahian/daily-dose/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/jnahian/daily-dose/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/jnahian/daily-dose/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/jnahian/daily-dose/compare/v1.9.1...v1.10.0
