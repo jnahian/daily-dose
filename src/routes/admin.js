@@ -312,19 +312,17 @@ router.post(
           defaultTimezone: defaultTimezone?.trim() || "America/New_York",
         },
       });
-      res
-        .status(201)
-        .json({
-          id: org.id,
-          name: org.name,
-          slackWorkspaceId: org.slackWorkspaceId,
-          slackWorkspaceName: org.slackWorkspaceName,
-          defaultTimezone: org.defaultTimezone,
-          isActive: org.isActive,
-          teamCount: 0,
-          memberCount: 0,
-          createdAt: org.createdAt,
-        });
+      res.status(201).json({
+        id: org.id,
+        name: org.name,
+        slackWorkspaceId: org.slackWorkspaceId,
+        slackWorkspaceName: org.slackWorkspaceName,
+        defaultTimezone: org.defaultTimezone,
+        isActive: org.isActive,
+        teamCount: 0,
+        memberCount: 0,
+        createdAt: org.createdAt,
+      });
     } catch (err) {
       if (err.code === "P2002")
         return res
@@ -539,23 +537,19 @@ router.post("/teams", requireAuth, async (req, res) => {
       !postingTime ||
       !timezone
     ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "orgId, name, channelName, standupTime, postingTime, and timezone are required.",
-        });
+      return res.status(400).json({
+        error:
+          "orgId, name, channelName, standupTime, postingTime, and timezone are required.",
+      });
     }
     const allowed = await verifyOrgAccess(req, res, orgId);
     if (!allowed) return;
 
     const slackChannelId = await resolveChannelId(channelName);
     if (!slackChannelId) {
-      return res
-        .status(400)
-        .json({
-          error: `Channel "${channelName}" not found in Slack workspace.`,
-        });
+      return res.status(400).json({
+        error: `Channel "${channelName}" not found in Slack workspace.`,
+      });
     }
 
     // Check if a soft-deleted team already occupies this channel
@@ -563,11 +557,9 @@ router.post("/teams", requireAuth, async (req, res) => {
       where: { slackChannelId, deletedAt: { not: null } },
     });
     if (existingDeleted) {
-      return res
-        .status(409)
-        .json({
-          error: `A deleted team already exists for this channel. Please contact support to restore it.`,
-        });
+      return res.status(409).json({
+        error: `A deleted team already exists for this channel. Please contact support to restore it.`,
+      });
     }
 
     const team = await prisma.team.create({
@@ -617,7 +609,7 @@ router.delete("/teams/:id", requireAuth, async (req, res) => {
 
     await prisma.team.update({
       where: { id: req.params.id },
-      data: { deletedAt: new Date() },
+      data: { deletedAt: new Date(), isActive: false },
     });
     res.json({ success: true });
   } catch (err) {
@@ -713,7 +705,7 @@ router.post("/members", requireAuth, async (req, res) => {
     if (existing) {
       member = await prisma.organizationMember.update({
         where: { id: existing.id },
-        data: { role: role || "MEMBER", isActive: true },
+        data: { role: role || "MEMBER", isActive: true, deletedAt: null },
       });
     } else {
       member = await prisma.organizationMember.create({
@@ -777,7 +769,7 @@ router.delete("/members/:id", requireAuth, async (req, res) => {
     if (!allowed) return;
     await prisma.organizationMember.update({
       where: { id: req.params.id },
-      data: { deletedAt: new Date() },
+      data: { deletedAt: new Date(), isActive: false },
     });
     res.status(204).end();
   } catch (err) {
@@ -853,7 +845,7 @@ router.delete("/team-members/:id", requireAuth, async (req, res) => {
 
     await prisma.teamMember.update({
       where: { id: req.params.id },
-      data: { deletedAt: new Date() },
+      data: { deletedAt: new Date(), isActive: false },
     });
     res.json({ success: true });
   } catch (err) {
