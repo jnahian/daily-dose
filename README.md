@@ -123,8 +123,8 @@ When you first interact with the bot, you'll be automatically added to your orga
 /dd-team-leave Engineering            # Leave specific team by name
 /dd-team-members                      # View members of team in current channel
 /dd-team-members Engineering          # View members of specific team
-/dd-team-create 09:30 10:00           # Create new team (uses channel name) ⚠️ (admin only)
-/dd-team-create MyTeam 09:30 10:00    # Create new team with custom name ⚠️ (admin only)
+/dd-team-create 09:30 10:00           # Create new team (uses channel name) — members' teams need admin approval
+/dd-team-create MyTeam 09:30 10:00    # Create new team with custom name — members' teams need admin approval
 /dd-team-update standup=09:00         # Update team in current channel ⚠️ (admin only)
 /dd-team-update Engineering standup=09:00  # Update specific team ⚠️ (admin only)
 /dd-team-suspend @user                # Suspend member from team in current channel ⚠️ (admin only)

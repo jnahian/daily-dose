@@ -12,6 +12,7 @@ const {
 } = require("../utils/blockHelper");
 const logger = require("../utils/logger");
 const { parseTimeString } = require("../utils/timeHelper");
+const { escapeSlackText } = require("../utils/messageHelper");
 const { sanitizeError } = require("../utils/errorHelper");
 
 function parseUserMention(token) {
@@ -137,7 +138,7 @@ async function createTeam({ command, ack, respond, client }) {
       });
 
       await updateResponse({
-        text: `⏳ Team "${name}" has been submitted for approval.\n- Standup reminder: ${formatTime12Hour(
+        text: `⏳ Team "${escapeSlackText(name)}" has been submitted for approval.\n- Standup reminder: ${formatTime12Hour(
           parsedStandup.normalized
         )}\n- Posting time: ${formatTime12Hour(parsedPosting.normalized)}\n- Timezone: ${
           team.timezone
@@ -150,7 +151,7 @@ async function createTeam({ command, ack, respond, client }) {
     await schedulerService.refreshTeamSchedule(team.id);
 
     await updateResponse({
-      text: `✅ Team "${name}" created successfully!\n- Standup reminder: ${formatTime12Hour(
+      text: `✅ Team "${escapeSlackText(name)}" created successfully!\n- Standup reminder: ${formatTime12Hour(
         parsedStandup.normalized
       )}\n- Posting time: ${formatTime12Hour(parsedPosting.normalized)}\n- Timezone: ${
         team.timezone
@@ -831,26 +832,41 @@ async function approveTeam({ body, ack, client, respond }) {
 
   const teamId = body.actions[0].value;
 
+  // Phase 1: the state change. Failures here mean nothing was mutated, so we
+  // surface them to the admin.
+  let team, creatorSlackUserId;
   try {
-    const { team, creatorSlackUserId } = await teamService.approveTeam(
+    ({ team, creatorSlackUserId } = await teamService.approveTeam(
       body.user.id,
       teamId,
       client
-    );
+    ));
+  } catch (error) {
+    logger.error("Error approving team:", error);
+    await respond({
+      response_type: "ephemeral",
+      replace_original: false,
+      text: `⚠️ ${sanitizeError(error)}`,
+    });
+    return;
+  }
 
+  // Phase 2: best-effort Slack side effects. The approval already succeeded, so
+  // log failures here instead of reporting the whole action as failed.
+  try {
     await schedulerService.refreshTeamSchedule(team.id);
 
     if (creatorSlackUserId) {
       await client.chat.postMessage({
         channel: creatorSlackUserId,
-        text: `✅ Your team "${team.name}" was approved by <@${body.user.id}> and standups are now scheduled.`,
+        text: `✅ Your team "${escapeSlackText(team.name)}" was approved by <@${body.user.id}> and standups are now scheduled.`,
       });
     }
 
     await client.chat.update({
       channel: body.channel.id,
       ts: body.message.ts,
-      text: `Approved team "${team.name}"`,
+      text: `Approved team "${escapeSlackText(team.name)}"`,
       blocks: createTeamApprovalResultBlocks({
         teamName: team.name,
         channelId: team.slackChannelId,
@@ -859,12 +875,7 @@ async function approveTeam({ body, ack, client, respond }) {
       }),
     });
   } catch (error) {
-    logger.error("Error approving team:", error);
-    await respond({
-      response_type: "ephemeral",
-      replace_original: false,
-      text: `⚠️ ${sanitizeError(error)}`,
-    });
+    logger.error("Team approved but a follow-up Slack action failed:", error);
   }
 }
 
@@ -875,24 +886,39 @@ async function rejectTeam({ body, ack, client, respond }) {
 
   const teamId = body.actions[0].value;
 
+  // Phase 1: the state change. Failures here mean nothing was deleted, so we
+  // surface them to the admin.
+  let team, creatorSlackUserId;
   try {
-    const { team, creatorSlackUserId } = await teamService.rejectTeam(
+    ({ team, creatorSlackUserId } = await teamService.rejectTeam(
       body.user.id,
       teamId,
       client
-    );
+    ));
+  } catch (error) {
+    logger.error("Error rejecting team:", error);
+    await respond({
+      response_type: "ephemeral",
+      replace_original: false,
+      text: `⚠️ ${sanitizeError(error)}`,
+    });
+    return;
+  }
 
+  // Phase 2: best-effort Slack side effects. The rejection already succeeded, so
+  // log failures here instead of reporting the whole action as failed.
+  try {
     if (creatorSlackUserId) {
       await client.chat.postMessage({
         channel: creatorSlackUserId,
-        text: `❌ Your team "${team.name}" request was declined by <@${body.user.id}>. Reach out to an organization admin if you have questions.`,
+        text: `❌ Your team "${escapeSlackText(team.name)}" request was declined by <@${body.user.id}>. Reach out to an organization admin if you have questions.`,
       });
     }
 
     await client.chat.update({
       channel: body.channel.id,
       ts: body.message.ts,
-      text: `Rejected team "${team.name}"`,
+      text: `Rejected team "${escapeSlackText(team.name)}"`,
       blocks: createTeamApprovalResultBlocks({
         teamName: team.name,
         channelId: team.slackChannelId,
@@ -901,12 +927,7 @@ async function rejectTeam({ body, ack, client, respond }) {
       }),
     });
   } catch (error) {
-    logger.error("Error rejecting team:", error);
-    await respond({
-      response_type: "ephemeral",
-      replace_original: false,
-      text: `⚠️ ${sanitizeError(error)}`,
-    });
+    logger.error("Team rejected but a follow-up Slack action failed:", error);
   }
 }
 

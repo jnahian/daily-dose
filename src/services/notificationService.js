@@ -1,6 +1,7 @@
 const teamService = require("./teamService");
 const userService = require("./userService");
 const logger = require("../utils/logger");
+const { escapeSlackText } = require("../utils/messageHelper");
 const {
   createAdminSubmissionNotificationBlocks,
   createTeamApprovalRequestBlocks,
@@ -149,7 +150,9 @@ class NotificationService {
   }) {
     try {
       const admins = await userService.getOrganizationAdmins(organization.id);
-      const text = `🆕 <@${creatorSlackUserId}> proposed a new team "${team.name}" that needs your approval.`;
+      const text = `🆕 <@${creatorSlackUserId}> proposed a new team "${escapeSlackText(
+        team.name
+      )}" that needs your approval.`;
       const blocks = createTeamApprovalRequestBlocks({
         team,
         creatorSlackUserId,
@@ -160,11 +163,20 @@ class NotificationService {
           continue;
         }
 
-        await client.chat.postMessage({
-          channel: admin.user.slackUserId,
-          text,
-          blocks,
-        });
+        // Isolate per-recipient failures so one bad DM (e.g. a deactivated
+        // admin) doesn't stop the rest of the fan-out.
+        try {
+          await client.chat.postMessage({
+            channel: admin.user.slackUserId,
+            text,
+            blocks,
+          });
+        } catch (postError) {
+          logger.error(
+            `Failed pending-team DM to org admin ${admin.user.slackUserId}:`,
+            postError
+          );
+        }
       }
     } catch (error) {
       logger.error("Error notifying org admins of pending team:", error);

@@ -2,7 +2,7 @@
  * Utility functions for generating Slack Block Kit components
  */
 
-const { convertTextToRichText } = require("./messageHelper");
+const { convertTextToRichText, escapeSlackText } = require("./messageHelper");
 
 /**
  * Create a basic section block with markdown text
@@ -351,12 +351,18 @@ function createStandupReminderBlocks(message, teamName, teamId) {
  * @returns {Array<object>} Block Kit blocks with approve/reject buttons
  */
 function createTeamApprovalRequestBlocks({ team, creatorSlackUserId }) {
+  // Team name is user-supplied — escape it so it can't inject Slack
+  // mentions/links/formatting into the admin DM.
   return [
     createSectionBlock(
-      `🆕 *New team pending approval*\n*Team:* ${team.name}\n*Channel:* <#${team.slackChannelId}>\n*Requested by:* <@${creatorSlackUserId}>`
+      `🆕 *New team pending approval*\n*Team:* ${escapeSlackText(
+        team.name
+      )}\n*Channel:* <#${team.slackChannelId}>\n*Requested by:* <@${creatorSlackUserId}>`
     ),
     createContextBlock(
-      `Standup ${team.standupTime} • Posting ${team.postingTime} • ${team.timezone}`
+      `Standup ${escapeSlackText(team.standupTime)} • Posting ${escapeSlackText(
+        team.postingTime
+      )} • ${escapeSlackText(team.timezone)}`
     ),
     createActionsBlock([
       createButton("✅ Approve", `approve_team_${team.id}`, team.id, "primary"),
@@ -383,7 +389,9 @@ function createTeamApprovalResultBlocks({
 }) {
   const status = approved ? "✅ *Approved*" : "❌ *Rejected*";
   return [
-    createSectionBlock(`${status} — team *${teamName}* (<#${channelId}>)`),
+    createSectionBlock(
+      `${status} — team *${escapeSlackText(teamName)}* (<#${channelId}>)`
+    ),
     createContextBlock(`Decision by <@${decidedBySlackUserId}>`),
   ];
 }

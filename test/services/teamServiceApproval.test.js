@@ -3,7 +3,9 @@ jest.mock("../../src/config/prisma", () => ({
     findUnique: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    updateMany: jest.fn(),
     delete: jest.fn(),
+    deleteMany: jest.fn(),
   },
   teamMember: { create: jest.fn() },
   $transaction: jest.fn(),
@@ -109,22 +111,36 @@ describe("teamService.approveTeam / rejectTeam", () => {
   };
 
   it("approves a pending team as an org admin", async () => {
-    prisma.team.findUnique.mockResolvedValue(pendingTeam);
+    prisma.team.findUnique
+      .mockResolvedValueOnce(pendingTeam) // getPendingTeamForDecision lookup
+      .mockResolvedValueOnce({ ...pendingTeam, status: "ACTIVE" }); // re-read after update
     permissionHelper.isOrganizationOwner.mockResolvedValue(false);
     permissionHelper.isOrganizationAdmin.mockResolvedValue(true);
-    prisma.team.update.mockResolvedValue({
-      ...pendingTeam,
-      status: "ACTIVE",
-    });
+    prisma.team.updateMany.mockResolvedValue({ count: 1 });
 
     const result = await teamService.approveTeam("U_ADMIN", "t1");
 
-    expect(prisma.team.update).toHaveBeenCalledWith({
-      where: { id: "t1" },
+    // Status flip is guarded on the PENDING state to avoid a check-then-act race.
+    expect(prisma.team.updateMany).toHaveBeenCalledWith({
+      where: { id: "t1", status: "PENDING" },
       data: { status: "ACTIVE" },
     });
     expect(result.team.status).toBe("ACTIVE");
     expect(result.creatorSlackUserId).toBe("U_CREATOR");
+  });
+
+  it("queries pending-team members ordered by joinedAt (valid Prisma field)", async () => {
+    prisma.team.findUnique
+      .mockResolvedValueOnce(pendingTeam)
+      .mockResolvedValueOnce({ ...pendingTeam, status: "ACTIVE" });
+    permissionHelper.isOrganizationOwner.mockResolvedValue(true);
+    permissionHelper.isOrganizationAdmin.mockResolvedValue(false);
+    prisma.team.updateMany.mockResolvedValue({ count: 1 });
+
+    await teamService.approveTeam("U_OWNER", "t1");
+
+    const findArgs = prisma.team.findUnique.mock.calls[0][0];
+    expect(findArgs.include.members.orderBy).toEqual({ joinedAt: "asc" });
   });
 
   it("blocks approval from a non-admin", async () => {
@@ -135,18 +151,32 @@ describe("teamService.approveTeam / rejectTeam", () => {
     await expect(teamService.approveTeam("U_RANDOM", "t1")).rejects.toThrow(
       /Only organization admins/
     );
-    expect(prisma.team.update).not.toHaveBeenCalled();
+    expect(prisma.team.updateMany).not.toHaveBeenCalled();
   });
 
   it("rejects (deletes) a pending team as an org admin", async () => {
     prisma.team.findUnique.mockResolvedValue(pendingTeam);
     permissionHelper.isOrganizationOwner.mockResolvedValue(true);
     permissionHelper.isOrganizationAdmin.mockResolvedValue(false);
+    prisma.team.deleteMany.mockResolvedValue({ count: 1 });
 
     const result = await teamService.rejectTeam("U_OWNER", "t1");
 
-    expect(prisma.team.delete).toHaveBeenCalledWith({ where: { id: "t1" } });
+    expect(prisma.team.deleteMany).toHaveBeenCalledWith({
+      where: { id: "t1", status: "PENDING" },
+    });
     expect(result.creatorSlackUserId).toBe("U_CREATOR");
+  });
+
+  it("throws if a concurrent decision already processed the team", async () => {
+    prisma.team.findUnique.mockResolvedValue(pendingTeam);
+    permissionHelper.isOrganizationOwner.mockResolvedValue(true);
+    permissionHelper.isOrganizationAdmin.mockResolvedValue(false);
+    prisma.team.updateMany.mockResolvedValue({ count: 0 }); // lost the race
+
+    await expect(teamService.approveTeam("U_OWNER", "t1")).rejects.toThrow(
+      /already been processed/
+    );
   });
 
   it("refuses to act on a team that is not pending", async () => {

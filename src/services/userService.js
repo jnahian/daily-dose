@@ -87,8 +87,10 @@ class UserService {
   async getOrganizationByWorkspaceId(slackWorkspaceId) {
     if (!slackWorkspaceId) return null;
 
-    return await prisma.organization.findUnique({
-      where: { slackWorkspaceId },
+    // Only resolve active organizations so onboarding/team creation can't be
+    // routed into a deactivated org (the scheduler also filters on isActive).
+    return await prisma.organization.findFirst({
+      where: { slackWorkspaceId, isActive: true },
     });
   }
 
