@@ -1,0 +1,134 @@
+const express = require("express");
+const crypto = require("crypto");
+const { WebClient } = require("@slack/web-api");
+const prisma = require("../config/prisma");
+const tokenService = require("../services/mcpTokenService");
+
+const router = express.Router();
+
+const OAUTH_STATE_TTL = 5 * 60 * 1000;
+const oauthStates = new Map();
+
+// Reuse the admin session cookie machinery, but WITHOUT the admin gate:
+// any registered user may hold an MCP session and manage their own tokens.
+async function requireMcpSession(req, res, next) {
+  const token = req.cookies?.mcp_session;
+  if (!token) return res.status(401).json({ error: "Unauthorized" });
+  try {
+    const session = await prisma.sessions.findUnique({
+      where: { token },
+      include: { users: true },
+    });
+    if (!session || !session.users || session.expires_at <= new Date()) {
+      return res.status(401).json({ error: "Session expired" });
+    }
+    req.mcpSessionUser = session.users;
+    next();
+  } catch (err) {
+    console.error("requireMcpSession error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+// GET /api/mcp/auth/slack — initiate OAuth
+router.get("/auth/slack", (req, res) => {
+  const state = crypto.randomBytes(16).toString("hex");
+  oauthStates.set(state, Date.now() + OAUTH_STATE_TTL);
+  const params = new URLSearchParams({
+    client_id: process.env.SLACK_CLIENT_ID,
+    user_scope: "identity.basic,identity.email",
+    redirect_uri: process.env.MCP_OAUTH_REDIRECT_URI,
+    state,
+  });
+  res.redirect(`https://slack.com/oauth/v2/authorize?${params}`);
+});
+
+// GET /api/mcp/auth/callback — handle OAuth callback
+router.get("/auth/callback", async (req, res) => {
+  const { code, state } = req.query;
+  const expiry = oauthStates.get(state);
+  const appUrl = process.env.APP_URL || "";
+
+  if (!state || !expiry || Date.now() > expiry) {
+    oauthStates.delete(state);
+    return res.redirect(`${appUrl}/mcp-tokens?error=invalid_state`);
+  }
+  oauthStates.delete(state);
+
+  try {
+    if (!code) return res.redirect(`${appUrl}/mcp-tokens?error=oauth_denied`);
+
+    const slack = new WebClient();
+    const result = await slack.oauth.v2.access({
+      client_id: process.env.SLACK_CLIENT_ID,
+      client_secret: process.env.SLACK_CLIENT_SECRET,
+      code,
+      redirect_uri: process.env.MCP_OAUTH_REDIRECT_URI,
+    });
+    if (!result.ok) throw new Error(`Slack OAuth error: ${result.error}`);
+
+    const userToken = result.authed_user?.access_token;
+    if (!userToken) throw new Error("No user access token in OAuth response");
+
+    const identity = await new WebClient(userToken).users.identity();
+    const slackUserId = identity.user?.id;
+    if (!slackUserId) throw new Error("Could not get Slack user ID");
+
+    // Member gate only: the user must be registered. No admin requirement.
+    const user = await prisma.user.findUnique({ where: { slackUserId } });
+    if (!user) return res.redirect(`${appUrl}/mcp-tokens?error=not_registered`);
+
+    const sessionToken = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    await prisma.sessions.create({
+      data: {
+        id: crypto.randomUUID(),
+        user_id: user.id,
+        token: sessionToken,
+        expires_at: expiresAt,
+        ip_address: req.ip,
+        user_agent: req.headers["user-agent"],
+      },
+    });
+    res.cookie("mcp_session", sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: "lax",
+    });
+    res.redirect(`${appUrl}/mcp-tokens`);
+  } catch (err) {
+    console.error("MCP OAuth callback error:", err);
+    res.redirect(`${appUrl}/mcp-tokens?error=oauth_failed`);
+  }
+});
+
+// GET /api/mcp/me — who am I (for the SPA)
+router.get("/me", requireMcpSession, (req, res) => {
+  const u = req.mcpSessionUser;
+  res.json({ id: u.id, slackUserId: u.slackUserId, name: u.name });
+});
+
+// GET /api/mcp/tokens — list caller's tokens (no secrets)
+router.get("/tokens", requireMcpSession, async (req, res) => {
+  res.json(await tokenService.listTokens(req.mcpSessionUser.id));
+});
+
+// POST /api/mcp/tokens — mint a token (raw value returned ONCE)
+router.post("/tokens", requireMcpSession, async (req, res) => {
+  const name =
+    typeof req.body?.name === "string" ? req.body.name.slice(0, 100) : null;
+  const { rawToken, id, expiresAt } = await tokenService.mintToken(
+    req.mcpSessionUser.id,
+    name
+  );
+  res.status(201).json({ id, token: rawToken, expiresAt });
+});
+
+// DELETE /api/mcp/tokens/:id — revoke
+router.delete("/tokens/:id", requireMcpSession, async (req, res) => {
+  await tokenService.revokeToken(req.mcpSessionUser.id, req.params.id);
+  res.json({ ok: true });
+});
+
+module.exports = { router };
