@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-06-16
+
+### Added
+
+- Self-service team creation with org-admin approval: anyone in the workspace can now run `/dd-team-create`, even if they aren't yet an organization member. Non-members are auto-onboarded into the workspace's organization as a `MEMBER` (mirroring `joinTeam`'s behavior) by resolving the org from the slash command's `team_id` (`Organization.slackWorkspaceId`). Teams created by org owners/admins go live immediately; teams created by regular members are created with `status = PENDING` and are not scheduled until approved. Org owners/admins receive a DM with Approve/Reject buttons; approval flips the team to `ACTIVE` and schedules it, rejection deletes the team (freeing the channel). The creator is DM'd the decision. (`src/services/teamService.js` — `createTeam` now takes `slackWorkspaceId` and returns `{ team, status, organization, creatorSlackUserId }`, plus new `getPendingTeamForDecision`/`approveTeam`/`rejectTeam`; `src/services/userService.js` — new `getOrganizationByWorkspaceId`/`getOrganizationAdmins`; `src/services/notificationService.js` — new `notifyOrgAdminsOfPendingTeam`; `src/commands/team.js` — `createTeam` handler + `approveTeam`/`rejectTeam` action handlers; `src/commands/index.js` — `approve_team_*`/`reject_team_*` action routes; `src/utils/blockHelper.js` — `createTeamApprovalRequestBlocks`/`createTeamApprovalResultBlocks`)
+
+### Changed
+
+- New `TeamStatus` enum (`PENDING`/`ACTIVE`/`REJECTED`) and `Team.status` column (default `ACTIVE`, so existing teams stay active). Migration `20260616131600_team_status`. (`prisma/schema.prisma`, `prisma/migrations/`)
+- `getActiveTeamsForScheduling` now filters `status = ACTIVE`, so pending teams never trigger reminders or posting until approved. (`src/services/teamService.js`)
+
+### Tests
+
+- `test/services/teamServiceApproval.test.js` covers auto-onboarding, pending vs. active creation, the no-org-for-workspace error, duplicate-channel guard, and approve/reject permission + state transitions.
+
+## [1.11.0] - 2026-06-12
+
+### Added
+
+- Complete landing page redesign ("Refined Dark"): new `web/src/components/landing/` component set — hero with Slack summary mockup, "A day with Daily Dose" walkthrough timeline (`#walkthrough`), features bento (`#features`), curated stats strip (`web/src/data/landingStats.json`), how-it-works steps (`#how-it-works`), FAQ accordion, final CTA band, and dark footer — assembled by `web/src/pages/Home.tsx`. Reusable Slack mock primitives live in `web/src/components/landing/slack/`. The previous landing page is preserved unchanged at `/v1` (`web/src/pages/HomeV1.tsx`, robots noindex). Navbar forces dark styling and hides the theme toggle on `/` only; all other routes keep the light/dark toggle. Landing animations are scroll-triggered Framer Motion reveals respecting `prefers-reduced-motion`.
+
 ## [1.10.0] - 2026-06-10
 
 ### Added
@@ -567,7 +588,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.10.0...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.12.0...HEAD
+[1.12.0]: https://github.com/jnahian/daily-dose/compare/v1.11.0...v1.12.0
+[1.11.0]: https://github.com/jnahian/daily-dose/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/jnahian/daily-dose/compare/v1.9.1...v1.10.0
 [1.9.1]: https://github.com/jnahian/daily-dose/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/jnahian/daily-dose/compare/v1.8.7...v1.9.0

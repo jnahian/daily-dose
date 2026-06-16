@@ -1,10 +1,13 @@
 import {
-  Hero,
-  Features,
-  HowItWorks,
-  Contact,
-  Footer,
-} from "../components/home";
+  LandingHero,
+  DayTimeline,
+  FeaturesBento,
+  StatsStrip,
+  HowItWorksSteps,
+  Faq,
+  FinalCta,
+  LandingFooter,
+} from "../components/landing";
 
 export const meta = () => {
   return [
@@ -49,12 +52,15 @@ export const meta = () => {
 
 const Home = () => {
   return (
-    <div className="min-h-screen bg-bg-primary text-text-primary selection:bg-brand-cyan/30 transition-colors duration-300">
-      <Hero />
-      <Features />
-      <HowItWorks />
-      <Contact />
-      <Footer />
+    <div className="min-h-screen bg-[#0A0E16] text-slate-50 selection:bg-brand-cyan/30">
+      <LandingHero />
+      <DayTimeline />
+      <FeaturesBento />
+      <StatsStrip />
+      <HowItWorksSteps />
+      <Faq />
+      <FinalCta />
+      <LandingFooter />
     </div>
   );
 };

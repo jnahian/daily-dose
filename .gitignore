@@ -10,3 +10,6 @@ ngrok.yml
 coverage/
 Daily Dose/
 video/
+coverage/
+# Brainstorming scratch files
+.superpowers/

@@ -1,14 +1,18 @@
 const teamService = require("../services/teamService");
 const userService = require("../services/userService");
 const schedulerService = require("../services/schedulerService");
+const notificationService = require("../services/notificationService");
 const { ackWithProcessing, getChannelName } = require("../utils/commandHelper");
 const { getDisplayName } = require("../utils/userHelper");
 const { formatTime12Hour } = require("../utils/dateHelper");
 const {
   createSectionBlock,
   createCommandErrorBlocks,
+  createTeamApprovalResultBlocks,
 } = require("../utils/blockHelper");
+const logger = require("../utils/logger");
 const { parseTimeString } = require("../utils/timeHelper");
+const { escapeSlackText } = require("../utils/messageHelper");
 const { sanitizeError } = require("../utils/errorHelper");
 
 function parseUserMention(token) {
@@ -112,7 +116,7 @@ async function createTeam({ command, ack, respond, client }) {
       return;
     }
 
-    const team = await teamService.createTeam(
+    const { team, status, organization } = await teamService.createTeam(
       command.user_id,
       command.channel_id,
       {
@@ -120,14 +124,34 @@ async function createTeam({ command, ack, respond, client }) {
         standupTime: parsedStandup.normalized,
         postingTime: parsedPosting.normalized,
       },
+      command.team_id,
       client
     );
+
+    if (status === "PENDING") {
+      // Non-admin proposal: leave it unscheduled and ask org admins to approve.
+      await notificationService.notifyOrgAdminsOfPendingTeam({
+        team,
+        organization,
+        creatorSlackUserId: command.user_id,
+        client,
+      });
+
+      await updateResponse({
+        text: `⏳ Team "${escapeSlackText(name)}" has been submitted for approval.\n- Standup reminder: ${formatTime12Hour(
+          parsedStandup.normalized
+        )}\n- Posting time: ${formatTime12Hour(parsedPosting.normalized)}\n- Timezone: ${
+          team.timezone
+        }\nAn organization admin will review it shortly — standups start once it's approved.`,
+      });
+      return;
+    }
 
     // Refresh the scheduler to include the new team
     await schedulerService.refreshTeamSchedule(team.id);
 
     await updateResponse({
-      text: `✅ Team "${name}" created successfully!\n- Standup reminder: ${formatTime12Hour(
+      text: `✅ Team "${escapeSlackText(name)}" created successfully!\n- Standup reminder: ${formatTime12Hour(
         parsedStandup.normalized
       )}\n- Posting time: ${formatTime12Hour(parsedPosting.normalized)}\n- Timezone: ${
         team.timezone
@@ -801,8 +825,116 @@ async function promoteOrgMember({ command, ack, respond, client }) {
   }
 }
 
+// Org admin clicks "Approve" on a pending-team request DM. Activates the team,
+// schedules it, notifies the proposer, and replaces the request buttons.
+async function approveTeam({ body, ack, client, respond }) {
+  await ack();
+
+  const teamId = body.actions[0].value;
+
+  // Phase 1: the state change. Failures here mean nothing was mutated, so we
+  // surface them to the admin.
+  let team, creatorSlackUserId;
+  try {
+    ({ team, creatorSlackUserId } = await teamService.approveTeam(
+      body.user.id,
+      teamId,
+      client
+    ));
+  } catch (error) {
+    logger.error("Error approving team:", error);
+    await respond({
+      response_type: "ephemeral",
+      replace_original: false,
+      text: `⚠️ ${sanitizeError(error)}`,
+    });
+    return;
+  }
+
+  // Phase 2: best-effort Slack side effects. The approval already succeeded, so
+  // log failures here instead of reporting the whole action as failed.
+  try {
+    await schedulerService.refreshTeamSchedule(team.id);
+
+    if (creatorSlackUserId) {
+      await client.chat.postMessage({
+        channel: creatorSlackUserId,
+        text: `✅ Your team "${escapeSlackText(team.name)}" was approved by <@${body.user.id}> and standups are now scheduled.`,
+      });
+    }
+
+    await client.chat.update({
+      channel: body.channel.id,
+      ts: body.message.ts,
+      text: `Approved team "${escapeSlackText(team.name)}"`,
+      blocks: createTeamApprovalResultBlocks({
+        teamName: team.name,
+        channelId: team.slackChannelId,
+        decidedBySlackUserId: body.user.id,
+        approved: true,
+      }),
+    });
+  } catch (error) {
+    logger.error("Team approved but a follow-up Slack action failed:", error);
+  }
+}
+
+// Org admin clicks "Reject" on a pending-team request DM. Deletes the proposed
+// team, notifies the proposer, and replaces the request buttons.
+async function rejectTeam({ body, ack, client, respond }) {
+  await ack();
+
+  const teamId = body.actions[0].value;
+
+  // Phase 1: the state change. Failures here mean nothing was deleted, so we
+  // surface them to the admin.
+  let team, creatorSlackUserId;
+  try {
+    ({ team, creatorSlackUserId } = await teamService.rejectTeam(
+      body.user.id,
+      teamId,
+      client
+    ));
+  } catch (error) {
+    logger.error("Error rejecting team:", error);
+    await respond({
+      response_type: "ephemeral",
+      replace_original: false,
+      text: `⚠️ ${sanitizeError(error)}`,
+    });
+    return;
+  }
+
+  // Phase 2: best-effort Slack side effects. The rejection already succeeded, so
+  // log failures here instead of reporting the whole action as failed.
+  try {
+    if (creatorSlackUserId) {
+      await client.chat.postMessage({
+        channel: creatorSlackUserId,
+        text: `❌ Your team "${escapeSlackText(team.name)}" request was declined by <@${body.user.id}>. Reach out to an organization admin if you have questions.`,
+      });
+    }
+
+    await client.chat.update({
+      channel: body.channel.id,
+      ts: body.message.ts,
+      text: `Rejected team "${escapeSlackText(team.name)}"`,
+      blocks: createTeamApprovalResultBlocks({
+        teamName: team.name,
+        channelId: team.slackChannelId,
+        decidedBySlackUserId: body.user.id,
+        approved: false,
+      }),
+    });
+  } catch (error) {
+    logger.error("Team rejected but a follow-up Slack action failed:", error);
+  }
+}
+
 module.exports = {
   createTeam,
+  approveTeam,
+  rejectTeam,
   joinTeam,
   leaveTeam,
   listTeams,

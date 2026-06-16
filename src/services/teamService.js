@@ -20,24 +20,51 @@ function validateTimeString(timeString) {
 }
 
 class TeamService {
-  async createTeam(slackUserId, channelId, teamData, slackClient = null) {
+  /**
+   * Create a team for a Slack channel, auto-onboarding the creator into the
+   * workspace's organization if they aren't a member yet. Org owners/admins get
+   * an ACTIVE team immediately; everyone else gets a PENDING team that an org
+   * admin must approve before it is scheduled.
+   * @param {string} slackUserId - Slack user ID of the creator
+   * @param {string} channelId - Slack channel ID the team posts to
+   * @param {Object} teamData - { name, standupTime, postingTime, timezone? }
+   * @param {string|null} slackWorkspaceId - Slack workspace ID (command.team_id) used to resolve the org for non-members
+   * @param {Object|null} slackClient - Slack web client for fetching user info
+   * @returns {Promise<{team: Object, status: string, organization: Object, creatorSlackUserId: string}>}
+   */
+  async createTeam(
+    slackUserId,
+    channelId,
+    teamData,
+    slackWorkspaceId = null,
+    slackClient = null
+  ) {
     // Get user and their organization
     const userData = await userService.fetchSlackUserData(
       slackUserId,
       slackClient
     );
     const user = await userService.findOrCreateUser(slackUserId, userData);
-    const org = await userService.getUserOrganization(slackUserId);
+    let org = await userService.getUserOrganization(slackUserId);
 
+    // If the creator isn't an organization member yet, place them in the org
+    // that owns this Slack workspace and add them as a MEMBER (mirrors how
+    // joinTeam auto-onboards). This removes the "ask an admin to add you"
+    // barrier — anyone in the workspace can propose a team.
     if (!org) {
-      throw new Error("You must belong to an organization to create teams");
+      org = await userService.getOrganizationByWorkspaceId(slackWorkspaceId);
+      if (!org) {
+        throw new Error(
+          "This Slack workspace isn't set up with Daily Dose yet. Please ask an organization admin to set it up."
+        );
+      }
+      await userService.addUserToOrganization(user.id, org.id);
     }
 
-    // Check permissions
-    const canCreate = await userService.canCreateTeam(user.id, org.id);
-    if (!canCreate) {
-      throw new Error("You need admin permissions to create teams");
-    }
+    // Org owners/admins create teams that are active immediately. Everyone else
+    // creates a team that stays PENDING until an org admin approves it.
+    const isPrivileged = await userService.canCreateTeam(user.id, org.id);
+    const status = isPrivileged ? "ACTIVE" : "PENDING";
 
     // Check if channel already has a team
     const existingTeam = await prisma.team.findUnique({
@@ -49,8 +76,8 @@ class TeamService {
     }
 
     // Create team with transaction
-    return await prisma.$transaction(async (tx) => {
-      const team = await tx.team.create({
+    const team = await prisma.$transaction(async (tx) => {
+      const created = await tx.team.create({
         data: {
           organizationId: org.id,
           name: teamData.name,
@@ -58,20 +85,140 @@ class TeamService {
           standupTime: validateTimeString(teamData.standupTime),
           postingTime: validateTimeString(teamData.postingTime),
           timezone: validateTimezone(teamData.timezone || org.defaultTimezone),
+          status,
         },
       });
 
       // Add creator as team admin
       await tx.teamMember.create({
         data: {
-          teamId: team.id,
+          teamId: created.id,
           userId: user.id,
           role: "ADMIN",
         },
       });
 
-      return team;
+      return created;
     });
+
+    return { team, status, organization: org, creatorSlackUserId: slackUserId };
+  }
+
+  /**
+   * Resolve and authorize an org admin acting on a PENDING team, returning the
+   * team (with its creator) for approve/reject handlers. Throws if the team is
+   * missing, the actor isn't an org owner/admin, or the team isn't PENDING.
+   * @param {string} adminSlackUserId - Slack user ID of the acting admin
+   * @param {string} teamId - Team ID under decision
+   * @param {Object|null} slackClient - Slack web client for fetching user info
+   * @returns {Promise<{team: Object, creatorSlackUserId: string|undefined}>}
+   */
+  async getPendingTeamForDecision(
+    adminSlackUserId,
+    teamId,
+    slackClient = null
+  ) {
+    const userData = await userService.fetchSlackUserData(
+      adminSlackUserId,
+      slackClient
+    );
+    const adminUser = await userService.findOrCreateUser(
+      adminSlackUserId,
+      userData
+    );
+
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      include: {
+        organization: true,
+        members: {
+          where: { role: "ADMIN" },
+          include: { user: true },
+          orderBy: { joinedAt: "asc" },
+        },
+      },
+    });
+
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    const isOwner = await permissionHelper.isOrganizationOwner(
+      adminUser.id,
+      team.organizationId
+    );
+    const isOrgAdmin = await permissionHelper.isOrganizationAdmin(
+      adminUser.id,
+      team.organizationId
+    );
+    if (!isOwner && !isOrgAdmin) {
+      throw new Error("Only organization admins can approve or reject teams");
+    }
+
+    if (team.status !== "PENDING") {
+      throw new Error(
+        `This team has already been ${team.status.toLowerCase()}`
+      );
+    }
+
+    return { team, creatorSlackUserId: team.members[0]?.user?.slackUserId };
+  }
+
+  /**
+   * Approve a PENDING team: transition it to ACTIVE so it can be scheduled.
+   * @param {string} adminSlackUserId - Slack user ID of the approving admin
+   * @param {string} teamId - Team ID to approve
+   * @param {Object|null} slackClient - Slack web client for fetching user info
+   * @returns {Promise<{team: Object, creatorSlackUserId: string|undefined}>}
+   */
+  async approveTeam(adminSlackUserId, teamId, slackClient = null) {
+    const { creatorSlackUserId } = await this.getPendingTeamForDecision(
+      adminSlackUserId,
+      teamId,
+      slackClient
+    );
+
+    // Guard against a concurrent decision (two admins clicking at once): only
+    // flip a team that is still PENDING, so a stale click can't re-process it.
+    const { count } = await prisma.team.updateMany({
+      where: { id: teamId, status: "PENDING" },
+      data: { status: "ACTIVE" },
+    });
+    if (count === 0) {
+      throw new Error("This team has already been processed");
+    }
+
+    const updated = await prisma.team.findUnique({ where: { id: teamId } });
+
+    return { team: updated, creatorSlackUserId };
+  }
+
+  /**
+   * Reject a PENDING team: delete it so the channel is freed for a fresh
+   * proposal. Returns the team snapshot and creator for notifying the proposer.
+   * @param {string} adminSlackUserId - Slack user ID of the rejecting admin
+   * @param {string} teamId - Team ID to reject
+   * @param {Object|null} slackClient - Slack web client for fetching user info
+   * @returns {Promise<{team: Object, creatorSlackUserId: string|undefined}>}
+   */
+  async rejectTeam(adminSlackUserId, teamId, slackClient = null) {
+    const { team, creatorSlackUserId } = await this.getPendingTeamForDecision(
+      adminSlackUserId,
+      teamId,
+      slackClient
+    );
+
+    // Delete the rejected team so the channel is freed for a fresh proposal.
+    // Cascade deletes remove the creator's TeamMember record. Scope the delete
+    // to PENDING so a concurrent decision can't remove a just-approved team.
+    const { count } = await prisma.team.deleteMany({
+      where: { id: teamId, status: "PENDING" },
+    });
+    if (count === 0) {
+      throw new Error("This team has already been processed");
+    }
+
+    return { team, creatorSlackUserId };
   }
 
   async joinTeam(slackUserId, teamId, slackClient = null) {
@@ -235,6 +382,7 @@ class TeamService {
     return await prisma.team.findMany({
       where: {
         isActive: true,
+        status: "ACTIVE",
         organization: {
           isActive: true,
         },

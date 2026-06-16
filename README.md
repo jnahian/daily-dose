@@ -123,8 +123,8 @@ When you first interact with the bot, you'll be automatically added to your orga
 /dd-team-leave Engineering            # Leave specific team by name
 /dd-team-members                      # View members of team in current channel
 /dd-team-members Engineering          # View members of specific team
-/dd-team-create 09:30 10:00           # Create new team (uses channel name) ⚠️ (admin only)
-/dd-team-create MyTeam 09:30 10:00    # Create new team with custom name ⚠️ (admin only)
+/dd-team-create 09:30 10:00           # Create new team (uses channel name) — members' teams need admin approval
+/dd-team-create MyTeam 09:30 10:00    # Create new team with custom name — members' teams need admin approval
 /dd-team-update standup=09:00         # Update team in current channel ⚠️ (admin only)
 /dd-team-update Engineering standup=09:00  # Update specific team ⚠️ (admin only)
 /dd-team-suspend @user                # Suspend member from team in current channel ⚠️ (admin only)
@@ -395,10 +395,11 @@ These commands allow team admins and organization owners to manually trigger sta
 - `/dd-team-members [team-name]` - View team members
   - **Channel-based**: `/dd-team-members` (shows members of team in current channel)
   - **Name-based**: `/dd-team-members Engineering` (shows members of specific team from any channel)
-- `/dd-team-create [team-name] <standup-time> <posting-time>` - Create a new team ⚠️ **(admin only)**
+- `/dd-team-create [team-name] <standup-time> <posting-time>` - Create a new team
   - **Channel-based**: `/dd-team-create 09:30 10:00` (uses channel name as team name)
   - **Custom name**: `/dd-team-create Engineering 09:30 10:00` (creates team with custom name)
-  - Requires admin permissions
+  - **Anyone in the workspace can create a team.** If you're not yet in the organization, you're added automatically as a member.
+  - Teams created by **org owners/admins** go live immediately. Teams created by **regular members** stay **pending** until an org admin approves them — admins receive an Approve/Reject prompt by DM, and you're notified of their decision.
 - `/dd-team-update [team-name] [parameters]` - Update team settings ⚠️ **(admin only)**
   - **Channel-based**: `/dd-team-update standup=09:00 posting=10:30` (updates team in current channel)
   - **Name-based**: `/dd-team-update Engineering standup=09:00 posting=10:30 notifications=false` (updates specific team from any channel)
@@ -512,6 +513,8 @@ The bot posts a formatted summary showing:
 3. Team members can join using:
    - **Channel-based**: `/dd-team-join` (joins team in current channel)
    - **Name-based**: `/dd-team-join Engineering` (joins specific team from any channel)
+
+> **Who can create a team?** Anyone in the workspace. A non-member who creates a team is automatically added to the organization. Teams created by org owners/admins are active right away; teams created by regular members are submitted for approval and become active once an org admin clicks **Approve** on the DM they receive (they can also **Reject**, which discards the request). The creator becomes the team admin once approved.
 
 ### Time Configuration
 
@@ -978,8 +981,10 @@ Team admins can manage leave for any member in their teams. This is useful for:
 
 **Can't create a team?**
 
-- You need admin permissions in your organization
-- Contact your organization admin
+- Anyone in the workspace can run `/dd-team-create` — if you're not in the organization yet, you're added automatically.
+- If you're a regular member, your team is submitted for approval; an org admin must Approve it before standups begin. Check with your org admin if it's still pending.
+- If you see "this Slack workspace isn't set up with Daily Dose yet," ask an org admin to set up the organization first.
+- A channel can only have one team — if the channel already has one (including a pending request), creation is blocked.
 
 **Standup not posting to channel?**
 

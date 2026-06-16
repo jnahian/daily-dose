@@ -10,6 +10,7 @@ import { AdminLayout } from "./components/admin/AdminLayout";
 
 // Lazy load pages
 const Home = lazy(() => import("./pages/Home"));
+const HomeV1 = lazy(() => import("./pages/HomeV1"));
 const Docs = lazy(() => import("./pages/Docs"));
 const Changelog = lazy(() => import("./pages/Changelog"));
 const Scripts = lazy(() => import("./pages/Scripts"));
@@ -65,6 +66,14 @@ function App() {
               element={
                 <PageTransition>
                   <Home />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/v1"
+              element={
+                <PageTransition>
+                  <HomeV1 />
                 </PageTransition>
               }
             />

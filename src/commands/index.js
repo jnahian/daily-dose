@@ -107,6 +107,8 @@ function setupCommands(app) {
 
   // Interactive components (no formatting removal needed for these)
   app.action(/open_standup_.*/, standupCommands.openStandupModal);
+  app.action(/approve_team_.*/, teamCommands.approveTeam);
+  app.action(/reject_team_.*/, teamCommands.rejectTeam);
   app.view("standup_modal", standupCommands.handleStandupSubmission);
   app.view(
     "standup_update_modal",
