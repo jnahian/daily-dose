@@ -35,8 +35,6 @@ function createMcpHandler(slackApp) {
       name: "daily-dose-standup",
       version: "1.0.0",
     });
-    registerTools(server, req.mcpUser, slackApp.client);
-
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
     });
@@ -44,8 +42,20 @@ function createMcpHandler(slackApp) {
       transport.close();
       server.close();
     });
-    await server.connect(transport);
-    await transport.handleRequest(req, res, req.body);
+    try {
+      registerTools(server, req.mcpUser, slackApp.client);
+      await server.connect(transport);
+      await transport.handleRequest(req, res, req.body);
+    } catch (err) {
+      // Express (Bolt's receiver) does not catch rejected promises, so an
+      // unhandled error here would hang the request instead of responding.
+      // The transport may already have started streaming, so only send a
+      // fallback 500 if nothing has been written yet.
+      console.error("handleMcp error:", err.message);
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Internal server error" });
+      }
+    }
   };
 }
 
