@@ -95,6 +95,36 @@ describe("oauthProvider", () => {
     ).rejects.toThrow();
   });
 
+  it("exchangeAuthorizationCode rejects a mismatched redirect_uri but accepts a matching one", async () => {
+    bridge.consumeAuthorizationCode.mockResolvedValue({
+      user_id: "u1",
+      scope: "mcp",
+      resource: "https://x/mcp",
+      redirect_uri: "https://claude/cb",
+    });
+    tokenSvc.mintGrant.mockResolvedValue({
+      accessToken: "mcat_a",
+      refreshToken: "mcrt_b",
+      expiresIn: 3600,
+    });
+    await expect(
+      provider.exchangeAuthorizationCode(
+        client,
+        "code",
+        undefined,
+        "https://evil/cb"
+      )
+    ).rejects.toThrow(/redirect_uri/i);
+    // Matching redirect_uri passes through to mintGrant.
+    const tokens = await provider.exchangeAuthorizationCode(
+      client,
+      "code",
+      undefined,
+      "https://claude/cb"
+    );
+    expect(tokens.access_token).toBe("mcat_a");
+  });
+
   it("exchangeRefreshToken rotates and returns tokens", async () => {
     tokenSvc.rotateRefresh.mockResolvedValue({
       accessToken: "mcat_c",

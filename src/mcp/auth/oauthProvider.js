@@ -44,12 +44,23 @@ const provider = {
   },
 
   // SDK verifies PKCE before calling this (codeVerifier is undefined).
-  async exchangeAuthorizationCode(client, authorizationCode) {
+  async exchangeAuthorizationCode(
+    client,
+    authorizationCode,
+    _codeVerifier,
+    redirectUri
+  ) {
     const row = await bridge.consumeAuthorizationCode(
       client.client_id,
       authorizationCode
     );
     if (!row) throw new InvalidGrantError("Invalid authorization code");
+    // OAuth 2.1 §4.1.3: if the token request carries a redirect_uri it must match
+    // the one bound at /authorize. It's optional in the token request, so enforce
+    // only when present (absent → already exact-matched + PKCE-verified at authorize).
+    if (redirectUri && redirectUri !== row.redirect_uri) {
+      throw new InvalidGrantError("redirect_uri mismatch");
+    }
     const grant = await tokenSvc.mintGrant({
       userId: row.user_id,
       clientId: client.client_id,

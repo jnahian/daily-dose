@@ -208,8 +208,12 @@ agnostic to which path authenticated the request.
 - **Single-use, short-TTL authorization codes**; replay → `invalid_grant`.
 - **Rotating refresh tokens** (old refresh invalidated on use).
 - **All tokens hashed at rest**; raw values returned once over TLS.
-- **Audience binding** via RFC 8707 resource indicators, so a token minted for
-  our `/mcp` resource isn't usable elsewhere.
+- **Audience binding** via RFC 8707 resource indicators: the requested `resource`
+  is captured on the authorization code, carried onto the grant, and surfaced on
+  the verified `AuthInfo`. In v1 this binding holds **by construction** — `/mcp` is
+  the only resource server that validates `mcat_` access tokens — rather than by an
+  active audience check in the bearer middleware. (Enforcing `info.resource` against
+  the RS identifier is a follow-up once a second resource server exists.)
 - **Revoke kills all grants** for a `(user, client)`.
 - The in-flight authorization state lives in the DB (`oauth_auth_codes`), not an
   in-memory map, so it survives across the Slack round-trip and is multi-instance
