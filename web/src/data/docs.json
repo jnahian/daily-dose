@@ -510,6 +510,225 @@
       ]
     },
     {
+      "id": "ai-agent-mcp",
+      "title": "AI Agent (MCP)",
+      "description": "Operate Daily Dose from any MCP-compatible AI agent — submit standups, review your team, and run admin actions without opening Slack.",
+      "subsections": [
+        {
+          "id": "mcp-overview",
+          "title": "Use Daily Dose from your AI agent",
+          "content": [
+            {
+              "type": "note",
+              "title": "🤖 What is this?",
+              "value": "Daily Dose exposes a Model Context Protocol (MCP) server, so you can run your standups straight from an AI assistant like Claude Desktop or Cursor. Connect once with a personal token and ask your agent in plain language — it talks to Daily Dose for you."
+            },
+            {
+              "type": "text",
+              "value": "**What you can do**"
+            },
+            {
+              "type": "list",
+              "items": [
+                "Submit or update your standup for any team",
+                "Review your own recent standup history",
+                "Team admins & owners: view a team's standup, post summaries, and send reminders"
+              ]
+            },
+            {
+              "type": "note",
+              "title": "🔐 Tied to your Slack identity",
+              "value": "Every action runs as you. A token is only your identity — it never lets your AI agent do anything you couldn't already do yourself in Slack. Admin-only tools still require you to be a team admin or owner, checked on every call."
+            }
+          ]
+        },
+        {
+          "id": "mcp-get-token",
+          "title": "Step 1 — Get your access token",
+          "content": [
+            {
+              "type": "text",
+              "value": "Mint a personal token from the token page. You sign in with Slack, and Daily Dose recognizes you as the same person who uses the bot."
+            },
+            {
+              "type": "list",
+              "items": [
+                "Open the token page (link below) in your browser",
+                "Click **Sign in with Slack** and authorize",
+                "Click **Generate Token** (optionally give it a name like “Cursor” or “Claude Desktop”)",
+                "Copy the token immediately"
+              ]
+            },
+            {
+              "type": "code",
+              "value": "# Token page\nhttps://dd.jnahian.me/mcp-tokens"
+            },
+            {
+              "type": "warning",
+              "title": "Shown only once",
+              "value": "The full token (it starts with `ddm_`) is displayed a single time, right after you generate it. Copy it now and store it like a password — it can't be retrieved again. Lost it? Just generate a new one and revoke the old."
+            },
+            {
+              "type": "note",
+              "title": "Expiry & revoking",
+              "value": "Tokens expire 90 days after creation. You can revoke any token at any time from the same token page — revoking takes effect immediately."
+            }
+          ]
+        },
+        {
+          "id": "mcp-connect",
+          "title": "Step 2 — Connect your AI agent",
+          "content": [
+            {
+              "type": "text",
+              "value": "Daily Dose's MCP server is a single HTTP endpoint. Point your AI client at the URL and send your token in the `Authorization` header."
+            },
+            {
+              "type": "code",
+              "value": "# MCP server URL\nhttps://dd.jnahian.me/mcp\n\n# Auth header (use your generated token)\nAuthorization: Bearer ddm_your_token_here"
+            },
+            {
+              "type": "text",
+              "value": "**Claude Desktop** — add Daily Dose to your MCP servers config:"
+            },
+            {
+              "type": "code",
+              "value": "{\n  \"mcpServers\": {\n    \"daily-dose\": {\n      \"url\": \"https://dd.jnahian.me/mcp\",\n      \"headers\": {\n        \"Authorization\": \"Bearer ddm_your_token_here\"\n      }\n    }\n  }\n}"
+            },
+            {
+              "type": "note",
+              "title": "Other clients",
+              "value": "Any HTTP-capable MCP client works (Cursor, your own scripts, etc.) — the exact config field names vary by client, but you always provide the same two things: the server URL and an `Authorization: Bearer <token>` header."
+            }
+          ]
+        },
+        {
+          "id": "mcp-tools-everyone",
+          "title": "What you can do — everyone",
+          "content": [
+            {
+              "type": "text",
+              "value": "These tools are available to every team member. Because your AI agent has no Slack channel context, name the team explicitly — or ask it to list your teams first."
+            },
+            {
+              "type": "command",
+              "command": "list_my_teams",
+              "description": "List the teams you belong to, with your role.",
+              "examples": ["# Ask your agent:\nWhich Daily Dose teams am I on?"]
+            },
+            {
+              "type": "command",
+              "command": "submit_standup",
+              "description": "Submit today's standup for a team. Provide any of: last working day's tasks, today's tasks, blockers (at least one).",
+              "examples": [
+                "# Ask your agent:\nSubmit my Engineering standup — yesterday I shipped the auth fix, today I'm doing code review, no blockers."
+              ]
+            },
+            {
+              "type": "command",
+              "command": "update_standup",
+              "description": "Submit or update your standup for a specific date (YYYY-MM-DD), today or in the past.",
+              "examples": [
+                "# Ask your agent:\nUpdate my Engineering standup for 2026-06-15 — today's tasks should say “released v1.14”."
+              ]
+            },
+            {
+              "type": "command",
+              "command": "get_my_standup_history",
+              "description": "Show your own standup submissions. Defaults to the last 7 days.",
+              "examples": [
+                "# Ask your agent:\nShow my standups from last week."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "mcp-tools-admin",
+          "title": "What you can do — team admins & owners",
+          "content": [
+            {
+              "type": "warning",
+              "title": "Requires admin or owner",
+              "value": "These tools act on a whole team — viewing everyone's responses, posting to the channel, or DMing members. Daily Dose checks that you're an admin or owner of that team on every call."
+            },
+            {
+              "type": "command",
+              "command": "get_team_standup",
+              "description": "View a team's standup for a date: all responses (on-time and late), who hasn't submitted, and who's on leave.",
+              "examples": [
+                "# Ask your agent:\nShow today's Engineering standup — who responded and who's missing?"
+              ]
+            },
+            {
+              "type": "command",
+              "command": "get_member_standup",
+              "description": "View one member's standup submission for a date. Identify them by Slack id, name, or username.",
+              "examples": [
+                "# Ask your agent:\nWhat did Bob submit for Engineering yesterday?"
+              ]
+            },
+            {
+              "type": "command",
+              "command": "post_team_standup",
+              "description": "Post a team's standup summary for a date to its channel. Refuses if there are no responses yet.",
+              "examples": [
+                "# Ask your agent:\nPost the Engineering standup summary to the channel."
+              ]
+            },
+            {
+              "type": "command",
+              "command": "post_member_standup",
+              "description": "Post one member's standup as a threaded reply (creates the team thread if needed).",
+              "examples": [
+                "# Ask your agent:\nPost Alice's standup to the Engineering thread."
+              ]
+            },
+            {
+              "type": "command",
+              "command": "send_standup_reminders",
+              "description": "DM today's standup reminder to active team members who haven't opted out.",
+              "examples": [
+                "# Ask your agent:\nSend standup reminders to the Engineering team."
+              ]
+            },
+            {
+              "type": "command",
+              "command": "send_followup_reminders",
+              "description": "DM a follow-up reminder to team members who still haven't submitted.",
+              "examples": [
+                "# Ask your agent:\nSend a follow-up to Engineering members who haven't submitted yet."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "mcp-faq",
+          "title": "Permissions, safety & troubleshooting",
+          "content": [
+            {
+              "type": "list",
+              "items": [
+                "**Identity-scoped** — your token only does what you can already do in Slack",
+                "**Admin tools are gated** — viewing, posting, and reminders require team admin/owner, re-checked on every call",
+                "**Revoke anytime** — kill a token instantly from the token page; all tokens expire after 90 days",
+                "**Name your team** — tools take a team name (or id); if unsure, ask your agent to list your teams first"
+              ]
+            },
+            {
+              "type": "note",
+              "title": "“Your Slack account isn't registered”",
+              "value": "You'll see this when signing in if you're not yet a member of any team in Daily Dose. Join a team in Slack first (your workspace admin can add you), then sign in again."
+            },
+            {
+              "type": "warning",
+              "title": "“Invalid or expired token” (401)",
+              "value": "Your token was revoked or has passed its 90-day expiry. Generate a fresh token on the token page and update it in your AI client's config."
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "features",
       "title": "Features",
       "subsections": [
