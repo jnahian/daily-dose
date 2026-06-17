@@ -1081,6 +1081,7 @@ CONTACT_SLACK_CHANNEL=C0123456789              # Slack channel or user ID that r
 
 ```bash
 MCP_OAUTH_REDIRECT_URI=https://<your-host>/api/mcp/auth/callback   # Register this URL in the Slack app's OAuth redirect URIs
+MCP_OAUTH_AS_REDIRECT_URI=https://<your-host>/api/mcp/oauth/slack/callback   # OAuth authorization-server Slack callback — also register in the Slack app's OAuth redirect URIs
 ```
 
 **Optional Monitoring:**
@@ -1092,6 +1093,14 @@ SENTRY_DSN=https://your-sentry-dsn       # Sentry error tracking (optional)
 ## 🤖 MCP Server
 
 Daily Dose exposes an MCP (Model Context Protocol) server so you can operate standups directly from any AI agent — Claude Desktop, Cursor, or any MCP-compatible tool — without leaving your workflow.
+
+### Automatic sign-in (OAuth)
+
+Clients that support remote-MCP OAuth (e.g. Claude Desktop, Cursor, VS Code) can connect by just pointing at the server URL `https://<your-host>/mcp` — the client registers itself, opens a browser for you to sign in with Slack, and receives a token automatically. There is no token to copy or paste.
+
+The manual personal-token flow below remains available for clients that don't support OAuth.
+
+For automatic sign-in to work, operators must register `MCP_OAUTH_AS_REDIRECT_URI` (the `https://<your-host>/api/mcp/oauth/slack/callback` URL) in the Slack app's OAuth redirect URLs.
 
 ### Getting a Token
 

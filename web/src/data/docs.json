@@ -581,24 +581,24 @@
           "content": [
             {
               "type": "text",
-              "value": "Daily Dose's MCP server is a single HTTP endpoint. Point your AI client at the URL and send your token in the `Authorization` header."
+              "value": "**Recommended: automatic sign-in.** If your AI client supports remote MCP servers with OAuth (Claude Desktop, Cursor, VS Code Copilot, and others), you don't need a token at all. Just add the server URL — your client opens a Slack login in your browser, you approve, and you're connected. Nothing to copy or paste."
             },
             {
               "type": "code",
-              "value": "# MCP server URL\nhttps://dd.jnahian.me/mcp\n\n# Auth header (use your generated token)\nAuthorization: Bearer ddm_your_token_here"
+              "value": "# MCP server URL\nhttps://dd.jnahian.me/mcp"
             },
             {
               "type": "text",
-              "value": "**Claude Desktop** — add Daily Dose to your MCP servers config:"
+              "value": "**Claude Desktop** — add Daily Dose as a remote MCP server by URL; it will prompt you to sign in with Slack on first use."
+            },
+            {
+              "type": "note",
+              "title": "Advanced — manual token (fallback)",
+              "value": "If your client doesn't support OAuth sign-in, you can still connect with a personal token (see Step 1 above): send it in an `Authorization: Bearer ddm_…` header alongside the same server URL. For Claude Desktop that looks like:"
             },
             {
               "type": "code",
               "value": "{\n  \"mcpServers\": {\n    \"daily-dose\": {\n      \"url\": \"https://dd.jnahian.me/mcp\",\n      \"headers\": {\n        \"Authorization\": \"Bearer ddm_your_token_here\"\n      }\n    }\n  }\n}"
-            },
-            {
-              "type": "note",
-              "title": "Other clients",
-              "value": "Any HTTP-capable MCP client works (Cursor, your own scripts, etc.) — the exact config field names vary by client, but you always provide the same two things: the server URL and an `Authorization: Bearer <token>` header."
             }
           ]
         },
