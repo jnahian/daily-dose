@@ -2,7 +2,10 @@ const express = require("express");
 const crypto = require("crypto");
 const prisma = require("../config/prisma");
 const tokenService = require("../services/mcpTokenService");
-const { resolveSlackUserFromCode } = require("../utils/slackIdentity");
+const {
+  resolveSlackUserFromCode,
+  mcpRedirectUri,
+} = require("../utils/slackIdentity");
 const oauthTokenService = require("../mcp/auth/oauthTokenService");
 
 const router = express.Router();
@@ -38,7 +41,7 @@ router.get("/auth/slack", (req, res) => {
   const params = new URLSearchParams({
     client_id: process.env.SLACK_CLIENT_ID,
     user_scope: "identity.basic,identity.email",
-    redirect_uri: process.env.MCP_OAUTH_REDIRECT_URI,
+    redirect_uri: mcpRedirectUri(),
     state,
   });
   res.redirect(`https://slack.com/oauth/v2/authorize?${params}`);
@@ -59,10 +62,7 @@ router.get("/auth/callback", async (req, res) => {
   try {
     if (!code) return res.redirect(`${appUrl}/mcp-tokens?error=oauth_denied`);
 
-    const { user } = await resolveSlackUserFromCode(
-      code,
-      process.env.MCP_OAUTH_REDIRECT_URI
-    );
+    const { user } = await resolveSlackUserFromCode(code, mcpRedirectUri());
     if (!user) return res.redirect(`${appUrl}/mcp-tokens?error=not_registered`);
 
     const sessionToken = crypto.randomBytes(32).toString("hex");

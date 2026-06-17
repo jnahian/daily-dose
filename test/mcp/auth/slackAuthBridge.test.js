@@ -9,6 +9,9 @@ jest.mock("../../../src/config/prisma", () => ({
 jest.mock("../../../src/utils/slackIdentity", () => ({
   resolveSlackUserFromCode: jest.fn(),
   slackAuthorizeUrl: jest.fn(() => "https://slack.com/oauth/v2/authorize?x=1"),
+  mcpAsRedirectUri: jest.fn(
+    () => "https://app.example/api/mcp/oauth/slack/callback"
+  ),
 }));
 
 const prisma = require("../../../src/config/prisma");

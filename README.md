@@ -1079,9 +1079,11 @@ CONTACT_SLACK_CHANNEL=C0123456789              # Slack channel or user ID that r
 
 **MCP Server:**
 
-```bash
-MCP_OAUTH_REDIRECT_URI=https://<your-host>/api/mcp/auth/callback   # Register this URL in the Slack app's OAuth redirect URIs
-MCP_OAUTH_AS_REDIRECT_URI=https://<your-host>/api/mcp/oauth/slack/callback   # OAuth authorization-server Slack callback — also register in the Slack app's OAuth redirect URIs
+The two Slack OAuth callback URLs are derived from `APP_URL` — there is no env var to set. Register **both** in the Slack app's OAuth redirect URLs:
+
+```
+<APP_URL>/api/mcp/auth/callback          # manual token web flow (/mcp-tokens sign-in)
+<APP_URL>/api/mcp/oauth/slack/callback   # OAuth 2.1 authorization-server (automatic client sign-in)
 ```
 
 **Optional Monitoring:**
@@ -1100,7 +1102,7 @@ Clients that support remote-MCP OAuth (e.g. Claude Desktop, Cursor, VS Code) can
 
 The manual personal-token flow below remains available for clients that don't support OAuth.
 
-For automatic sign-in to work, operators must register `MCP_OAUTH_AS_REDIRECT_URI` (the `https://<your-host>/api/mcp/oauth/slack/callback` URL) in the Slack app's OAuth redirect URLs.
+For automatic sign-in to work, operators must register the `<APP_URL>/api/mcp/oauth/slack/callback` URL in the Slack app's OAuth redirect URLs.
 
 ### Getting a Token
 

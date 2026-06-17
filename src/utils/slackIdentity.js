@@ -34,4 +34,23 @@ function slackAuthorizeUrl({ redirectUri, state }) {
   return `https://slack.com/oauth/v2/authorize?${params}`;
 }
 
-module.exports = { resolveSlackUserFromCode, slackAuthorizeUrl };
+function appBaseUrl() {
+  return (process.env.APP_URL || "http://localhost:3000").replace(/\/+$/, "");
+}
+
+// Slack OAuth callback for the manual token web flow (/mcp-tokens sign-in).
+function mcpRedirectUri() {
+  return `${appBaseUrl()}/api/mcp/auth/callback`;
+}
+
+// Slack OAuth callback for the OAuth 2.1 authorization server (automatic client sign-in).
+function mcpAsRedirectUri() {
+  return `${appBaseUrl()}/api/mcp/oauth/slack/callback`;
+}
+
+module.exports = {
+  resolveSlackUserFromCode,
+  slackAuthorizeUrl,
+  mcpRedirectUri,
+  mcpAsRedirectUri,
+};

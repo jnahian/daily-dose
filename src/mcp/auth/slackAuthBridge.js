@@ -3,6 +3,7 @@ const prisma = require("../../config/prisma");
 const {
   resolveSlackUserFromCode,
   slackAuthorizeUrl,
+  mcpAsRedirectUri,
 } = require("../../utils/slackIdentity");
 const { hashToken } = require("./oauthTokenService");
 
@@ -34,7 +35,7 @@ async function beginAuthorization({
     },
   });
   return slackAuthorizeUrl({
-    redirectUri: process.env.MCP_OAUTH_AS_REDIRECT_URI,
+    redirectUri: mcpAsRedirectUri(),
     state: slackState,
   });
 }
@@ -51,7 +52,7 @@ async function completeAuthorization({ slackState, slackCode }) {
 
   const { user } = await resolveSlackUserFromCode(
     slackCode,
-    process.env.MCP_OAUTH_AS_REDIRECT_URI
+    mcpAsRedirectUri()
   );
 
   const redirect = new URL(row.redirect_uri);
