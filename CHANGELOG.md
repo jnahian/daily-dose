@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.15.0] - 2026-06-17
+
 ### Added
 
 - MCP server now advertises a display `title`, `websiteUrl`, and `icons` (32/192/512 PNGs derived from `APP_URL`) on initialize, so MCP clients that support the icons spec show the Daily Dose logo next to the connected server. (`src/mcp/server.js`)
@@ -630,7 +632,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.14.0...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.15.0...HEAD
+[1.15.0]: https://github.com/jnahian/daily-dose/compare/v1.14.0...v1.15.0
 [1.14.0]: https://github.com/jnahian/daily-dose/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/jnahian/daily-dose/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/jnahian/daily-dose/compare/v1.11.0...v1.12.0

@@ -1,9 +1,24 @@
 {
   "versions": [
     {
-      "version": "1.14.0",
+      "version": "1.15.0",
       "date": "2026-06-17",
       "isLatest": true,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Let your AI agent draft and preview your standup",
+          "items": [
+            "Your connected AI agent can now pull together what you worked on from your own tools (git, Jira, ClickUp, Trello), draft your standup, and show you a preview before anything is submitted",
+            "Review the draft — including whether it would overwrite an existing entry or count as late — and your agent only submits after you confirm"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.14.0",
+      "date": "2026-06-17",
+      "isLatest": false,
       "changes": [
         {
           "type": "added",
