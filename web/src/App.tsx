@@ -12,6 +12,7 @@ import { AdminLayout } from "./components/admin/AdminLayout";
 const Home = lazy(() => import("./pages/Home"));
 const HomeV1 = lazy(() => import("./pages/HomeV1"));
 const Docs = lazy(() => import("./pages/Docs"));
+const McpDocs = lazy(() => import("./pages/McpDocs"));
 const Changelog = lazy(() => import("./pages/Changelog"));
 const Scripts = lazy(() => import("./pages/Scripts"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -83,6 +84,14 @@ function App() {
               element={
                 <PageTransition>
                   <Docs />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/docs/mcp"
+              element={
+                <PageTransition>
+                  <McpDocs />
                 </PageTransition>
               }
             />

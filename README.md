@@ -1079,8 +1079,11 @@ CONTACT_SLACK_CHANNEL=C0123456789              # Slack channel or user ID that r
 
 **MCP Server:**
 
-```bash
-MCP_OAUTH_REDIRECT_URI=https://<your-host>/api/mcp/auth/callback   # Register this URL in the Slack app's OAuth redirect URIs
+The two Slack OAuth callback URLs are derived from `APP_URL` — there is no env var to set. Register **both** in the Slack app's OAuth redirect URLs:
+
+```
+<APP_URL>/api/mcp/auth/callback          # manual token web flow (/mcp-tokens sign-in)
+<APP_URL>/api/mcp/oauth/slack/callback   # OAuth 2.1 authorization-server (automatic client sign-in)
 ```
 
 **Optional Monitoring:**
@@ -1093,16 +1096,26 @@ SENTRY_DSN=https://your-sentry-dsn       # Sentry error tracking (optional)
 
 Daily Dose exposes an MCP (Model Context Protocol) server so you can operate standups directly from any AI agent — Claude Desktop, Cursor, or any MCP-compatible tool — without leaving your workflow.
 
-### Getting a Token
+### Connecting your AI agent (recommended)
+
+The primary way to connect is automatic sign-in. Clients that support remote-MCP OAuth (e.g. Claude Desktop, Cursor, VS Code) connect by just pointing at the server URL — the client registers itself, opens a browser for you to sign in with Slack, and receives and refreshes its token automatically. There is no token to generate, copy, or paste.
+
+```
+URL: https://<your-host>/mcp
+```
+
+For automatic sign-in to work, operators must register the `<APP_URL>/api/mcp/oauth/slack/callback` URL in the Slack app's OAuth redirect URLs.
+
+### Advanced — connecting with a manual token
+
+Only needed for clients that don't support OAuth sign-in. Generate a personal token and send it in an `Authorization` header.
 
 1. Visit `https://<your-host>/mcp-tokens`
 2. Sign in with Slack
 3. Click **Generate Token**
-4. Copy the token — it is shown **only once**
+4. Copy the token — it is shown **only once** (it starts with `ddm_`, expires after 90 days, and is revocable from the same page)
 
-### Connecting Your AI Tool
-
-Configure your MCP client with:
+Then configure your MCP client with the server URL plus the token header:
 
 ```
 URL: https://<your-host>/mcp

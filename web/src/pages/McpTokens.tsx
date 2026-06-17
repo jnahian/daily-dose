@@ -17,6 +17,13 @@ interface McpToken {
   revoked_at: string | null;
 }
 
+type Connection = {
+  clientId: string;
+  clientName: string | null;
+  lastUsedAt: string | null;
+  createdAt: string;
+};
+
 const ERROR_MESSAGES: Record<string, string> = {
   not_registered: "Your Slack account isn't registered with Daily Dose yet.",
   oauth_denied: "Slack sign-in was cancelled.",
@@ -36,6 +43,10 @@ export default function McpTokens() {
   const [newToken, setNewToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [revoking, setRevoking] = useState<string | null>(null);
+  const [connections, setConnections] = useState<Connection[]>([]);
+  const [connectionsLoading, setConnectionsLoading] = useState(false);
+  const [connectionsError, setConnectionsError] = useState<string | null>(null);
+  const [disconnecting, setDisconnecting] = useState<string | null>(null);
 
   const urlError = searchParams.get("error");
 
@@ -65,8 +76,28 @@ export default function McpTokens() {
       .finally(() => setTokensLoading(false));
   };
 
+  const loadConnections = () => {
+    setConnectionsLoading(true);
+    setConnectionsError(null);
+    fetch("/api/mcp/connections", { credentials: "include" })
+      .then((r) => {
+        if (!r.ok) throw new Error(`Request failed (${r.status})`);
+        return r.json();
+      })
+      .then((data) => setConnections(data))
+      .catch((err) =>
+        setConnectionsError(
+          err instanceof Error ? err.message : "Failed to load connections"
+        )
+      )
+      .finally(() => setConnectionsLoading(false));
+  };
+
   useEffect(() => {
-    if (user) loadTokens();
+    if (user) {
+      loadTokens();
+      loadConnections();
+    }
   }, [user]);
 
   const handleGenerate = () => {
@@ -107,6 +138,24 @@ export default function McpTokens() {
         setTokensError(err instanceof Error ? err.message : "Failed to revoke token")
       )
       .finally(() => setRevoking(null));
+  };
+
+  const handleDisconnect = (clientId: string) => {
+    setDisconnecting(clientId);
+    fetch(`/api/mcp/connections/${clientId}`, {
+      method: "DELETE",
+      credentials: "include",
+    })
+      .then((r) => {
+        if (!r.ok) throw new Error(`Request failed (${r.status})`);
+        loadConnections();
+      })
+      .catch((err) =>
+        setConnectionsError(
+          err instanceof Error ? err.message : "Failed to disconnect client"
+        )
+      )
+      .finally(() => setDisconnecting(null));
   };
 
   const handleCopy = () => {
@@ -168,6 +217,61 @@ export default function McpTokens() {
               <span className="text-white/60 text-sm">
                 Signed in as <span className="text-white">{user.name}</span>
               </span>
+            </div>
+
+            {/* Connected AI clients */}
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold text-white mb-4">
+                Connected AI clients
+              </h2>
+              <p className="text-white/60 text-sm mb-4">
+                AI clients connected via Slack sign-in (OAuth). These are
+                separate from the manual tokens below.
+              </p>
+
+              {connectionsError && (
+                <p className="text-red-400 text-sm mb-4">{connectionsError}</p>
+              )}
+
+              {connectionsLoading ? (
+                <p className="text-white/40 text-sm">Loading…</p>
+              ) : connections.length === 0 ? (
+                <p className="text-white/40 text-sm">
+                  No connected clients yet.
+                </p>
+              ) : (
+                <ul className="space-y-3">
+                  {connections.map((connection) => (
+                    <li
+                      key={connection.clientId}
+                      className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-start justify-between gap-4"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-white font-medium text-sm truncate">
+                            {connection.clientName || "Unknown client"}
+                          </span>
+                        </div>
+                        <div className="text-white/40 text-xs space-y-0.5">
+                          <div>Connected: {fmt(connection.createdAt)}</div>
+                          <div>Last used: {fmt(connection.lastUsedAt)}</div>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleDisconnect(connection.clientId)}
+                        disabled={disconnecting === connection.clientId}
+                        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600/20 hover:bg-red-600/40 text-red-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        {disconnecting === connection.clientId
+                          ? "Disconnecting…"
+                          : "Disconnect"}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             {/* Generate token */}
