@@ -142,6 +142,104 @@
       ]
     },
     {
+      "id": "ai-agent-mcp",
+      "title": "AI Agent (MCP)",
+      "description": "Operate Daily Dose from any MCP-compatible AI agent — submit standups, review your team, and run admin actions without opening Slack.",
+      "subsections": [
+        {
+          "id": "mcp-summary",
+          "title": "Operate Daily Dose from your AI agent",
+          "content": [
+            {
+              "type": "note",
+              "title": "🤖 What is this?",
+              "value": "Daily Dose exposes a Model Context Protocol (MCP) server, so you can run your standups straight from an AI assistant like Claude Desktop or Cursor. Connect once — just add the server and sign in with Slack — then ask your agent in plain language; it talks to Daily Dose for you."
+            },
+            {
+              "type": "text",
+              "value": "**What you can do**"
+            },
+            {
+              "type": "list",
+              "items": [
+                "Submit or update your standup for any team",
+                "Review your own recent standup history",
+                "Team admins & owners: view a team's standup, post summaries, and send reminders"
+              ]
+            },
+            {
+              "type": "text",
+              "value": "**[Open the full MCP guide →](/docs/mcp)** — setup, every tool, and example prompts."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "features",
+      "title": "Features",
+      "subsections": [
+        {
+          "id": "automated-reminders",
+          "title": "Automated Reminders",
+          "content": [
+            {
+              "type": "text",
+              "value": "Daily Dose automatically sends DM reminders to team members at the configured standup time. Members receive an interactive message with a 'Submit Standup' button."
+            },
+            {
+              "type": "list",
+              "items": [
+                "Scheduled reminders at team-configured times",
+                "Interactive modal for easy submission",
+                "Automatic timezone handling",
+                "Skip reminders for members on leave",
+                "Respect work day configurations"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "timezone-support",
+          "title": "Timezone Support",
+          "content": [
+            {
+              "type": "text",
+              "value": "Each team can have its own timezone configuration, perfect for distributed teams across different regions."
+            },
+            {
+              "type": "list",
+              "items": [
+                "Per-team timezone settings",
+                "Automatic daylight saving time handling",
+                "Support for all IANA timezones",
+                "Display times in team's local timezone"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "notifications",
+          "title": "Admin Notifications",
+          "content": [
+            {
+              "type": "text",
+              "value": "Team admins can receive notifications about standup activity and team engagement."
+            },
+            {
+              "type": "list",
+              "items": [
+                "Daily summary of submission rates",
+                "Alerts for low engagement",
+                "Notification when all members have submitted",
+                "Configurable notification preferences"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "slash-commands",
       "title": "Slash Commands",
       "description": "Daily Dose provides a comprehensive set of slash commands to manage your standups, teams, and settings.",
@@ -504,70 +602,6 @@
               "type": "note",
               "title": "Context-Aware Behavior",
               "value": "**Team Admins:** Can run commands from their team's channel without specifying team name\n**Organization Owners:** Must specify team name when running from any channel\n**Regular Members:** Cannot use these commands (permission denied)"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "features",
-      "title": "Features",
-      "subsections": [
-        {
-          "id": "automated-reminders",
-          "title": "Automated Reminders",
-          "content": [
-            {
-              "type": "text",
-              "value": "Daily Dose automatically sends DM reminders to team members at the configured standup time. Members receive an interactive message with a 'Submit Standup' button."
-            },
-            {
-              "type": "list",
-              "items": [
-                "Scheduled reminders at team-configured times",
-                "Interactive modal for easy submission",
-                "Automatic timezone handling",
-                "Skip reminders for members on leave",
-                "Respect work day configurations"
-              ]
-            }
-          ]
-        },
-        {
-          "id": "timezone-support",
-          "title": "Timezone Support",
-          "content": [
-            {
-              "type": "text",
-              "value": "Each team can have its own timezone configuration, perfect for distributed teams across different regions."
-            },
-            {
-              "type": "list",
-              "items": [
-                "Per-team timezone settings",
-                "Automatic daylight saving time handling",
-                "Support for all IANA timezones",
-                "Display times in team's local timezone"
-              ]
-            }
-          ]
-        },
-        {
-          "id": "notifications",
-          "title": "Admin Notifications",
-          "content": [
-            {
-              "type": "text",
-              "value": "Team admins can receive notifications about standup activity and team engagement."
-            },
-            {
-              "type": "list",
-              "items": [
-                "Daily summary of submission rates",
-                "Alerts for low engagement",
-                "Notification when all members have submitted",
-                "Configurable notification preferences"
-              ]
             }
           ]
         }

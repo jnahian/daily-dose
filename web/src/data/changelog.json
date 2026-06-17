@@ -28,6 +28,14 @@
             "Team admins and owners can now post a team's standup summary or a single member's update, and send standup or follow-up reminders — all from any connected AI agent",
             "Every action re-checks your team permissions, so a token only ever does what you're already allowed to do"
           ]
+        },
+        {
+          "type": "added",
+          "title": "Connect your AI agent with one Slack click",
+          "items": [
+            "Supported AI clients (Claude Desktop, Cursor, VS Code, and more) can now connect to Daily Dose just by adding the server — sign in with Slack in your browser and you're done, with no token to copy",
+            "See and disconnect your connected AI clients anytime from the token page"
+          ]
         }
       ]
     },
