@@ -9,6 +9,7 @@ const { canManageTeam } = require("../utils/permissionHelper");
 const { resolveMember } = require("./memberResolver");
 const standupService = require("../services/standupService");
 const teamService = require("../services/teamService");
+const schedulerService = require("../services/schedulerService");
 
 // Extend the plugins this module relies on directly — do not depend on another
 // module's import side-effects (which won't run when that module is mocked).
@@ -255,6 +256,61 @@ function buildToolHandlers(user, slackClient) {
           : null,
       };
     },
+
+    async post_team_standup({ team, date }) {
+      if (date) assertValidDate(date);
+      const resolved = await resolveOrThrow(team);
+      await requireManageTeam(resolved.id);
+
+      const targetDate = date
+        ? dayjs(date, "YYYY-MM-DD").toDate()
+        : dayjs().tz(resolved.timezone).toDate();
+      const dateLabel = dayjs(targetDate).format("YYYY-MM-DD");
+
+      // Guard: never post an empty summary to a channel (mirrors /dd-standup-post).
+      const onTime = await standupService.getTeamResponses(
+        resolved.id,
+        targetDate
+      );
+      const late = await standupService.getLateResponses(
+        resolved.id,
+        targetDate
+      );
+      if (onTime.length === 0 && late.length === 0) {
+        throw new Error(
+          `No standup responses for ${dateLabel} — nothing to post.`
+        );
+      }
+
+      const result = await standupService.postTeamStandup(
+        resolved,
+        targetDate,
+        {
+          client: slackClient,
+        }
+      );
+
+      if (result?.skipped) {
+        return {
+          team: resolved.name,
+          date: dateLabel,
+          posted: false,
+          skipped: true,
+          messageTs: result.post?.slackMessageTs,
+        };
+      }
+      if (!result) {
+        throw new Error(
+          `${dateLabel} is not a working day for this organization.`
+        );
+      }
+      return {
+        team: resolved.name,
+        date: dateLabel,
+        posted: true,
+        messageTs: result.ts,
+      };
+    },
   };
 }
 
@@ -394,6 +450,26 @@ function registerTools(server, user, slackClient) {
     async (args) => {
       try {
         return json(await handlers.get_member_standup(args));
+      } catch (e) {
+        return fail(e);
+      }
+    }
+  );
+
+  server.registerTool(
+    "post_team_standup",
+    {
+      title: "Post team standup",
+      description:
+        "Post a team's standup summary for a date to its channel (includes late responses). Refuses if there are no responses. Requires team admin or owner.",
+      inputSchema: z.object({
+        team: TEAM_FIELD,
+        date: z.string().optional().describe("YYYY-MM-DD; defaults to today"),
+      }),
+    },
+    async (args) => {
+      try {
+        return json(await handlers.post_team_standup(args));
       } catch (e) {
         return fail(e);
       }

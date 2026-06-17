@@ -13,9 +13,15 @@ jest.mock("../../src/services/standupService", () => ({
   getLateResponses: jest.fn(),
   getActiveMembers: jest.fn(),
   getUserResponse: jest.fn(),
+  postTeamStandup: jest.fn(),
+  postIndividualResponse: jest.fn(),
 }));
 jest.mock("../../src/services/teamService", () => ({
   getTeamById: jest.fn(),
+}));
+jest.mock("../../src/services/schedulerService", () => ({
+  sendStandupReminders: jest.fn(),
+  sendFollowupReminders: jest.fn(),
 }));
 
 const dayjs = require("dayjs");
@@ -30,6 +36,7 @@ const { resolveMember } = require("../../src/mcp/memberResolver");
 const { canManageTeam } = require("../../src/utils/permissionHelper");
 const standupService = require("../../src/services/standupService");
 const teamService = require("../../src/services/teamService");
+const schedulerService = require("../../src/services/schedulerService");
 const { buildToolHandlers } = require("../../src/mcp/tools");
 
 const user = { id: "user-1", slackUserId: "U1", name: "Alice" };
@@ -353,6 +360,97 @@ describe("MCP Phase 2 — get_member_standup", () => {
         member: "Bob",
         date: "2026/06/17",
       })
+    ).rejects.toThrow(/YYYY-MM-DD/);
+    expect(resolveTeam).not.toHaveBeenCalled();
+  });
+});
+
+describe("MCP Phase 3 — post_team_standup", () => {
+  let tools;
+  const team = {
+    id: "t1",
+    name: "Eng",
+    timezone: "Asia/Dhaka",
+    organizationId: "org1",
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    tools = buildToolHandlers(user, slackClient);
+    resolveTeam.mockResolvedValue({ team });
+    canManageTeam.mockResolvedValue({
+      canManage: true,
+      role: "ADMIN",
+      reason: null,
+    });
+    standupService.getTeamResponses.mockResolvedValue([{ userId: "u1" }]);
+    standupService.getLateResponses.mockResolvedValue([]);
+    standupService.postTeamStandup.mockResolvedValue({ ts: "111.222" });
+  });
+
+  it("throws the permission reason when the caller can't manage the team", async () => {
+    canManageTeam.mockResolvedValue({
+      canManage: false,
+      role: null,
+      reason: "User is not an admin or owner",
+    });
+    await expect(tools.post_team_standup({ team: "Eng" })).rejects.toThrow(
+      /not an admin or owner/i
+    );
+    expect(standupService.postTeamStandup).not.toHaveBeenCalled();
+  });
+
+  it("refuses to post when there are no responses", async () => {
+    standupService.getTeamResponses.mockResolvedValue([]);
+    standupService.getLateResponses.mockResolvedValue([]);
+    await expect(tools.post_team_standup({ team: "Eng" })).rejects.toThrow(
+      /nothing to post/i
+    );
+    expect(standupService.postTeamStandup).not.toHaveBeenCalled();
+  });
+
+  it("posts and returns the message timestamp", async () => {
+    const result = await tools.post_team_standup({ team: "Eng" });
+
+    expect(standupService.postTeamStandup).toHaveBeenCalledWith(
+      team,
+      expect.any(Date),
+      { client: slackClient }
+    );
+    expect(result).toEqual(
+      expect.objectContaining({
+        team: "Eng",
+        posted: true,
+        messageTs: "111.222",
+      })
+    );
+  });
+
+  it("reports skipped when the standup was already posted", async () => {
+    standupService.postTeamStandup.mockResolvedValue({
+      skipped: true,
+      post: { slackMessageTs: "999.888" },
+    });
+    const result = await tools.post_team_standup({ team: "Eng" });
+    expect(result).toEqual(
+      expect.objectContaining({
+        posted: false,
+        skipped: true,
+        messageTs: "999.888",
+      })
+    );
+  });
+
+  it("throws when the date is not a working day (service returns undefined)", async () => {
+    standupService.postTeamStandup.mockResolvedValue(undefined);
+    await expect(tools.post_team_standup({ team: "Eng" })).rejects.toThrow(
+      /not a working day/i
+    );
+  });
+
+  it("rejects an invalid date before doing any work", async () => {
+    await expect(
+      tools.post_team_standup({ team: "Eng", date: "06/17/2026" })
     ).rejects.toThrow(/YYYY-MM-DD/);
     expect(resolveTeam).not.toHaveBeenCalled();
   });
