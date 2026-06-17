@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.15.1] - 2026-06-17
+
 ### Changed
 
 - MCP `compose_standup` prompt now tells the agent where to source each field: completed work from finished items (merged PRs, closed/done tickets), today's plan from in-progress/assigned work (open PRs, WIP branches, in-progress/to-do tickets), and blockers — previously it only described gathering completed work. (`src/mcp/tools.js`)
@@ -637,7 +639,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.15.0...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.15.1...HEAD
+[1.15.1]: https://github.com/jnahian/daily-dose/compare/v1.15.0...v1.15.1
 [1.15.0]: https://github.com/jnahian/daily-dose/compare/v1.14.0...v1.15.0
 [1.14.0]: https://github.com/jnahian/daily-dose/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/jnahian/daily-dose/compare/v1.12.0...v1.13.0
