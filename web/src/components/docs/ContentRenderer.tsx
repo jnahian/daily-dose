@@ -14,8 +14,8 @@ const formatText = (text: string) => {
   const lines = text.split("\n");
 
   return lines.map((line, lineIndex) => {
-    // Process bold text: **text**
-    const parts = line.split(/(\*\*.*?\*\*)/g);
+    // Process bold text (**text**) and markdown links ([label](href))
+    const parts = line.split(/(\*\*.*?\*\*|\[[^\]]+\]\([^)]+\))/g);
 
     const formattedLine = parts.map((part, index) => {
       if (part.startsWith("**") && part.endsWith("**")) {
@@ -23,6 +23,23 @@ const formatText = (text: string) => {
           <strong key={index} className="text-text-primary font-semibold">
             {part.slice(2, -2)}
           </strong>
+        );
+      }
+      const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+      if (link) {
+        const [, label, href] = link;
+        const external = /^https?:\/\//.test(href);
+        return (
+          <a
+            key={index}
+            href={href}
+            className="text-brand-cyan hover:underline font-medium"
+            {...(external
+              ? { target: "_blank", rel: "noopener noreferrer" }
+              : {})}
+          >
+            {label}
+          </a>
         );
       }
       return part;
