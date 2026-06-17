@@ -10,8 +10,16 @@ jest.mock("../../src/mcp/teamResolver", () => ({ resolveTeam: jest.fn() }));
 jest.mock("../../src/services/standupService", () => ({
   submitStandup: jest.fn(),
   getUserStandupHistory: jest.fn(),
+  getTeamResponses: jest.fn(),
+  getLateResponses: jest.fn(),
+  getActiveMembers: jest.fn(),
+  getUserResponse: jest.fn(),
 }));
 jest.mock("../../src/services/teamService", () => ({ getTeamById: jest.fn() }));
+jest.mock("../../src/utils/permissionHelper", () => ({
+  canManageTeam: jest.fn(),
+}));
+jest.mock("../../src/mcp/memberResolver", () => ({ resolveMember: jest.fn() }));
 
 const { McpServer } = require("@modelcontextprotocol/sdk/server/mcp.js");
 const tokenService = require("../../src/services/mcpTokenService");
@@ -125,6 +133,8 @@ describe("registerTools SDK wiring", () => {
         "submit_standup",
         "update_standup",
         "get_my_standup_history",
+        "get_team_standup",
+        "get_member_standup",
       ])
     );
   });
