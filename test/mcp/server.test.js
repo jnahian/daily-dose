@@ -27,7 +27,7 @@ jest.mock("../../src/services/schedulerService", () => ({
 
 const { McpServer } = require("@modelcontextprotocol/sdk/server/mcp.js");
 const tokenService = require("../../src/services/mcpTokenService");
-const { validateMcpToken } = require("../../src/mcp/server");
+const { validateMcpToken, mcpServerInfo } = require("../../src/mcp/server");
 const { registerTools } = require("../../src/mcp/tools");
 
 function mockRes() {
@@ -162,5 +162,34 @@ describe("registerTools SDK wiring", () => {
     expect(promptSpy.mock.calls.map((c) => c[0])).toEqual(
       expect.arrayContaining(["compose_standup"])
     );
+  });
+});
+
+describe("mcpServerInfo", () => {
+  const ORIGINAL_APP_URL = process.env.APP_URL;
+  afterEach(() => {
+    process.env.APP_URL = ORIGINAL_APP_URL;
+  });
+
+  it("advertises name, title, website, and PNG icons derived from APP_URL", () => {
+    process.env.APP_URL = "https://dd.example.com/";
+    const info = mcpServerInfo();
+
+    expect(info.name).toBe("daily-dose-standup");
+    expect(info.title).toBe("Daily Dose");
+    expect(info.version).toBe("1.0.0");
+    expect(info.websiteUrl).toBe("https://dd.jnahian.me");
+    expect(info.icons).toHaveLength(3);
+    // Trailing slash on APP_URL must be trimmed (no double slash).
+    expect(info.icons[0].src).toBe("https://dd.example.com/favicon-32x32.png");
+    info.icons.forEach((icon) => {
+      expect(icon.mimeType).toBe("image/png");
+      expect(icon.src).toMatch(/^https:\/\/dd\.example\.com\/[^/]+\.png$/);
+      expect(Array.isArray(icon.sizes)).toBe(true);
+    });
+  });
+
+  it("is accepted by the SDK McpServer constructor", () => {
+    expect(() => new McpServer(mcpServerInfo())).not.toThrow();
   });
 });

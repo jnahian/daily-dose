@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- MCP server now advertises a display `title`, `websiteUrl`, and `icons` (32/192/512 PNGs derived from `APP_URL`) on initialize, so MCP clients that support the icons spec show the Daily Dose logo next to the connected server. (`src/mcp/server.js`)
 - MCP `preview_standup` tool (read-only): renders a standup draft for a team without saving it, reporting `willOverwrite`/`existing` and `isLate` so an agent can show a faithful preview before submitting. (`src/mcp/tools.js`)
 - MCP `compose_standup` prompt: guides an agent to gather work from its own connections (git/Jira/ClickUp/Trello), draft the standup, preview it, and submit only after explicit user confirmation. (`src/mcp/tools.js`)
 - `standupService.computeIsLate(team, standupDate)` extracted from `submitStandup` and reused by `preview_standup` (no behavior change). (`src/services/standupService.js`)

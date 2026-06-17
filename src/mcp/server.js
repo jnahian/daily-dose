@@ -24,6 +24,39 @@ async function validateMcpToken(req, res, next) {
   }
 }
 
+// Server identity advertised to MCP clients on initialize. Clients that support
+// the MCP icons spec render the icon next to the connected server; the rest
+// ignore it. Icon URLs point at the static assets served from web/dist.
+function mcpServerInfo() {
+  const base = (process.env.APP_URL || "http://localhost:3000").replace(
+    /\/+$/,
+    ""
+  );
+  return {
+    name: "daily-dose-standup",
+    title: "Daily Dose",
+    version: "1.0.0",
+    websiteUrl: "https://dd.jnahian.me",
+    icons: [
+      {
+        src: `${base}/favicon-32x32.png`,
+        mimeType: "image/png",
+        sizes: ["32x32"],
+      },
+      {
+        src: `${base}/android-chrome-192x192.png`,
+        mimeType: "image/png",
+        sizes: ["192x192"],
+      },
+      {
+        src: `${base}/android-chrome-512x512.png`,
+        mimeType: "image/png",
+        sizes: ["512x512"],
+      },
+    ],
+  };
+}
+
 /**
  * Build the POST /mcp handler. `slackApp` is the initialized Bolt app so tools
  * can reach slackApp.client to post to Slack.
@@ -31,10 +64,7 @@ async function validateMcpToken(req, res, next) {
 function createMcpHandler(slackApp) {
   return async function handleMcp(req, res) {
     // Stateless: a fresh server + transport per request, bound to the user.
-    const server = new McpServer({
-      name: "daily-dose-standup",
-      version: "1.0.0",
-    });
+    const server = new McpServer(mcpServerInfo());
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
     });
@@ -59,4 +89,4 @@ function createMcpHandler(slackApp) {
   };
 }
 
-module.exports = { validateMcpToken, createMcpHandler };
+module.exports = { validateMcpToken, createMcpHandler, mcpServerInfo };
