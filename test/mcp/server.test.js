@@ -146,4 +146,21 @@ describe("registerTools SDK wiring", () => {
       ])
     );
   });
+
+  it("registers preview_standup and the compose_standup prompt", () => {
+    const server = new McpServer({ name: "test", version: "1.0.0" });
+    const toolSpy = jest.spyOn(server, "registerTool");
+    const promptSpy = jest.spyOn(server, "registerPrompt");
+    const user = { id: "u1", slackUserId: "U1", name: "Alice" };
+    const slackClient = { chat: { postMessage: jest.fn() } };
+
+    expect(() => registerTools(server, user, slackClient)).not.toThrow();
+
+    expect(toolSpy.mock.calls.map((c) => c[0])).toEqual(
+      expect.arrayContaining(["preview_standup"])
+    );
+    expect(promptSpy.mock.calls.map((c) => c[0])).toEqual(
+      expect.arrayContaining(["compose_standup"])
+    );
+  });
 });
