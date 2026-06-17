@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router';
-import { LayoutDashboard, Building2, Users, MessageSquare, CalendarDays, Clock, Activity } from 'lucide-react';
+import { LayoutDashboard, Building2, Users, MessageSquare, CalendarDays, Clock, Activity, Key } from 'lucide-react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 
 const navItems = [
@@ -11,6 +11,7 @@ const navItems = [
   { to: '/admin/holidays', icon: CalendarDays, label: 'Holidays' },
   { to: '/admin/scheduler', icon: Clock, label: 'Scheduler' },
   { to: '/admin/activity', icon: Activity, label: 'Activity' },
+  { to: '/admin/tokens', icon: Key, label: 'My Tokens' },
 ];
 
 export function AdminSidebar() {
