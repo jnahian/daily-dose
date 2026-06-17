@@ -61,6 +61,9 @@ model User {
   username         String?
   leaves           Leave[]
   organizations    OrganizationMember[]
+  mcp_tokens       mcp_tokens[]
+  oauth_auth_codes oauth_auth_codes[]
+  oauth_tokens     oauth_tokens[]
   sessions         sessions[]
   standupResponses StandupResponse[]
   super_admins     super_admins?
@@ -184,6 +187,80 @@ model sessions {
   @@index([expires_at])
   @@index([token])
   @@index([user_id])
+}
+
+model mcp_tokens {
+  id           String    @id @default(uuid())
+  user_id      String
+  token_hash   String    @unique
+  name         String?
+  expires_at   DateTime
+  revoked_at   DateTime?
+  last_used_at DateTime?
+  created_at   DateTime  @default(now())
+  users        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([token_hash])
+}
+
+model oauth_clients {
+  id                         String             @id
+  client_secret              String?
+  client_name                String?
+  redirect_uris              Json
+  grant_types                Json?
+  response_types             Json?
+  scope                      String?
+  token_endpoint_auth_method String?
+  client_id_issued_at        Int?
+  client_secret_expires_at   Int?
+  created_at                 DateTime           @default(now())
+  auth_codes                 oauth_auth_codes[]
+  tokens                     oauth_tokens[]
+}
+
+model oauth_auth_codes {
+  id                    String        @id @default(uuid())
+  client_id             String
+  user_id               String?
+  slack_state           String        @unique
+  code_hash             String?       @unique
+  redirect_uri          String
+  client_state          String?
+  code_challenge        String
+  code_challenge_method String        @default("S256")
+  scope                 String?
+  resource              String?
+  expires_at            DateTime
+  created_at            DateTime      @default(now())
+  client                oauth_clients @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  user                  User?         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([client_id])
+  @@index([user_id])
+}
+
+model oauth_tokens {
+  id                       String        @id @default(uuid())
+  client_id                String
+  user_id                  String
+  access_token_hash        String        @unique
+  refresh_token_hash       String        @unique
+  scope                    String?
+  resource                 String?
+  access_token_expires_at  DateTime
+  refresh_token_expires_at DateTime
+  revoked_at               DateTime?
+  last_used_at             DateTime?
+  created_at               DateTime      @default(now())
+  client                   oauth_clients @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  user                     User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([client_id])
+  @@index([user_id])
+  @@index([access_token_hash])
+  @@index([refresh_token_hash])
 }
 
 model super_admins {

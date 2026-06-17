@@ -12,11 +12,13 @@ import { AdminLayout } from "./components/admin/AdminLayout";
 const Home = lazy(() => import("./pages/Home"));
 const HomeV1 = lazy(() => import("./pages/HomeV1"));
 const Docs = lazy(() => import("./pages/Docs"));
+const McpDocs = lazy(() => import("./pages/McpDocs"));
 const Changelog = lazy(() => import("./pages/Changelog"));
 const Scripts = lazy(() => import("./pages/Scripts"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
+const McpTokens = lazy(() => import("./pages/McpTokens"));
 
 // Lazy load admin pages
 const AdminLogin = lazy(() => import('./pages/admin/Login'));
@@ -86,6 +88,14 @@ function App() {
               }
             />
             <Route
+              path="/docs/mcp"
+              element={
+                <PageTransition>
+                  <McpDocs />
+                </PageTransition>
+              }
+            />
+            <Route
               path="/changelog"
               element={
                 <PageTransition>
@@ -122,6 +132,14 @@ function App() {
               element={
                 <PageTransition>
                   <ContactPage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/mcp-tokens"
+              element={
+                <PageTransition>
+                  <McpTokens />
                 </PageTransition>
               }
             />
