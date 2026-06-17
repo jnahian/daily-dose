@@ -9,6 +9,7 @@ const { canManageTeam } = require("../utils/permissionHelper");
 const { resolveMember } = require("./memberResolver");
 const standupService = require("../services/standupService");
 const teamService = require("../services/teamService");
+const schedulerService = require("../services/schedulerService");
 
 // Extend the plugins this module relies on directly — do not depend on another
 // module's import side-effects (which won't run when that module is mocked).
@@ -255,6 +256,119 @@ function buildToolHandlers(user, slackClient) {
           : null,
       };
     },
+
+    async post_team_standup({ team, date }) {
+      if (date) assertValidDate(date);
+      const resolved = await resolveOrThrow(team);
+      await requireManageTeam(resolved.id);
+
+      const targetDate = date
+        ? dayjs(date, "YYYY-MM-DD").toDate()
+        : dayjs().tz(resolved.timezone).toDate();
+      const dateLabel = dayjs(targetDate).format("YYYY-MM-DD");
+
+      // Guard: never post an empty summary to a channel (mirrors /dd-standup-post).
+      const onTime = await standupService.getTeamResponses(
+        resolved.id,
+        targetDate
+      );
+      const late = await standupService.getLateResponses(
+        resolved.id,
+        targetDate
+      );
+      if (onTime.length === 0 && late.length === 0) {
+        throw new Error(
+          `No standup responses for ${dateLabel} — nothing to post.`
+        );
+      }
+
+      const result = await standupService.postTeamStandup(
+        resolved,
+        targetDate,
+        {
+          client: slackClient,
+        }
+      );
+
+      if (result?.skipped) {
+        return {
+          team: resolved.name,
+          date: dateLabel,
+          posted: false,
+          skipped: true,
+          messageTs: result.post?.slackMessageTs,
+        };
+      }
+      if (!result) {
+        throw new Error(
+          `${dateLabel} is not a working day for this organization.`
+        );
+      }
+      return {
+        team: resolved.name,
+        date: dateLabel,
+        posted: true,
+        messageTs: result.ts,
+      };
+    },
+
+    async post_member_standup({ team, member, date }) {
+      if (date) assertValidDate(date);
+      const resolved = await resolveOrThrow(team);
+      await requireManageTeam(resolved.id);
+
+      const { member: targetUser, error } = await resolveMember(
+        resolved.id,
+        member
+      );
+      if (error) throw new Error(error);
+
+      const targetDate = date
+        ? dayjs(date, "YYYY-MM-DD").toDate()
+        : dayjs().tz(resolved.timezone).toDate();
+      const dateLabel = dayjs(targetDate).format("YYYY-MM-DD");
+
+      const response = await standupService.getUserResponse(
+        resolved.id,
+        targetUser.id,
+        targetDate
+      );
+      if (!response) {
+        throw new Error(
+          `${targetUser.name || targetUser.slackUserId} has no standup for ${dateLabel}.`
+        );
+      }
+
+      const result = await standupService.postIndividualResponse(
+        resolved,
+        targetDate,
+        response,
+        { client: slackClient }
+      );
+
+      return {
+        team: resolved.name,
+        date: dateLabel,
+        member: { slackUserId: targetUser.slackUserId, name: targetUser.name },
+        posted: true,
+        messageTs: result.ts,
+        channel: result.channel,
+      };
+    },
+
+    async send_standup_reminders({ team }) {
+      const resolved = await resolveOrThrow(team);
+      await requireManageTeam(resolved.id);
+      await schedulerService.sendStandupReminders(resolved);
+      return { team: resolved.name, status: "Standup reminders sent." };
+    },
+
+    async send_followup_reminders({ team }) {
+      const resolved = await resolveOrThrow(team);
+      await requireManageTeam(resolved.id);
+      await schedulerService.sendFollowupReminders(resolved);
+      return { team: resolved.name, status: "Followup reminders sent." };
+    },
   };
 }
 
@@ -394,6 +508,82 @@ function registerTools(server, user, slackClient) {
     async (args) => {
       try {
         return json(await handlers.get_member_standup(args));
+      } catch (e) {
+        return fail(e);
+      }
+    }
+  );
+
+  server.registerTool(
+    "post_team_standup",
+    {
+      title: "Post team standup",
+      description:
+        "Post a team's standup summary for a date to its channel (includes late responses). Refuses if there are no responses. Requires team admin or owner.",
+      inputSchema: z.object({
+        team: TEAM_FIELD,
+        date: z.string().optional().describe("YYYY-MM-DD; defaults to today"),
+      }),
+    },
+    async (args) => {
+      try {
+        return json(await handlers.post_team_standup(args));
+      } catch (e) {
+        return fail(e);
+      }
+    }
+  );
+
+  server.registerTool(
+    "post_member_standup",
+    {
+      title: "Post member standup",
+      description:
+        "Post one member's standup submission as a threaded reply (creates the team thread if needed). Identify the member by Slack id, name, or username. Requires team admin or owner.",
+      inputSchema: z.object({
+        team: TEAM_FIELD,
+        member: z
+          .string()
+          .describe("Member's Slack user id, display name, or username"),
+        date: z.string().optional().describe("YYYY-MM-DD; defaults to today"),
+      }),
+    },
+    async (args) => {
+      try {
+        return json(await handlers.post_member_standup(args));
+      } catch (e) {
+        return fail(e);
+      }
+    }
+  );
+  server.registerTool(
+    "send_standup_reminders",
+    {
+      title: "Send standup reminders",
+      description:
+        "DM today's standup reminder to active team members who haven't opted out. Requires team admin or owner.",
+      inputSchema: z.object({ team: TEAM_FIELD }),
+    },
+    async (args) => {
+      try {
+        return json(await handlers.send_standup_reminders(args));
+      } catch (e) {
+        return fail(e);
+      }
+    }
+  );
+
+  server.registerTool(
+    "send_followup_reminders",
+    {
+      title: "Send followup reminders",
+      description:
+        "DM a followup reminder to active team members who haven't submitted yet. Requires team admin or owner.",
+      inputSchema: z.object({ team: TEAM_FIELD }),
+    },
+    async (args) => {
+      try {
+        return json(await handlers.send_followup_reminders(args));
       } catch (e) {
         return fail(e);
       }

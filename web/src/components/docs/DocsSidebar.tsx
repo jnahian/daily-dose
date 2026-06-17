@@ -9,7 +9,14 @@ import {
   HelpCircle,
   LifeBuoy,
   SquareSlash,
+  Bot,
 } from "lucide-react";
+
+interface NavSection {
+  id: string;
+  title: string;
+  subsections: { id: string; title: string }[];
+}
 
 interface NavItem {
   id: string;
@@ -25,6 +32,7 @@ interface DocsSidebarProps {
   setActiveSection: (section: string) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  sections?: NavSection[];
 }
 
 import { useMemo } from "react";
@@ -33,6 +41,7 @@ import docsData from "../../data/docs.json";
 const SECTION_ICONS: Record<string, React.ElementType> = {
   "getting-started": Book,
   "slash-commands": SquareSlash,
+  "ai-agent-mcp": Bot,
   features: Zap,
   configuration: Settings,
   troubleshooting: Wrench,
@@ -47,12 +56,13 @@ export const DocsSidebar = ({
   setActiveSection,
   searchQuery,
   setSearchQuery,
+  sections = docsData.sections,
 }: DocsSidebarProps) => {
   const navItems = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
 
     if (!query) {
-      return docsData.sections.map((section) => ({
+      return sections.map((section) => ({
         id: section.id,
         title: section.title,
         icon: SECTION_ICONS[section.id] || Book,
@@ -60,7 +70,7 @@ export const DocsSidebar = ({
       }));
     }
 
-    return docsData.sections
+    return sections
       .map((section): NavItem | null => {
         const sectionMatches = section.title.toLowerCase().includes(query);
 
@@ -91,7 +101,7 @@ export const DocsSidebar = ({
         return null;
       })
       .filter((item): item is NavItem => item !== null);
-  }, [searchQuery]);
+  }, [searchQuery, sections]);
 
   const scrollToSection = (sectionId: string) => {
     setActiveSection(sectionId);

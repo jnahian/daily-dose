@@ -16,12 +16,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `mcpTokenService`: mint, validate, list, and revoke MCP tokens. (`src/services/mcpTokenService.js`)
 - Member-gated Slack OAuth flow at `/api/mcp/auth/*` for MCP identity (any registered user, no admin requirement). (`src/routes/mcpAuth.js`)
 - Token management web page at `/mcp-tokens`: sign in, generate, list, and revoke tokens. (`web/src/pages/McpTokens.tsx`)
-- `MCP_OAUTH_REDIRECT_URI` environment variable for the MCP OAuth callback URL.
 - Phase 2 MCP read tools (admin/owner-gated via `canManageTeam`): `get_team_standup` (combined on-time + late responses, not-submitted, and on-leave as JSON) and `get_member_standup` (one member's submission). New `src/mcp/memberResolver.js` resolves a member by Slack id, name, or username. (`src/mcp/tools.js`, `src/mcp/memberResolver.js`)
+- Phase 3 MCP write tools (admin/owner-gated via `canManageTeam`, sequential Slack calls): `post_team_standup` (guards on zero responses), `post_member_standup`, `send_standup_reminders`, and `send_followup_reminders` — wrapping the same `standupService.postTeamStandup`/`postIndividualResponse` and `schedulerService.sendStandupReminders`/`sendFollowupReminders` the slash commands use. (`src/mcp/tools.js`)
+- Phase 4 MCP OAuth 2.1 authorization server (DCR + PKCE + Slack-delegated login): MCP clients connect by URL and obtain/refresh tokens automatically. Mounts the SDK `mcpAuthRouter` (`/authorize`, `/token`, `/register`, `/revoke`, `.well-known` metadata) backed by a custom `OAuthServerProvider`. (`src/mcp/auth/*`)
+- `oauth_clients`, `oauth_auth_codes`, `oauth_tokens` tables + migration (`20260617050748_add_oauth_tables`): DCR client records, in-flight PKCE-bound authorization state, and opaque access (`mcat_`) + rotating refresh (`mcrt_`) tokens (SHA-256 hashed). (`prisma/schema.prisma`, `prisma/migrations/`)
+- Combined bearer middleware accepting either an OAuth access token or a legacy `ddm_` token. (`src/mcp/auth/index.js`)
+- Connection management API + UI: list and revoke connected AI clients (`GET`/`DELETE /api/mcp/connections`). (`src/routes/mcpAuth.js`, `web/src/pages/McpTokens.tsx`)
+- Both MCP Slack OAuth callback URLs (`/api/mcp/auth/callback` for the manual flow and `/api/mcp/oauth/slack/callback` for the authorization server) are derived from `APP_URL` — no dedicated env var; both must be registered in the Slack app's OAuth redirect URLs. (`src/utils/slackIdentity.js`)
 
 ### Changed
 
 - `handleStandupSubmission` and `handleStandupUpdateSubmission` in `src/commands/standup.js` now delegate to `standupService.submitStandup` (refactor, no behavior change).
+- `/api/mcp/auth/callback` now uses a shared `resolveSlackUserFromCode` helper (`src/utils/slackIdentity.js`) shared with the OAuth authorization flow.
 
 ## [1.13.0] - 2026-06-16
 
