@@ -2,12 +2,26 @@ jest.mock("../../src/config/prisma", () => ({
   teamMember: { findMany: jest.fn() },
 }));
 jest.mock("../../src/mcp/teamResolver", () => ({ resolveTeam: jest.fn() }));
+jest.mock("../../src/mcp/memberResolver", () => ({ resolveMember: jest.fn() }));
+jest.mock("../../src/utils/permissionHelper", () => ({
+  canManageTeam: jest.fn(),
+}));
 jest.mock("../../src/services/standupService", () => ({
   submitStandup: jest.fn(),
   getUserStandupHistory: jest.fn(),
+  getTeamResponses: jest.fn(),
+  getLateResponses: jest.fn(),
+  getActiveMembers: jest.fn(),
+  getUserResponse: jest.fn(),
+  postTeamStandup: jest.fn(),
+  postIndividualResponse: jest.fn(),
 }));
 jest.mock("../../src/services/teamService", () => ({
   getTeamById: jest.fn(),
+}));
+jest.mock("../../src/services/schedulerService", () => ({
+  sendStandupReminders: jest.fn(),
+  sendFollowupReminders: jest.fn(),
 }));
 
 const dayjs = require("dayjs");
@@ -18,8 +32,11 @@ dayjs.extend(timezone);
 
 const prisma = require("../../src/config/prisma");
 const { resolveTeam } = require("../../src/mcp/teamResolver");
+const { resolveMember } = require("../../src/mcp/memberResolver");
+const { canManageTeam } = require("../../src/utils/permissionHelper");
 const standupService = require("../../src/services/standupService");
 const teamService = require("../../src/services/teamService");
+const schedulerService = require("../../src/services/schedulerService");
 const { buildToolHandlers } = require("../../src/mcp/tools");
 
 const user = { id: "user-1", slackUserId: "U1", name: "Alice" };
@@ -114,5 +131,472 @@ describe("MCP Phase 1 tool handlers", () => {
     expect(result[0]).toEqual(
       expect.objectContaining({ team: "Eng", todayTasks: "x" })
     );
+  });
+});
+
+describe("MCP Phase 2 — get_team_standup", () => {
+  let tools;
+  const team = { id: "t1", name: "Eng", timezone: "Asia/Dhaka" };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    tools = buildToolHandlers(user, slackClient);
+    resolveTeam.mockResolvedValue({ team });
+    canManageTeam.mockResolvedValue({
+      canManage: true,
+      role: "ADMIN",
+      reason: null,
+    });
+    standupService.getTeamResponses.mockResolvedValue([]);
+    standupService.getLateResponses.mockResolvedValue([]);
+    standupService.getActiveMembers.mockResolvedValue([]);
+    prisma.teamMember.findMany.mockResolvedValue([]); // on-leave query
+  });
+
+  it("throws the permission reason when the caller can't manage the team", async () => {
+    canManageTeam.mockResolvedValue({
+      canManage: false,
+      role: null,
+      reason: "User is not an admin or owner",
+    });
+    await expect(tools.get_team_standup({ team: "Eng" })).rejects.toThrow(
+      /not an admin or owner/i
+    );
+    expect(canManageTeam).toHaveBeenCalledWith("user-1", "t1");
+    expect(standupService.getTeamResponses).not.toHaveBeenCalled();
+  });
+
+  it("combines on-time and late responses, each tagged isLate", async () => {
+    standupService.getTeamResponses.mockResolvedValue([
+      {
+        userId: "u1",
+        user: { slackUserId: "U1", name: "Alice" },
+        yesterdayTasks: "y",
+        todayTasks: "t",
+        blockers: "",
+        isLate: false,
+        submittedAt: new Date("2026-06-17T03:00:00Z"),
+      },
+    ]);
+    standupService.getLateResponses.mockResolvedValue([
+      {
+        userId: "u2",
+        user: { slackUserId: "U2", name: "Bob" },
+        yesterdayTasks: "",
+        todayTasks: "late",
+        blockers: "",
+        isLate: true,
+        submittedAt: new Date("2026-06-17T05:00:00Z"),
+      },
+    ]);
+    standupService.getActiveMembers.mockResolvedValue([
+      { userId: "u1", user: { slackUserId: "U1", name: "Alice" } },
+      { userId: "u2", user: { slackUserId: "U2", name: "Bob" } },
+    ]);
+
+    const result = await tools.get_team_standup({ team: "Eng" });
+
+    expect(result.team).toBe("Eng");
+    expect(result.responses).toHaveLength(2);
+    expect(result.responses.map((r) => r.isLate).sort()).toEqual([false, true]);
+    expect(result.notSubmitted).toEqual([]);
+    expect(result.onLeave).toEqual([]);
+  });
+
+  it("lists active members who did not submit and excludes late submitters from notSubmitted", async () => {
+    standupService.getTeamResponses.mockResolvedValue([
+      {
+        userId: "u1",
+        user: { slackUserId: "U1", name: "Alice" },
+        yesterdayTasks: "",
+        todayTasks: "t",
+        blockers: "",
+        isLate: false,
+        submittedAt: new Date("2026-06-17T03:00:00Z"),
+      },
+    ]);
+    standupService.getLateResponses.mockResolvedValue([
+      {
+        userId: "u2",
+        user: { slackUserId: "U2", name: "Bob" },
+        yesterdayTasks: "",
+        todayTasks: "late",
+        blockers: "",
+        isLate: true,
+        submittedAt: new Date("2026-06-17T05:00:00Z"),
+      },
+    ]);
+    standupService.getActiveMembers.mockResolvedValue([
+      { userId: "u1", user: { slackUserId: "U1", name: "Alice" } },
+      { userId: "u2", user: { slackUserId: "U2", name: "Bob" } },
+      { userId: "u3", user: { slackUserId: "U3", name: "Carol" } },
+    ]);
+
+    const result = await tools.get_team_standup({ team: "Eng" });
+
+    expect(result.notSubmitted).toEqual([{ slackUserId: "U3", name: "Carol" }]);
+  });
+
+  it("reports members on leave and excludes them from notSubmitted", async () => {
+    standupService.getActiveMembers.mockResolvedValue([
+      { userId: "u1", user: { slackUserId: "U1", name: "Alice" } },
+    ]);
+    prisma.teamMember.findMany.mockResolvedValue([
+      { userId: "u9", user: { slackUserId: "U9", name: "Dave" } },
+    ]);
+
+    const result = await tools.get_team_standup({ team: "Eng" });
+
+    expect(result.onLeave).toEqual([{ slackUserId: "U9", name: "Dave" }]);
+    expect(result.notSubmitted).toEqual([{ slackUserId: "U1", name: "Alice" }]);
+  });
+
+  it("queries on-leave members with a full-day overlap window (matches getActiveMembers)", async () => {
+    await tools.get_team_standup({ team: "Eng", date: "2026-06-17" });
+
+    const onLeaveCall = prisma.teamMember.findMany.mock.calls[0][0];
+    const leaveWhere = onLeaveCall.where.user.leaves.some;
+    const startOfDay = leaveWhere.endDate.gte; // leaves overlapping the day
+    const endOfDay = leaveWhere.startDate.lte;
+    // The window must span a full day (start-of-day .. end-of-day), not a
+    // single instant — otherwise members on the last day of a leave vanish.
+    expect(startOfDay.getHours()).toBe(0);
+    expect(startOfDay.getMinutes()).toBe(0);
+    expect(endOfDay.getHours()).toBe(23);
+    expect(endOfDay.getMinutes()).toBe(59);
+  });
+
+  it("rejects an invalid date before doing any work", async () => {
+    await expect(
+      tools.get_team_standup({ team: "Eng", date: "06/17/2026" })
+    ).rejects.toThrow(/YYYY-MM-DD/);
+    expect(resolveTeam).not.toHaveBeenCalled();
+  });
+});
+
+describe("MCP Phase 2 — get_member_standup", () => {
+  let tools;
+  const team = { id: "t1", name: "Eng", timezone: "Asia/Dhaka" };
+  const member = { id: "u2", slackUserId: "U2", name: "Bob" };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    tools = buildToolHandlers(user, slackClient);
+    resolveTeam.mockResolvedValue({ team });
+    canManageTeam.mockResolvedValue({
+      canManage: true,
+      role: "ADMIN",
+      reason: null,
+    });
+    resolveMember.mockResolvedValue({ member });
+  });
+
+  it("throws the permission reason when the caller can't manage the team", async () => {
+    canManageTeam.mockResolvedValue({
+      canManage: false,
+      role: null,
+      reason: "User is not an admin or owner",
+    });
+    await expect(
+      tools.get_member_standup({ team: "Eng", member: "Bob" })
+    ).rejects.toThrow(/not an admin or owner/i);
+    expect(resolveMember).not.toHaveBeenCalled();
+  });
+
+  it("returns the member's response for the date", async () => {
+    standupService.getUserResponse.mockResolvedValue({
+      yesterdayTasks: "y",
+      todayTasks: "t",
+      blockers: "none",
+      isLate: false,
+      submittedAt: new Date("2026-06-17T03:00:00Z"),
+    });
+
+    const result = await tools.get_member_standup({
+      team: "Eng",
+      member: "Bob",
+    });
+
+    expect(resolveMember).toHaveBeenCalledWith("t1", "Bob");
+    expect(standupService.getUserResponse).toHaveBeenCalledWith(
+      "t1",
+      "u2",
+      expect.any(Date)
+    );
+    expect(result.member).toEqual({ slackUserId: "U2", name: "Bob" });
+    expect(result.response).toEqual(
+      expect.objectContaining({
+        todayTasks: "t",
+        blockers: "none",
+        isLate: false,
+      })
+    );
+  });
+
+  it("returns response: null when the member has no submission", async () => {
+    standupService.getUserResponse.mockResolvedValue(null);
+    const result = await tools.get_member_standup({
+      team: "Eng",
+      member: "Bob",
+    });
+    expect(result.response).toBeNull();
+    expect(result.member).toEqual({ slackUserId: "U2", name: "Bob" });
+  });
+
+  it("throws the resolver error for an unknown member", async () => {
+    resolveMember.mockResolvedValue({
+      error: 'Member "Zoe" not found in this team.',
+    });
+    await expect(
+      tools.get_member_standup({ team: "Eng", member: "Zoe" })
+    ).rejects.toThrow(/not found/i);
+    expect(standupService.getUserResponse).not.toHaveBeenCalled();
+  });
+
+  it("rejects an invalid date before doing any work", async () => {
+    await expect(
+      tools.get_member_standup({
+        team: "Eng",
+        member: "Bob",
+        date: "2026/06/17",
+      })
+    ).rejects.toThrow(/YYYY-MM-DD/);
+    expect(resolveTeam).not.toHaveBeenCalled();
+  });
+});
+
+describe("MCP Phase 3 — post_team_standup", () => {
+  let tools;
+  const team = {
+    id: "t1",
+    name: "Eng",
+    timezone: "Asia/Dhaka",
+    organizationId: "org1",
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    tools = buildToolHandlers(user, slackClient);
+    resolveTeam.mockResolvedValue({ team });
+    canManageTeam.mockResolvedValue({
+      canManage: true,
+      role: "ADMIN",
+      reason: null,
+    });
+    standupService.getTeamResponses.mockResolvedValue([{ userId: "u1" }]);
+    standupService.getLateResponses.mockResolvedValue([]);
+    standupService.postTeamStandup.mockResolvedValue({ ts: "111.222" });
+  });
+
+  it("throws the permission reason when the caller can't manage the team", async () => {
+    canManageTeam.mockResolvedValue({
+      canManage: false,
+      role: null,
+      reason: "User is not an admin or owner",
+    });
+    await expect(tools.post_team_standup({ team: "Eng" })).rejects.toThrow(
+      /not an admin or owner/i
+    );
+    expect(standupService.postTeamStandup).not.toHaveBeenCalled();
+  });
+
+  it("refuses to post when there are no responses", async () => {
+    standupService.getTeamResponses.mockResolvedValue([]);
+    standupService.getLateResponses.mockResolvedValue([]);
+    await expect(tools.post_team_standup({ team: "Eng" })).rejects.toThrow(
+      /nothing to post/i
+    );
+    expect(standupService.postTeamStandup).not.toHaveBeenCalled();
+  });
+
+  it("posts and returns the message timestamp", async () => {
+    const result = await tools.post_team_standup({ team: "Eng" });
+
+    expect(standupService.postTeamStandup).toHaveBeenCalledWith(
+      team,
+      expect.any(Date),
+      { client: slackClient }
+    );
+    expect(result).toEqual(
+      expect.objectContaining({
+        team: "Eng",
+        posted: true,
+        messageTs: "111.222",
+      })
+    );
+  });
+
+  it("reports skipped when the standup was already posted", async () => {
+    standupService.postTeamStandup.mockResolvedValue({
+      skipped: true,
+      post: { slackMessageTs: "999.888" },
+    });
+    const result = await tools.post_team_standup({ team: "Eng" });
+    expect(result).toEqual(
+      expect.objectContaining({
+        posted: false,
+        skipped: true,
+        messageTs: "999.888",
+      })
+    );
+  });
+
+  it("throws when the date is not a working day (service returns undefined)", async () => {
+    standupService.postTeamStandup.mockResolvedValue(undefined);
+    await expect(tools.post_team_standup({ team: "Eng" })).rejects.toThrow(
+      /not a working day/i
+    );
+  });
+
+  it("rejects an invalid date before doing any work", async () => {
+    await expect(
+      tools.post_team_standup({ team: "Eng", date: "06/17/2026" })
+    ).rejects.toThrow(/YYYY-MM-DD/);
+    expect(resolveTeam).not.toHaveBeenCalled();
+  });
+});
+
+describe("MCP Phase 3 — post_member_standup", () => {
+  let tools;
+  const team = { id: "t1", name: "Eng", timezone: "Asia/Dhaka" };
+  const member = { id: "u2", slackUserId: "U2", name: "Bob" };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    tools = buildToolHandlers(user, slackClient);
+    resolveTeam.mockResolvedValue({ team });
+    canManageTeam.mockResolvedValue({
+      canManage: true,
+      role: "ADMIN",
+      reason: null,
+    });
+    resolveMember.mockResolvedValue({ member });
+    standupService.getUserResponse.mockResolvedValue({
+      user: member,
+      todayTasks: "t",
+    });
+    standupService.postIndividualResponse.mockResolvedValue({
+      ts: "333.444",
+      channel: "C1",
+    });
+  });
+
+  it("throws the permission reason when the caller can't manage the team", async () => {
+    canManageTeam.mockResolvedValue({
+      canManage: false,
+      role: null,
+      reason: "User is not an admin or owner",
+    });
+    await expect(
+      tools.post_member_standup({ team: "Eng", member: "Bob" })
+    ).rejects.toThrow(/not an admin or owner/i);
+    expect(resolveMember).not.toHaveBeenCalled();
+    expect(standupService.postIndividualResponse).not.toHaveBeenCalled();
+  });
+
+  it("throws the resolver error for an unknown member", async () => {
+    resolveMember.mockResolvedValue({
+      error: 'Member "Zoe" not found in this team.',
+    });
+    await expect(
+      tools.post_member_standup({ team: "Eng", member: "Zoe" })
+    ).rejects.toThrow(/not found/i);
+    expect(standupService.postIndividualResponse).not.toHaveBeenCalled();
+  });
+
+  it("throws when the member has no submission for the date", async () => {
+    standupService.getUserResponse.mockResolvedValue(null);
+    await expect(
+      tools.post_member_standup({ team: "Eng", member: "Bob" })
+    ).rejects.toThrow(/no standup/i);
+    expect(standupService.postIndividualResponse).not.toHaveBeenCalled();
+  });
+
+  it("posts the member's response and returns ts + channel", async () => {
+    const result = await tools.post_member_standup({
+      team: "Eng",
+      member: "Bob",
+    });
+
+    expect(standupService.postIndividualResponse).toHaveBeenCalledWith(
+      team,
+      expect.any(Date),
+      expect.objectContaining({ user: member }),
+      { client: slackClient }
+    );
+    expect(result).toEqual(
+      expect.objectContaining({
+        team: "Eng",
+        member: { slackUserId: "U2", name: "Bob" },
+        posted: true,
+        messageTs: "333.444",
+        channel: "C1",
+      })
+    );
+  });
+
+  it("rejects an invalid date before doing any work", async () => {
+    await expect(
+      tools.post_member_standup({
+        team: "Eng",
+        member: "Bob",
+        date: "2026/06/17",
+      })
+    ).rejects.toThrow(/YYYY-MM-DD/);
+    expect(resolveTeam).not.toHaveBeenCalled();
+  });
+});
+
+describe("MCP Phase 3 — reminder tools", () => {
+  let tools;
+  const team = { id: "t1", name: "Eng", timezone: "Asia/Dhaka" };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    tools = buildToolHandlers(user, slackClient);
+    resolveTeam.mockResolvedValue({ team });
+    canManageTeam.mockResolvedValue({
+      canManage: true,
+      role: "ADMIN",
+      reason: null,
+    });
+    schedulerService.sendStandupReminders.mockResolvedValue(undefined);
+    schedulerService.sendFollowupReminders.mockResolvedValue(undefined);
+  });
+
+  it("send_standup_reminders requires manage permission", async () => {
+    canManageTeam.mockResolvedValue({
+      canManage: false,
+      role: null,
+      reason: "User is not an admin or owner",
+    });
+    await expect(tools.send_standup_reminders({ team: "Eng" })).rejects.toThrow(
+      /not an admin or owner/i
+    );
+    expect(schedulerService.sendStandupReminders).not.toHaveBeenCalled();
+  });
+
+  it("send_standup_reminders delegates to the scheduler with the resolved team", async () => {
+    const result = await tools.send_standup_reminders({ team: "Eng" });
+    expect(schedulerService.sendStandupReminders).toHaveBeenCalledWith(team);
+    expect(result).toEqual(expect.objectContaining({ team: "Eng" }));
+  });
+
+  it("send_followup_reminders requires manage permission", async () => {
+    canManageTeam.mockResolvedValue({
+      canManage: false,
+      role: null,
+      reason: "User is not an admin or owner",
+    });
+    await expect(
+      tools.send_followup_reminders({ team: "Eng" })
+    ).rejects.toThrow(/not an admin or owner/i);
+    expect(schedulerService.sendFollowupReminders).not.toHaveBeenCalled();
+  });
+
+  it("send_followup_reminders delegates to the scheduler with the resolved team", async () => {
+    const result = await tools.send_followup_reminders({ team: "Eng" });
+    expect(schedulerService.sendFollowupReminders).toHaveBeenCalledWith(team);
+    expect(result).toEqual(expect.objectContaining({ team: "Eng" }));
   });
 });

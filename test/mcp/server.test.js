@@ -10,8 +10,20 @@ jest.mock("../../src/mcp/teamResolver", () => ({ resolveTeam: jest.fn() }));
 jest.mock("../../src/services/standupService", () => ({
   submitStandup: jest.fn(),
   getUserStandupHistory: jest.fn(),
+  getTeamResponses: jest.fn(),
+  getLateResponses: jest.fn(),
+  getActiveMembers: jest.fn(),
+  getUserResponse: jest.fn(),
 }));
 jest.mock("../../src/services/teamService", () => ({ getTeamById: jest.fn() }));
+jest.mock("../../src/utils/permissionHelper", () => ({
+  canManageTeam: jest.fn(),
+}));
+jest.mock("../../src/mcp/memberResolver", () => ({ resolveMember: jest.fn() }));
+jest.mock("../../src/services/schedulerService", () => ({
+  sendStandupReminders: jest.fn(),
+  sendFollowupReminders: jest.fn(),
+}));
 
 const { McpServer } = require("@modelcontextprotocol/sdk/server/mcp.js");
 const tokenService = require("../../src/services/mcpTokenService");
@@ -108,7 +120,7 @@ describe("validateMcpToken middleware", () => {
 });
 
 describe("registerTools SDK wiring", () => {
-  it("registers all four Phase 1 tools on a real McpServer without throwing", () => {
+  it("registers all Phase 1 and Phase 3 tools on a real McpServer without throwing", () => {
     const server = new McpServer({ name: "test", version: "1.0.0" });
     const spy = jest.spyOn(server, "registerTool");
     const user = { id: "u1", slackUserId: "U1", name: "Alice" };
@@ -125,6 +137,12 @@ describe("registerTools SDK wiring", () => {
         "submit_standup",
         "update_standup",
         "get_my_standup_history",
+        "get_team_standup",
+        "get_member_standup",
+        "post_team_standup",
+        "post_member_standup",
+        "send_standup_reminders",
+        "send_followup_reminders",
       ])
     );
   });
