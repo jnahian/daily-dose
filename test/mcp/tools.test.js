@@ -546,3 +546,57 @@ describe("MCP Phase 3 — post_member_standup", () => {
     expect(resolveTeam).not.toHaveBeenCalled();
   });
 });
+
+describe("MCP Phase 3 — reminder tools", () => {
+  let tools;
+  const team = { id: "t1", name: "Eng", timezone: "Asia/Dhaka" };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    tools = buildToolHandlers(user, slackClient);
+    resolveTeam.mockResolvedValue({ team });
+    canManageTeam.mockResolvedValue({
+      canManage: true,
+      role: "ADMIN",
+      reason: null,
+    });
+    schedulerService.sendStandupReminders.mockResolvedValue(undefined);
+    schedulerService.sendFollowupReminders.mockResolvedValue(undefined);
+  });
+
+  it("send_standup_reminders requires manage permission", async () => {
+    canManageTeam.mockResolvedValue({
+      canManage: false,
+      role: null,
+      reason: "User is not an admin or owner",
+    });
+    await expect(tools.send_standup_reminders({ team: "Eng" })).rejects.toThrow(
+      /not an admin or owner/i
+    );
+    expect(schedulerService.sendStandupReminders).not.toHaveBeenCalled();
+  });
+
+  it("send_standup_reminders delegates to the scheduler with the resolved team", async () => {
+    const result = await tools.send_standup_reminders({ team: "Eng" });
+    expect(schedulerService.sendStandupReminders).toHaveBeenCalledWith(team);
+    expect(result).toEqual(expect.objectContaining({ team: "Eng" }));
+  });
+
+  it("send_followup_reminders requires manage permission", async () => {
+    canManageTeam.mockResolvedValue({
+      canManage: false,
+      role: null,
+      reason: "User is not an admin or owner",
+    });
+    await expect(
+      tools.send_followup_reminders({ team: "Eng" })
+    ).rejects.toThrow(/not an admin or owner/i);
+    expect(schedulerService.sendFollowupReminders).not.toHaveBeenCalled();
+  });
+
+  it("send_followup_reminders delegates to the scheduler with the resolved team", async () => {
+    const result = await tools.send_followup_reminders({ team: "Eng" });
+    expect(schedulerService.sendFollowupReminders).toHaveBeenCalledWith(team);
+    expect(result).toEqual(expect.objectContaining({ team: "Eng" }));
+  });
+});

@@ -355,6 +355,20 @@ function buildToolHandlers(user, slackClient) {
         channel: result.channel,
       };
     },
+
+    async send_standup_reminders({ team }) {
+      const resolved = await resolveOrThrow(team);
+      await requireManageTeam(resolved.id);
+      await schedulerService.sendStandupReminders(resolved);
+      return { team: resolved.name, status: "Standup reminders sent." };
+    },
+
+    async send_followup_reminders({ team }) {
+      const resolved = await resolveOrThrow(team);
+      await requireManageTeam(resolved.id);
+      await schedulerService.sendFollowupReminders(resolved);
+      return { team: resolved.name, status: "Followup reminders sent." };
+    },
   };
 }
 
@@ -537,6 +551,39 @@ function registerTools(server, user, slackClient) {
     async (args) => {
       try {
         return json(await handlers.post_member_standup(args));
+      } catch (e) {
+        return fail(e);
+      }
+    }
+  );
+  server.registerTool(
+    "send_standup_reminders",
+    {
+      title: "Send standup reminders",
+      description:
+        "DM today's standup reminder to active team members who haven't opted out. Requires team admin or owner.",
+      inputSchema: z.object({ team: TEAM_FIELD }),
+    },
+    async (args) => {
+      try {
+        return json(await handlers.send_standup_reminders(args));
+      } catch (e) {
+        return fail(e);
+      }
+    }
+  );
+
+  server.registerTool(
+    "send_followup_reminders",
+    {
+      title: "Send followup reminders",
+      description:
+        "DM a followup reminder to active team members who haven't submitted yet. Requires team admin or owner.",
+      inputSchema: z.object({ team: TEAM_FIELD }),
+    },
+    async (args) => {
+      try {
+        return json(await handlers.send_followup_reminders(args));
       } catch (e) {
         return fail(e);
       }
