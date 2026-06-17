@@ -311,6 +311,50 @@ function buildToolHandlers(user, slackClient) {
         messageTs: result.ts,
       };
     },
+
+    async post_member_standup({ team, member, date }) {
+      if (date) assertValidDate(date);
+      const resolved = await resolveOrThrow(team);
+      await requireManageTeam(resolved.id);
+
+      const { member: targetUser, error } = await resolveMember(
+        resolved.id,
+        member
+      );
+      if (error) throw new Error(error);
+
+      const targetDate = date
+        ? dayjs(date, "YYYY-MM-DD").toDate()
+        : dayjs().tz(resolved.timezone).toDate();
+      const dateLabel = dayjs(targetDate).format("YYYY-MM-DD");
+
+      const response = await standupService.getUserResponse(
+        resolved.id,
+        targetUser.id,
+        targetDate
+      );
+      if (!response) {
+        throw new Error(
+          `${targetUser.name || targetUser.slackUserId} has no standup for ${dateLabel}.`
+        );
+      }
+
+      const result = await standupService.postIndividualResponse(
+        resolved,
+        targetDate,
+        response,
+        { client: slackClient }
+      );
+
+      return {
+        team: resolved.name,
+        date: dateLabel,
+        member: { slackUserId: targetUser.slackUserId, name: targetUser.name },
+        posted: true,
+        messageTs: result.ts,
+        channel: result.channel,
+      };
+    },
   };
 }
 
@@ -470,6 +514,29 @@ function registerTools(server, user, slackClient) {
     async (args) => {
       try {
         return json(await handlers.post_team_standup(args));
+      } catch (e) {
+        return fail(e);
+      }
+    }
+  );
+
+  server.registerTool(
+    "post_member_standup",
+    {
+      title: "Post member standup",
+      description:
+        "Post one member's standup submission as a threaded reply (creates the team thread if needed). Identify the member by Slack id, name, or username. Requires team admin or owner.",
+      inputSchema: z.object({
+        team: TEAM_FIELD,
+        member: z
+          .string()
+          .describe("Member's Slack user id, display name, or username"),
+        date: z.string().optional().describe("YYYY-MM-DD; defaults to today"),
+      }),
+    },
+    async (args) => {
+      try {
+        return json(await handlers.post_member_standup(args));
       } catch (e) {
         return fail(e);
       }
