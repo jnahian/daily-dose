@@ -1096,24 +1096,26 @@ SENTRY_DSN=https://your-sentry-dsn       # Sentry error tracking (optional)
 
 Daily Dose exposes an MCP (Model Context Protocol) server so you can operate standups directly from any AI agent — Claude Desktop, Cursor, or any MCP-compatible tool — without leaving your workflow.
 
-### Automatic sign-in (OAuth)
+### Connecting your AI agent (recommended)
 
-Clients that support remote-MCP OAuth (e.g. Claude Desktop, Cursor, VS Code) can connect by just pointing at the server URL `https://<your-host>/mcp` — the client registers itself, opens a browser for you to sign in with Slack, and receives a token automatically. There is no token to copy or paste.
+The primary way to connect is automatic sign-in. Clients that support remote-MCP OAuth (e.g. Claude Desktop, Cursor, VS Code) connect by just pointing at the server URL — the client registers itself, opens a browser for you to sign in with Slack, and receives and refreshes its token automatically. There is no token to generate, copy, or paste.
 
-The manual personal-token flow below remains available for clients that don't support OAuth.
+```
+URL: https://<your-host>/mcp
+```
 
 For automatic sign-in to work, operators must register the `<APP_URL>/api/mcp/oauth/slack/callback` URL in the Slack app's OAuth redirect URLs.
 
-### Getting a Token
+### Advanced — connecting with a manual token
+
+Only needed for clients that don't support OAuth sign-in. Generate a personal token and send it in an `Authorization` header.
 
 1. Visit `https://<your-host>/mcp-tokens`
 2. Sign in with Slack
 3. Click **Generate Token**
-4. Copy the token — it is shown **only once**
+4. Copy the token — it is shown **only once** (it starts with `ddm_`, expires after 90 days, and is revocable from the same page)
 
-### Connecting Your AI Tool
-
-Configure your MCP client with:
+Then configure your MCP client with the server URL plus the token header:
 
 ```
 URL: https://<your-host>/mcp

@@ -521,7 +521,7 @@
             {
               "type": "note",
               "title": "🤖 What is this?",
-              "value": "Daily Dose exposes a Model Context Protocol (MCP) server, so you can run your standups straight from an AI assistant like Claude Desktop or Cursor. Connect once with a personal token and ask your agent in plain language — it talks to Daily Dose for you."
+              "value": "Daily Dose exposes a Model Context Protocol (MCP) server, so you can run your standups straight from an AI assistant like Claude Desktop or Cursor. Connect once — just add the server and sign in with Slack — then ask your agent in plain language; it talks to Daily Dose for you."
             },
             {
               "type": "text",
@@ -538,26 +538,44 @@
             {
               "type": "note",
               "title": "🔐 Tied to your Slack identity",
-              "value": "Every action runs as you. A token is only your identity — it never lets your AI agent do anything you couldn't already do yourself in Slack. Admin-only tools still require you to be a team admin or owner, checked on every call."
+              "value": "Every action runs as you. Your connection is only your identity — it never lets your AI agent do anything you couldn't already do yourself in Slack. Admin-only tools still require you to be a team admin or owner, checked on every call."
             }
           ]
         },
         {
-          "id": "mcp-get-token",
-          "title": "Step 1 — Get your access token",
+          "id": "mcp-connect",
+          "title": "Step 1 — Connect your AI agent",
           "content": [
             {
               "type": "text",
-              "value": "Mint a personal token from the token page. You sign in with Slack, and Daily Dose recognizes you as the same person who uses the bot."
+              "value": "**Just add the server URL — that's it.** Daily Dose signs you in automatically (OAuth). In any client that supports remote MCP servers — Claude Desktop, Cursor, VS Code Copilot, and others — add Daily Dose by its URL and nothing else. The first time you use it, your client opens a Slack login in your browser; approve it and you're connected. There's no token to generate, copy, or paste."
             },
             {
-              "type": "list",
-              "items": [
-                "Open the token page (link below) in your browser",
-                "Click **Sign in with Slack** and authorize",
-                "Click **Generate Token** (optionally give it a name like “Cursor” or “Claude Desktop”)",
-                "Copy the token immediately"
-              ]
+              "type": "code",
+              "value": "# MCP server URL\nhttps://dd.jnahian.me/mcp"
+            },
+            {
+              "type": "text",
+              "value": "**Claude Desktop** — add Daily Dose as a remote MCP server by URL; it prompts you to sign in with Slack on first use."
+            },
+            {
+              "type": "note",
+              "title": "🔄 Connected once, managed anytime",
+              "value": "Your AI client keeps its access fresh automatically — you won't be asked to sign in again unless you disconnect. See and disconnect your connected AI clients anytime from the token page: https://dd.jnahian.me/mcp-tokens"
+            }
+          ]
+        },
+        {
+          "id": "mcp-manual-token",
+          "title": "Advanced — connect with a manual token",
+          "content": [
+            {
+              "type": "text",
+              "value": "You only need this if your AI client **doesn't** support automatic OAuth sign-in. Instead of adding the server by URL alone, you generate a personal access token and send it in an `Authorization` header."
+            },
+            {
+              "type": "text",
+              "value": "**1. Generate a token.** Open the token page, sign in with Slack, and click **Generate Token** (optionally name it like “Cursor” or “Claude Desktop”)."
             },
             {
               "type": "code",
@@ -566,35 +584,11 @@
             {
               "type": "warning",
               "title": "Shown only once",
-              "value": "The full token (it starts with `ddm_`) is displayed a single time, right after you generate it. Copy it now and store it like a password — it can't be retrieved again. Lost it? Just generate a new one and revoke the old."
-            },
-            {
-              "type": "note",
-              "title": "Expiry & revoking",
-              "value": "Tokens expire 90 days after creation. You can revoke any token at any time from the same token page — revoking takes effect immediately."
-            }
-          ]
-        },
-        {
-          "id": "mcp-connect",
-          "title": "Step 2 — Connect your AI agent",
-          "content": [
-            {
-              "type": "text",
-              "value": "**Recommended: automatic sign-in.** If your AI client supports remote MCP servers with OAuth (Claude Desktop, Cursor, VS Code Copilot, and others), you don't need a token at all. Just add the server URL — your client opens a Slack login in your browser, you approve, and you're connected. Nothing to copy or paste."
-            },
-            {
-              "type": "code",
-              "value": "# MCP server URL\nhttps://dd.jnahian.me/mcp"
+              "value": "The full token (it starts with `ddm_`) is displayed a single time, right after you generate it. Copy it now and store it like a password — it can't be retrieved again. Lost it? Just generate a new one and revoke the old. Tokens expire 90 days after creation and can be revoked anytime from the same page."
             },
             {
               "type": "text",
-              "value": "**Claude Desktop** — add Daily Dose as a remote MCP server by URL; it will prompt you to sign in with Slack on first use."
-            },
-            {
-              "type": "note",
-              "title": "Advanced — manual token (fallback)",
-              "value": "If your client doesn't support OAuth sign-in, you can still connect with a personal token (see Step 1 above): send it in an `Authorization: Bearer ddm_…` header alongside the same server URL. For Claude Desktop that looks like:"
+              "value": "**2. Add the server with your token** in an `Authorization: Bearer` header. For Claude Desktop that looks like:"
             },
             {
               "type": "code",
