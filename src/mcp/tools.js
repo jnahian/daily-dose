@@ -29,7 +29,7 @@ function formatStandupPreview(teamName, date, fields) {
   const { yesterdayTasks, todayTasks, blockers } = fields;
   return [
     `*${teamName} — ${date}*`,
-    `*Yesterday:* ${yesterdayTasks || "_(none)_"}`,
+    `*Last working day:* ${yesterdayTasks || "_(none)_"}`,
     `*Today:* ${todayTasks || "_(none)_"}`,
     `*Blockers:* ${blockers || "_(none)_"}`,
   ].join("\n");
@@ -144,9 +144,9 @@ function buildToolHandlers(user, slackClient) {
       const resolved = await resolveOrThrow(team);
       const full = await teamService.getTeamById(resolved.id);
       const targetDate = date
-        ? dayjs.tz(date, "YYYY-MM-DD", full.timezone).toDate()
+        ? dayjs(date, "YYYY-MM-DD").toDate()
         : dayjs().tz(full.timezone).toDate();
-      const dateStr = dayjs(targetDate).tz(full.timezone).format("YYYY-MM-DD");
+      const dateStr = date || dayjs().tz(full.timezone).format("YYYY-MM-DD");
 
       const existingRow = await standupService.getUserResponse(
         full.id,

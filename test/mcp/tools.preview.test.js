@@ -21,6 +21,8 @@ jest.mock("../../src/services/schedulerService", () => ({
   sendFollowupReminders: jest.fn(),
 }));
 
+const dayjs = require("dayjs");
+dayjs.extend(require("dayjs/plugin/customParseFormat"));
 const { resolveTeam } = require("../../src/mcp/teamResolver");
 const standupService = require("../../src/services/standupService");
 const teamService = require("../../src/services/teamService");
@@ -95,5 +97,19 @@ describe("preview_standup handler", () => {
         todayTasks: "x",
       })
     ).rejects.toThrow(/Invalid date/);
+  });
+
+  it("anchors the lookup date the same way update_standup does", async () => {
+    standupService.getUserResponse.mockResolvedValue(null);
+    await tools.preview_standup({
+      team: "Eng",
+      date: "2026-06-17",
+      todayTasks: "x",
+    });
+    expect(standupService.getUserResponse).toHaveBeenCalledWith(
+      "t1",
+      "user-1",
+      dayjs("2026-06-17", "YYYY-MM-DD").toDate()
+    );
   });
 });
