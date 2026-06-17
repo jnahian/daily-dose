@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- MCP server now advertises a display `title`, `websiteUrl`, and `icons` (32/192/512 PNGs derived from `APP_URL`) on initialize, so MCP clients that support the icons spec show the Daily Dose logo next to the connected server. (`src/mcp/server.js`)
+
 ## [1.14.0] - 2026-06-17
 
 ### Added
