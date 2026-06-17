@@ -244,6 +244,21 @@ describe("MCP Phase 2 — get_team_standup", () => {
     expect(result.notSubmitted).toEqual([{ slackUserId: "U1", name: "Alice" }]);
   });
 
+  it("queries on-leave members with a full-day overlap window (matches getActiveMembers)", async () => {
+    await tools.get_team_standup({ team: "Eng", date: "2026-06-17" });
+
+    const onLeaveCall = prisma.teamMember.findMany.mock.calls[0][0];
+    const leaveWhere = onLeaveCall.where.user.leaves.some;
+    const startOfDay = leaveWhere.endDate.gte; // leaves overlapping the day
+    const endOfDay = leaveWhere.startDate.lte;
+    // The window must span a full day (start-of-day .. end-of-day), not a
+    // single instant — otherwise members on the last day of a leave vanish.
+    expect(startOfDay.getHours()).toBe(0);
+    expect(startOfDay.getMinutes()).toBe(0);
+    expect(endOfDay.getHours()).toBe(23);
+    expect(endOfDay.getMinutes()).toBe(59);
+  });
+
   it("rejects an invalid date before doing any work", async () => {
     await expect(
       tools.get_team_standup({ team: "Eng", date: "06/17/2026" })

@@ -147,6 +147,13 @@ function buildToolHandlers(user, slackClient) {
         ? dayjs(date, "YYYY-MM-DD").toDate()
         : dayjs().tz(resolved.timezone).toDate();
 
+      // Use the same full-day overlap window that getActiveMembers uses to
+      // exclude on-leave members, so this query is its exact complement.
+      // (A point-in-time predicate would drop members on the last day of a
+      // leave from both lists — they'd vanish from the output entirely.)
+      const startOfDay = dayjs(targetDate).startOf("day").toDate();
+      const endOfDay = dayjs(targetDate).endOf("day").toDate();
+
       const onTime = await standupService.getTeamResponses(
         resolved.id,
         targetDate
@@ -166,8 +173,8 @@ function buildToolHandlers(user, slackClient) {
           user: {
             leaves: {
               some: {
-                startDate: { lte: targetDate },
-                endDate: { gte: targetDate },
+                startDate: { lte: endOfDay },
+                endDate: { gte: startOfDay },
               },
             },
           },
