@@ -58,10 +58,21 @@ receiver.app.use(express.json());
 receiver.app.use("/api/admin", adminRouter);
 
 const { router: mcpAuthRouter } = require("./routes/mcpAuth");
-const { validateMcpToken, createMcpHandler } = require("./mcp/server");
+const { createMcpHandler } = require("./mcp/server");
+const {
+  buildAuthRouter,
+  authenticateMcp,
+  handleSlackCallback,
+} = require("./mcp/auth");
 
+// OAuth 2.1 authorization server + protected-resource metadata (mounted at root).
+receiver.app.use(buildAuthRouter());
+// The AS's own Slack OAuth callback (delegated login).
+receiver.app.get("/api/mcp/oauth/slack/callback", handleSlackCallback);
+// Token-management web API (manual tokens + OAuth connections).
 receiver.app.use("/api/mcp", mcpAuthRouter);
-receiver.app.post("/mcp", validateMcpToken, createMcpHandler(app));
+// The MCP endpoint: OAuth access token OR legacy ddm_ token.
+receiver.app.post("/mcp", authenticateMcp, createMcpHandler(app));
 
 const CONTACT_LIMITS = { name: 200, email: 320, subject: 200, message: 2900 };
 const CONTACT_RATE_WINDOW_MS = 10 * 60 * 1000;
