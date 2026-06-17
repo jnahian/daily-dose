@@ -1126,14 +1126,18 @@ For example, in Claude Desktop's `claude_desktop_config.json`:
 
 ### Available Tools
 
-| Tool                     | What it does                                                                                                   |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| `list_my_teams`          | List the teams you belong to                                                                                   |
-| `submit_standup`         | Submit today's standup for a team                                                                              |
-| `update_standup`         | Submit or update a standup for a specific date                                                                 |
-| `get_my_standup_history` | View your recent standup submissions                                                                           |
-| `get_team_standup`       | View a team's standup for a date — responses, who hasn't submitted, who's on leave (requires team admin/owner) |
-| `get_member_standup`     | View one member's standup submission for a date (requires team admin/owner)                                    |
+| Tool                      | What it does                                                                                                   |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `list_my_teams`           | List the teams you belong to                                                                                   |
+| `submit_standup`          | Submit today's standup for a team                                                                              |
+| `update_standup`          | Submit or update a standup for a specific date                                                                 |
+| `get_my_standup_history`  | View your recent standup submissions                                                                           |
+| `get_team_standup`        | View a team's standup for a date — responses, who hasn't submitted, who's on leave (requires team admin/owner) |
+| `get_member_standup`      | View one member's standup submission for a date (requires team admin/owner)                                    |
+| `post_team_standup`       | Post a team's standup summary for a date to its channel (requires team admin/owner)                            |
+| `post_member_standup`     | Post one member's standup as a threaded reply (requires team admin/owner)                                      |
+| `send_standup_reminders`  | DM today's standup reminder to active team members (requires team admin/owner)                                 |
+| `send_followup_reminders` | DM a followup reminder to members who haven't submitted (requires team admin/owner)                            |
 
 ### Server Requirements
 

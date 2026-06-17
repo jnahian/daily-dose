@@ -20,6 +20,14 @@
             "Team admins and owners can now pull a team's standup summary — who responded, who hasn't, and who's on leave — directly from any connected AI agent",
             "Look up a single teammate's update for any date without opening Slack"
           ]
+        },
+        {
+          "type": "added",
+          "title": "Run standups from your AI agent",
+          "items": [
+            "Team admins and owners can now post a team's standup summary or a single member's update, and send standup or follow-up reminders — all from any connected AI agent",
+            "Every action re-checks your team permissions, so a token only ever does what you're already allowed to do"
+          ]
         }
       ]
     },

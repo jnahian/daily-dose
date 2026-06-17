@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Token management web page at `/mcp-tokens`: sign in, generate, list, and revoke tokens. (`web/src/pages/McpTokens.tsx`)
 - `MCP_OAUTH_REDIRECT_URI` environment variable for the MCP OAuth callback URL.
 - Phase 2 MCP read tools (admin/owner-gated via `canManageTeam`): `get_team_standup` (combined on-time + late responses, not-submitted, and on-leave as JSON) and `get_member_standup` (one member's submission). New `src/mcp/memberResolver.js` resolves a member by Slack id, name, or username. (`src/mcp/tools.js`, `src/mcp/memberResolver.js`)
+- Phase 3 MCP write tools (admin/owner-gated via `canManageTeam`, sequential Slack calls): `post_team_standup` (guards on zero responses), `post_member_standup`, `send_standup_reminders`, and `send_followup_reminders` — wrapping the same `standupService.postTeamStandup`/`postIndividualResponse` and `schedulerService.sendStandupReminders`/`sendFollowupReminders` the slash commands use. (`src/mcp/tools.js`)
 
 ### Changed
 
