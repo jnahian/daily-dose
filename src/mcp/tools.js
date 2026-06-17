@@ -44,16 +44,17 @@ function composeStandupPromptText({ team, date } = {}) {
         ? ` Use the team "${team}".`
         : " Call list_my_teams; if I belong to more than one team and I haven't named one, ask me which team."
     }`,
-    `2. Gather my work${
+    "2. Check my last standup. Call get_my_standup_history and take my most recent prior submission for this team. Treat what I planned there (its todayTasks) as a checklist of what I expected to finish, and ask me which of those items I completed and for any status updates. Use my answers to seed yesterdayTasks.",
+    `3. Gather my work${
       date ? ` for ${date}` : ""
-    } using whatever work connections you have (git commits/PRs, ClickUp, Jira, Trello, etc.): (a) what I completed since my last working day, from finished work such as merged PRs and closed/done tickets; (b) what I plan to do today, from in-progress and assigned work such as open PRs, work-in-progress branches, and tickets in an in-progress / to-do / assigned state; and (c) any blockers. Do NOT invent work — if a connection turns up nothing for a field, tell me instead of guessing.`,
-    "3. Map findings to three fields: yesterdayTasks (completed), todayTasks (planned), and blockers.",
-    `4. Call preview_standup with the team${
+    } using whatever work connections you have (git commits/PRs, ClickUp, Jira, Trello, etc.): (a) what I completed since my last working day, from finished work such as merged PRs and closed/done tickets — reconciled with the last-standup checklist from step 2; (b) what I plan to do today, from in-progress and assigned work such as open PRs, work-in-progress branches, and tickets in an in-progress / to-do / assigned state; and (c) any blockers. Do NOT invent work — if a connection turns up nothing for a field, tell me instead of guessing.`,
+    "4. Map findings to three fields: yesterdayTasks (completed), todayTasks (planned), and blockers.",
+    `5. Call preview_standup with the team${
       date ? `, date ${date},` : ""
     } and the drafted fields.`,
-    "5. Show me the returned `preview` text verbatim. Warn me if willOverwrite is true (it replaces my existing submission) or isLate is true.",
-    "6. Ask me to confirm. Do NOT submit until I explicitly say yes.",
-    `7. When I confirm, call ${
+    "6. Show me the returned `preview` text verbatim. Warn me if willOverwrite is true (it replaces my existing submission) or isLate is true.",
+    "7. Ask me to confirm. Do NOT submit until I explicitly say yes.",
+    `8. When I confirm, call ${
       date ? "update_standup (with the date)" : "submit_standup"
     } using the same fields. If I ask for changes, revise and preview again.`,
   ].join("\n");

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - MCP `compose_standup` prompt now tells the agent where to source each field: completed work from finished items (merged PRs, closed/done tickets), today's plan from in-progress/assigned work (open PRs, WIP branches, in-progress/to-do tickets), and blockers — previously it only described gathering completed work. (`src/mcp/tools.js`)
+- MCP `compose_standup` prompt now starts by checking my last submission via `get_my_standup_history`, using its planned `todayTasks` as a checklist and asking which items I completed / for status updates before drafting `yesterdayTasks`. (`src/mcp/tools.js`)
 
 ## [1.15.0] - 2026-06-17
 
