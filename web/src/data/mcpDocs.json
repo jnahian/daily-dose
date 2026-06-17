@@ -183,6 +183,34 @@
           ]
         },
         {
+          "id": "mcp-autodraft",
+          "title": "Let your agent draft your standup",
+          "content": [
+            {
+              "type": "note",
+              "title": "✍️ Draft from your other tools",
+              "value": "If your AI agent is also connected to your work tools (GitHub, Jira, ClickUp, Trello), it can gather what you did and draft your standup for you — then show you a preview and submit only after you confirm. Daily Dose never connects to those tools itself; it relies on the connections your agent already has."
+            },
+            {
+              "type": "text",
+              "value": "**Just ask** — for example: *\"Draft my Engineering standup from my GitHub activity and show me a preview.\"* In clients that support prompts (like Claude Desktop), you can also run the **compose_standup** prompt as a shortcut."
+            },
+            {
+              "type": "command",
+              "command": "preview_standup",
+              "description": "Render a standup draft for a team without saving it. Shows exactly what will be submitted, whether it will overwrite an existing entry, and whether it counts as late — so you can review before confirming.",
+              "examples": [
+                "# Your agent calls this, then shows you the preview and asks:\nReady to submit this standup to Engineering?"
+              ]
+            },
+            {
+              "type": "warning",
+              "title": "You always confirm",
+              "value": "Your agent is instructed to preview and get your explicit yes before submitting, and never to invent work you didn't do. Nothing is written to Daily Dose until you approve it."
+            }
+          ]
+        },
+        {
           "id": "mcp-tools-admin",
           "title": "What you can do — team admins & owners",
           "content": [
