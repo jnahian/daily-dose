@@ -251,3 +251,94 @@ describe("MCP Phase 2 — get_team_standup", () => {
     expect(resolveTeam).not.toHaveBeenCalled();
   });
 });
+
+describe("MCP Phase 2 — get_member_standup", () => {
+  let tools;
+  const team = { id: "t1", name: "Eng", timezone: "Asia/Dhaka" };
+  const member = { id: "u2", slackUserId: "U2", name: "Bob" };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    tools = buildToolHandlers(user, slackClient);
+    resolveTeam.mockResolvedValue({ team });
+    canManageTeam.mockResolvedValue({
+      canManage: true,
+      role: "ADMIN",
+      reason: null,
+    });
+    resolveMember.mockResolvedValue({ member });
+  });
+
+  it("throws the permission reason when the caller can't manage the team", async () => {
+    canManageTeam.mockResolvedValue({
+      canManage: false,
+      role: null,
+      reason: "User is not an admin or owner",
+    });
+    await expect(
+      tools.get_member_standup({ team: "Eng", member: "Bob" })
+    ).rejects.toThrow(/not an admin or owner/i);
+    expect(resolveMember).not.toHaveBeenCalled();
+  });
+
+  it("returns the member's response for the date", async () => {
+    standupService.getUserResponse.mockResolvedValue({
+      yesterdayTasks: "y",
+      todayTasks: "t",
+      blockers: "none",
+      isLate: false,
+      submittedAt: new Date("2026-06-17T03:00:00Z"),
+    });
+
+    const result = await tools.get_member_standup({
+      team: "Eng",
+      member: "Bob",
+    });
+
+    expect(resolveMember).toHaveBeenCalledWith("t1", "Bob");
+    expect(standupService.getUserResponse).toHaveBeenCalledWith(
+      "t1",
+      "u2",
+      expect.any(Date)
+    );
+    expect(result.member).toEqual({ slackUserId: "U2", name: "Bob" });
+    expect(result.response).toEqual(
+      expect.objectContaining({
+        todayTasks: "t",
+        blockers: "none",
+        isLate: false,
+      })
+    );
+  });
+
+  it("returns response: null when the member has no submission", async () => {
+    standupService.getUserResponse.mockResolvedValue(null);
+    const result = await tools.get_member_standup({
+      team: "Eng",
+      member: "Bob",
+    });
+    expect(result.response).toBeNull();
+    expect(result.member).toEqual({ slackUserId: "U2", name: "Bob" });
+  });
+
+  it("throws the resolver error for an unknown member", async () => {
+    resolveMember.mockResolvedValue({
+      error: 'Member "Zoe" not found in this team.',
+    });
+    await expect(
+      tools.get_member_standup({ team: "Eng", member: "Zoe" })
+    ).rejects.toThrow(/not found/i);
+    expect(standupService.getUserResponse).not.toHaveBeenCalled();
+  });
+
+  it("rejects an invalid date before doing any work", async () => {
+    await expect(
+      tools.get_member_standup({
+        team: "Eng",
+        member: "Bob",
+        date: "2026/06/17",
+      })
+    ).rejects.toThrow(/YYYY-MM-DD/);
+    expect(resolveTeam).not.toHaveBeenCalled();
+  });
+});

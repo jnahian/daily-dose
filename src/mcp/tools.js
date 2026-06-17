@@ -6,6 +6,7 @@ const customParseFormat = require("dayjs/plugin/customParseFormat");
 const prisma = require("../config/prisma");
 const { resolveTeam } = require("./teamResolver");
 const { canManageTeam } = require("../utils/permissionHelper");
+const { resolveMember } = require("./memberResolver");
 const standupService = require("../services/standupService");
 const teamService = require("../services/teamService");
 
@@ -210,6 +211,43 @@ function buildToolHandlers(user, slackClient) {
         onLeave,
       };
     },
+
+    async get_member_standup({ team, member, date }) {
+      if (date) assertValidDate(date);
+      const resolved = await resolveOrThrow(team);
+      await requireManageTeam(resolved.id);
+
+      const { member: targetUser, error } = await resolveMember(
+        resolved.id,
+        member
+      );
+      if (error) throw new Error(error);
+
+      const targetDate = date
+        ? dayjs(date, "YYYY-MM-DD").toDate()
+        : dayjs().tz(resolved.timezone).toDate();
+
+      const response = await standupService.getUserResponse(
+        resolved.id,
+        targetUser.id,
+        targetDate
+      );
+
+      return {
+        team: resolved.name,
+        date: dayjs(targetDate).format("YYYY-MM-DD"),
+        member: { slackUserId: targetUser.slackUserId, name: targetUser.name },
+        response: response
+          ? {
+              yesterdayTasks: response.yesterdayTasks || "",
+              todayTasks: response.todayTasks || "",
+              blockers: response.blockers || "",
+              isLate: response.isLate,
+              submittedAt: dayjs(response.submittedAt).toISOString(),
+            }
+          : null,
+      };
+    },
   };
 }
 
@@ -326,6 +364,29 @@ function registerTools(server, user, slackClient) {
     async (args) => {
       try {
         return json(await handlers.get_team_standup(args));
+      } catch (e) {
+        return fail(e);
+      }
+    }
+  );
+
+  server.registerTool(
+    "get_member_standup",
+    {
+      title: "Get member standup",
+      description:
+        "View one member's standup submission for a date. Identify the member by Slack id, name, or username. Requires team admin or owner.",
+      inputSchema: z.object({
+        team: TEAM_FIELD,
+        member: z
+          .string()
+          .describe("Member's Slack user id, display name, or username"),
+        date: z.string().optional().describe("YYYY-MM-DD; defaults to today"),
+      }),
+    },
+    async (args) => {
+      try {
+        return json(await handlers.get_member_standup(args));
       } catch (e) {
         return fail(e);
       }
