@@ -5,6 +5,7 @@ const timezone = require("dayjs/plugin/timezone");
 const customParseFormat = require("dayjs/plugin/customParseFormat");
 const prisma = require("../config/prisma");
 const { resolveTeam } = require("./teamResolver");
+const { canManageTeam } = require("../utils/permissionHelper");
 const standupService = require("../services/standupService");
 const teamService = require("../services/teamService");
 
@@ -31,6 +32,15 @@ function buildToolHandlers(user, slackClient) {
     const { team, error } = await resolveTeam(user.slackUserId, identifier);
     if (error) throw new Error(error);
     return team;
+  }
+
+  async function requireManageTeam(teamId) {
+    const perm = await canManageTeam(user.id, teamId);
+    if (!perm.canManage) {
+      throw new Error(
+        perm.reason || "You don't have permission to manage this team."
+      );
+    }
   }
 
   return {
@@ -125,6 +135,80 @@ function buildToolHandlers(user, slackClient) {
         blockers: r.blockers || "",
         isLate: r.isLate,
       }));
+    },
+
+    async get_team_standup({ team, date }) {
+      if (date) assertValidDate(date);
+      const resolved = await resolveOrThrow(team);
+      await requireManageTeam(resolved.id);
+
+      const targetDate = date
+        ? dayjs(date, "YYYY-MM-DD").toDate()
+        : dayjs().tz(resolved.timezone).toDate();
+
+      const onTime = await standupService.getTeamResponses(
+        resolved.id,
+        targetDate
+      );
+      const late = await standupService.getLateResponses(
+        resolved.id,
+        targetDate
+      );
+      const activeMembers = await standupService.getActiveMembers(
+        resolved.id,
+        targetDate
+      );
+      const onLeaveMembers = await prisma.teamMember.findMany({
+        where: {
+          teamId: resolved.id,
+          isActive: true,
+          user: {
+            leaves: {
+              some: {
+                startDate: { lte: targetDate },
+                endDate: { gte: targetDate },
+              },
+            },
+          },
+        },
+        include: { user: true },
+      });
+
+      const responses = [...onTime, ...late]
+        .sort((a, b) => new Date(a.submittedAt) - new Date(b.submittedAt))
+        .map((r) => ({
+          slackUserId: r.user.slackUserId,
+          name: r.user.name,
+          yesterdayTasks: r.yesterdayTasks || "",
+          todayTasks: r.todayTasks || "",
+          blockers: r.blockers || "",
+          isLate: r.isLate,
+          submittedAt: dayjs(r.submittedAt).toISOString(),
+        }));
+
+      const respondedUserIds = new Set(
+        [...onTime, ...late].map((r) => r.userId)
+      );
+      const leaveUserIds = new Set(onLeaveMembers.map((m) => m.userId));
+
+      const notSubmitted = activeMembers
+        .filter(
+          (m) => !respondedUserIds.has(m.userId) && !leaveUserIds.has(m.userId)
+        )
+        .map((m) => ({ slackUserId: m.user.slackUserId, name: m.user.name }));
+
+      const onLeave = onLeaveMembers.map((m) => ({
+        slackUserId: m.user.slackUserId,
+        name: m.user.name,
+      }));
+
+      return {
+        team: resolved.name,
+        date: dayjs(targetDate).format("YYYY-MM-DD"),
+        responses,
+        notSubmitted,
+        onLeave,
+      };
     },
   };
 }
@@ -222,6 +306,26 @@ function registerTools(server, user, slackClient) {
     async (args) => {
       try {
         return json(await handlers.get_my_standup_history(args));
+      } catch (e) {
+        return fail(e);
+      }
+    }
+  );
+
+  server.registerTool(
+    "get_team_standup",
+    {
+      title: "Get team standup",
+      description:
+        "View a team's standup for a date: all responses (on-time and late), who hasn't submitted, and who's on leave. Requires team admin or owner.",
+      inputSchema: z.object({
+        team: TEAM_FIELD,
+        date: z.string().optional().describe("YYYY-MM-DD; defaults to today"),
+      }),
+    },
+    async (args) => {
+      try {
+        return json(await handlers.get_team_standup(args));
       } catch (e) {
         return fail(e);
       }
