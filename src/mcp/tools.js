@@ -25,6 +25,16 @@ function assertValidDate(date) {
   }
 }
 
+function formatStandupPreview(teamName, date, fields) {
+  const { yesterdayTasks, todayTasks, blockers } = fields;
+  return [
+    `*${teamName} — ${date}*`,
+    `*Yesterday:* ${yesterdayTasks || "_(none)_"}`,
+    `*Today:* ${todayTasks || "_(none)_"}`,
+    `*Blockers:* ${blockers || "_(none)_"}`,
+  ].join("\n");
+}
+
 /**
  * Plain async tool handlers bound to a specific user + Slack client.
  * Each throws Error on failure (the MCP layer converts to a tool error).
@@ -116,6 +126,51 @@ function buildToolHandlers(user, slackClient) {
         slackClient,
       });
       return { team: resolved.name, date, isLate };
+    },
+
+    async preview_standup({
+      team,
+      date,
+      yesterdayTasks = "",
+      todayTasks = "",
+      blockers = "",
+    }) {
+      if (date) assertValidDate(date);
+      if (!yesterdayTasks && !todayTasks && !blockers) {
+        throw new Error(
+          "Provide at least one field (yesterdayTasks, todayTasks, or blockers)."
+        );
+      }
+      const resolved = await resolveOrThrow(team);
+      const full = await teamService.getTeamById(resolved.id);
+      const targetDate = date
+        ? dayjs.tz(date, "YYYY-MM-DD", full.timezone).toDate()
+        : dayjs().tz(full.timezone).toDate();
+      const dateStr = dayjs(targetDate).tz(full.timezone).format("YYYY-MM-DD");
+
+      const existingRow = await standupService.getUserResponse(
+        full.id,
+        user.id,
+        targetDate
+      );
+      const existing = existingRow
+        ? {
+            yesterdayTasks: existingRow.yesterdayTasks || "",
+            todayTasks: existingRow.todayTasks || "",
+            blockers: existingRow.blockers || "",
+          }
+        : null;
+
+      const fields = { yesterdayTasks, todayTasks, blockers };
+      return {
+        team: resolved.name,
+        date: dateStr,
+        isLate: standupService.computeIsLate(full, targetDate),
+        willOverwrite: existing !== null,
+        existing,
+        fields,
+        preview: formatStandupPreview(resolved.name, dateStr, fields),
+      };
     },
 
     async get_my_standup_history({ startDate, endDate } = {}) {
@@ -445,6 +500,29 @@ function registerTools(server, user, slackClient) {
     async (args) => {
       try {
         return json(await handlers.update_standup(args));
+      } catch (e) {
+        return fail(e);
+      }
+    }
+  );
+
+  server.registerTool(
+    "preview_standup",
+    {
+      title: "Preview standup",
+      description:
+        "Render a standup draft for a team WITHOUT saving it, so you can show the user exactly what will be submitted. Returns the formatted preview, whether it will overwrite an existing submission (willOverwrite/existing), and whether it will count as late (isLate). Always call this and get the user's explicit confirmation before calling submit_standup or update_standup.",
+      inputSchema: z.object({
+        team: TEAM_FIELD,
+        date: z.string().optional().describe("YYYY-MM-DD; defaults to today"),
+        yesterdayTasks: z.string().optional(),
+        todayTasks: z.string().optional(),
+        blockers: z.string().optional(),
+      }),
+    },
+    async (args) => {
+      try {
+        return json(await handlers.preview_standup(args));
       } catch (e) {
         return fail(e);
       }
