@@ -38,4 +38,16 @@ describe("standupService.computeIsLate", () => {
       jest.useRealTimers();
     }
   });
+
+  it("is false for today before the posting time", () => {
+    // Pin 'now' to 06:00 UTC, before the 10:00 posting time.
+    jest.useFakeTimers();
+    jest.setSystemTime(dayjs().utc().startOf("day").hour(6).toDate());
+    try {
+      const earlyToday = dayjs().utc().startOf("day").hour(6).toDate();
+      expect(standupService.computeIsLate(team, earlyToday)).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
 });
