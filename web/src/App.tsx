@@ -30,6 +30,7 @@ const AdminStandups = lazy(() => import('./pages/admin/Standups'));
 const AdminHolidays = lazy(() => import('./pages/admin/Holidays'));
 const AdminScheduler = lazy(() => import('./pages/admin/Scheduler'));
 const AdminActivity = lazy(() => import('./pages/admin/Activity'));
+const AdminTokens = lazy(() => import('./pages/admin/Tokens'));
 
 function App() {
   const location = useLocation();
@@ -50,6 +51,7 @@ function App() {
             <Route path="holidays" element={<AdminHolidays />} />
             <Route path="scheduler" element={<AdminScheduler />} />
             <Route path="activity" element={<AdminActivity />} />
+            <Route path="tokens" element={<AdminTokens />} />
           </Route>
         </Routes>
       </Suspense>

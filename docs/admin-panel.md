@@ -136,6 +136,7 @@ active org.
 | Holidays      | `/admin/holidays`      | CalendarDays    | Org                  |
 | Scheduler     | `/admin/scheduler`     | Clock           | Org                  |
 | Activity      | `/admin/activity`      | Activity        | Org                  |
+| My Tokens     | `/admin/tokens`        | Key             | Self (current user)  |
 
 `AdminLayout` guards every admin route: it shows a loading state while the auth
 context initializes and redirects to `/admin/login` if there is no authenticated
@@ -286,6 +287,20 @@ Read-only feed of the most recent standup submissions for the active org
 plus a localized timestamp. Currently the only activity type is
 `standup_submitted`.
 
+### My Tokens (`/admin/tokens`)
+
+Self-service management of the **logged-in user's own** personal access tokens
+and connected AI clients — the same surface as the public `/mcp-tokens` page, but
+inside the admin panel and keyed off the `admin_session` cookie. These routes are
+**not** org-scoped: they always operate on `req.adminUser`, so any signed-in
+member (super admin, org owner/admin) manages only their own tokens.
+
+- **MCP access tokens**: list (`GET /tokens`), generate (`POST /tokens`, raw value
+  shown once in a modal), and revoke (`DELETE /tokens/:id`). Backed by
+  `mcpTokenService`.
+- **Connected AI clients (OAuth)**: list (`GET /connections`) and disconnect
+  (`DELETE /connections/:clientId`). Backed by `oauthTokenService`.
+
 ---
 
 ## API reference
@@ -324,6 +339,11 @@ super admin, or `OWNER`/`ADMIN` of the target org.
 | GET    | `/standups/:teamId/:date`              | org             | Individual responses                           |
 | GET    | `/scheduler?orgId=`                    | org             | Per-team cron job status                       |
 | GET    | `/activity?orgId=&limit=`              | org             | Recent submissions (max 200)                   |
+| GET    | `/tokens`                              | auth            | List caller's own MCP tokens (no secrets)      |
+| POST   | `/tokens`                              | auth            | Mint caller's MCP token (raw value once)       |
+| DELETE | `/tokens/:id`                          | auth            | Revoke one of the caller's tokens              |
+| GET    | `/connections`                         | auth            | List caller's connected OAuth clients          |
+| DELETE | `/connections/:clientId`               | auth            | Disconnect a client (revoke its grants)        |
 
 Common error responses: `400` (missing/invalid input, e.g. no `orgId`),
 `401` (no/expired session), `403` (not authorized for org / not super admin),

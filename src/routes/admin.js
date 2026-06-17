@@ -6,6 +6,8 @@ const { WebClient } = require("@slack/web-api");
 const slackClient = new WebClient(process.env.BOT_TOKEN);
 const crypto = require("crypto");
 const schedulerService = require("../services/schedulerService");
+const mcpTokenService = require("../services/mcpTokenService");
+const oauthTokenService = require("../mcp/auth/oauthTokenService");
 
 // In-memory OAuth state store (state → expiry timestamp)
 const oauthStates = new Map();
@@ -1161,6 +1163,73 @@ router.get("/activity", requireAuth, async (req, res) => {
   } catch (err) {
     console.error("GET /activity error:", err.message);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ── Personal access tokens (self-service) ──────────────────────────────
+// These routes are scoped to the logged-in admin user (req.adminUser) and
+// let any signed-in member manage their OWN MCP tokens and OAuth connections
+// from the admin panel — no org/super-admin gate, just an authenticated
+// session. They mirror the public /api/mcp/* surface.
+
+// GET /api/admin/tokens — list the caller's MCP tokens (no secrets)
+router.get("/tokens", requireAuth, async (req, res) => {
+  try {
+    res.json(await mcpTokenService.listTokens(req.adminUser.id));
+  } catch (err) {
+    console.error("GET /tokens error:", err.message);
+    res.status(500).json({ error: "Failed to list tokens" });
+  }
+});
+
+// POST /api/admin/tokens — mint a token (raw value returned ONCE)
+router.post("/tokens", requireAuth, async (req, res) => {
+  try {
+    const name =
+      typeof req.body?.name === "string" ? req.body.name.slice(0, 100) : null;
+    const { rawToken, id, expiresAt } = await mcpTokenService.mintToken(
+      req.adminUser.id,
+      name
+    );
+    res.status(201).json({ id, token: rawToken, expiresAt });
+  } catch (err) {
+    console.error("POST /tokens error:", err.message);
+    res.status(500).json({ error: "Failed to mint token" });
+  }
+});
+
+// DELETE /api/admin/tokens/:id — revoke one of the caller's tokens
+router.delete("/tokens/:id", requireAuth, async (req, res) => {
+  try {
+    await mcpTokenService.revokeToken(req.adminUser.id, req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("DELETE /tokens/:id error:", err.message);
+    res.status(500).json({ error: "Failed to revoke token" });
+  }
+});
+
+// GET /api/admin/connections — list the caller's connected OAuth clients
+router.get("/connections", requireAuth, async (req, res) => {
+  try {
+    res.json(await oauthTokenService.listConnections(req.adminUser.id));
+  } catch (err) {
+    console.error("GET /connections error:", err.message);
+    res.status(500).json({ error: "Failed to list connections" });
+  }
+});
+
+// DELETE /api/admin/connections/:clientId — revoke all grants for one client
+router.delete("/connections/:clientId", requireAuth, async (req, res) => {
+  try {
+    await oauthTokenService.revokeConnection(
+      req.adminUser.id,
+      req.params.clientId
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("DELETE /connections/:clientId error:", err.message);
+    res.status(500).json({ error: "Failed to revoke connection" });
   }
 });
 
