@@ -728,16 +728,9 @@ class StandupService {
     }
   }
 
-  async submitStandup({
-    team,
-    slackUserId,
-    name,
-    fields,
-    standupDate,
-    isUpdate = false,
-    slackClient,
-  }) {
-    const { yesterdayTasks = "", todayTasks = "", blockers = "" } = fields;
+  // Whether a submission for `standupDate` counts as late: only today-or-future
+  // dates can be late, and only once the team's posting time has passed.
+  computeIsLate(team, standupDate) {
     const targetDate = dayjs(standupDate).tz(team.timezone);
     const todayStart = dayjs().tz(team.timezone).startOf("day");
 
@@ -756,6 +749,21 @@ class StandupService {
         .minute(postingMinute);
       isLate = dayjs().tz(team.timezone).isAfter(postingTime);
     }
+    return isLate;
+  }
+
+  async submitStandup({
+    team,
+    slackUserId,
+    name,
+    fields,
+    standupDate,
+    isUpdate = false,
+    slackClient,
+  }) {
+    const { yesterdayTasks = "", todayTasks = "", blockers = "" } = fields;
+    const targetDate = dayjs(standupDate).tz(team.timezone);
+    const isLate = this.computeIsLate(team, standupDate);
 
     await this.saveResponse(
       team.id,
