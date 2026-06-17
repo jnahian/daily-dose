@@ -193,7 +193,7 @@
             },
             {
               "type": "text",
-              "value": "**Just ask** — for example: *\"Draft my Engineering standup from my GitHub activity and show me a preview.\"* In clients that support prompts (like Claude Desktop), you can also run the **compose_standup** prompt as a shortcut."
+              "value": "**Just ask** — for example: *“Draft my Engineering standup from my GitHub activity and show me a preview.”* In clients that support prompts (like Claude Desktop), you can also run the **compose_standup** prompt as a shortcut."
             },
             {
               "type": "command",
