@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-06-17
+
 ### Added
 
 - MCP server at `POST /mcp` (Streamable HTTP, `@modelcontextprotocol/sdk` v1.29.0): team members can submit and view standups from any AI agent using a bearer token. (`src/mcp/server.js`, `src/mcp/tools.js`)
@@ -620,7 +622,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.13.0...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.14.0...HEAD
+[1.14.0]: https://github.com/jnahian/daily-dose/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/jnahian/daily-dose/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/jnahian/daily-dose/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/jnahian/daily-dose/compare/v1.10.0...v1.11.0
