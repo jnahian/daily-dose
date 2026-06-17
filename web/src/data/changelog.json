@@ -12,6 +12,14 @@
             "Connect Daily Dose to Claude Desktop, Cursor, or any MCP-compatible AI agent — generate a personal token at /mcp-tokens, paste it into your AI tool, and submit or update your standup without leaving your workflow",
             "Tokens are tied to your Slack identity, revocable at any time, and expire after 90 days"
           ]
+        },
+        {
+          "type": "added",
+          "title": "Team leads can review standups from their AI agent",
+          "items": [
+            "Team admins and owners can now pull a team's standup summary — who responded, who hasn't, and who's on leave — directly from any connected AI agent",
+            "Look up a single teammate's update for any date without opening Slack"
+          ]
         }
       ]
     },

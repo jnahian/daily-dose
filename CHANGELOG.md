@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Member-gated Slack OAuth flow at `/api/mcp/auth/*` for MCP identity (any registered user, no admin requirement). (`src/routes/mcpAuth.js`)
 - Token management web page at `/mcp-tokens`: sign in, generate, list, and revoke tokens. (`web/src/pages/McpTokens.tsx`)
 - `MCP_OAUTH_REDIRECT_URI` environment variable for the MCP OAuth callback URL.
+- Phase 2 MCP read tools (admin/owner-gated via `canManageTeam`): `get_team_standup` (combined on-time + late responses, not-submitted, and on-leave as JSON) and `get_member_standup` (one member's submission). New `src/mcp/memberResolver.js` resolves a member by Slack id, name, or username. (`src/mcp/tools.js`, `src/mcp/memberResolver.js`)
 
 ### Changed
 
