@@ -1,8 +1,9 @@
 const express = require("express");
 const crypto = require("crypto");
-const { WebClient } = require("@slack/web-api");
 const prisma = require("../config/prisma");
 const tokenService = require("../services/mcpTokenService");
+const { resolveSlackUserFromCode } = require("../utils/slackIdentity");
+const oauthTokenService = require("../mcp/auth/oauthTokenService");
 
 const router = express.Router();
 
@@ -58,24 +59,10 @@ router.get("/auth/callback", async (req, res) => {
   try {
     if (!code) return res.redirect(`${appUrl}/mcp-tokens?error=oauth_denied`);
 
-    const slack = new WebClient();
-    const result = await slack.oauth.v2.access({
-      client_id: process.env.SLACK_CLIENT_ID,
-      client_secret: process.env.SLACK_CLIENT_SECRET,
+    const { user } = await resolveSlackUserFromCode(
       code,
-      redirect_uri: process.env.MCP_OAUTH_REDIRECT_URI,
-    });
-    if (!result.ok) throw new Error(`Slack OAuth error: ${result.error}`);
-
-    const userToken = result.authed_user?.access_token;
-    if (!userToken) throw new Error("No user access token in OAuth response");
-
-    const identity = await new WebClient(userToken).users.identity();
-    const slackUserId = identity.user?.id;
-    if (!slackUserId) throw new Error("Could not get Slack user ID");
-
-    // Member gate only: the user must be registered. No admin requirement.
-    const user = await prisma.user.findUnique({ where: { slackUserId } });
+      process.env.MCP_OAUTH_REDIRECT_URI
+    );
     if (!user) return res.redirect(`${appUrl}/mcp-tokens?error=not_registered`);
 
     const sessionToken = crypto.randomBytes(32).toString("hex");
@@ -143,6 +130,30 @@ router.delete("/tokens/:id", requireMcpSession, async (req, res) => {
   } catch (err) {
     console.error("DELETE /tokens/:id error:", err.message);
     res.status(500).json({ error: "Failed to revoke token" });
+  }
+});
+
+// GET /api/mcp/connections — list the caller's connected OAuth clients
+router.get("/connections", requireMcpSession, async (req, res) => {
+  try {
+    res.json(await oauthTokenService.listConnections(req.mcpSessionUser.id));
+  } catch (err) {
+    console.error("GET /connections error:", err.message);
+    res.status(500).json({ error: "Failed to list connections" });
+  }
+});
+
+// DELETE /api/mcp/connections/:clientId — revoke all grants for one client
+router.delete("/connections/:clientId", requireMcpSession, async (req, res) => {
+  try {
+    await oauthTokenService.revokeConnection(
+      req.mcpSessionUser.id,
+      req.params.clientId
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("DELETE /connections/:clientId error:", err.message);
+    res.status(500).json({ error: "Failed to revoke connection" });
   }
 });
 
