@@ -57,6 +57,61 @@
           ]
         },
         {
+          "id": "mcp-install",
+          "title": "Step 2 — Install in your coding agent",
+          "content": [
+            {
+              "type": "text",
+              "value": "Pick your client below. Every one connects to the same server URL and signs you in with Slack the first time — there's no token to copy. If your client isn't listed (or doesn't support OAuth sign-in), use the manual-token method in the next section."
+            },
+            {
+              "type": "code",
+              "value": "# MCP server URL\nhttps://dd.jnahian.me/mcp"
+            },
+            {
+              "type": "text",
+              "value": "**Claude Code (CLI)** — add the server, then run `/mcp` inside Claude Code and approve the Slack sign-in in your browser. Add `--scope user` to make it available in every project."
+            },
+            {
+              "type": "code",
+              "value": "claude mcp add --transport http daily-dose https://dd.jnahian.me/mcp\n\n# then, inside Claude Code:\n/mcp"
+            },
+            {
+              "type": "text",
+              "value": "**Claude Desktop** — open **Settings → Connectors → Add custom connector**, paste the server URL, and save. Click the new connector to sign in with Slack."
+            },
+            {
+              "type": "text",
+              "value": "**Cursor** — add this to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (this project). Cursor opens a browser sign-in on first use and remembers it."
+            },
+            {
+              "type": "code",
+              "value": "{\n  \"mcpServers\": {\n    \"daily-dose\": {\n      \"url\": \"https://dd.jnahian.me/mcp\"\n    }\n  }\n}"
+            },
+            {
+              "type": "text",
+              "value": "**VS Code (GitHub Copilot)** — add this to `.vscode/mcp.json` in your workspace. The root key is `servers` (not `mcpServers`), and you need Copilot **Agent mode** to use the tools."
+            },
+            {
+              "type": "code",
+              "value": "{\n  \"servers\": {\n    \"daily-dose\": {\n      \"type\": \"http\",\n      \"url\": \"https://dd.jnahian.me/mcp\"\n    }\n  }\n}"
+            },
+            {
+              "type": "text",
+              "value": "**Windsurf** — add this to `~/.codeium/windsurf/mcp_config.json`, then refresh MCP servers in Cascade. Windsurf uses `serverUrl` (not `url`)."
+            },
+            {
+              "type": "code",
+              "value": "{\n  \"mcpServers\": {\n    \"daily-dose\": {\n      \"serverUrl\": \"https://dd.jnahian.me/mcp\"\n    }\n  }\n}"
+            },
+            {
+              "type": "note",
+              "title": "🔐 First-use sign-in",
+              "value": "Whichever client you choose, the first request opens a Slack login in your browser. Approve it once and your client keeps the connection fresh automatically — no token to manage. Review or disconnect clients anytime at https://dd.jnahian.me/mcp-tokens"
+            }
+          ]
+        },
+        {
           "id": "mcp-manual-token",
           "title": "Advanced — connect with a manual token",
           "content": [
@@ -124,6 +179,47 @@
               "examples": [
                 "# Ask your agent:\nShow my standups from last week."
               ]
+            }
+          ]
+        },
+        {
+          "id": "mcp-autodraft",
+          "title": "Let your agent draft your standup",
+          "content": [
+            {
+              "type": "note",
+              "title": "✍️ Draft from your other tools",
+              "value": "If your AI agent is also connected to your work tools (GitHub, Jira, ClickUp, Trello), it can gather what you did and draft your standup for you — then show you a preview and submit only after you confirm. Daily Dose never connects to those tools itself; it relies on the connections your agent already has."
+            },
+            {
+              "type": "text",
+              "value": "**Just ask, and your agent pulls the details for you.** It reads your recent activity from whatever tools it's connected to — git commits and PRs, Jira, ClickUp, Trello — works out what you did since your last working day and what's on deck today, then drafts the standup. In clients that support prompts (like Claude Desktop), run the **compose_standup** prompt as a one-step shortcut."
+            },
+            {
+              "type": "text",
+              "value": "**Example prompts** — your agent fetches the work itself:"
+            },
+            {
+              "type": "list",
+              "items": [
+                "*“Draft my Engineering standup from my git commits and open PRs, then show me a preview.”*",
+                "*“Pull my in-progress Jira tickets and build today's standup — preview it before submitting.”*",
+                "*“Check my ClickUp tasks and GitHub activity, draft my standup, and ask me to confirm.”*",
+                "*“Summarize the Trello cards I moved yesterday into my standup and let me review it first.”*"
+              ]
+            },
+            {
+              "type": "command",
+              "command": "preview_standup",
+              "description": "Render a standup draft for a team without saving it. Shows exactly what will be submitted, whether it will overwrite an existing entry, and whether it counts as late — so you can review before confirming.",
+              "examples": [
+                "# Your agent gathers your work from its connected tools, drafts the\n# three fields, calls preview_standup, then shows you the result and asks:\nHere's your Engineering standup drafted from your GitHub + Jira activity. Submit it?"
+              ]
+            },
+            {
+              "type": "warning",
+              "title": "You always confirm",
+              "value": "Your agent is instructed to preview and get your explicit yes before submitting, and never to invent work you didn't do. Nothing is written to Daily Dose until you approve it."
             }
           ]
         },
