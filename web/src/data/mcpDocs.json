@@ -57,6 +57,61 @@
           ]
         },
         {
+          "id": "mcp-install",
+          "title": "Step 2 — Install in your coding agent",
+          "content": [
+            {
+              "type": "text",
+              "value": "Pick your client below. Every one connects to the same server URL and signs you in with Slack the first time — there's no token to copy. If your client isn't listed (or doesn't support OAuth sign-in), use the manual-token method in the next section."
+            },
+            {
+              "type": "code",
+              "value": "# MCP server URL\nhttps://dd.jnahian.me/mcp"
+            },
+            {
+              "type": "text",
+              "value": "**Claude Code (CLI)** — add the server, then run `/mcp` inside Claude Code and approve the Slack sign-in in your browser. Add `--scope user` to make it available in every project."
+            },
+            {
+              "type": "code",
+              "value": "claude mcp add --transport http daily-dose https://dd.jnahian.me/mcp\n\n# then, inside Claude Code:\n/mcp"
+            },
+            {
+              "type": "text",
+              "value": "**Claude Desktop** — open **Settings → Connectors → Add custom connector**, paste the server URL, and save. Click the new connector to sign in with Slack."
+            },
+            {
+              "type": "text",
+              "value": "**Cursor** — add this to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (this project). Cursor opens a browser sign-in on first use and remembers it."
+            },
+            {
+              "type": "code",
+              "value": "{\n  \"mcpServers\": {\n    \"daily-dose\": {\n      \"url\": \"https://dd.jnahian.me/mcp\"\n    }\n  }\n}"
+            },
+            {
+              "type": "text",
+              "value": "**VS Code (GitHub Copilot)** — add this to `.vscode/mcp.json` in your workspace. The root key is `servers` (not `mcpServers`), and you need Copilot **Agent mode** to use the tools."
+            },
+            {
+              "type": "code",
+              "value": "{\n  \"servers\": {\n    \"daily-dose\": {\n      \"type\": \"http\",\n      \"url\": \"https://dd.jnahian.me/mcp\"\n    }\n  }\n}"
+            },
+            {
+              "type": "text",
+              "value": "**Windsurf** — add this to `~/.codeium/windsurf/mcp_config.json`, then refresh MCP servers in Cascade. Windsurf uses `serverUrl` (not `url`)."
+            },
+            {
+              "type": "code",
+              "value": "{\n  \"mcpServers\": {\n    \"daily-dose\": {\n      \"serverUrl\": \"https://dd.jnahian.me/mcp\"\n    }\n  }\n}"
+            },
+            {
+              "type": "note",
+              "title": "🔐 First-use sign-in",
+              "value": "Whichever client you choose, the first request opens a Slack login in your browser. Approve it once and your client keeps the connection fresh automatically — no token to manage. Review or disconnect clients anytime at https://dd.jnahian.me/mcp-tokens"
+            }
+          ]
+        },
+        {
           "id": "mcp-manual-token",
           "title": "Advanced — connect with a manual token",
           "content": [
