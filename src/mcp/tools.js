@@ -46,7 +46,7 @@ function composeStandupPromptText({ team, date } = {}) {
     }`,
     `2. Gather my work${
       date ? ` for ${date}` : ""
-    } using whatever work connections you have (git commits/PRs, ClickUp, Jira, Trello, etc.): what I completed since my last working day, what I plan to do today, and any blockers. Do NOT invent work — if you find nothing, tell me.`,
+    } using whatever work connections you have (git commits/PRs, ClickUp, Jira, Trello, etc.): (a) what I completed since my last working day, from finished work such as merged PRs and closed/done tickets; (b) what I plan to do today, from in-progress and assigned work such as open PRs, work-in-progress branches, and tickets in an in-progress / to-do / assigned state; and (c) any blockers. Do NOT invent work — if a connection turns up nothing for a field, tell me instead of guessing.`,
     "3. Map findings to three fields: yesterdayTasks (completed), todayTasks (planned), and blockers.",
     `4. Call preview_standup with the team${
       date ? `, date ${date},` : ""
