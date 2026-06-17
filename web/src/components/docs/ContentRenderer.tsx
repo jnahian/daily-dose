@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router";
 import { CommandHeader } from "./CommandHeader";
 import { CodeBlock } from "./CodeBlock";
 import type { ContentItem } from "../../types/docs";
@@ -29,17 +30,22 @@ const formatText = (text: string) => {
       if (link) {
         const [, label, href] = link;
         const external = /^https?:\/\//.test(href);
-        return (
+        const className = "text-brand-cyan hover:underline font-medium";
+        // Internal routes use client-side navigation; external links open in a new tab.
+        return external ? (
           <a
             key={index}
             href={href}
-            className="text-brand-cyan hover:underline font-medium"
-            {...(external
-              ? { target: "_blank", rel: "noopener noreferrer" }
-              : {})}
+            className={className}
+            target="_blank"
+            rel="noopener noreferrer"
           >
             {label}
           </a>
+        ) : (
+          <Link key={index} to={href} className={className}>
+            {label}
+          </Link>
         );
       }
       return part;
