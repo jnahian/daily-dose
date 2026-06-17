@@ -8,6 +8,34 @@ interface ContentRendererProps {
   content: ContentItem[];
 }
 
+// Render markdown links ([label](href)) within a run of text. Internal routes
+// use client-side navigation; external http(s) links open in a new tab.
+const renderInlineLinks = (text: string, keyBase: string) => {
+  const segments = text.split(/(\[[^\]]+\]\([^)]+\))/g);
+  return segments.map((seg, i) => {
+    const link = seg.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (!link) return seg;
+    const [, label, href] = link;
+    const external = /^https?:\/\//.test(href);
+    const className = "text-brand-cyan hover:underline font-medium";
+    return external ? (
+      <a
+        key={`${keyBase}-${i}`}
+        href={href}
+        className={className}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {label}
+      </a>
+    ) : (
+      <Link key={`${keyBase}-${i}`} to={href} className={className}>
+        {label}
+      </Link>
+    );
+  });
+};
+
 const formatText = (text: string) => {
   if (!text) return null;
 
@@ -15,40 +43,23 @@ const formatText = (text: string) => {
   const lines = text.split("\n");
 
   return lines.map((line, lineIndex) => {
-    // Process bold text (**text**) and markdown links ([label](href))
-    const parts = line.split(/(\*\*.*?\*\*|\[[^\]]+\]\([^)]+\))/g);
+    // Split on bold spans; links are parsed within both bold and plain runs so
+    // **[label](href)** renders as a bold link.
+    const parts = line.split(/(\*\*.*?\*\*)/g);
 
     const formattedLine = parts.map((part, index) => {
       if (part.startsWith("**") && part.endsWith("**")) {
         return (
           <strong key={index} className="text-text-primary font-semibold">
-            {part.slice(2, -2)}
+            {renderInlineLinks(part.slice(2, -2), `b${lineIndex}-${index}`)}
           </strong>
         );
       }
-      const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-      if (link) {
-        const [, label, href] = link;
-        const external = /^https?:\/\//.test(href);
-        const className = "text-brand-cyan hover:underline font-medium";
-        // Internal routes use client-side navigation; external links open in a new tab.
-        return external ? (
-          <a
-            key={index}
-            href={href}
-            className={className}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {label}
-          </a>
-        ) : (
-          <Link key={index} to={href} className={className}>
-            {label}
-          </Link>
-        );
-      }
-      return part;
+      return (
+        <React.Fragment key={index}>
+          {renderInlineLinks(part, `t${lineIndex}-${index}`)}
+        </React.Fragment>
+      );
     });
 
     return (
