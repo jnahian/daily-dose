@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Updating an already-submitted standup (via `/dd-standup-update` or MCP `update_standup`) after the team summary has posted now labels the channel thread reply **"🔄 Standup Updated"** instead of **"🕐 Late Submission"**. The thread reply's visible header is driven by the Block Kit blocks, so `createLateResponseBlocks` and `formatLateResponseMessage` now take an `isUpdate` flag that the `submitStandup` late→thread path threads through; the fallback notification text was also corrected (it was previously overridden by the message spread). (`src/utils/blockHelper.js`, `src/services/standupService.js`, #48)
+
 ## [1.15.1] - 2026-06-17
 
 ### Changed

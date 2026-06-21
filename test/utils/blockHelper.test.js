@@ -88,4 +88,18 @@ describe("blockHelper standup blocks stay within Slack limits", () => {
     expect(fieldsBlock.fields).toHaveLength(2);
     assertWithinSlackLimits(blocks);
   });
+
+  it("createLateResponseBlocks header reflects late vs. update", () => {
+    const response = {
+      userMention: "<@U123>",
+      yesterdayTasks: "did stuff",
+      todayTasks: "will do stuff",
+    };
+
+    const lateHeader = createLateResponseBlocks(response)[0].text.text;
+    expect(lateHeader).toBe("🕐 *Late Submission*");
+
+    const updateHeader = createLateResponseBlocks(response, true)[0].text.text;
+    expect(updateHeader).toBe("🔄 *Standup Updated*");
+  });
 });
