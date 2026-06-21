@@ -437,11 +437,15 @@ function createUserResponseBlocks(response) {
 /**
  * Create late response message blocks
  * @param {object} response - Response object with user data and tasks
+ * @param {boolean} isUpdate - Whether this is an update to an existing submission
+ *   (renders an "Updated" header) rather than a late submission
  * @returns {Array<object>} Array of blocks for late response
  */
-function createLateResponseBlocks(response) {
+function createLateResponseBlocks(response, isUpdate = false) {
   const blocks = [
-    createSectionBlock(`🕐 *Late Submission*`),
+    createSectionBlock(
+      isUpdate ? `🔄 *Standup Updated*` : `🕐 *Late Submission*`
+    ),
     createSectionBlock(`*👤 ${response.userMention}*`),
   ];
 

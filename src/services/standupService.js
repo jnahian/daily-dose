@@ -13,7 +13,7 @@ const {
   getOrgDefaultWorkDays,
 } = require("../utils/dateHelper");
 const { getUserMention, getDisplayName } = require("../utils/userHelper");
-const { formatTasks } = require("../utils/messageHelper");
+const { formatTasks, escapeSlackText } = require("../utils/messageHelper");
 const {
   createSectionBlock,
   createTaskFieldBlocks,
@@ -354,7 +354,7 @@ class StandupService {
     };
   }
 
-  async formatLateResponseMessage(response) {
+  async formatLateResponseMessage(response, isUpdate = false) {
     const responseData = {
       userMention: getUserMention(response.user),
       yesterdayTasks: formatTasks(response.yesterdayTasks),
@@ -362,10 +362,14 @@ class StandupService {
       blockers: response.blockers,
     };
 
-    const blocks = createLateResponseBlocks(responseData);
+    const blocks = createLateResponseBlocks(responseData, isUpdate);
+
+    const displayName = escapeSlackText(getDisplayName(response.user));
 
     return {
-      text: `Late Submission from ${getDisplayName(response.user)}`,
+      text: isUpdate
+        ? `Standup Updated by ${displayName}`
+        : `Late Submission from ${displayName}`,
       blocks,
     };
   }
@@ -794,14 +798,14 @@ class StandupService {
           todayTasks,
           blockers,
         };
-        const message = await this.formatLateResponseMessage(lateResponse);
+        const message = await this.formatLateResponseMessage(
+          lateResponse,
+          isUpdate
+        );
         await slackClient.chat.postMessage({
           channel: standupPost.channelId,
           thread_ts: standupPost.slackMessageTs,
           reply_broadcast: true,
-          text: isUpdate
-            ? `🔄 *Update* from ${getUserMention(lateResponse.user)}`
-            : `🕐 *Late Submission* of ${getUserMention(lateResponse.user)}`,
           ...message,
         });
       } else {

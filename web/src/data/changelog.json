@@ -1,9 +1,23 @@
 {
   "versions": [
     {
+      "version": "1.15.2",
+      "date": "2026-06-21",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "fixed",
+          "title": "Standup updates are now labeled correctly in the channel",
+          "items": [
+            "When you update your standup after the team summary has posted, the thread reply now shows \"🔄 Standup Updated\" instead of being mislabeled \"🕐 Late Submission\""
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.15.0",
       "date": "2026-06-17",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "added",
