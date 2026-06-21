@@ -13,7 +13,7 @@ const {
   getOrgDefaultWorkDays,
 } = require("../utils/dateHelper");
 const { getUserMention, getDisplayName } = require("../utils/userHelper");
-const { formatTasks } = require("../utils/messageHelper");
+const { formatTasks, escapeSlackText } = require("../utils/messageHelper");
 const {
   createSectionBlock,
   createTaskFieldBlocks,
@@ -364,10 +364,12 @@ class StandupService {
 
     const blocks = createLateResponseBlocks(responseData, isUpdate);
 
+    const displayName = escapeSlackText(getDisplayName(response.user));
+
     return {
       text: isUpdate
-        ? `Standup Updated by ${getDisplayName(response.user)}`
-        : `Late Submission from ${getDisplayName(response.user)}`,
+        ? `Standup Updated by ${displayName}`
+        : `Late Submission from ${displayName}`,
       blocks,
     };
   }
