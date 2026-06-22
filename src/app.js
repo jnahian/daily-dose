@@ -7,6 +7,7 @@ const { setupCommands } = require("./commands");
 const { setupWorkflows } = require("./workflows");
 const { setupEvents } = require("./events");
 const schedulerService = require("./services/schedulerService");
+const changelogBroadcastService = require("./services/changelogBroadcastService");
 
 const receiver = new ExpressReceiver({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
@@ -198,6 +199,12 @@ app.message("hello", async ({ message, say }) => {
   const host = process.env.HOST || "localhost";
   await app.start(port);
   console.log(`⚡️ Daily Dose bot is running on ${host}:${port}`);
+
+  // Fire-and-forget: announce the latest changelog to org channels.
+  // Must never block startup or crash the process.
+  changelogBroadcastService
+    .broadcastOnDeploy(app.client)
+    .catch((err) => logger.error("Changelog broadcast failed:", err.message));
 })();
 
 // Graceful shutdown
