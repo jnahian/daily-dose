@@ -7,6 +7,7 @@ const slackClient = new WebClient(process.env.BOT_TOKEN);
 const crypto = require("crypto");
 const schedulerService = require("../services/schedulerService");
 const mcpTokenService = require("../services/mcpTokenService");
+const channelService = require("../services/channelService");
 const oauthTokenService = require("../mcp/auth/oauthTokenService");
 
 // In-memory OAuth state store (state → expiry timestamp)
@@ -341,6 +342,8 @@ router.post(
           defaultTimezone: defaultTimezone?.trim() || "America/New_York",
         },
       });
+      // Best-effort: create the org's daily-dose-bot Slack channel.
+      await channelService.ensureOrgChannel(slackClient, org);
       res.status(201).json({
         id: org.id,
         name: org.name,
@@ -883,6 +886,19 @@ router.post("/team-members", requireAuth, async (req, res) => {
       teamMember = await prisma.teamMember.create({
         data: { teamId, userId, role: role || "MEMBER", isActive: true },
       });
+    }
+
+    // Best-effort: add the member to the org's daily-dose-bot channel.
+    const memberUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { slackUserId: true },
+    });
+    if (memberUser?.slackUserId) {
+      await channelService.inviteUserToOrgChannel(
+        slackClient,
+        team.organizationId,
+        memberUser.slackUserId
+      );
     }
 
     res.status(201).json({
