@@ -1,6 +1,21 @@
 {
   "versions": [
     {
+      "version": "1.16.0",
+      "date": "2026-06-23",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "added",
+          "title": "See who's done their standup at a glance",
+          "items": [
+            "/dd-team-members now shows each member's status — submitted, not yet, on leave, notifications, and role.",
+            "/dd-team-list lists members under each team with the same at-a-glance status."
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.15.2",
       "date": "2026-06-21",
       "isLatest": true,
