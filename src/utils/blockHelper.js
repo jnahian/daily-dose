@@ -3,6 +3,9 @@
  */
 
 const { convertTextToRichText, escapeSlackText } = require("./messageHelper");
+const { deriveMemberStatus } = require("./memberStatusHelper");
+const { getDisplayName } = require("./userHelper");
+const { formatTime12Hour } = require("./dateHelper");
 
 /**
  * Create a basic section block with markdown text
@@ -885,8 +888,96 @@ function createChangelogBroadcastBlocks(versionEntry, changelogUrl) {
   return blocks;
 }
 
+const STATUS_LABELS = {
+  leave: "🌴 On leave today",
+  submitted: "✅ Submitted today",
+  pending: "⏳ Not submitted",
+};
+const STATUS_EMOJI = { leave: "🌴", submitted: "✅", pending: "⏳" };
+
+// Option C — detailed two-line card per member.
+function createTeamMembersStatusBlocks(team, members) {
+  const activeCount = members.filter((m) => m.teamActive && m.orgActive).length;
+  const inactiveCount = members.length - activeCount;
+  const countLine =
+    inactiveCount > 0
+      ? `${activeCount} active · ${inactiveCount} inactive`
+      : `${activeCount} active`;
+
+  const blocks = [
+    createSectionBlock(`*👥 Members of "${team.name}"*\n${countLine}`),
+  ];
+
+  for (const m of members) {
+    const status = deriveMemberStatus(m);
+    const name = getDisplayName(m.user);
+    const roleLabel = m.role === "ADMIN" ? "Admin" : "Member";
+
+    if (!status.active) {
+      blocks.push(
+        createSectionBlock(
+          `💤 *${name}* (<@${m.user.slackUserId}>) — ${roleLabel}\n    ⚪ Inactive in ${status.inactiveScope}`
+        )
+      );
+      continue;
+    }
+
+    const roleIcon = m.role === "ADMIN" ? "👑" : "👤";
+    const parts = [];
+    if (status.standup) parts.push(STATUS_LABELS[status.standup]);
+    parts.push(
+      m.receiveNotifications ? "🔔 Notifications on" : "🔕 Notifications off"
+    );
+    parts.push("🟢 Active");
+
+    blocks.push(
+      createSectionBlock(
+        `${roleIcon} *${name}* (<@${m.user.slackUserId}>) — ${roleLabel}\n    ${parts.join(
+          "  ·  "
+        )}`
+      )
+    );
+  }
+
+  return blocks;
+}
+
+// Option A — compact one-line-per-member, nested under each team.
+function createTeamListWithMembersBlocks({ heading, teams }) {
+  const blocks = [createSectionBlock(heading)];
+
+  for (const { team, members } of teams) {
+    const meta =
+      `*👥 ${team.name} — ${members.length} members*\n` +
+      `🔔 Reminder: ${formatTime12Hour(team.standupTime)} | ` +
+      `📊 Posting: ${formatTime12Hour(team.postingTime)} | 🌍 ${team.timezone}`;
+
+    const lines = members.map((m) => {
+      const status = deriveMemberStatus(m);
+      if (!status.active) return `💤 <@${m.user.slackUserId}> · inactive`;
+      const roleIcon = m.role === "ADMIN" ? "👑" : "👤";
+      const parts = [`${roleIcon} <@${m.user.slackUserId}>`];
+      if (status.standup) parts.push(STATUS_EMOJI[status.standup]);
+      parts.push(m.receiveNotifications ? "🔔" : "🔕");
+      return parts.join(" · ");
+    });
+
+    blocks.push(createSectionBlock(`${meta}\n${lines.join("\n")}`));
+  }
+
+  blocks.push(
+    createContextBlock(
+      "✅ submitted · ⏳ not submitted · 🌴 on leave · 💤 inactive · 🔔/🔕 notifications on/off"
+    )
+  );
+
+  return blocks;
+}
+
 module.exports = {
   createSectionBlock,
+  createTeamMembersStatusBlocks,
+  createTeamListWithMembersBlocks,
   createChangelogBroadcastBlocks,
   createFieldsBlock,
   createTaskFieldBlocks,
