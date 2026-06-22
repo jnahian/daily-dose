@@ -55,32 +55,42 @@ In `prisma/schema.prisma`, inside `model Organization`, add the field after `def
   botChannelId       String?              @map("bot_channel_id")
 ```
 
-- [ ] **Step 2: Generate and apply the migration**
+- [ ] **Step 2: STOP — confirm the migration workflow with the user before running anything**
 
-Run:
+Repo policy (CLAUDE.md): "Confirm with the user before generating a new migration vs. pushing; don't mix the two workflows." **Do not run a migration command autonomously.** Ask the user:
+
+- Generate a committed migration (repo's documented workflow) or `db push`?
+- **Which database does `DIRECT_URL` point at?** `prisma migrate dev` is a _development_ command — on detecting drift it prompts to **reset (drop) the database**. It must only ever run against a throwaway/dev DB, never production Supabase. If `DIRECT_URL` is production, generate the migration with `--create-only` against a dev DB and apply with `npx prisma migrate deploy` (no reset), or have the user run it.
+
+Do not proceed past this step without an explicit answer.
+
+- [ ] **Step 3: Generate the migration (per the user's answer in Step 2)**
+
+If the user chose the migration workflow against a safe dev DB:
 
 ```bash
 npx prisma migrate dev --name add_org_bot_channel_id
 ```
 
-Expected: a new folder `prisma/migrations/<timestamp>_add_org_bot_channel_id/` containing `migration.sql` with `ALTER TABLE "organizations" ADD COLUMN "bot_channel_id" TEXT;`, and "Your database is now in sync with your schema."
+Expected: a new folder `prisma/migrations/<timestamp>_add_org_bot_channel_id/` containing `migration.sql` with an `ALTER TABLE "organizations" ADD COLUMN "bot_channel_id"` statement; `npx prisma generate` runs automatically.
 
-- [ ] **Step 3: Verify the Prisma client knows the field**
+- [ ] **Step 4: Verify the migration SQL and regenerated client**
 
 Run:
 
 ```bash
-node -e "const p=require('./src/config/prisma'); console.log('bot_channel_id' in p.organization.fields ? 'ok' : (Object.keys(require('@prisma/client').Prisma.OrganizationScalarFieldEnum)))"
+grep -ri "bot_channel_id" prisma/migrations/*add_org_bot_channel_id*/migration.sql
+node -e "require('@prisma/client').Prisma.dmmf.datamodel.models.find(m=>m.name==='Organization').fields.some(f=>f.name==='botChannelId') ? console.log('client ok') : process.exit(1)"
 ```
 
-Expected: prints `ok` (the `botChannelId`/`bot_channel_id` scalar exists). If it prints the enum list instead, confirm `botChannelId` appears in it.
+Expected: `grep` prints the `ADD COLUMN ... bot_channel_id` line, and the node check prints `client ok` (exit 0). If the node check exits non-zero, run `npx prisma generate` and retry.
 
-- [ ] **Step 4: Run the suite to confirm nothing broke**
+- [ ] **Step 5: Run the suite to confirm nothing broke**
 
 Run: `npm test`
 Expected: PASS (same baseline as before the change).
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add prisma/schema.prisma prisma/migrations
@@ -593,7 +603,8 @@ Expected: PASS, no unused-var or undefined errors; existing `admin.test.js` stil
 Manual (requires the app re-installed with `channels:manage`):
 
 1. In the admin panel, create a new organization → a `daily-dose-bot` channel appears in the workspace; the org row's `bot_channel_id` is populated (check via `npx prisma studio`).
-2. Add a member to a team via the admin panel → that user is added to the `daily-dose-bot` channel.
+2. Add a member to a team via the admin panel → that user is added to the `daily-dose-bot` channel. This is the single riskiest real-Slack assumption (unit tests mock it): confirm the bot can actually `conversations.invite` into the channel it created — it should, since it joins as the channel creator. If invites fail with `not_in_channel`, the bot must `conversations.join` the channel first; add that to `ensureOrgChannel` only if observed.
+3. Repeat the team-join check via `/dd-team-join` in Slack to cover the slash-command path.
 
 - [ ] **Step 5: Commit**
 
@@ -742,9 +753,11 @@ Add an entry under the top `## [Unreleased]` section (create the section if abse
 - Added `channels:manage` bot scope to the Slack manifest.
 ```
 
-- [ ] **Step 2: Update `web/src/data/changelog.json`**
+- [ ] **Step 2: Update `web/src/data/changelog.json`** (confirm with user first)
 
-Add a user-facing entry (match the existing JSON shape — inspect the first entry in the file and mirror its keys/format). Plain-language summary, no internal names:
+Note: the org-creation trigger lives in the admin panel, and repo rules keep admin-panel work out of both changelogs ([[feedback_admin_panel_no_changelog]]). This entry is justified only because the _user-visible behavior_ (a channel appears; team members land in it via `/dd-team-join`) is a bot feature, not an admin-panel feature. **Confirm with the user that they want this `changelog.json` entry** before adding it; if they decline, skip this step and keep the change in `CHANGELOG.md` only.
+
+If confirmed, add a user-facing entry (match the existing JSON shape — inspect the first entry in the file and mirror its keys/format). Frame it around the user-visible effect, never the admin action:
 
 > Your organization now gets a dedicated **#daily-dose-bot** channel automatically, and new team members are added to it when they join — so everyone lands in one shared space without any manual setup.
 
