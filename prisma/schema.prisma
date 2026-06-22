@@ -14,6 +14,7 @@ model Organization {
   slackWorkspaceId   String?              @unique @map("slack_workspace_id")
   slackWorkspaceName String?              @map("slack_workspace_name")
   defaultTimezone    String               @default("America/New_York") @map("default_timezone")
+  botChannelId       String?              @map("bot_channel_id")
   settings           Json                 @default("{}")
   isActive           Boolean              @default(true) @map("is_active")
   createdAt          DateTime             @default(now()) @map("created_at")
