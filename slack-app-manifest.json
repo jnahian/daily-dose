@@ -242,6 +242,7 @@
       "user": ["identity.basic", "identity.email"],
       "bot": [
         "channels:read",
+        "channels:manage",
         "chat:write",
         "chat:write.public",
         "commands",

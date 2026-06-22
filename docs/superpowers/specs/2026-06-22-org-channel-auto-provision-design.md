@@ -67,12 +67,13 @@ Both functions wrap every Slack call in try/catch, log failures as warnings via 
 
 ### 4. Slack scopes
 
-Add to `slack-app-manifest.json` and `scripts/updateSlackManifest.js`:
+Add **one** bot scope to `slack-app-manifest.json`:
 
-- `channels:manage` — create public channels.
-- `channels:invite` — invite users to channels.
+- `channels:manage` — covers both `conversations.create` (create public channel) **and** `conversations.invite` (invite users to a public channel). Verified against Slack docs: `channels:manage` appears in the required-scope list for both methods, so no separate invite scope is needed.
 
-Operational: re-install / re-authorize the app to the workspace after the scope change. Document in the implementation steps.
+`scripts/updateSlackManifest.js` reads scopes directly from `slack-app-manifest.json` (no hardcoded list), so the manifest edit is sufficient.
+
+Operational: re-install / re-authorize the app to the workspace after the scope change (`npm run manifest:update`, then reinstall). Document in the implementation steps.
 
 ### 5. Backfill script
 
