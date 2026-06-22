@@ -11,6 +11,11 @@ const SLEEP_MS = 1200; // Slack ~1 req/sec/channel — stay under the limit.
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function main() {
+  if (!process.env.BOT_TOKEN) {
+    logger.error("Backfill failed: BOT_TOKEN is required.");
+    process.exitCode = 1;
+    return;
+  }
   const client = new WebClient(process.env.BOT_TOKEN);
 
   const orgs = await prisma.organization.findMany({

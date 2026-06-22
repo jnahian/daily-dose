@@ -48,8 +48,8 @@ Single-purpose, best-effort wrapper around the Slack channel API. Accepts a Slac
   - Persist resulting channel ID to `org.botChannelId`.
   - Bot is auto-added as channel creator.
   - Returns the channel ID (or `null` on failure).
-- `inviteUserToOrgChannel(client, org, slackUserId)` — best-effort.
-  - No-op if `org.botChannelId` is null.
+- `inviteUserToOrgChannel(client, orgId, slackUserId)` — best-effort.
+  - Looks up the org internally by `orgId`; no-op if its `botChannelId` is null.
   - `conversations.invite({ channel, users: slackUserId })`.
   - Swallow `already_in_channel`.
 
