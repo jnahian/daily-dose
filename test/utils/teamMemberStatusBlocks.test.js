@@ -164,6 +164,15 @@ describe("large-team guards", () => {
     expect(teamBlock.text.text).toContain("…and");
   });
 
+  it("Option A clamps a team section to 3000 chars even when the team name is huge", () => {
+    const hugeTeam = { ...team, name: "X".repeat(5000) };
+    const blocks = createTeamListWithMembersBlocks({
+      heading: "*📋 Your teams:*",
+      teams: [{ team: hugeTeam, members: [makeMember(1)] }],
+    });
+    expect(blocks[1].text.text.length).toBeLessThanOrEqual(3000);
+  });
+
   it("Option A caps the number of team blocks under the 50-block limit", () => {
     const teams = Array.from({ length: 60 }, (_, i) => ({
       team: { ...team, name: `Team ${i}` },

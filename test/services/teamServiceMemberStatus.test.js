@@ -27,14 +27,28 @@ beforeEach(() => {
   prisma.organizationMember.findMany.mockResolvedValue([
     { userId: "u1", isActive: true },
     { userId: "u2", isActive: false },
+    { userId: "u3", isActive: true },
   ]);
-  prisma.standupResponse.findMany.mockResolvedValue([{ userId: "u1" }]);
-  prisma.leave.findMany.mockResolvedValue([{ userId: "u3" }]);
+  prisma.standupResponse.findMany.mockResolvedValue([
+    {
+      teamId: "t1",
+      userId: "u1",
+      standupDate: new Date("2026-06-24T12:00:00Z"),
+    },
+  ]);
+  prisma.leave.findMany.mockResolvedValue([
+    {
+      userId: "u3",
+      startDate: new Date("2026-06-01T00:00:00Z"),
+      endDate: new Date("2026-12-31T00:00:00Z"),
+    },
+  ]);
   prisma.teamMember.findMany.mockResolvedValue([
     {
       role: "MEMBER",
       isActive: true,
       receiveNotifications: true,
+      teamId: "t1",
       userId: "u1",
       user: {
         id: "u1",
@@ -47,6 +61,7 @@ beforeEach(() => {
       role: "MEMBER",
       isActive: true,
       receiveNotifications: false,
+      teamId: "t1",
       userId: "u2",
       user: { id: "u2", slackUserId: "U2", name: "Bob", workDays: null },
     },
@@ -54,6 +69,7 @@ beforeEach(() => {
       role: "ADMIN",
       isActive: true,
       receiveNotifications: true,
+      teamId: "t1",
       userId: "u3",
       user: { id: "u3", slackUserId: "U3", name: "Carol", workDays: null },
     },
@@ -81,5 +97,57 @@ describe("getTeamMembersWithStatus", () => {
   it("returns [] when the team has no members", async () => {
     prisma.teamMember.findMany.mockResolvedValue([]);
     expect(await teamService.getTeamMembersWithStatus("t1", WED)).toEqual([]);
+  });
+
+  it("treats a member with no org-membership row as org-inactive", async () => {
+    prisma.organizationMember.findMany.mockResolvedValue([]); // no rows at all
+    const out = await teamService.getTeamMembersWithStatus("t1", WED);
+    expect(out.every((m) => m.orgActive === false)).toBe(true);
+  });
+});
+
+describe("getMembersWithStatusByTeam", () => {
+  it("groups members by team id and returns an entry per team", async () => {
+    prisma.teamMember.findMany.mockResolvedValue([
+      {
+        role: "MEMBER",
+        isActive: true,
+        receiveNotifications: true,
+        teamId: "t1",
+        userId: "u1",
+        user: { id: "u1", slackUserId: "U1", name: "Alice", workDays: null },
+      },
+      {
+        role: "MEMBER",
+        isActive: true,
+        receiveNotifications: true,
+        teamId: "t2",
+        userId: "u2",
+        user: { id: "u2", slackUserId: "U2", name: "Bob", workDays: null },
+      },
+    ]);
+
+    const teams = [
+      { id: "t1", timezone: "America/New_York" },
+      { id: "t2", timezone: "America/New_York" },
+    ];
+    const byTeam = await teamService.getMembersWithStatusByTeam(
+      teams,
+      team.organization,
+      WED
+    );
+
+    expect(byTeam.get("t1").map((m) => m.user.slackUserId)).toEqual(["U1"]);
+    expect(byTeam.get("t2").map((m) => m.user.slackUserId)).toEqual(["U2"]);
+  });
+
+  it("returns an empty map entry for each team when there are no members", async () => {
+    prisma.teamMember.findMany.mockResolvedValue([]);
+    const byTeam = await teamService.getMembersWithStatusByTeam(
+      [{ id: "t1", timezone: "UTC" }],
+      team.organization,
+      WED
+    );
+    expect(byTeam.get("t1")).toEqual([]);
   });
 });

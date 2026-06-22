@@ -893,7 +893,9 @@ const STATUS_LABELS = {
   submitted: "✅ Submitted today",
   pending: "⏳ Not submitted",
 };
-const STATUS_EMOJI = { leave: "🌴", submitted: "✅", pending: "⏳" };
+// The compact view shows just the leading emoji; derive it so the two views
+// can't drift out of sync.
+const statusEmoji = (standup) => STATUS_LABELS[standup].split(" ")[0];
 
 // Slack caps a message at 50 blocks. Option C emits one block per member plus
 // a header (and a footer when truncated), so cap the member cards.
@@ -904,7 +906,9 @@ const MAX_TEAM_BLOCKS = 47;
 
 // Option C — detailed two-line card per member.
 function createTeamMembersStatusBlocks(team, members) {
-  const activeCount = members.filter((m) => m.teamActive && m.orgActive).length;
+  const activeCount = members.filter(
+    (m) => deriveMemberStatus(m).active
+  ).length;
   const inactiveCount = members.length - activeCount;
   const countLine =
     inactiveCount > 0
@@ -912,7 +916,9 @@ function createTeamMembersStatusBlocks(team, members) {
       : `${activeCount} active`;
 
   const blocks = [
-    createSectionBlock(`*👥 Members of "${team.name}"*\n${countLine}`),
+    createSectionBlock(
+      `*👥 Members of "${escapeSlackText(team.name)}"*\n${countLine}`
+    ),
   ];
 
   const shownMembers = members.slice(0, MAX_MEMBER_CARDS);
@@ -920,7 +926,7 @@ function createTeamMembersStatusBlocks(team, members) {
 
   for (const m of shownMembers) {
     const status = deriveMemberStatus(m);
-    const name = getDisplayName(m.user);
+    const name = escapeSlackText(getDisplayName(m.user));
     const roleLabel = m.role === "ADMIN" ? "Admin" : "Member";
 
     if (!status.active) {
@@ -974,7 +980,8 @@ function fitTeamSection(meta, lines) {
   const hidden = lines.length - kept.length;
   let text = kept.length ? `${meta}\n${kept.join("\n")}` : meta;
   if (hidden > 0) text += `\n_…and ${hidden} more_`;
-  return text;
+  // Final hard clamp: guarantees ≤ SLACK_TEXT_MAX even when meta alone is huge.
+  return truncateForSlack(text, SLACK_TEXT_MAX);
 }
 
 // Option A — compact one-line-per-member, nested under each team.
@@ -986,7 +993,7 @@ function createTeamListWithMembersBlocks({ heading, teams }) {
 
   for (const { team, members } of shownTeams) {
     const meta =
-      `*👥 ${team.name} — ${members.length} members*\n` +
+      `*👥 ${escapeSlackText(team.name)} — ${members.length} members*\n` +
       `🔔 Reminder: ${formatTime12Hour(team.standupTime)} | ` +
       `📊 Posting: ${formatTime12Hour(team.postingTime)} | 🌍 ${team.timezone}`;
 
@@ -995,7 +1002,7 @@ function createTeamListWithMembersBlocks({ heading, teams }) {
       if (!status.active) return `💤 <@${m.user.slackUserId}> · inactive`;
       const roleIcon = m.role === "ADMIN" ? "👑" : "👤";
       const parts = [`${roleIcon} <@${m.user.slackUserId}>`];
-      if (status.standup) parts.push(STATUS_EMOJI[status.standup]);
+      if (status.standup) parts.push(statusEmoji(status.standup));
       parts.push(m.receiveNotifications ? "🔔" : "🔕");
       return parts.join(" · ");
     });

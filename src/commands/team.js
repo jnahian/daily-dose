@@ -295,12 +295,16 @@ async function listTeams({ command, ack, respond }) {
         ? `*📋 Teams in ${organization.name}:*`
         : `*📋 Your teams:*`;
 
-    // Sequential, not parallel — avoid cross-team DB/Slack fan-out.
-    const teamsWithMembers = [];
-    for (const t of teams) {
-      const members = await teamService.getTeamMembersWithStatus(t.id);
-      teamsWithMembers.push({ team: t, members });
-    }
+    // Batched: one constant set of DB reads for all teams (same org), instead
+    // of a per-team query fan-out.
+    const membersByTeam = await teamService.getMembersWithStatusByTeam(
+      teams,
+      organization
+    );
+    const teamsWithMembers = teams.map((t) => ({
+      team: t,
+      members: membersByTeam.get(t.id) ?? [],
+    }));
 
     await updateResponse({
       blocks: createTeamListWithMembersBlocks({
@@ -341,8 +345,20 @@ async function listMembers({ command, ack, respond }) {
         return;
       }
     } else {
-      // Find team by name across all organizations
-      team = await teamService.findTeamByName(teamName);
+      // Find team by name within the caller's own organization only — never
+      // across orgs, so member status (leave, standup, notifications) can't be
+      // disclosed cross-tenant.
+      const userOrg = await userService.getUserOrganization(command.user_id);
+      if (!userOrg) {
+        await updateResponse({
+          blocks: createCommandErrorBlocks(
+            "You are not a member of any organization."
+          ),
+        });
+        return;
+      }
+
+      team = await teamService.findTeamByName(teamName, userOrg.id);
 
       if (!team) {
         await updateResponse({

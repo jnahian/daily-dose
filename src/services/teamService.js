@@ -398,74 +398,129 @@ class TeamService {
     });
     if (!team) return [];
 
-    // Mirror standupService.getActiveMembers: use the current instant (in the
-    // team's timezone), NOT startOf("day"). isWorkingDayPure/getHolidayDateSet
-    // resolve the calendar day from this instant via getDayOfWeekIso (local) +
-    // toIsoDate (UTC); a team-local midnight instant would resolve to the wrong
-    // day for off-UTC teams. Keeping the instant matches how "responded today"
-    // is stored and queried elsewhere.
-    const dateValue = date
-      ? dayjs(date).toDate()
-      : dayjs().tz(team.timezone).toDate();
-    const startOfDay = dayjs(dateValue).startOf("day").toDate();
-    const endOfDay = dayjs(dateValue).endOf("day").toDate();
+    const byTeam = await this.getMembersWithStatusByTeam(
+      [team],
+      team.organization,
+      date
+    );
+    return byTeam.get(team.id) ?? [];
+  }
 
+  /**
+   * Batched status for many teams of the SAME organization in a constant number
+   * of queries (avoids the N×6 fan-out of calling getTeamMembersWithStatus in a
+   * loop). Returns a Map<teamId, statusMember[]>.
+   *
+   * "Today" is resolved per team in that team's own timezone as a calendar day
+   * (YYYY-MM-DD): the day window for responded/leave uses UTC midnight bounds of
+   * that local day (standupDate/leave are @db.Date stored at UTC midnight), and
+   * the work-day/holiday check uses noon-UTC of that day so getDayOfWeekIso
+   * (server-local) and toIsoDate (UTC) agree on the calendar day.
+   *
+   * @param {Array<Object>} teams - team rows (id, timezone, ...) of one org
+   * @param {Object} organization - shared org (id, settings)
+   * @param {Date|null} date - override "today" (calendar day); defaults per team
+   * @returns {Promise<Map<string, Array<Object>>>}
+   */
+  async getMembersWithStatusByTeam(teams, organization, date = null) {
+    const byTeam = new Map(teams.map((t) => [t.id, []]));
+    if (teams.length === 0) return byTeam;
+
+    // Per-team calendar day + UTC bounds.
+    const dayByTeam = new Map();
+    for (const t of teams) {
+      const localDateStr = date
+        ? dayjs(date).format("YYYY-MM-DD")
+        : dayjs().tz(t.timezone).format("YYYY-MM-DD");
+      dayByTeam.set(t.id, {
+        dateValue: dayjs.utc(`${localDateStr}T12:00:00`).toDate(),
+        startOfDay: dayjs.utc(localDateStr).startOf("day").toDate(),
+        endOfDay: dayjs.utc(localDateStr).endOf("day").toDate(),
+      });
+    }
+    const bounds = [...dayByTeam.values()];
+    const rangeStart = new Date(
+      Math.min(...bounds.map((b) => b.startOfDay.getTime()))
+    );
+    const rangeEnd = new Date(
+      Math.max(...bounds.map((b) => b.endOfDay.getTime()))
+    );
+
+    const teamIds = teams.map((t) => t.id);
+    // ADMIN before MEMBER, then by name, so truncated views drop deterministically.
     const members = await prisma.teamMember.findMany({
-      where: { teamId },
+      where: { teamId: { in: teamIds } },
       include: { user: true },
+      orderBy: [{ role: "asc" }, { user: { name: "asc" } }],
     });
-    if (members.length === 0) return [];
+    if (members.length === 0) return byTeam;
 
-    const userIds = members.map((m) => m.userId);
+    const userIds = [...new Set(members.map((m) => m.userId))];
 
     const [orgMembers, responses, leaves, holidayDateSet] = await Promise.all([
       prisma.organizationMember.findMany({
-        where: { organizationId: team.organizationId, userId: { in: userIds } },
+        where: { organizationId: organization.id, userId: { in: userIds } },
         select: { userId: true, isActive: true },
       }),
       prisma.standupResponse.findMany({
-        where: { teamId, standupDate: { gte: startOfDay, lte: endOfDay } },
-        select: { userId: true },
+        where: {
+          teamId: { in: teamIds },
+          standupDate: { gte: rangeStart, lte: rangeEnd },
+        },
+        select: { teamId: true, userId: true, standupDate: true },
       }),
       prisma.leave.findMany({
         where: {
           userId: { in: userIds },
-          startDate: { lte: endOfDay },
-          endDate: { gte: startOfDay },
+          startDate: { lte: rangeEnd },
+          endDate: { gte: rangeStart },
         },
-        select: { userId: true },
+        select: { userId: true, startDate: true, endDate: true },
       }),
-      getHolidayDateSet(team.organizationId, startOfDay, endOfDay),
+      getHolidayDateSet(organization.id, rangeStart, rangeEnd),
     ]);
 
     const orgActiveById = new Map(
       orgMembers.map((o) => [o.userId, o.isActive])
     );
-    const respondedIds = new Set(responses.map((r) => r.userId));
-    const onLeaveIds = new Set(leaves.map((l) => l.userId));
-    const orgDefaultWorkDays = getOrgDefaultWorkDays(
-      team.organization?.settings
-    );
+    const orgDefaultWorkDays = getOrgDefaultWorkDays(organization?.settings);
 
-    return members.map((m) => {
+    for (const m of members) {
+      const day = dayByTeam.get(m.teamId);
+      const responded = responses.some(
+        (r) =>
+          r.teamId === m.teamId &&
+          r.userId === m.userId &&
+          r.standupDate >= day.startOfDay &&
+          r.standupDate <= day.endOfDay
+      );
+      const onLeave = leaves.some(
+        (l) =>
+          l.userId === m.userId &&
+          l.startDate <= day.endOfDay &&
+          l.endDate >= day.startOfDay
+      );
       const workDays = m.user.workDays?.length
         ? m.user.workDays
         : orgDefaultWorkDays;
-      return {
+      byTeam.get(m.teamId).push({
         user: m.user,
         role: m.role,
         teamActive: m.isActive,
-        orgActive: orgActiveById.get(m.userId) ?? true,
+        // Every team member should have an org membership row; treat a missing
+        // one as inactive so the data gap surfaces rather than reading "Active".
+        orgActive: orgActiveById.get(m.userId) ?? false,
         receiveNotifications: m.receiveNotifications,
-        onLeave: onLeaveIds.has(m.userId),
+        onLeave,
         workingToday: isWorkingDayPure({
-          date: dateValue,
+          date: day.dateValue,
           workDays,
           holidayDateSet,
         }),
-        responded: respondedIds.has(m.userId),
-      };
-    });
+        responded,
+      });
+    }
+    return byTeam;
   }
 
   async getTeamAdmins(teamId) {
