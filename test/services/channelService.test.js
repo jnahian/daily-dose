@@ -55,6 +55,10 @@ describe("ensureOrgChannel", () => {
       is_private: false,
     });
     expect(id).toBe("C2");
+    expect(prisma.organization.update).toHaveBeenCalledWith({
+      where: { id: "o1" },
+      data: { botChannelId: "C2" },
+    });
   });
 
   it("returns null and does not persist on a non-name error", async () => {

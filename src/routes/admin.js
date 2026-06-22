@@ -889,15 +889,22 @@ router.post("/team-members", requireAuth, async (req, res) => {
     }
 
     // Best-effort: add the member to the org's daily-dose-bot channel.
-    const memberUser = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { slackUserId: true },
-    });
-    if (memberUser?.slackUserId) {
-      await channelService.inviteUserToOrgChannel(
-        slackClient,
-        team.organizationId,
-        memberUser.slackUserId
+    try {
+      const memberUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { slackUserId: true },
+      });
+      if (memberUser?.slackUserId) {
+        await channelService.inviteUserToOrgChannel(
+          slackClient,
+          team.organizationId,
+          memberUser.slackUserId
+        );
+      }
+    } catch (channelErr) {
+      console.error(
+        "POST /team-members channel invite (best-effort) failed:",
+        channelErr.message
       );
     }
 
