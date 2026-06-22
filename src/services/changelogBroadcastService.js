@@ -109,6 +109,17 @@ async function broadcastOnDeploy(client, opts = {}) {
         text: fallbackText,
         blocks,
       });
+    } catch (err) {
+      // Post failed: leave the marker untouched so this org retries next boot.
+      logger.warn(
+        `Changelog broadcast: failed for org "${org.name}" (${org.botChannelId}):`,
+        err.data?.error || err.message
+      );
+      await sleep(SLEEP_MS);
+      continue;
+    }
+
+    try {
       await prisma.organization.update({
         where: { id: org.id },
         data: { lastBroadcastVersion: latest },
@@ -117,9 +128,11 @@ async function broadcastOnDeploy(client, opts = {}) {
         `Changelog broadcast: posted v${latest} to org "${org.name}"`
       );
     } catch (err) {
+      // Post succeeded but the marker write failed; this org will re-post on
+      // the next boot (intentional "never miss" over "never duplicate").
       logger.warn(
-        `Changelog broadcast: failed for org "${org.name}" (${org.botChannelId}):`,
-        err.data?.error || err.message
+        `Changelog broadcast: posted v${latest} to org "${org.name}" but failed to persist marker; may re-post next boot:`,
+        err.message
       );
     }
     await sleep(SLEEP_MS);

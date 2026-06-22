@@ -119,6 +119,24 @@ describe("broadcastOnDeploy", () => {
     expect(prisma.organization.update).not.toHaveBeenCalled();
   });
 
+  it("does not throw when the post succeeds but the marker write fails", async () => {
+    const client = makeClient();
+    prisma.organization.findMany.mockResolvedValue([
+      {
+        id: "o7",
+        name: "Org7",
+        botChannelId: "C7",
+        lastBroadcastVersion: "1.15.0",
+      },
+    ]);
+    prisma.organization.update.mockRejectedValue(new Error("db blip"));
+    await expect(
+      service.broadcastOnDeploy(client, { mode: "live" })
+    ).resolves.toBeUndefined();
+    expect(client.chat.postMessage).toHaveBeenCalledTimes(1);
+    expect(prisma.organization.update).toHaveBeenCalledTimes(1);
+  });
+
   it("mode=dry posts nothing and updates nothing", async () => {
     const client = makeClient();
     prisma.organization.findMany.mockResolvedValue([
