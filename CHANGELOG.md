@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.0] - 2026-06-23
+
 ### Added
 
 - Auto-provision a per-org `daily-dose-bot` Slack channel on organization creation (`channelService.ensureOrgChannel`, stored on `Organization.botChannelId`). Falls back to `daily-dose-bot-2`, etc. on name conflicts.
@@ -654,7 +656,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.15.2...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.16.0...HEAD
+[1.16.0]: https://github.com/jnahian/daily-dose/compare/v1.15.2...v1.16.0
 [1.15.2]: https://github.com/jnahian/daily-dose/compare/v1.15.1...v1.15.2
 [1.15.1]: https://github.com/jnahian/daily-dose/compare/v1.15.0...v1.15.1
 [1.15.0]: https://github.com/jnahian/daily-dose/compare/v1.14.0...v1.15.0

@@ -3,7 +3,7 @@
     {
       "version": "1.16.0",
       "date": "2026-06-23",
-      "isLatest": false,
+      "isLatest": true,
       "changes": [
         {
           "type": "added",
@@ -12,13 +12,27 @@
             "/dd-team-members now shows each member's status — submitted, not yet, on leave, notifications, and role.",
             "/dd-team-list lists members under each team with the same at-a-glance status."
           ]
+        },
+        {
+          "type": "added",
+          "title": "A shared daily-dose-bot channel for your workspace",
+          "items": [
+            "Your workspace now gets a dedicated daily-dose-bot channel, and members are automatically added when they join a team."
+          ]
+        },
+        {
+          "type": "added",
+          "title": "Release announcements in your workspace",
+          "items": [
+            "New features and improvements are now announced right in your daily-dose-bot channel, so your team always knows what's new."
+          ]
         }
       ]
     },
     {
       "version": "1.15.2",
       "date": "2026-06-21",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "fixed",
