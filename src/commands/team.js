@@ -3,12 +3,12 @@ const userService = require("../services/userService");
 const schedulerService = require("../services/schedulerService");
 const notificationService = require("../services/notificationService");
 const { ackWithProcessing, getChannelName } = require("../utils/commandHelper");
-const { getDisplayName } = require("../utils/userHelper");
 const { formatTime12Hour } = require("../utils/dateHelper");
 const {
-  createSectionBlock,
   createCommandErrorBlocks,
   createTeamApprovalResultBlocks,
+  createTeamMembersStatusBlocks,
+  createTeamListWithMembersBlocks,
 } = require("../utils/blockHelper");
 const logger = require("../utils/logger");
 const { parseTimeString } = require("../utils/timeHelper");
@@ -290,26 +290,23 @@ async function listTeams({ command, ack, respond }) {
       return;
     }
 
-    const teamList = teams
-      .map(
-        (t) =>
-          `• *${t.name}* (${
-            t._count.members
-          } members)\n  🔔 Reminder: ${formatTime12Hour(
-            t.standupTime
-          )} | 📊 Posting: ${formatTime12Hour(t.postingTime)} | 🌍 ${
-            t.timezone
-          }`
-      )
-      .join("\n\n");
-
     const heading =
       scope === "all"
         ? `*📋 Teams in ${organization.name}:*`
         : `*📋 Your teams:*`;
 
+    // Sequential, not parallel — avoid cross-team DB/Slack fan-out.
+    const teamsWithMembers = [];
+    for (const t of teams) {
+      const members = await teamService.getTeamMembersWithStatus(t.id);
+      teamsWithMembers.push({ team: t, members });
+    }
+
     await updateResponse({
-      blocks: [createSectionBlock(`${heading}\n\n${teamList}`)],
+      blocks: createTeamListWithMembersBlocks({
+        heading,
+        teams: teamsWithMembers,
+      }),
     });
   } catch (error) {
     await updateResponse({
@@ -355,8 +352,8 @@ async function listMembers({ command, ack, respond }) {
       }
     }
 
-    // Get team members
-    const members = await teamService.getTeamMembers(team.id);
+    // Get team members with status
+    const members = await teamService.getTeamMembersWithStatus(team.id);
 
     if (members.length === 0) {
       await updateResponse({
@@ -365,22 +362,8 @@ async function listMembers({ command, ack, respond }) {
       return;
     }
 
-    const memberList = members
-      .map((member) => {
-        const roleIcon = member.role === "ADMIN" ? "👑" : "👤";
-        const displayName = getDisplayName(member.user);
-        return `${roleIcon} <@${
-          member.user.slackUserId
-        }> (${displayName}) - ${member.role.toLowerCase()}`;
-      })
-      .join("\n");
-
     await updateResponse({
-      blocks: [
-        createSectionBlock(
-          `*👥 Members of team "${team.name}":*\n${memberList}`
-        ),
-      ],
+      blocks: createTeamMembersStatusBlocks(team, members),
     });
   } catch (error) {
     await updateResponse({
