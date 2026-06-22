@@ -127,3 +127,59 @@ describe("createTeamListWithMembersBlocks (Option A)", () => {
     expect(last.elements[0].text).toContain("✅ submitted");
   });
 });
+
+function makeMember(i) {
+  return {
+    user: { slackUserId: `U${i}`, name: `Member ${i}` },
+    role: "MEMBER",
+    teamActive: true,
+    orgActive: true,
+    receiveNotifications: true,
+    onLeave: false,
+    workingToday: true,
+    responded: false,
+  };
+}
+
+describe("large-team guards", () => {
+  it("Option C caps member cards under the 50-block limit", () => {
+    const many = Array.from({ length: 60 }, (_, i) => makeMember(i));
+    const blocks = createTeamMembersStatusBlocks(team, many);
+
+    expect(blocks.length).toBeLessThanOrEqual(50);
+    const last = blocks[blocks.length - 1];
+    expect(last.type).toBe("context");
+    expect(last.elements[0].text).toContain("13 more members not shown");
+  });
+
+  it("Option A keeps each team's section text within the 3000-char limit", () => {
+    const many = Array.from({ length: 300 }, (_, i) => makeMember(i));
+    const blocks = createTeamListWithMembersBlocks({
+      heading: "*📋 Your teams:*",
+      teams: [{ team, members: many }],
+    });
+
+    const teamBlock = blocks[1];
+    expect(teamBlock.text.text.length).toBeLessThanOrEqual(3000);
+    expect(teamBlock.text.text).toContain("…and");
+  });
+
+  it("Option A caps the number of team blocks under the 50-block limit", () => {
+    const teams = Array.from({ length: 60 }, (_, i) => ({
+      team: { ...team, name: `Team ${i}` },
+      members: [makeMember(i)],
+    }));
+    const blocks = createTeamListWithMembersBlocks({
+      heading: "*📋 Teams:*",
+      teams,
+    });
+
+    expect(blocks.length).toBeLessThanOrEqual(50);
+    const text = blocks
+      .map(
+        (b) => b.text?.text || (b.elements || []).map((e) => e.text).join(" ")
+      )
+      .join("\n");
+    expect(text).toContain("more teams not shown");
+  });
+});

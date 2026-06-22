@@ -895,6 +895,13 @@ const STATUS_LABELS = {
 };
 const STATUS_EMOJI = { leave: "🌴", submitted: "✅", pending: "⏳" };
 
+// Slack caps a message at 50 blocks. Option C emits one block per member plus
+// a header (and a footer when truncated), so cap the member cards.
+const MAX_MEMBER_CARDS = 47;
+// Option A: heading + one block per team + legend (+ a footer when truncated)
+// must stay within the 50-block cap.
+const MAX_TEAM_BLOCKS = 47;
+
 // Option C — detailed two-line card per member.
 function createTeamMembersStatusBlocks(team, members) {
   const activeCount = members.filter((m) => m.teamActive && m.orgActive).length;
@@ -908,7 +915,10 @@ function createTeamMembersStatusBlocks(team, members) {
     createSectionBlock(`*👥 Members of "${team.name}"*\n${countLine}`),
   ];
 
-  for (const m of members) {
+  const shownMembers = members.slice(0, MAX_MEMBER_CARDS);
+  const hiddenMembers = members.length - shownMembers.length;
+
+  for (const m of shownMembers) {
     const status = deriveMemberStatus(m);
     const name = getDisplayName(m.user);
     const roleLabel = m.role === "ADMIN" ? "Admin" : "Member";
@@ -939,14 +949,42 @@ function createTeamMembersStatusBlocks(team, members) {
     );
   }
 
+  if (hiddenMembers > 0) {
+    blocks.push(
+      createContextBlock(
+        `➕ ${hiddenMembers} more member${hiddenMembers === 1 ? "" : "s"} not shown (Slack limits this view).`
+      )
+    );
+  }
+
   return blocks;
+}
+
+// Build a team's section text, dropping trailing member lines if the joined
+// text would exceed the 3000-char section limit.
+function fitTeamSection(meta, lines) {
+  const reserve = 40; // room for the "…and N more" suffix
+  let budget = SLACK_TEXT_MAX - meta.length - reserve;
+  const kept = [];
+  for (const line of lines) {
+    if (budget - (line.length + 1) < 0) break;
+    kept.push(line);
+    budget -= line.length + 1;
+  }
+  const hidden = lines.length - kept.length;
+  let text = kept.length ? `${meta}\n${kept.join("\n")}` : meta;
+  if (hidden > 0) text += `\n_…and ${hidden} more_`;
+  return text;
 }
 
 // Option A — compact one-line-per-member, nested under each team.
 function createTeamListWithMembersBlocks({ heading, teams }) {
   const blocks = [createSectionBlock(heading)];
 
-  for (const { team, members } of teams) {
+  const shownTeams = teams.slice(0, MAX_TEAM_BLOCKS);
+  const hiddenTeams = teams.length - shownTeams.length;
+
+  for (const { team, members } of shownTeams) {
     const meta =
       `*👥 ${team.name} — ${members.length} members*\n` +
       `🔔 Reminder: ${formatTime12Hour(team.standupTime)} | ` +
@@ -962,7 +1000,15 @@ function createTeamListWithMembersBlocks({ heading, teams }) {
       return parts.join(" · ");
     });
 
-    blocks.push(createSectionBlock(`${meta}\n${lines.join("\n")}`));
+    blocks.push(createSectionBlock(fitTeamSection(meta, lines)));
+  }
+
+  if (hiddenTeams > 0) {
+    blocks.push(
+      createContextBlock(
+        `➕ ${hiddenTeams} more team${hiddenTeams === 1 ? "" : "s"} not shown (Slack limits this view).`
+      )
+    );
   }
 
   blocks.push(
