@@ -840,8 +840,54 @@ function createNoDataBlocks(context = "data", date = null) {
   ];
 }
 
+const CHANGE_TYPE_EMOJI = {
+  added: "✨",
+  fixed: "🔧",
+  changed: "🔁",
+};
+
+/**
+ * Build the Block Kit message announcing a changelog version to an org channel.
+ * @param {{version: string, date?: string, changes?: Array<{type: string, title: string, items?: string[]}>}} versionEntry
+ * @param {string} changelogUrl - Link to the public changelog page
+ * @returns {Array<object>} Slack blocks
+ */
+function createChangelogBroadcastBlocks(versionEntry, changelogUrl) {
+  const blocks = [
+    {
+      type: "header",
+      text: {
+        type: "plain_text",
+        text: `🚀 What's new in Daily Dose v${versionEntry.version}`,
+        emoji: true,
+      },
+    },
+  ];
+
+  if (versionEntry.date) {
+    blocks.push(createContextBlock(`Released ${versionEntry.date}`));
+  }
+
+  for (const change of versionEntry.changes || []) {
+    const emoji = CHANGE_TYPE_EMOJI[change.type] || "📌";
+    const items = (change.items || []).map((item) => `• ${item}`).join("\n");
+    blocks.push(
+      createSectionBlock(
+        items
+          ? `${emoji} *${change.title}*\n${items}`
+          : `${emoji} *${change.title}*`
+      )
+    );
+  }
+
+  blocks.push(createDividerBlock());
+  blocks.push(createContextBlock(`<${changelogUrl}|View full changelog>`));
+  return blocks;
+}
+
 module.exports = {
   createSectionBlock,
+  createChangelogBroadcastBlocks,
   createFieldsBlock,
   createTaskFieldBlocks,
   createContextBlock,

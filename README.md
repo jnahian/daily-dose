@@ -1060,7 +1060,14 @@ PORT=3000                                 # Server port (default: 3000)
 APP_URL=https://your-domain.com           # Your application's base URL
 DEFAULT_TIMEZONE=America/New_York         # Default timezone for teams
 LOG_LEVEL=info                           # Logging level (debug, info, warn, error)
+CHANGELOG_BROADCAST=                      # Optional — on-deploy changelog announcement to each org's #daily-dose-bot channel: "off" disables, "dry" logs targets without posting, unset/anything else = live
 ```
+
+On every deploy, Daily Dose posts the latest user-facing changelog entry to each
+organization's `daily-dose-bot` channel exactly once (tracked per org via
+`Organization.lastBroadcastVersion`). Restarts never re-post, and existing orgs
+are seeded silently the first time the feature ships. Use `CHANGELOG_BROADCAST`
+above to disable or preview it.
 
 **Slack Integration:**
 

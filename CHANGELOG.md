@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto-invite members to their org's `daily-dose-bot` channel on team join (`/dd-team-join`, team creation, and admin add-member). Best-effort; Slack failures are logged, never blocking.
 - `npm run channels:backfill` (supports `--dry-run`) to create channels and invite current members for existing orgs.
 - Added `channels:manage` bot scope to the Slack manifest (required for channel creation and member invites). Re-install the app to the workspace after updating the manifest.
+- Auto-broadcast the latest user-facing changelog entry to each org's `daily-dose-bot` channel on deploy (`src/services/changelogBroadcastService.js`, fired from `src/app.js` after `app.start`). Per-org `Organization.lastBroadcastVersion` marker prevents re-posting on restarts; a `null` marker is seeded silently so existing orgs aren't mass-blasted on first deploy, and new orgs are stamped with the current version at creation. Set `CHANGELOG_BROADCAST=off` to disable or `=dry` to preview without posting.
 
 ## [1.15.2] - 2026-06-21
 

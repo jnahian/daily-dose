@@ -186,6 +186,7 @@ Key environment variables in `.env`:
 - **Slack tokens**: BOT_TOKEN, SIGNING_SECRET, APP_TOKEN, USER_TOKEN
 - **Database URLs**: DATABASE_URL, DIRECT_URL
 - **App settings**: PORT, DEFAULT_TIMEZONE, APP_URL
+- **Changelog broadcast**: CHANGELOG_BROADCAST (optional) — controls the on-deploy changelog announcement to each org's `daily-dose-bot` channel. `off` disables it; `dry` logs targets without posting; unset/anything else = live.
 - **Logging**: LOG_LEVEL, SENTRY_DSN (optional)
 - **Scripts Auth**: SCRIPTS_AUTH_USERNAME, SCRIPTS_AUTH_PASSWORD (for /scripts-docs route protection)
 - **Admin Panel OAuth**: ADMIN_OAUTH_REDIRECT_URI (Slack OAuth callback for the admin panel; SLACK_CLIENT_ID/SLACK_CLIENT_SECRET double as the admin OAuth credentials)

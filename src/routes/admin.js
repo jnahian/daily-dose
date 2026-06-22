@@ -8,6 +8,7 @@ const crypto = require("crypto");
 const schedulerService = require("../services/schedulerService");
 const mcpTokenService = require("../services/mcpTokenService");
 const channelService = require("../services/channelService");
+const changelogBroadcastService = require("../services/changelogBroadcastService");
 const oauthTokenService = require("../mcp/auth/oauthTokenService");
 
 // In-memory OAuth state store (state → expiry timestamp)
@@ -340,6 +341,7 @@ router.post(
           slackWorkspaceId: slackWorkspaceId?.trim() || null,
           slackWorkspaceName: slackWorkspaceName?.trim() || null,
           defaultTimezone: defaultTimezone?.trim() || "America/New_York",
+          lastBroadcastVersion: changelogBroadcastService.getLatestVersion(),
         },
       });
       // Best-effort: create the org's daily-dose-bot Slack channel.
