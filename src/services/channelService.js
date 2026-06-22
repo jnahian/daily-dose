@@ -42,4 +42,35 @@ async function ensureOrgChannel(client, org) {
   return null;
 }
 
-module.exports = { ensureOrgChannel };
+/**
+ * Invite a user to the org's daily-dose-bot channel. Best-effort: never throws.
+ * Looks up the org's botChannelId itself so callers needn't preload it.
+ * @param {object} client - Slack WebClient
+ * @param {string} orgId
+ * @param {string} slackUserId
+ * @returns {Promise<boolean>} true if invited or already a member
+ */
+async function inviteUserToOrgChannel(client, orgId, slackUserId) {
+  if (!client || !orgId || !slackUserId) return false;
+  try {
+    const org = await prisma.organization.findUnique({
+      where: { id: orgId },
+      select: { botChannelId: true },
+    });
+    if (!org?.botChannelId) return false;
+    await client.conversations.invite({
+      channel: org.botChannelId,
+      users: slackUserId,
+    });
+    return true;
+  } catch (err) {
+    if (err.data?.error === "already_in_channel") return true;
+    logger.warn(
+      `inviteUserToOrgChannel failed (org ${orgId}, user ${slackUserId}):`,
+      err.data?.error || err.message
+    );
+    return false;
+  }
+}
+
+module.exports = { ensureOrgChannel, inviteUserToOrgChannel };

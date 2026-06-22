@@ -4,7 +4,10 @@ jest.mock("../../src/config/prisma", () => ({
 jest.mock("../../src/utils/logger", () => ({ warn: jest.fn() }));
 
 const prisma = require("../../src/config/prisma");
-const { ensureOrgChannel } = require("../../src/services/channelService");
+const {
+  ensureOrgChannel,
+  inviteUserToOrgChannel,
+} = require("../../src/services/channelService");
 
 function makeClient() {
   return { conversations: { create: jest.fn(), invite: jest.fn() } };
@@ -68,5 +71,51 @@ describe("ensureOrgChannel", () => {
     expect(
       await ensureOrgChannel(null, { id: "o1", botChannelId: null })
     ).toBeNull();
+  });
+});
+
+describe("inviteUserToOrgChannel", () => {
+  it("no-ops and returns false when the org has no channel", async () => {
+    prisma.organization.findUnique.mockResolvedValue({ botChannelId: null });
+    const client = makeClient();
+    const ok = await inviteUserToOrgChannel(client, "o1", "U1");
+    expect(ok).toBe(false);
+    expect(client.conversations.invite).not.toHaveBeenCalled();
+  });
+
+  it("invites the user when the org has a channel", async () => {
+    prisma.organization.findUnique.mockResolvedValue({ botChannelId: "C1" });
+    const client = makeClient();
+    client.conversations.invite.mockResolvedValue({ ok: true });
+    const ok = await inviteUserToOrgChannel(client, "o1", "U1");
+    expect(client.conversations.invite).toHaveBeenCalledWith({
+      channel: "C1",
+      users: "U1",
+    });
+    expect(ok).toBe(true);
+  });
+
+  it("treats already_in_channel as success", async () => {
+    prisma.organization.findUnique.mockResolvedValue({ botChannelId: "C1" });
+    const client = makeClient();
+    client.conversations.invite.mockRejectedValue({
+      data: { error: "already_in_channel" },
+    });
+    expect(await inviteUserToOrgChannel(client, "o1", "U1")).toBe(true);
+  });
+
+  it("returns false on other invite errors", async () => {
+    prisma.organization.findUnique.mockResolvedValue({ botChannelId: "C1" });
+    const client = makeClient();
+    client.conversations.invite.mockRejectedValue({
+      data: { error: "missing_scope" },
+    });
+    expect(await inviteUserToOrgChannel(client, "o1", "U1")).toBe(false);
+  });
+
+  it("returns false when args are missing", async () => {
+    const client = makeClient();
+    expect(await inviteUserToOrgChannel(client, "o1", null)).toBe(false);
+    expect(prisma.organization.findUnique).not.toHaveBeenCalled();
   });
 });
