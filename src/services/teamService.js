@@ -4,10 +4,19 @@ const channelService = require("./channelService");
 const permissionHelper = require("../utils/permissionHelper");
 const { UserFacingError } = require("../utils/errorHelper");
 const { validateTimezone } = require("../utils/timeHelper");
+const {
+  getHolidayDateSet,
+  isWorkingDayPure,
+  getOrgDefaultWorkDays,
+} = require("../utils/dateHelper");
 const dayjs = require("dayjs");
 const customParseFormat = require("dayjs/plugin/customParseFormat");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
 
 dayjs.extend(customParseFormat);
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // Helper function to validate and convert time string to Date object
 function validateTimeString(timeString) {
@@ -379,6 +388,78 @@ class TeamService {
       include: {
         user: true,
       },
+    });
+  }
+
+  async getTeamMembersWithStatus(teamId, date = null) {
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      include: { organization: true },
+    });
+    if (!team) return [];
+
+    const targetDate = date
+      ? dayjs(date)
+      : dayjs().tz(team.timezone).startOf("day");
+    const startOfDay = targetDate.startOf("day").toDate();
+    const endOfDay = targetDate.endOf("day").toDate();
+
+    const members = await prisma.teamMember.findMany({
+      where: { teamId },
+      include: { user: true },
+    });
+    if (members.length === 0) return [];
+
+    const userIds = members.map((m) => m.userId);
+
+    const [orgMembers, responses, leaves, holidayDateSet] = await Promise.all([
+      prisma.organizationMember.findMany({
+        where: { organizationId: team.organizationId, userId: { in: userIds } },
+        select: { userId: true, isActive: true },
+      }),
+      prisma.standupResponse.findMany({
+        where: { teamId, standupDate: { gte: startOfDay, lte: endOfDay } },
+        select: { userId: true },
+      }),
+      prisma.leave.findMany({
+        where: {
+          userId: { in: userIds },
+          startDate: { lte: endOfDay },
+          endDate: { gte: startOfDay },
+        },
+        select: { userId: true },
+      }),
+      getHolidayDateSet(team.organizationId, startOfDay, endOfDay),
+    ]);
+
+    const orgActiveById = new Map(
+      orgMembers.map((o) => [o.userId, o.isActive])
+    );
+    const respondedIds = new Set(responses.map((r) => r.userId));
+    const onLeaveIds = new Set(leaves.map((l) => l.userId));
+    const orgDefaultWorkDays = getOrgDefaultWorkDays(
+      team.organization?.settings
+    );
+    const dateValue = targetDate.toDate();
+
+    return members.map((m) => {
+      const workDays = m.user.workDays?.length
+        ? m.user.workDays
+        : orgDefaultWorkDays;
+      return {
+        user: m.user,
+        role: m.role,
+        teamActive: m.isActive,
+        orgActive: orgActiveById.get(m.userId) ?? true,
+        receiveNotifications: m.receiveNotifications,
+        onLeave: onLeaveIds.has(m.userId),
+        workingToday: isWorkingDayPure({
+          date: dateValue,
+          workDays,
+          holidayDateSet,
+        }),
+        responded: respondedIds.has(m.userId),
+      };
     });
   }
 
