@@ -1,5 +1,6 @@
 const prisma = require("../config/prisma");
 const userService = require("./userService");
+const channelService = require("./channelService");
 const permissionHelper = require("../utils/permissionHelper");
 const { UserFacingError } = require("../utils/errorHelper");
 const { validateTimezone } = require("../utils/timeHelper");
@@ -100,6 +101,13 @@ class TeamService {
 
       return created;
     });
+
+    // Best-effort: add the creator to the org's daily-dose-bot channel.
+    await channelService.inviteUserToOrgChannel(
+      slackClient,
+      org.id,
+      slackUserId
+    );
 
     return { team, status, organization: org, creatorSlackUserId: slackUserId };
   }
@@ -265,7 +273,7 @@ class TeamService {
     }
 
     // Add as member
-    return await prisma.teamMember.upsert({
+    const member = await prisma.teamMember.upsert({
       where: {
         teamId_userId: {
           teamId: team.id,
@@ -282,6 +290,15 @@ class TeamService {
         isActive: true,
       },
     });
+
+    // Best-effort: add the member to the org's daily-dose-bot channel.
+    await channelService.inviteUserToOrgChannel(
+      slackClient,
+      team.organizationId,
+      slackUserId
+    );
+
+    return member;
   }
 
   async listTeams(slackUserId) {
