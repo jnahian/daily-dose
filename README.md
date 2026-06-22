@@ -20,7 +20,7 @@ Daily Dose is a Slack bot that automates daily standup meetings for teams. It se
 - **Team Management**: Create and join teams with custom schedules
 - **Leave Management**: Set vacation/leave dates to skip standup reminders
 - **Work Day Configuration**: Customize your working days
-- **Multi-Organization Support**: Supports multiple organizations and workspaces
+- **Multi-Organization Support**: Supports multiple organizations and workspaces; each org gets an auto-created `#daily-dose-bot` channel and members are auto-added when they join a team
 - **Timezone Support**: Each team can have its own timezone
 - **Late Submission Tracking**: Tracks and handles late standup submissions
 
@@ -1034,6 +1034,20 @@ The bot needs these Slack permissions:
 - Post in channels where teams are created
 - Read user information
 - Access slash commands
+- **`channels:manage`** — create the per-org `#daily-dose-bot` channel and invite members automatically
+
+> **Re-install required:** If you update the Slack app manifest to add `channels:manage`, you must re-install the app to the workspace for the new scope to take effect.
+
+### Org Channel Auto-Provisioning
+
+When an organization is created, the bot automatically creates a public `#daily-dose-bot` Slack channel for that org (falling back to `#daily-dose-bot-2`, etc. on name conflicts) and stores its ID on the organization record. Whenever a member joins a team — via `/dd-team-join`, team creation, or admin add-member — they are automatically invited to this channel. The invite is best-effort: Slack failures are logged but never block the join operation.
+
+For existing organizations, run the backfill script to create the channel and invite current members:
+
+```bash
+npm run channels:backfill          # create channels + invite members
+npm run channels:backfill --dry-run  # preview only, no changes
+```
 
 ### Environment Configuration
 

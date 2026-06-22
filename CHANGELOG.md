@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Auto-provision a per-org `daily-dose-bot` Slack channel on organization creation (`channelService.ensureOrgChannel`, stored on `Organization.botChannelId`). Falls back to `daily-dose-bot-2`, etc. on name conflicts.
+- Auto-invite members to their org's `daily-dose-bot` channel on team join (`/dd-team-join`, team creation, and admin add-member). Best-effort; Slack failures are logged, never blocking.
+- `npm run channels:backfill` (supports `--dry-run`) to create channels and invite current members for existing orgs.
+- Added `channels:manage` bot scope to the Slack manifest (required for channel creation and member invites). Re-install the app to the workspace after updating the manifest.
+
 ## [1.15.2] - 2026-06-21
 
 ### Fixed
