@@ -398,11 +398,17 @@ class TeamService {
     });
     if (!team) return [];
 
-    const targetDate = date
-      ? dayjs(date)
-      : dayjs().tz(team.timezone).startOf("day");
-    const startOfDay = targetDate.startOf("day").toDate();
-    const endOfDay = targetDate.endOf("day").toDate();
+    // Mirror standupService.getActiveMembers: use the current instant (in the
+    // team's timezone), NOT startOf("day"). isWorkingDayPure/getHolidayDateSet
+    // resolve the calendar day from this instant via getDayOfWeekIso (local) +
+    // toIsoDate (UTC); a team-local midnight instant would resolve to the wrong
+    // day for off-UTC teams. Keeping the instant matches how "responded today"
+    // is stored and queried elsewhere.
+    const dateValue = date
+      ? dayjs(date).toDate()
+      : dayjs().tz(team.timezone).toDate();
+    const startOfDay = dayjs(dateValue).startOf("day").toDate();
+    const endOfDay = dayjs(dateValue).endOf("day").toDate();
 
     const members = await prisma.teamMember.findMany({
       where: { teamId },
@@ -440,7 +446,6 @@ class TeamService {
     const orgDefaultWorkDays = getOrgDefaultWorkDays(
       team.organization?.settings
     );
-    const dateValue = targetDate.toDate();
 
     return members.map((m) => {
       const workDays = m.user.workDays?.length
