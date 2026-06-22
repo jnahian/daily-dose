@@ -76,7 +76,11 @@ describe("broadcastOnDeploy", () => {
     ]);
     await service.broadcastOnDeploy(client, { mode: "live" });
     expect(client.chat.postMessage).toHaveBeenCalledTimes(1);
-    expect(client.chat.postMessage.mock.calls[0][0].channel).toBe("C2");
+    expect(client.chat.postMessage.mock.calls[0][0]).toMatchObject({
+      channel: "C2",
+      text: "What's new in Daily Dose v1.16.0",
+      blocks: expect.any(Array),
+    });
     expect(prisma.organization.update).toHaveBeenCalledWith({
       where: { id: "o2" },
       data: { lastBroadcastVersion: "1.16.0" },

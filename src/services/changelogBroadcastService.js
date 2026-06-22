@@ -91,7 +91,7 @@ async function broadcastOnDeploy(client, opts = {}) {
         });
       }
       logger.info(
-        `Changelog broadcast: seeded org "${org.name}" to v${latest} (no post)`
+        `Changelog broadcast: ${dryRun ? "would seed" : "seeded"} org "${org.name}" to v${latest} (no post)`
       );
       continue;
     }
