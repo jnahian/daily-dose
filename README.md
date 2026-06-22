@@ -386,6 +386,8 @@ These commands allow team admins and organization owners to manually trigger sta
   - 🔔 Reminder time (when standup reminders are sent)
   - 📊 Posting time (when standup summaries are posted)
   - 🌍 Timezone for each team
+  - Lists members compactly under each team with their current status: today's standup (submitted/not), on leave, notifications on/off, role (admin/member), and active/inactive (team & org)
+  - Standup status is hidden for admins and on non-work-days/holidays
 - `/dd-team-join [team-name]` - Join a team
   - **Channel-based**: `/dd-team-join` (joins the team in current channel)
   - **Name-based**: `/dd-team-join Engineering` (joins specific team by name from any channel)
@@ -395,6 +397,8 @@ These commands allow team admins and organization owners to manually trigger sta
 - `/dd-team-members [team-name]` - View team members
   - **Channel-based**: `/dd-team-members` (shows members of team in current channel)
   - **Name-based**: `/dd-team-members Engineering` (shows members of specific team from any channel)
+  - Shows a detailed card per member with their current status: today's standup (submitted/not), on leave, notifications on/off, role (admin/member), and active/inactive (team & org)
+  - Standup status is hidden for admins and on non-work-days/holidays
 - `/dd-team-create [team-name] <standup-time> <posting-time>` - Create a new team
   - **Channel-based**: `/dd-team-create 09:30 10:00` (uses channel name as team name)
   - **Custom name**: `/dd-team-create Engineering 09:30 10:00` (creates team with custom name)

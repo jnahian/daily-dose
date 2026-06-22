@@ -3,6 +3,9 @@
  */
 
 const { convertTextToRichText, escapeSlackText } = require("./messageHelper");
+const { deriveMemberStatus } = require("./memberStatusHelper");
+const { getDisplayName } = require("./userHelper");
+const { formatTime12Hour } = require("./dateHelper");
 
 /**
  * Create a basic section block with markdown text
@@ -885,8 +888,149 @@ function createChangelogBroadcastBlocks(versionEntry, changelogUrl) {
   return blocks;
 }
 
+const STATUS_LABELS = {
+  leave: "🌴 On leave today",
+  submitted: "✅ Submitted today",
+  pending: "⏳ Not submitted",
+};
+// The compact view shows just the leading emoji; derive it so the two views
+// can't drift out of sync.
+const statusEmoji = (standup) => STATUS_LABELS[standup].split(" ")[0];
+
+// Slack caps a message at 50 blocks. Option C emits one block per member plus
+// a header (and a footer when truncated), so cap the member cards.
+const MAX_MEMBER_CARDS = 47;
+// Option A: heading + one block per team + legend (+ a footer when truncated)
+// must stay within the 50-block cap.
+const MAX_TEAM_BLOCKS = 47;
+
+// Option C — detailed two-line card per member.
+function createTeamMembersStatusBlocks(team, members) {
+  const activeCount = members.filter(
+    (m) => deriveMemberStatus(m).active
+  ).length;
+  const inactiveCount = members.length - activeCount;
+  const countLine =
+    inactiveCount > 0
+      ? `${activeCount} active · ${inactiveCount} inactive`
+      : `${activeCount} active`;
+
+  const blocks = [
+    createSectionBlock(
+      `*👥 Members of "${escapeSlackText(team.name)}"*\n${countLine}`
+    ),
+  ];
+
+  const shownMembers = members.slice(0, MAX_MEMBER_CARDS);
+  const hiddenMembers = members.length - shownMembers.length;
+
+  for (const m of shownMembers) {
+    const status = deriveMemberStatus(m);
+    const name = escapeSlackText(getDisplayName(m.user));
+    const roleLabel = m.role === "ADMIN" ? "Admin" : "Member";
+
+    if (!status.active) {
+      blocks.push(
+        createSectionBlock(
+          `💤 *${name}* (<@${m.user.slackUserId}>) — ${roleLabel}\n    ⚪ Inactive in ${status.inactiveScope}`
+        )
+      );
+      continue;
+    }
+
+    const roleIcon = m.role === "ADMIN" ? "👑" : "👤";
+    const parts = [];
+    if (status.standup) parts.push(STATUS_LABELS[status.standup]);
+    parts.push(
+      m.receiveNotifications ? "🔔 Notifications on" : "🔕 Notifications off"
+    );
+    parts.push("🟢 Active");
+
+    blocks.push(
+      createSectionBlock(
+        `${roleIcon} *${name}* (<@${m.user.slackUserId}>) — ${roleLabel}\n    ${parts.join(
+          "  ·  "
+        )}`
+      )
+    );
+  }
+
+  if (hiddenMembers > 0) {
+    blocks.push(
+      createContextBlock(
+        `➕ ${hiddenMembers} more member${hiddenMembers === 1 ? "" : "s"} not shown (Slack limits this view).`
+      )
+    );
+  }
+
+  return blocks;
+}
+
+// Build a team's section text, dropping trailing member lines if the joined
+// text would exceed the 3000-char section limit.
+function fitTeamSection(meta, lines) {
+  const reserve = 40; // room for the "…and N more" suffix
+  let budget = SLACK_TEXT_MAX - meta.length - reserve;
+  const kept = [];
+  for (const line of lines) {
+    if (budget - (line.length + 1) < 0) break;
+    kept.push(line);
+    budget -= line.length + 1;
+  }
+  const hidden = lines.length - kept.length;
+  let text = kept.length ? `${meta}\n${kept.join("\n")}` : meta;
+  if (hidden > 0) text += `\n_…and ${hidden} more_`;
+  // Final hard clamp: guarantees ≤ SLACK_TEXT_MAX even when meta alone is huge.
+  return truncateForSlack(text, SLACK_TEXT_MAX);
+}
+
+// Option A — compact one-line-per-member, nested under each team.
+function createTeamListWithMembersBlocks({ heading, teams }) {
+  const blocks = [createSectionBlock(heading)];
+
+  const shownTeams = teams.slice(0, MAX_TEAM_BLOCKS);
+  const hiddenTeams = teams.length - shownTeams.length;
+
+  for (const { team, members } of shownTeams) {
+    const meta =
+      `*👥 ${escapeSlackText(team.name)} — ${members.length} members*\n` +
+      `🔔 Reminder: ${formatTime12Hour(team.standupTime)} | ` +
+      `📊 Posting: ${formatTime12Hour(team.postingTime)} | 🌍 ${team.timezone}`;
+
+    const lines = members.map((m) => {
+      const status = deriveMemberStatus(m);
+      if (!status.active) return `💤 <@${m.user.slackUserId}> · inactive`;
+      const roleIcon = m.role === "ADMIN" ? "👑" : "👤";
+      const parts = [`${roleIcon} <@${m.user.slackUserId}>`];
+      if (status.standup) parts.push(statusEmoji(status.standup));
+      parts.push(m.receiveNotifications ? "🔔" : "🔕");
+      return parts.join(" · ");
+    });
+
+    blocks.push(createSectionBlock(fitTeamSection(meta, lines)));
+  }
+
+  if (hiddenTeams > 0) {
+    blocks.push(
+      createContextBlock(
+        `➕ ${hiddenTeams} more team${hiddenTeams === 1 ? "" : "s"} not shown (Slack limits this view).`
+      )
+    );
+  }
+
+  blocks.push(
+    createContextBlock(
+      "✅ submitted · ⏳ not submitted · 🌴 on leave · 💤 inactive · 🔔/🔕 notifications on/off"
+    )
+  );
+
+  return blocks;
+}
+
 module.exports = {
   createSectionBlock,
+  createTeamMembersStatusBlocks,
+  createTeamListWithMembersBlocks,
   createChangelogBroadcastBlocks,
   createFieldsBlock,
   createTaskFieldBlocks,
