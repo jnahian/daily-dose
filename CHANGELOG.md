@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.1] - 2026-06-23
+
+### Added
+
+- Demo video section on the landing page (`web/src/components/landing/DemoVideo.tsx`): a lazy-loaded, privacy-friendly (`youtube-nocookie`) 16:9 embed rendered between How It Works and FAQ on the homepage, with a "Demo" link (`/#demo`) added to the Home submenu in the navbar. (`web/src/components/Navbar.tsx`, `web/src/pages/Home.tsx`, `web/src/components/landing/index.ts`)
+
+### Changed
+
+- Simplified the README from a 1256-line end-user guide into a concise developer/repo overview, since the full user guide now lives at dd.jnahian.me/docs. Added a links bar (Documentation, Changelog, Deployment, Contributing) and kept the short feature list, tech stack, dev setup, scripts table, project structure, and versioning sections; removed duplicated user content (full command reference, scenarios, error walkthroughs, env-var catalog, MCP setup). (`README.md`)
+
 ### Fixed
 
 - MCP standup submissions (`submit_standup` / `update_standup`) now escape Slack mrkdwn control characters (`&`, `<`, `>`) in `yesterdayTasks`, `todayTasks`, and `blockers` before storing them, via a shared `escapeStandupFields` helper (built on `escapeSlackText`). Previously the LLM-supplied text was stored verbatim, so a submission containing angle brackets — e.g. a PR title like "password with < or > characters" — was parsed by Slack as broken link/mention syntax and corrupted the entire posted standup message. This brings the MCP path in line with the modal path, which already escapes raw text during rich-text extraction (`extractRichTextValue`). `preview_standup` escapes the same way so its `fields`/`preview` match what gets stored (and the already-escaped `existing` value). (`src/mcp/tools.js`)
@@ -660,7 +670,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.16.0...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.16.1...HEAD
+[1.16.1]: https://github.com/jnahian/daily-dose/compare/v1.15.2...v1.16.1
 [1.16.0]: https://github.com/jnahian/daily-dose/compare/v1.15.2...v1.16.0
 [1.15.2]: https://github.com/jnahian/daily-dose/compare/v1.15.1...v1.15.2
 [1.15.1]: https://github.com/jnahian/daily-dose/compare/v1.15.0...v1.15.1
