@@ -1,4 +1,5 @@
 export { LandingHero } from "./LandingHero";
+export { DemoVideo } from "./DemoVideo";
 export { DayTimeline } from "./DayTimeline";
 export { FeaturesBento } from "./FeaturesBento";
 export { StatsStrip } from "./StatsStrip";

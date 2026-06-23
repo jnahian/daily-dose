@@ -1,5 +1,6 @@
 import {
   LandingHero,
+  DemoVideo,
   DayTimeline,
   FeaturesBento,
   StatsStrip,
@@ -58,6 +59,7 @@ const Home = () => {
       <FeaturesBento />
       <StatsStrip />
       <HowItWorksSteps />
+      <DemoVideo />
       <Faq />
       <FinalCta />
       <LandingFooter />

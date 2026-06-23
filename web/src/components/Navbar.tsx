@@ -9,6 +9,7 @@ import {
   X,
   Home as HomeIcon,
   Network,
+  PlayCircle,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -42,6 +43,7 @@ export const Navbar = () => {
           path: "/#how-it-works",
           icon: <Network size={18} />,
         },
+        { label: "Demo", path: "/#demo", icon: <PlayCircle size={18} /> },
         { label: "Documentation", path: "/docs", icon: <Book size={18} /> },
       ],
     },
