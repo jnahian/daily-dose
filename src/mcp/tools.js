@@ -10,6 +10,7 @@ const { resolveMember } = require("./memberResolver");
 const standupService = require("../services/standupService");
 const teamService = require("../services/teamService");
 const schedulerService = require("../services/schedulerService");
+const { escapeSlackText } = require("../utils/messageHelper");
 
 // Extend the plugins this module relies on directly — do not depend on another
 // module's import side-effects (which won't run when that module is mocked).
@@ -23,6 +24,25 @@ function assertValidDate(date) {
   if (!DATE_RE.test(date) || !dayjs(date, "YYYY-MM-DD", true).isValid()) {
     throw new Error(`Invalid date "${date}". Use YYYY-MM-DD format.`);
   }
+}
+
+// MCP standup fields are plain text drafted by an LLM and stored verbatim, then
+// rendered straight into Slack mrkdwn when posted. Slack treats &, < and > as
+// control characters (entities / links / mentions), so unescaped angle brackets
+// in a submission — e.g. a PR title like "password with < or > characters" —
+// corrupt the whole posted message. Escape them here so MCP submissions match
+// the modal path, which already escapes raw text during rich-text extraction
+// (see messageHelper.escapeSlackText / extractRichTextValue).
+function escapeStandupFields({
+  yesterdayTasks = "",
+  todayTasks = "",
+  blockers = "",
+}) {
+  return {
+    yesterdayTasks: escapeSlackText(yesterdayTasks),
+    todayTasks: escapeSlackText(todayTasks),
+    blockers: escapeSlackText(blockers),
+  };
 }
 
 function formatStandupPreview(teamName, date, fields) {
@@ -114,7 +134,7 @@ function buildToolHandlers(user, slackClient) {
         team: full,
         slackUserId: user.slackUserId,
         name: user.name || user.slackUserId,
-        fields: { yesterdayTasks, todayTasks, blockers },
+        fields: escapeStandupFields({ yesterdayTasks, todayTasks, blockers }),
         standupDate: dayjs().tz(full.timezone).toDate(),
         isUpdate: false,
         slackClient,
@@ -145,7 +165,7 @@ function buildToolHandlers(user, slackClient) {
         team: full,
         slackUserId: user.slackUserId,
         name: user.name || user.slackUserId,
-        fields: { yesterdayTasks, todayTasks, blockers },
+        fields: escapeStandupFields({ yesterdayTasks, todayTasks, blockers }),
         standupDate: dayjs(date, "YYYY-MM-DD").toDate(),
         isUpdate: true,
         slackClient,

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- MCP standup submissions (`submit_standup` / `update_standup`) now escape Slack mrkdwn control characters (`&`, `<`, `>`) in `yesterdayTasks`, `todayTasks`, and `blockers` before storing them, via `escapeSlackText`. Previously the LLM-supplied text was stored verbatim, so a submission containing angle brackets — e.g. a PR title like "password with < or > characters" — was parsed by Slack as broken link/mention syntax and corrupted the entire posted standup message. This brings the MCP path in line with the modal path, which already escapes raw text during rich-text extraction (`extractRichTextValue`). (`src/mcp/tools.js`)
+
 ## [1.16.0] - 2026-06-23
 
 ### Added
