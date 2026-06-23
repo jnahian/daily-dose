@@ -26,13 +26,24 @@ function assertValidDate(date) {
   }
 }
 
-// MCP standup fields are plain text drafted by an LLM and stored verbatim, then
-// rendered straight into Slack mrkdwn when posted. Slack treats &, < and > as
-// control characters (entities / links / mentions), so unescaped angle brackets
-// in a submission — e.g. a PR title like "password with < or > characters" —
-// corrupt the whole posted message. Escape them here so MCP submissions match
-// the modal path, which already escapes raw text during rich-text extraction
-// (see messageHelper.escapeSlackText / extractRichTextValue).
+/**
+ * Escape Slack mrkdwn control characters in the three standup text fields.
+ *
+ * MCP standup fields are plain text drafted by an LLM and stored verbatim, then
+ * rendered straight into Slack mrkdwn when posted. Slack treats &, < and > as
+ * control characters (entities / links / mentions), so unescaped angle brackets
+ * in a submission — e.g. a PR title like "password with < or > characters" —
+ * corrupt the whole posted message. Escaping here keeps MCP submissions in line
+ * with the modal path, which already escapes raw text during rich-text
+ * extraction (see messageHelper.escapeSlackText / extractRichTextValue).
+ *
+ * @param {object} fields - Raw standup fields from the MCP tool input.
+ * @param {string} [fields.yesterdayTasks] - Last working day's tasks.
+ * @param {string} [fields.todayTasks] - Today's planned tasks.
+ * @param {string} [fields.blockers] - Current blockers.
+ * @returns {{yesterdayTasks: string, todayTasks: string, blockers: string}} The
+ *   same fields with &, < and > escaped, safe to render as Slack mrkdwn.
+ */
 function escapeStandupFields({
   yesterdayTasks = "",
   todayTasks = "",
@@ -206,7 +217,14 @@ function buildToolHandlers(user, slackClient) {
           }
         : null;
 
-      const fields = { yesterdayTasks, todayTasks, blockers };
+      // Escape exactly as submit_standup/update_standup do, so the preview
+      // (and the returned fields) match what will actually be stored — the
+      // stored `existing` value above is likewise already escaped.
+      const fields = escapeStandupFields({
+        yesterdayTasks,
+        todayTasks,
+        blockers,
+      });
       return {
         team: resolved.name,
         date: dateStr,
