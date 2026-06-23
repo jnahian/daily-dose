@@ -1,9 +1,23 @@
 {
   "versions": [
     {
-      "version": "1.16.0",
+      "version": "1.16.1",
       "date": "2026-06-23",
       "isLatest": true,
+      "changes": [
+        {
+          "type": "fixed",
+          "title": "Standups with < or > characters post correctly",
+          "items": [
+            "Standup text containing characters like < or > (for example a pull request title) no longer breaks the posted standup summary when your standup is submitted through a connected AI agent."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "1.16.0",
+      "date": "2026-06-23",
+      "isLatest": false,
       "changes": [
         {
           "type": "added",

@@ -10,6 +10,7 @@ const { resolveMember } = require("./memberResolver");
 const standupService = require("../services/standupService");
 const teamService = require("../services/teamService");
 const schedulerService = require("../services/schedulerService");
+const { escapeSlackText } = require("../utils/messageHelper");
 
 // Extend the plugins this module relies on directly — do not depend on another
 // module's import side-effects (which won't run when that module is mocked).
@@ -23,6 +24,36 @@ function assertValidDate(date) {
   if (!DATE_RE.test(date) || !dayjs(date, "YYYY-MM-DD", true).isValid()) {
     throw new Error(`Invalid date "${date}". Use YYYY-MM-DD format.`);
   }
+}
+
+/**
+ * Escape Slack mrkdwn control characters in the three standup text fields.
+ *
+ * MCP standup fields are plain text drafted by an LLM and stored verbatim, then
+ * rendered straight into Slack mrkdwn when posted. Slack treats &, < and > as
+ * control characters (entities / links / mentions), so unescaped angle brackets
+ * in a submission — e.g. a PR title like "password with < or > characters" —
+ * corrupt the whole posted message. Escaping here keeps MCP submissions in line
+ * with the modal path, which already escapes raw text during rich-text
+ * extraction (see messageHelper.escapeSlackText / extractRichTextValue).
+ *
+ * @param {object} fields - Raw standup fields from the MCP tool input.
+ * @param {string} [fields.yesterdayTasks] - Last working day's tasks.
+ * @param {string} [fields.todayTasks] - Today's planned tasks.
+ * @param {string} [fields.blockers] - Current blockers.
+ * @returns {{yesterdayTasks: string, todayTasks: string, blockers: string}} The
+ *   same fields with &, < and > escaped, safe to render as Slack mrkdwn.
+ */
+function escapeStandupFields({
+  yesterdayTasks = "",
+  todayTasks = "",
+  blockers = "",
+}) {
+  return {
+    yesterdayTasks: escapeSlackText(yesterdayTasks),
+    todayTasks: escapeSlackText(todayTasks),
+    blockers: escapeSlackText(blockers),
+  };
 }
 
 function formatStandupPreview(teamName, date, fields) {
@@ -114,7 +145,7 @@ function buildToolHandlers(user, slackClient) {
         team: full,
         slackUserId: user.slackUserId,
         name: user.name || user.slackUserId,
-        fields: { yesterdayTasks, todayTasks, blockers },
+        fields: escapeStandupFields({ yesterdayTasks, todayTasks, blockers }),
         standupDate: dayjs().tz(full.timezone).toDate(),
         isUpdate: false,
         slackClient,
@@ -145,7 +176,7 @@ function buildToolHandlers(user, slackClient) {
         team: full,
         slackUserId: user.slackUserId,
         name: user.name || user.slackUserId,
-        fields: { yesterdayTasks, todayTasks, blockers },
+        fields: escapeStandupFields({ yesterdayTasks, todayTasks, blockers }),
         standupDate: dayjs(date, "YYYY-MM-DD").toDate(),
         isUpdate: true,
         slackClient,
@@ -186,7 +217,14 @@ function buildToolHandlers(user, slackClient) {
           }
         : null;
 
-      const fields = { yesterdayTasks, todayTasks, blockers };
+      // Escape exactly as submit_standup/update_standup do, so the preview
+      // (and the returned fields) match what will actually be stored — the
+      // stored `existing` value above is likewise already escaped.
+      const fields = escapeStandupFields({
+        yesterdayTasks,
+        todayTasks,
+        blockers,
+      });
       return {
         team: resolved.name,
         date: dateStr,

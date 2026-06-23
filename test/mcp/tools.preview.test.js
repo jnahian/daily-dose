@@ -89,6 +89,25 @@ describe("preview_standup handler", () => {
     });
   });
 
+  it("escapes Slack control characters (&, <, >) in the preview and returned fields", async () => {
+    standupService.getUserResponse.mockResolvedValue(null);
+    const result = await tools.preview_standup({
+      team: "Eng",
+      date: "2026-06-17",
+      yesterdayTasks: "password with < or > characters",
+      todayTasks: "ship <feature> & fix",
+      blockers: "<script>",
+    });
+    // Fields and preview must match what submit_standup/update_standup store.
+    expect(result.fields).toEqual({
+      yesterdayTasks: "password with &lt; or &gt; characters",
+      todayTasks: "ship &lt;feature&gt; &amp; fix",
+      blockers: "&lt;script&gt;",
+    });
+    expect(result.preview).toContain("ship &lt;feature&gt; &amp; fix");
+    expect(result.preview).not.toContain("ship <feature>");
+  });
+
   it("rejects an invalid date", async () => {
     await expect(
       tools.preview_standup({

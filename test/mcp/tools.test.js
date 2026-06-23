@@ -102,6 +102,60 @@ describe("MCP Phase 1 tool handlers", () => {
     );
   });
 
+  it("submit_standup escapes Slack control characters (&, <, >) in all fields", async () => {
+    resolveTeam.mockResolvedValue({ team: { id: "t1", name: "Eng" } });
+    teamService.getTeamById.mockResolvedValue({
+      id: "t1",
+      name: "Eng",
+      timezone: "Asia/Dhaka",
+    });
+    standupService.submitStandup.mockResolvedValue({ isLate: false });
+
+    await tools.submit_standup({
+      team: "Eng",
+      yesterdayTasks: "password with < or > characters",
+      todayTasks: "Tom & Jerry",
+      blockers: "<script>",
+    });
+
+    expect(standupService.submitStandup).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fields: {
+          yesterdayTasks: "password with &lt; or &gt; characters",
+          todayTasks: "Tom &amp; Jerry",
+          blockers: "&lt;script&gt;",
+        },
+      })
+    );
+  });
+
+  it("update_standup escapes Slack control characters (&, <, >) in all fields", async () => {
+    resolveTeam.mockResolvedValue({ team: { id: "t1", name: "Eng" } });
+    teamService.getTeamById.mockResolvedValue({
+      id: "t1",
+      name: "Eng",
+      timezone: "Asia/Dhaka",
+    });
+    standupService.submitStandup.mockResolvedValue({ isLate: false });
+
+    await tools.update_standup({
+      team: "Eng",
+      date: "2026-06-23",
+      todayTasks: "ship <feature> & fix",
+    });
+
+    expect(standupService.submitStandup).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isUpdate: true,
+        fields: {
+          yesterdayTasks: "",
+          todayTasks: "ship &lt;feature&gt; &amp; fix",
+          blockers: "",
+        },
+      })
+    );
+  });
+
   it("submit_standup throws the resolver error for an unknown team", async () => {
     resolveTeam.mockResolvedValue({
       error: 'Team "X" not found. Available teams: Eng',
