@@ -55,7 +55,7 @@ describe("zoho commands", () => {
       zohoMappingService.mapMember.mockResolvedValue({});
 
       await zohoCommands.mapMember({
-        command: makeCommand("<@U123|john> 4506000000012345"),
+        command: makeCommand("<@U123|john> ZP-0012345"),
         ack,
         respond,
         client: {},
@@ -64,7 +64,7 @@ describe("zoho commands", () => {
       expect(zohoMappingService.mapMember).toHaveBeenCalledWith(
         "org-1",
         "U123",
-        "4506000000012345",
+        "ZP-0012345",
         {}
       );
       expect(respond.mock.calls[0][0].text).toMatch(/Mapped/);

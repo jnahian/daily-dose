@@ -5,6 +5,8 @@ const { getConfig, accountsBaseUrl } = require("./zohoConfig");
 // Refresh a bit before actual expiry so a request already in flight doesn't
 // race the deadline. Zoho access tokens are typically issued for 3600s.
 const EXPIRY_SAFETY_MARGIN_MS = 5 * 60 * 1000;
+// A hung Zoho token endpoint would otherwise block auth setup / nightly sync indefinitely.
+const TOKEN_REQUEST_TIMEOUT_MS = 10 * 1000;
 
 class ZohoAuthError extends Error {
   constructor(message) {
@@ -15,11 +17,23 @@ class ZohoAuthError extends Error {
 
 async function requestToken(dataCenter, params) {
   const url = `${accountsBaseUrl(dataCenter)}/oauth/v2/token`;
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams(params).toString(),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(),
+    TOKEN_REQUEST_TIMEOUT_MS
+  );
+
+  let response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(params).toString(),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
 
   const body = await response.json().catch(() => null);
 
@@ -37,9 +51,9 @@ async function requestToken(dataCenter, params) {
 // long-lived refresh token, and persist it for the organization.
 async function exchangeGrantToken(organizationId, grantToken) {
   const { clientId, clientSecret, redirectUri, dataCenter } = getConfig();
-  if (!clientId || !clientSecret) {
+  if (!clientId || !clientSecret || !redirectUri) {
     throw new ZohoAuthError(
-      "ZOHO_CLIENT_ID / ZOHO_CLIENT_SECRET are not configured"
+      "ZOHO_CLIENT_ID / ZOHO_CLIENT_SECRET / ZOHO_REDIRECT_URI are not configured"
     );
   }
 

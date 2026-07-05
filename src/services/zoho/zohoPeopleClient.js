@@ -2,6 +2,9 @@ const JSONbig = require("json-bigint")({ storeAsString: true });
 const { getValidAccessToken } = require("./zohoAuthService");
 const { peopleBaseUrl } = require("./zohoConfig");
 
+// A hung Zoho endpoint would otherwise block the nightly sync run indefinitely.
+const REQUEST_TIMEOUT_MS = 15 * 1000;
+
 class ZohoApiError extends Error {
   constructor(message, { status, body } = {}) {
     super(message);
@@ -29,9 +32,18 @@ async function zohoGet(organizationId, path) {
   const { accessToken, dataCenter } = await getValidAccessToken(organizationId);
   const url = `${peopleBaseUrl(dataCenter)}${path}`;
 
-  const response = await fetch(url, {
-    headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  let response;
+  try {
+    response = await fetch(url, {
+      headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
 
   const body = await parseJsonBig(response);
 
@@ -62,7 +74,7 @@ async function zohoGet(organizationId, path) {
 // design notes) — fetch the full date-range response and filter by status +
 // mapped employee IDs in JS (see zohoSyncService.js).
 async function fetchLeaveRecords(organizationId, fromDate, toDate) {
-  const path = `/api/v2/leavetracker/leaves/records?fromDate=${fromDate}&toDate=${toDate}`;
+  const path = `/api/v2/leavetracker/leaves/records?fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}`;
   const body = await zohoGet(organizationId, path);
   if (Array.isArray(body)) return body;
   if (Array.isArray(body?.leaves)) return body.leaves;

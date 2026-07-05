@@ -179,6 +179,12 @@ async function syncLeavesForOrganization(organizationId) {
 
       if (!leave.isApproved) {
         skippedNotApproved += 1;
+        // Clean up a previously-synced Leave row if this record has since
+        // flipped to pending/rejected/cancelled in Zoho — otherwise the
+        // person stays marked "on leave" indefinitely after Zoho rescinds it.
+        await prisma.leave.deleteMany({
+          where: { source: "ZOHO", externalId: leave.externalId },
+        });
         continue;
       }
 

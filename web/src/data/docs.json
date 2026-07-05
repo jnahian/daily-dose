@@ -544,7 +544,7 @@
               "command": "/dd-zoho-map-member @user <zoho-employee-id>",
               "description": "Map a Slack member to their Zoho People employee ID, so their approved Zoho leave is recognized by the standup bot.",
               "examples": [
-                "# Map a member to their Zoho employee ID\n/dd-zoho-map-member @john 4506000000012345"
+                "# Map a member to their Zoho employee ID\n/dd-zoho-map-member @john ZP-0012345"
               ]
             },
             {

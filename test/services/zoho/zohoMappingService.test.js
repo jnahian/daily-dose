@@ -27,17 +27,17 @@ describe("zohoMappingService", () => {
       prisma.zohoUserMapping.findUnique.mockResolvedValue(null);
       prisma.zohoUserMapping.upsert.mockResolvedValue({ id: "map-1" });
 
-      await zohoMappingService.mapMember("org-1", "U123", "4506000000012345");
+      await zohoMappingService.mapMember("org-1", "U123", "ZP-0012345");
 
       expect(prisma.zohoUserMapping.upsert).toHaveBeenCalledWith({
         where: {
           organizationId_userId: { organizationId: "org-1", userId: "user-1" },
         },
-        update: { zohoEmployeeId: "4506000000012345" },
+        update: { zohoEmployeeId: "ZP-0012345" },
         create: {
           organizationId: "org-1",
           userId: "user-1",
-          zohoEmployeeId: "4506000000012345",
+          zohoEmployeeId: "ZP-0012345",
         },
       });
     });
@@ -70,6 +70,30 @@ describe("zohoMappingService", () => {
       await expect(
         zohoMappingService.mapMember("org-1", "U123", null)
       ).rejects.toThrow(/Zoho employee ID is required/);
+    });
+
+    it("translates a concurrent-write race (Prisma P2002) into the same friendly error", async () => {
+      userService.findOrCreateUser.mockResolvedValue({ id: "user-1" });
+      // Pre-check passes (no row yet) — another request wins the race and
+      // creates the conflicting row between the check and this upsert.
+      prisma.zohoUserMapping.findUnique.mockResolvedValue(null);
+      const p2002 = new Error("Unique constraint failed");
+      p2002.code = "P2002";
+      prisma.zohoUserMapping.upsert.mockRejectedValue(p2002);
+
+      await expect(
+        zohoMappingService.mapMember("org-1", "U123", "emp-1")
+      ).rejects.toThrow(/already mapped/);
+    });
+
+    it("rethrows an unrelated upsert error unchanged", async () => {
+      userService.findOrCreateUser.mockResolvedValue({ id: "user-1" });
+      prisma.zohoUserMapping.findUnique.mockResolvedValue(null);
+      prisma.zohoUserMapping.upsert.mockRejectedValue(new Error("db down"));
+
+      await expect(
+        zohoMappingService.mapMember("org-1", "U123", "emp-1")
+      ).rejects.toThrow("db down");
     });
   });
 

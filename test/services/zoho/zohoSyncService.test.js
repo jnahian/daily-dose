@@ -1,6 +1,6 @@
 jest.mock("../../../src/config/prisma", () => ({
   holiday: { upsert: jest.fn() },
-  leave: { upsert: jest.fn() },
+  leave: { upsert: jest.fn(), deleteMany: jest.fn() },
   zohoSyncRun: { create: jest.fn() },
   organization: { findMany: jest.fn() },
 }));
@@ -172,6 +172,7 @@ describe("syncLeavesForOrganization", () => {
       new Map([["emp-mapped", "user-1"]])
     );
     prisma.leave.upsert.mockResolvedValue({});
+    prisma.leave.deleteMany.mockResolvedValue({ count: 0 });
     prisma.zohoSyncRun.create.mockResolvedValue({});
 
     await zohoSyncService.syncLeavesForOrganization("org-1");
@@ -194,6 +195,30 @@ describe("syncLeavesForOrganization", () => {
         }),
       })
     );
+  });
+
+  it("deletes a previously-synced Zoho leave once the record is no longer approved", async () => {
+    fetchLeaveRecords.mockResolvedValue([
+      {
+        recordId: "r9",
+        employeeId: "emp-mapped",
+        approvalStatus: "Rejected",
+        fromDate: "05-Jul-2026",
+        toDate: "06-Jul-2026",
+      },
+    ]);
+    getUserIdsByEmployeeId.mockResolvedValue(
+      new Map([["emp-mapped", "user-1"]])
+    );
+    prisma.leave.deleteMany.mockResolvedValue({ count: 1 });
+    prisma.zohoSyncRun.create.mockResolvedValue({});
+
+    await zohoSyncService.syncLeavesForOrganization("org-1");
+
+    expect(prisma.leave.upsert).not.toHaveBeenCalled();
+    expect(prisma.leave.deleteMany).toHaveBeenCalledWith({
+      where: { source: "ZOHO", externalId: "r9" },
+    });
   });
 });
 

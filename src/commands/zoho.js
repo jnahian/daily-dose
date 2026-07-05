@@ -53,7 +53,7 @@ async function mapMember({ command, ack, respond, client }) {
       await updateResponse({
         blocks: createCommandErrorBlocks(
           "Usage: `/dd-zoho-map-member @user zoho-employee-id`",
-          ["`/dd-zoho-map-member @john 4506000000012345`"]
+          ["`/dd-zoho-map-member @john ZP-0012345`"]
         ),
       });
       return;

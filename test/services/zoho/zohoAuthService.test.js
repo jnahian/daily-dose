@@ -182,4 +182,14 @@ describe("zohoAuthService", () => {
       /ZOHO_CLIENT_ID/
     );
   });
+
+  it("exchangeGrantToken throws a clear error when ZOHO_REDIRECT_URI isn't configured", async () => {
+    delete process.env.ZOHO_REDIRECT_URI;
+    global.fetch = jest.fn();
+
+    await expect(
+      svc.exchangeGrantToken("org-1", "grant-token-abc")
+    ).rejects.toThrow(/ZOHO_REDIRECT_URI/);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
 });

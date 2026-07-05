@@ -33,11 +33,23 @@ async function mapMember(
     );
   }
 
-  return prisma.zohoUserMapping.upsert({
-    where: { organizationId_userId: { organizationId, userId: user.id } },
-    update: { zohoEmployeeId },
-    create: { organizationId, userId: user.id, zohoEmployeeId },
-  });
+  try {
+    return await prisma.zohoUserMapping.upsert({
+      where: { organizationId_userId: { organizationId, userId: user.id } },
+      update: { zohoEmployeeId },
+      create: { organizationId, userId: user.id, zohoEmployeeId },
+    });
+  } catch (error) {
+    // Race: two concurrent requests can both pass the findUnique check above
+    // before either writes — the loser hits the organizationId_zohoEmployeeId
+    // unique constraint here instead. Surface the same friendly message.
+    if (error.code === "P2002") {
+      throw new UserFacingError(
+        `Zoho employee ID ${zohoEmployeeId} is already mapped to another Slack member`
+      );
+    }
+    throw error;
+  }
 }
 
 async function unmapMember(organizationId, targetSlackUserId) {

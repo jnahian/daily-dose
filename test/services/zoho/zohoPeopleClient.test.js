@@ -42,7 +42,9 @@ describe("zohoPeopleClient", () => {
     expect(records).toEqual([{ recordId: 1 }]);
     expect(global.fetch).toHaveBeenCalledWith(
       "https://people.zoho.com/api/v2/leavetracker/leaves/records?fromDate=01-01-2026&toDate=01-31-2026",
-      { headers: { Authorization: "Zoho-oauthtoken access-token-abc" } }
+      expect.objectContaining({
+        headers: { Authorization: "Zoho-oauthtoken access-token-abc" },
+      })
     );
   });
 
@@ -75,7 +77,9 @@ describe("zohoPeopleClient", () => {
     expect(holidays).toEqual([{ Name: "New Year" }]);
     expect(global.fetch).toHaveBeenCalledWith(
       "https://people.zoho.com/api/leave/v2/holidays/get",
-      { headers: { Authorization: "Zoho-oauthtoken access-token-abc" } }
+      expect.objectContaining({
+        headers: { Authorization: "Zoho-oauthtoken access-token-abc" },
+      })
     );
   });
 
