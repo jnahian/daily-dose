@@ -229,6 +229,34 @@
         "description": "Configure standup reminder preferences",
         "usage_hint": "[TeamName] mention=on/off notify=on/off",
         "should_escape": false
+      },
+      {
+        "command": "/dd-zoho-map-member",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Map a Slack member to their Zoho People employee ID (admin only)",
+        "usage_hint": "@user zoho-employee-id",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-zoho-unmap-member",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Remove a member's Zoho People employee mapping (admin only)",
+        "usage_hint": "@user",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-zoho-map-list",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "List Slack-to-Zoho employee ID mappings (admin only)",
+        "usage_hint": "",
+        "should_escape": false
+      },
+      {
+        "command": "/dd-zoho-sync-status",
+        "url": "{{APP_URL}}/slack/events",
+        "description": "Show the last Zoho holiday/leave sync results (admin only)",
+        "usage_hint": "",
+        "should_escape": false
       }
     ]
   },

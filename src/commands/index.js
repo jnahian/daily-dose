@@ -3,6 +3,7 @@ const leaveCommands = require("./leave");
 const standupCommands = require("./standup");
 const holidayCommands = require("./holiday");
 const preferencesCommands = require("./preferences");
+const zohoCommands = require("./zoho");
 const { stripFormatting } = require("../middleware/command");
 
 function setupCommands(app) {
@@ -103,6 +104,22 @@ function setupCommands(app) {
     "/dd-standup-reminder",
     stripFormatting(),
     preferencesCommands.toggleStandupReminder
+  );
+
+  // Zoho People integration (admin) - suspend/mapping commands accept
+  // @mentions, so skip stripFormatting so the raw <@U...|name> wrapper
+  // survives for extractSlackUserId.
+  app.command("/dd-zoho-map-member", zohoCommands.mapMember);
+  app.command("/dd-zoho-unmap-member", zohoCommands.unmapMember);
+  app.command(
+    "/dd-zoho-map-list",
+    stripFormatting(),
+    zohoCommands.listMappings
+  );
+  app.command(
+    "/dd-zoho-sync-status",
+    stripFormatting(),
+    zohoCommands.syncStatus
   );
 
   // Interactive components (no formatting removal needed for these)

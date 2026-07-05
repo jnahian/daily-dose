@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Zoho People leave & holiday integration: a nightly cron job (`schedulerService`, default `30 1 * * *`, override with `ZOHO_SYNC_CRON`) syncs approved leave and org holidays from Zoho People into the existing `Leave`/`Holiday` tables, tagged with a new `source`/`externalId` pair (`MANUAL` vs `ZOHO`) so synced rows dedupe cleanly on re-sync without disturbing manually-entered leaves/holidays. Since gating (`standupService.getActiveMembers`, `postTeamStandup`'s "On Leave" block) already reads from those same tables, no changes were needed there — Zoho-sourced leave automatically skips reminders and shows up in the "out today" summary line, and a synced holiday skips the whole standup run, same as a manually-entered one.
+  - New Prisma models: `ZohoCredential` (per-org OAuth refresh/access token, data center, enabled flag), `ZohoUserMapping` (Slack user ↔ Zoho employee ID, scoped per organization), `ZohoSyncRun` (audit log of each sync attempt: type, status, records synced, error).
+  - New service modules under `src/services/zoho/`: `zohoConfig.js`, `zohoAuthService.js` (lazy access-token refresh + one-time grant-token exchange), `zohoPeopleClient.js` (leave-records + holiday-calendar fetch, big-integer-safe JSON parsing via `json-bigint` so large Zoho IDs never round-trip through a JS `Number`), `zohoDateHelper.js` (`dd-MMM-yyyy` parsing), `zohoMappingService.js`, `zohoSyncService.js`.
+  - New admin Slack commands: `/dd-zoho-map-member`, `/dd-zoho-unmap-member`, `/dd-zoho-map-list`, `/dd-zoho-sync-status` (`src/commands/zoho.js`), gated the same way as holiday management (org OWNER/ADMIN).
+  - New scripts: `npm run zoho:auth-setup -- "<org-name>" <grant-token>` (one-time authorization via Zoho's self-client grant-token flow) and `npm run zoho:sync [org-name]` (manual sync trigger, bypassing the nightly cron).
+  - New env vars: `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET`, `ZOHO_REDIRECT_URI`, `ZOHO_DATA_CENTER` (default `com`), `ZOHO_SYNC_CRON` (optional).
+  - Migration: `prisma/migrations/20260705120000_add_zoho_integration`, `prisma/migrations/20260705130000_scope_zoho_leave_key_to_org` (adds a nullable `Leave.organizationId`, only ever set on ZOHO-sourced rows, and scopes the sync's idempotency key to `(organizationId, source, externalId)` so two Zoho tenants can never collide on the same leave record ID — found in review).
+  - Request timeouts (`AbortController`) on both the OAuth token exchange and the People API client, plus a `ZOHO_DATA_CENTER` allowlist check, so a hung endpoint or a typoed data center fail fast with a clear error instead of hanging or silently building an unexpected hostname.
+  - A previously-synced Zoho leave is deleted once the source record is no longer approved (was previously left stale until it aged out of the sync window).
+  - **Known limitations to verify against a real Zoho org before enabling in production**: the Zoho People leave-records/holiday-calendar response field names used in `zohoSyncService.js`'s mappers are a best-effort mapping (documented inline) and may need adjusting per org; leave sync treats any day in an approved leave's date range as a full day off (no half-day granularity, since the `Leave` table has none); a nightly holiday sync is authoritative for any date it returns and will overwrite a manually-entered holiday on the same org/date (an intentional tradeoff, not a bug — Zoho is treated as the source of truth); and the integration account's Zoho profile needs API access enabled plus reporting-manager-level leave visibility for the team, per the feature's original risk notes. Zoho OAuth tokens are stored in plaintext in `zoho_credentials`, consistent with how this app already stores other server-held secrets (e.g. `oauth_clients.client_secret`).
+
 ## [1.16.1] - 2026-06-23
 
 ### Added

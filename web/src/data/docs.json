@@ -531,6 +531,43 @@
           ]
         },
         {
+          "id": "zoho-commands",
+          "title": "Zoho People Sync",
+          "content": [
+            {
+              "type": "warning",
+              "title": "⚠️ Admin Only",
+              "value": "Zoho sync commands require admin or organization owner permissions, and an organization admin must first authorize the integration (see the deployment docs). Once connected, approved Zoho leave and org holidays sync in automatically — team members don't need to run any commands themselves."
+            },
+            {
+              "type": "command",
+              "command": "/dd-zoho-map-member @user <zoho-employee-id>",
+              "description": "Map a Slack member to their Zoho People employee ID, so their approved Zoho leave is recognized by the standup bot.",
+              "examples": [
+                "# Map a member to their Zoho employee ID\n/dd-zoho-map-member @john ZP-0012345"
+              ]
+            },
+            {
+              "type": "command",
+              "command": "/dd-zoho-unmap-member @user",
+              "description": "Remove a member's Zoho employee mapping.",
+              "examples": ["/dd-zoho-unmap-member @john"]
+            },
+            {
+              "type": "command",
+              "command": "/dd-zoho-map-list",
+              "description": "List all Slack-to-Zoho employee ID mappings for your organization.",
+              "examples": ["/dd-zoho-map-list"]
+            },
+            {
+              "type": "command",
+              "command": "/dd-zoho-sync-status",
+              "description": "Show the most recent holiday and leave sync results, including whether the last run succeeded.",
+              "examples": ["/dd-zoho-sync-status"]
+            }
+          ]
+        },
+        {
           "id": "workdays-commands",
           "title": "Work Days Configuration",
           "content": [

@@ -25,7 +25,7 @@ Daily Dose is a Slack bot that automates daily standup meetings for teams — it
 
 - **Automated standup reminders** — DM reminders at each team's configured time
 - **Team management** — create and join teams with custom schedules and timezones
-- **Leave & holiday handling** — members on leave or org holidays are skipped automatically
+- **Leave & holiday handling** — members on leave or org holidays are skipped automatically, with optional nightly sync from Zoho People
 - **Work day configuration** — per-user working days
 - **Multi-organization support** — one org per Slack workspace, with an auto-provisioned `#daily-dose-bot` channel
 - **Late submission tracking** — late standups are posted as thread replies

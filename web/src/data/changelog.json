@@ -1,9 +1,25 @@
 {
   "versions": [
     {
+      "version": "1.17.0",
+      "date": "2026-07-05",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Sync leave and holidays from Zoho People",
+          "items": [
+            "Organizations using Zoho People can now connect it so approved leave and company holidays sync in automatically overnight — no more reminders to teammates who are already out, and holidays skip the standup entirely.",
+            "Members who are out show up in the posted summary the same way manually-entered leave already does.",
+            "New admin commands: /dd-zoho-map-member, /dd-zoho-unmap-member, /dd-zoho-map-list, and /dd-zoho-sync-status to check the last sync result."
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.16.1",
       "date": "2026-06-23",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "fixed",

@@ -9,21 +9,25 @@ datasource db {
 }
 
 model Organization {
-  id                 String               @id @default(uuid())
-  name               String               @unique
-  slackWorkspaceId   String?              @unique @map("slack_workspace_id")
-  slackWorkspaceName String?              @map("slack_workspace_name")
-  defaultTimezone    String               @default("America/New_York") @map("default_timezone")
-  botChannelId       String?              @map("bot_channel_id")
-  lastBroadcastVersion String?            @map("last_broadcast_version")
-  settings           Json                 @default("{}")
-  isActive           Boolean              @default(true) @map("is_active")
-  createdAt          DateTime             @default(now()) @map("created_at")
-  updatedAt          DateTime             @updatedAt @map("updated_at")
-  deletedAt          DateTime?            @map("deleted_at")
-  holidays           Holiday[]
-  members            OrganizationMember[]
-  teams              Team[]
+  id                   String               @id @default(uuid())
+  name                 String               @unique
+  slackWorkspaceId     String?              @unique @map("slack_workspace_id")
+  slackWorkspaceName   String?              @map("slack_workspace_name")
+  defaultTimezone      String               @default("America/New_York") @map("default_timezone")
+  botChannelId         String?              @map("bot_channel_id")
+  lastBroadcastVersion String?              @map("last_broadcast_version")
+  settings             Json                 @default("{}")
+  isActive             Boolean              @default(true) @map("is_active")
+  createdAt            DateTime             @default(now()) @map("created_at")
+  updatedAt            DateTime             @updatedAt @map("updated_at")
+  deletedAt            DateTime?            @map("deleted_at")
+  holidays             Holiday[]
+  leaves               Leave[]
+  members              OrganizationMember[]
+  teams                Team[]
+  zohoCredential       ZohoCredential?
+  zohoUserMappings     ZohoUserMapping[]
+  zohoSyncRuns         ZohoSyncRun[]
 
   @@map("organizations")
 }
@@ -70,6 +74,7 @@ model User {
   standupResponses StandupResponse[]
   super_admins     super_admins?
   teams            TeamMember[]
+  zohoUserMappings ZohoUserMapping[]
 
   @@map("users")
 }
@@ -92,17 +97,17 @@ model OrganizationMember {
 }
 
 model TeamMember {
-  id                   String   @id @default(uuid())
-  teamId               String   @map("team_id")
-  userId               String   @map("user_id")
-  role                 TeamRole @default(MEMBER)
-  isActive             Boolean  @default(true) @map("is_active")
+  id                   String    @id @default(uuid())
+  teamId               String    @map("team_id")
+  userId               String    @map("user_id")
+  role                 TeamRole  @default(MEMBER)
+  isActive             Boolean   @default(true) @map("is_active")
   joinedAt             DateTime  @default(now()) @map("joined_at")
   deletedAt            DateTime? @map("deleted_at")
   receiveNotifications Boolean   @default(true) @map("receive_notifications")
   hideFromNotResponded Boolean   @default(false) @map("hide_from_not_responded")
-  team                 Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team                 Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, userId])
   @@index([teamId])
@@ -111,33 +116,43 @@ model TeamMember {
 }
 
 model Leave {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  startDate DateTime @map("start_date") @db.Date
-  endDate   DateTime @map("end_date") @db.Date
-  reason    String?  @db.VarChar(500)
-  createdAt DateTime  @default(now()) @map("created_at")
-  deletedAt DateTime? @map("deleted_at")
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String        @id @default(uuid())
+  userId         String        @map("user_id")
+  startDate      DateTime      @map("start_date") @db.Date
+  endDate        DateTime      @map("end_date") @db.Date
+  reason         String?       @db.VarChar(500)
+  createdAt      DateTime      @default(now()) @map("created_at")
+  deletedAt      DateTime?     @map("deleted_at")
+  source         LeaveSource   @default(MANUAL)
+  externalId     String?       @map("external_id")
+  // Only set for ZOHO-sourced rows (the org whose sync created them) — scopes
+  // the idempotency key below so two Zoho tenants can never collide on the
+  // same externalId. Manual leaves have no org concept today and leave this
+  // null; Postgres treats each NULL as distinct, so that doesn't collide
+  // with anything either.
+  organizationId String?       @map("organization_id")
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  @@unique([organizationId, source, externalId])
   @@index([userId, startDate, endDate])
   @@map("leaves")
 }
 
 model StandupResponse {
-  id             String   @id @default(uuid())
-  teamId         String   @map("team_id")
-  userId         String   @map("user_id")
-  standupDate    DateTime @map("standup_date") @db.Date
-  yesterdayTasks String?  @map("yesterday_tasks")
-  todayTasks     String?  @map("today_tasks")
+  id             String    @id @default(uuid())
+  teamId         String    @map("team_id")
+  userId         String    @map("user_id")
+  standupDate    DateTime  @map("standup_date") @db.Date
+  yesterdayTasks String?   @map("yesterday_tasks")
+  todayTasks     String?   @map("today_tasks")
   blockers       String?
-  hasBlockers    Boolean  @default(false) @map("has_blockers")
+  hasBlockers    Boolean   @default(false) @map("has_blockers")
   submittedAt    DateTime  @default(now()) @map("submitted_at")
   deletedAt      DateTime? @map("deleted_at")
   isLate         Boolean   @default(false) @map("is_late")
   team           Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, userId, standupDate])
   @@index([standupDate])
@@ -146,11 +161,11 @@ model StandupResponse {
 }
 
 model StandupPost {
-  id             String   @id @default(uuid())
-  teamId         String   @map("team_id")
-  standupDate    DateTime @map("standup_date") @db.Date
-  slackMessageTs String?  @map("slack_message_ts")
-  channelId      String?  @map("channel_id")
+  id             String    @id @default(uuid())
+  teamId         String    @map("team_id")
+  standupDate    DateTime  @map("standup_date") @db.Date
+  slackMessageTs String?   @map("slack_message_ts")
+  channelId      String?   @map("channel_id")
   postedAt       DateTime  @default(now()) @map("posted_at")
   deletedAt      DateTime? @map("deleted_at")
   team           Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
@@ -160,20 +175,68 @@ model StandupPost {
 }
 
 model Holiday {
-  id              String       @id @default(uuid())
-  date            DateTime     @db.Date
-  name            String       @db.VarChar(255)
-  createdAt       DateTime     @default(now()) @map("created_at")
+  id              String        @id @default(uuid())
+  date            DateTime      @db.Date
+  name            String        @db.VarChar(255)
+  createdAt       DateTime      @default(now()) @map("created_at")
   organization_id String
-  updated_at      DateTime     @updatedAt
-  deletedAt       DateTime?    @map("deleted_at")
+  updated_at      DateTime      @updatedAt
+  deletedAt       DateTime?     @map("deleted_at")
   description     String?
-  organizations   Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  source          HolidaySource @default(MANUAL)
+  externalId      String?       @map("external_id")
+  organizations   Organization  @relation(fields: [organization_id], references: [id], onDelete: Cascade)
 
   @@unique([organization_id, date])
   @@index([date])
   @@index([organization_id])
   @@map("holidays")
+}
+
+model ZohoCredential {
+  id                   String       @id @default(uuid())
+  organizationId       String       @unique @map("organization_id")
+  dataCenter           String       @map("data_center")
+  refreshToken         String       @map("refresh_token")
+  accessToken          String?      @map("access_token")
+  accessTokenExpiresAt DateTime?    @map("access_token_expires_at")
+  enabled              Boolean      @default(true)
+  createdAt            DateTime     @default(now()) @map("created_at")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("zoho_credentials")
+}
+
+model ZohoUserMapping {
+  id             String       @id @default(uuid())
+  organizationId String       @map("organization_id")
+  userId         String       @map("user_id")
+  zohoEmployeeId String       @map("zoho_employee_id")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@unique([organizationId, zohoEmployeeId])
+  @@index([userId])
+  @@map("zoho_user_mappings")
+}
+
+model ZohoSyncRun {
+  id             String         @id @default(uuid())
+  organizationId String         @map("organization_id")
+  syncType       ZohoSyncType   @map("sync_type")
+  status         ZohoSyncStatus
+  recordsSynced  Int            @default(0) @map("records_synced")
+  error          String?
+  startedAt      DateTime       @default(now()) @map("started_at")
+  completedAt    DateTime?      @map("completed_at")
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, syncType, startedAt])
+  @@map("zoho_sync_runs")
 }
 
 model sessions {
@@ -292,4 +355,24 @@ enum TeamStatus {
   PENDING
   ACTIVE
   REJECTED
+}
+
+enum LeaveSource {
+  MANUAL
+  ZOHO
+}
+
+enum HolidaySource {
+  MANUAL
+  ZOHO
+}
+
+enum ZohoSyncType {
+  HOLIDAY
+  LEAVE
+}
+
+enum ZohoSyncStatus {
+  SUCCESS
+  FAILED
 }
