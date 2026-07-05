@@ -183,7 +183,11 @@ async function syncLeavesForOrganization(organizationId) {
         // flipped to pending/rejected/cancelled in Zoho — otherwise the
         // person stays marked "on leave" indefinitely after Zoho rescinds it.
         await prisma.leave.deleteMany({
-          where: { source: "ZOHO", externalId: leave.externalId },
+          where: {
+            organizationId,
+            source: "ZOHO",
+            externalId: leave.externalId,
+          },
         });
         continue;
       }
@@ -194,9 +198,16 @@ async function syncLeavesForOrganization(organizationId) {
         continue;
       }
 
+      // organizationId is part of the upsert key specifically so two Zoho
+      // tenants can never collide on the same externalId — see the Leave
+      // model's comment in schema.prisma.
       await prisma.leave.upsert({
         where: {
-          source_externalId: { source: "ZOHO", externalId: leave.externalId },
+          organizationId_source_externalId: {
+            organizationId,
+            source: "ZOHO",
+            externalId: leave.externalId,
+          },
         },
         update: {
           userId,
@@ -211,6 +222,7 @@ async function syncLeavesForOrganization(organizationId) {
           reason: leave.reason,
           source: "ZOHO",
           externalId: leave.externalId,
+          organizationId,
         },
       });
       synced += 1;

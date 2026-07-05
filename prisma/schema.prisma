@@ -22,6 +22,7 @@ model Organization {
   updatedAt            DateTime             @updatedAt @map("updated_at")
   deletedAt            DateTime?            @map("deleted_at")
   holidays             Holiday[]
+  leaves               Leave[]
   members              OrganizationMember[]
   teams                Team[]
   zohoCredential       ZohoCredential?
@@ -115,18 +116,25 @@ model TeamMember {
 }
 
 model Leave {
-  id         String      @id @default(uuid())
-  userId     String      @map("user_id")
-  startDate  DateTime    @map("start_date") @db.Date
-  endDate    DateTime    @map("end_date") @db.Date
-  reason     String?     @db.VarChar(500)
-  createdAt  DateTime    @default(now()) @map("created_at")
-  deletedAt  DateTime?   @map("deleted_at")
-  source     LeaveSource @default(MANUAL)
-  externalId String?     @map("external_id")
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String        @id @default(uuid())
+  userId         String        @map("user_id")
+  startDate      DateTime      @map("start_date") @db.Date
+  endDate        DateTime      @map("end_date") @db.Date
+  reason         String?       @db.VarChar(500)
+  createdAt      DateTime      @default(now()) @map("created_at")
+  deletedAt      DateTime?     @map("deleted_at")
+  source         LeaveSource   @default(MANUAL)
+  externalId     String?       @map("external_id")
+  // Only set for ZOHO-sourced rows (the org whose sync created them) — scopes
+  // the idempotency key below so two Zoho tenants can never collide on the
+  // same externalId. Manual leaves have no org concept today and leave this
+  // null; Postgres treats each NULL as distinct, so that doesn't collide
+  // with anything either.
+  organizationId String?       @map("organization_id")
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  @@unique([source, externalId])
+  @@unique([organizationId, source, externalId])
   @@index([userId, startDate, endDate])
   @@map("leaves")
 }

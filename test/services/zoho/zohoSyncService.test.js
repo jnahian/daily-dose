@@ -179,12 +179,14 @@ describe("syncLeavesForOrganization", () => {
 
     expect(prisma.leave.upsert).toHaveBeenCalledTimes(1);
     const call = prisma.leave.upsert.mock.calls[0][0];
-    expect(call.where.source_externalId).toEqual({
+    expect(call.where.organizationId_source_externalId).toEqual({
+      organizationId: "org-1",
       source: "ZOHO",
       externalId: "r1",
     });
     expect(call.create.userId).toBe("user-1");
     expect(call.create.source).toBe("ZOHO");
+    expect(call.create.organizationId).toBe("org-1");
 
     expect(prisma.zohoSyncRun.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -217,8 +219,37 @@ describe("syncLeavesForOrganization", () => {
 
     expect(prisma.leave.upsert).not.toHaveBeenCalled();
     expect(prisma.leave.deleteMany).toHaveBeenCalledWith({
-      where: { source: "ZOHO", externalId: "r9" },
+      where: { organizationId: "org-1", source: "ZOHO", externalId: "r9" },
     });
+  });
+
+  it("scopes the upsert/delete key by organization so two tenants can't collide on the same Zoho record ID", async () => {
+    // Same externalId ("r1") from two different Zoho tenants — the
+    // organizationId in the key is what keeps these from colliding.
+    const sameRecord = {
+      recordId: "r1",
+      employeeId: "emp-mapped",
+      approvalStatus: "Approved",
+      fromDate: "05-Jul-2026",
+      toDate: "06-Jul-2026",
+    };
+    fetchLeaveRecords.mockResolvedValue([sameRecord]);
+    getUserIdsByEmployeeId.mockResolvedValue(
+      new Map([["emp-mapped", "user-1"]])
+    );
+    prisma.leave.upsert.mockResolvedValue({});
+    prisma.zohoSyncRun.create.mockResolvedValue({});
+
+    await zohoSyncService.syncLeavesForOrganization("org-a");
+    await zohoSyncService.syncLeavesForOrganization("org-b");
+
+    const keys = prisma.leave.upsert.mock.calls.map(
+      ([args]) => args.where.organizationId_source_externalId
+    );
+    expect(keys).toEqual([
+      { organizationId: "org-a", source: "ZOHO", externalId: "r1" },
+      { organizationId: "org-b", source: "ZOHO", externalId: "r1" },
+    ]);
   });
 });
 
