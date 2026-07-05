@@ -8,6 +8,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 const teamService = require("./teamService");
 const standupService = require("./standupService");
+const zohoSyncService = require("./zoho/zohoSyncService");
 const { formatTime12Hour } = require("../utils/dateHelper");
 const {
   getRandomStandupMessage,
@@ -56,6 +57,15 @@ class SchedulerService {
     cron.schedule(
       "0 * * * *",
       runScheduledJob("schedule-refresh", () => this.scheduleAllTeams())
+    );
+
+    // Nightly Zoho People sync (holidays + approved leaves) for every
+    // organization with an enabled ZohoCredential. No-ops immediately if no
+    // organization has Zoho configured. Default 01:30 server-local time;
+    // override with ZOHO_SYNC_CRON if that collides with other maintenance.
+    cron.schedule(
+      process.env.ZOHO_SYNC_CRON || "30 1 * * *",
+      runScheduledJob("zoho-sync", () => zohoSyncService.syncAllOrganizations())
     );
   }
 
