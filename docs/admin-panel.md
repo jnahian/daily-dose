@@ -136,6 +136,7 @@ active org.
 | Holidays      | `/admin/holidays`      | CalendarDays    | Org                  |
 | Scheduler     | `/admin/scheduler`     | Clock           | Org                  |
 | Activity      | `/admin/activity`      | Activity        | Org                  |
+| MCP Usage     | `/admin/mcp-usage`     | BarChart3       | Org                  |
 | My Tokens     | `/admin/tokens`        | Key             | Self (current user)  |
 
 `AdminLayout` guards every admin route: it shows a loading state while the auth
@@ -286,6 +287,25 @@ Read-only feed of the most recent standup submissions for the active org
 "`{user}` submitted standup for `{team}`" with a **late** badge when applicable,
 plus a localized timestamp. Currently the only activity type is
 `standup_submitted`.
+
+### MCP Usage (`/admin/mcp-usage`)
+
+Per-user MCP tool-call counts over time for the active org, as a multi-series
+line chart (`GET /mcp-usage?orgId=&days=`, window clamped to 1–365 days).
+
+Every `tools/call` on the `POST /mcp` endpoint writes one `mcp_tool_calls` row
+(`user_id`, `tool_name`, `created_at`) from the handler in `src/mcp/server.js`.
+The insert is fire-and-forget so a tracking failure can never fail a tool call.
+Two consequences worth knowing:
+
+- The row is written **before** the tool runs, so these are call _attempts_, not
+  successes.
+- No org is recorded at write time (a user may belong to several), so membership
+  is joined at read time — a multi-org user's calls appear under each of their orgs.
+
+The chart plots the six busiest users, folding the remainder into an "Other"
+series; hues are keyed to user identity, so changing the day range never
+repaints a surviving series.
 
 ### My Tokens (`/admin/tokens`)
 

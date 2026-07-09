@@ -1191,6 +1191,45 @@ router.get("/activity", requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/admin/mcp-usage — per-user MCP tool-call counts per day.
+// A user in several orgs has their calls counted under each: the write path
+// records no org, so membership is joined at read time.
+router.get("/mcp-usage", requireAuth, async (req, res) => {
+  try {
+    const { orgId, days = "30" } = req.query;
+    const allowed = await verifyOrgAccess(req, res, orgId);
+    if (!allowed) return;
+
+    const window = Math.min(Math.max(parseInt(days, 10) || 30, 1), 365);
+    const since = new Date(Date.now() - window * 24 * 60 * 60 * 1000);
+
+    const rows = await prisma.$queryRaw`
+      SELECT COALESCE(u.username, u.slack_user_id) AS user,
+             DATE_TRUNC('day', c.created_at)::date AS day,
+             COUNT(*)::int AS count
+      FROM mcp_tool_calls c
+      JOIN users u ON u.id = c.user_id
+      JOIN organization_members m ON m.user_id = c.user_id
+      WHERE m.organization_id = ${orgId}
+        AND m.is_active = true
+        AND c.created_at >= ${since}
+      GROUP BY 1, 2
+      ORDER BY 2 ASC
+    `;
+
+    res.json(
+      rows.map((r) => ({
+        user: r.user,
+        day: r.day.toISOString().slice(0, 10),
+        count: r.count,
+      }))
+    );
+  } catch (err) {
+    console.error("GET /mcp-usage error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // ── Personal access tokens (self-service) ──────────────────────────────
 // These routes are scoped to the logged-in admin user (req.adminUser) and
 // let any signed-in member manage their OWN MCP tokens and OAuth connections

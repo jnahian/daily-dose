@@ -3,6 +3,8 @@ const {
   StreamableHTTPServerTransport,
 } = require("@modelcontextprotocol/sdk/server/streamableHttp.js");
 const tokenService = require("../services/mcpTokenService");
+const logger = require("../utils/logger");
+const prisma = require("../config/prisma");
 const { registerTools } = require("./tools");
 
 // Express middleware: resolve Authorization: Bearer <token> -> req.mcpUser
@@ -63,6 +65,20 @@ function mcpServerInfo() {
  */
 function createMcpHandler(slackApp) {
   return async function handleMcp(req, res) {
+    // Record the attempt, not the outcome — this runs before the tool does.
+    // Fire-and-forget: a failed insert must never fail the tool call.
+    if (req.body?.method === "tools/call") {
+      prisma.mcp_tool_calls
+        .create({
+          data: {
+            user_id: req.mcpUser.id,
+            tool_name: String(req.body.params?.name || "unknown"),
+          },
+        })
+        .catch((err) =>
+          logger.error("mcp_tool_calls insert failed:", err.message)
+        );
+    }
     // Stateless: a fresh server + transport per request, bound to the user.
     const server = new McpServer(mcpServerInfo());
     const transport = new StreamableHTTPServerTransport({

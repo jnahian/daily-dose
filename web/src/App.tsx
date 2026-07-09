@@ -31,6 +31,7 @@ const AdminHolidays = lazy(() => import('./pages/admin/Holidays'));
 const AdminScheduler = lazy(() => import('./pages/admin/Scheduler'));
 const AdminActivity = lazy(() => import('./pages/admin/Activity'));
 const AdminTokens = lazy(() => import('./pages/admin/Tokens'));
+const AdminMcpUsage = lazy(() => import('./pages/admin/McpUsage'));
 
 function App() {
   const location = useLocation();
@@ -51,6 +52,7 @@ function App() {
             <Route path="holidays" element={<AdminHolidays />} />
             <Route path="scheduler" element={<AdminScheduler />} />
             <Route path="activity" element={<AdminActivity />} />
+            <Route path="mcp-usage" element={<AdminMcpUsage />} />
             <Route path="tokens" element={<AdminTokens />} />
           </Route>
         </Routes>
