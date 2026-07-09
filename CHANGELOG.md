@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.2] - 2026-07-09
+
+### Added
+
+- MCP tool-call tracking: every `tools/call` on the `POST /mcp` endpoint now writes an `mcp_tool_calls` row (`user_id`, `tool_name`, `created_at`) from the `handleMcp` choke point. The insert is fire-and-forget with a `.catch()` into `logger.error`, so a tracking failure can never fail a tool call. Rows are written before the tool executes, so counts are call attempts, not successes. (`prisma/schema.prisma`, `prisma/migrations/20260709063754_add_mcp_tool_calls/`, `src/mcp/server.js`)
+- `GET /api/admin/mcp-usage?orgId=&days=` returns per-user, per-day MCP tool-call counts for an org, gated by `verifyOrgAccess` with the day window clamped to 1–365. No org is recorded at write time (a user may belong to several), so `organization_members` is joined at read time — a multi-org user's calls appear under each of their orgs. (`src/routes/admin.js`)
+- MCP Usage admin page (`/admin/mcp-usage`): a recharts multi-series line chart of per-user tool-call counts over a 7/30/90-day window. Plots the six busiest users and folds the remainder into an "Other" series; hues are keyed to user identity via a persistent slot map, so changing the day range never repaints a surviving series. Adds `recharts` to `web/` (lazy-loaded chunk, ~372 kB). (`web/src/pages/admin/McpUsage.tsx`, `web/src/App.tsx`, `web/src/components/admin/AdminSidebar.tsx`)
+
+### Changed
+
+- Documented the MCP Usage page and `GET /api/admin/mcp-usage` endpoint, including the attempts-not-successes and multi-org read-time-join caveats. (`docs/admin-panel.md`)
+
 ## [1.16.1] - 2026-06-23
 
 ### Added
@@ -670,7 +682,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.16.1...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.16.2...HEAD
+[1.16.2]: https://github.com/jnahian/daily-dose/compare/v1.16.1...v1.16.2
 [1.16.1]: https://github.com/jnahian/daily-dose/compare/v1.15.2...v1.16.1
 [1.16.0]: https://github.com/jnahian/daily-dose/compare/v1.15.2...v1.16.0
 [1.15.2]: https://github.com/jnahian/daily-dose/compare/v1.15.1...v1.15.2
