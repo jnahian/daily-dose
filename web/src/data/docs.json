@@ -381,6 +381,33 @@
             },
             {
               "type": "command",
+              "command": "/dd-team-disable [team-name]",
+              "description": "Disable a team (team admin or org owner/admin). The team stops sending standup reminders and posts and disappears from team listings, but its members and standup history are kept so it can be re-enabled later. Runs on the current channel's team when no name is given.",
+              "examples": [
+                "# Disable the team in the current channel\n/dd-team-disable",
+                "# Disable a specific team\n/dd-team-disable Engineering"
+              ]
+            },
+            {
+              "type": "command",
+              "command": "/dd-team-enable [team-name]",
+              "description": "Re-enable a previously disabled team (team admin or org owner/admin). Standup reminders and posts resume immediately. Runs on the current channel's team when no name is given.",
+              "examples": [
+                "# Re-enable the team in the current channel\n/dd-team-enable",
+                "# Re-enable a specific team\n/dd-team-enable Engineering"
+              ]
+            },
+            {
+              "type": "command",
+              "command": "/dd-team-delete [team-name]",
+              "description": "Permanently delete a team (team admin or org owner/admin). Shows a confirmation prompt first; on confirm, the team, its members, and all standup history are removed and the channel is freed for a new team. This cannot be undone — use /dd-team-disable instead if you only want to pause standups.",
+              "examples": [
+                "# Delete the team in the current channel\n/dd-team-delete",
+                "# Delete a specific team\n/dd-team-delete Engineering"
+              ]
+            },
+            {
+              "type": "command",
               "command": "/dd-team-suspend @user [team-name]",
               "description": "Suspend a member from a team (team admin or org owner/admin). Suspended members stop receiving reminders, are excluded from standup posts, and cannot submit standups for that team. Blocked when the user is the only active admin of the team.",
               "examples": [

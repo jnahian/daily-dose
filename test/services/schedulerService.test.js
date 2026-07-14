@@ -70,3 +70,22 @@ describe("schedulerService reminder eligibility", () => {
     expect(recipients).toEqual(["U_MEMBER"]);
   });
 });
+
+describe("schedulerService.stopTeamSchedule", () => {
+  it("stops and removes all three of a team's cron jobs", () => {
+    const stop = jest.fn();
+    schedulerService.scheduledJobs.set("standup-team-1", { stop });
+    schedulerService.scheduledJobs.set("followup-team-1", { stop });
+    schedulerService.scheduledJobs.set("posting-team-1", { stop });
+    // A job for another team must be left untouched.
+    schedulerService.scheduledJobs.set("standup-team-2", { stop });
+
+    schedulerService.stopTeamSchedule("team-1");
+
+    expect(stop).toHaveBeenCalledTimes(3);
+    expect(schedulerService.scheduledJobs.has("standup-team-1")).toBe(false);
+    expect(schedulerService.scheduledJobs.has("followup-team-1")).toBe(false);
+    expect(schedulerService.scheduledJobs.has("posting-team-1")).toBe(false);
+    expect(schedulerService.scheduledJobs.has("standup-team-2")).toBe(true);
+  });
+});

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Team disable/enable/delete slash commands (team admin or org owner/admin):
+  - `/dd-team-disable [team-name]` pauses a team by setting `isActive: false` and tearing down its cron jobs via the new `schedulerService.stopTeamSchedule(teamId)`; the team's members and standup history are preserved. (`src/commands/team.js`, `src/services/teamService.js` `setTeamActive`, `src/services/schedulerService.js`)
+  - `/dd-team-enable [team-name]` restores a disabled team (`isActive: true`) and reschedules it via `refreshTeamSchedule` when its status is `ACTIVE` (a still-`PENDING` team is left unscheduled).
+  - `/dd-team-delete [team-name]` shows a Block Kit confirmation prompt (`createTeamDeleteConfirmBlocks`) and, on confirm, hard-deletes the team via `teamService.deleteTeam` — cascade removes `TeamMember`/`StandupResponse`/`StandupPost` rows and frees the Slack channel for a new team — then stops its schedule. Confirm/cancel handled by the `confirm_delete_team_*` / `cancel_delete_team_*` actions with `createTeamDeleteResultBlocks`. (`src/commands/index.js`, `src/utils/blockHelper.js`)
+  - All three resolve the target team by explicit name (scoped to the caller's org) or the current channel via new `teamService.findManageableTeamByName` / `findManageableTeamByChannel`, which include disabled (but not soft-deleted) teams so a disabled team can still be re-enabled or deleted.
+  - `permissionHelper.canManageTeam` gained a `{ requireActive = true }` option so disabled teams stay manageable by their admins.
+  - Registered the three slash commands in `slack-app-manifest.json` and documented them in `web/src/data/docs.json`.
+
 ## [1.16.2] - 2026-07-09
 
 ### Added

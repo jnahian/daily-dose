@@ -645,6 +645,130 @@ class TeamService {
     });
   }
 
+  // Resolve a team for management (disable/enable/delete) by channel, including
+  // disabled teams (isActive: false) so a disabled team can be re-enabled or
+  // deleted. Soft-deleted teams (deletedAt set) are excluded.
+  async findManageableTeamByChannel(channelId) {
+    return await prisma.team.findFirst({
+      where: {
+        slackChannelId: channelId,
+        deletedAt: null,
+      },
+      include: {
+        organization: true,
+      },
+    });
+  }
+
+  // Resolve a team for management (disable/enable/delete) by name, including
+  // disabled teams. Scope to an organization when provided so a name can't
+  // resolve to another tenant's team.
+  async findManageableTeamByName(teamName, organizationId = null) {
+    return await prisma.team.findFirst({
+      where: {
+        name: {
+          equals: teamName,
+          mode: "insensitive",
+        },
+        deletedAt: null,
+        ...(organizationId ? { organizationId } : {}),
+      },
+      include: {
+        organization: true,
+      },
+    });
+  }
+
+  /**
+   * Disable or re-enable a team. Disabling sets isActive=false so the team stops
+   * appearing in listings and stops being scheduled; re-enabling restores it.
+   * Team data (members, standup history) is preserved either way.
+   * @param {string} slackUserId - Slack user ID of the acting admin
+   * @param {string} teamId - Team ID to toggle
+   * @param {boolean} isActive - Target active state
+   * @param {Object|null} slackClient - Slack web client for fetching user info
+   * @returns {Promise<Object>} The updated team
+   */
+  async setTeamActive(slackUserId, teamId, isActive, slackClient = null) {
+    const userData = await userService.fetchSlackUserData(
+      slackUserId,
+      slackClient
+    );
+    const user = await userService.findOrCreateUser(slackUserId, userData);
+
+    const team = await prisma.team.findFirst({
+      where: { id: teamId, deletedAt: null },
+      include: { organization: true },
+    });
+
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    // Permission: team admin or organization owner/admin. Don't require the team
+    // to be active, so a disabled team can still be re-enabled by its admins.
+    const permission = await permissionHelper.canManageTeam(user.id, teamId, {
+      requireActive: false,
+    });
+    if (!permission.canManage) {
+      throw new Error("You need admin permissions to manage this team");
+    }
+
+    if (team.isActive === isActive) {
+      throw new Error(
+        isActive
+          ? "This team is already active"
+          : "This team is already disabled"
+      );
+    }
+
+    return await prisma.team.update({
+      where: { id: teamId },
+      data: { isActive },
+    });
+  }
+
+  /**
+   * Permanently delete a team. Cascade deletes remove its members, standup
+   * responses, and standup posts, and free the Slack channel for a fresh team.
+   * This is irreversible — callers should confirm with the user first.
+   * @param {string} slackUserId - Slack user ID of the acting admin
+   * @param {string} teamId - Team ID to delete
+   * @param {Object|null} slackClient - Slack web client for fetching user info
+   * @returns {Promise<Object>} A snapshot of the deleted team
+   */
+  async deleteTeam(slackUserId, teamId, slackClient = null) {
+    const userData = await userService.fetchSlackUserData(
+      slackUserId,
+      slackClient
+    );
+    const user = await userService.findOrCreateUser(slackUserId, userData);
+
+    const team = await prisma.team.findFirst({
+      where: { id: teamId, deletedAt: null },
+      include: { organization: true },
+    });
+
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    // Permission: team admin or organization owner/admin. Don't require the team
+    // to be active, so a disabled team can still be deleted.
+    const permission = await permissionHelper.canManageTeam(user.id, teamId, {
+      requireActive: false,
+    });
+    if (!permission.canManage) {
+      throw new Error("You need admin permissions to delete this team");
+    }
+
+    // Hard delete so the channel is freed for a new team. Cascade deletes remove
+    // TeamMember, StandupResponse, and StandupPost rows (see schema relations).
+    await prisma.team.delete({ where: { id: teamId } });
+
+    return team;
+  }
+
   async updateTeam(slackUserId, teamId, updateData, slackClient = null) {
     const userData = await userService.fetchSlackUserData(
       slackUserId,

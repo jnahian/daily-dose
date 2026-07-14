@@ -9,8 +9,11 @@ const {
   createTeamApprovalResultBlocks,
   createTeamMembersStatusBlocks,
   createTeamListWithMembersBlocks,
+  createTeamDeleteConfirmBlocks,
+  createTeamDeleteResultBlocks,
 } = require("../utils/blockHelper");
 const logger = require("../utils/logger");
+const permissionHelper = require("../utils/permissionHelper");
 const { parseTimeString } = require("../utils/timeHelper");
 const { escapeSlackText } = require("../utils/messageHelper");
 const { sanitizeError } = require("../utils/errorHelper");
@@ -556,6 +559,231 @@ async function updateTeam({ command, ack, respond, client }) {
   }
 }
 
+// Resolve the team a management command (disable/enable/delete) targets.
+// Accepts an explicit team name, or falls back to the current channel's team.
+// Includes disabled teams so a disabled team can still be re-enabled or deleted.
+// Sends an error via updateResponse and returns null when it can't resolve.
+async function resolveManageableTeam({ command, updateResponse, cmdName }) {
+  const teamName = command.text.trim();
+
+  if (teamName) {
+    // Scope name lookups to the caller's own organization so a name can't
+    // resolve to another tenant's team.
+    const userOrg = await userService.getUserOrganization(command.user_id);
+    if (!userOrg) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          "You are not a member of any organization."
+        ),
+      });
+      return null;
+    }
+
+    const team = await teamService.findManageableTeamByName(
+      teamName,
+      userOrg.id
+    );
+    if (!team) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(`Team "${teamName}" not found`),
+      });
+      return null;
+    }
+    return team;
+  }
+
+  const team = await teamService.findManageableTeamByChannel(
+    command.channel_id
+  );
+  if (!team) {
+    await updateResponse({
+      blocks: createCommandErrorBlocks("No team found in this channel.", [
+        `Run \`${cmdName} [TeamName]\` to target a specific team`,
+        `Or run \`${cmdName}\` inside a team channel`,
+      ]),
+    });
+    return null;
+  }
+  return team;
+}
+
+async function disableTeam({ command, ack, respond, client }) {
+  const updateResponse = await ackWithProcessing(
+    ack,
+    respond,
+    "Disabling team...",
+    command
+  );
+
+  try {
+    const team = await resolveManageableTeam({
+      command,
+      updateResponse,
+      cmdName: "/dd-team-disable",
+    });
+    if (!team) return;
+
+    await teamService.setTeamActive(command.user_id, team.id, false, client);
+
+    // Stop the team's cron jobs so it no longer sends reminders or posts.
+    schedulerService.stopTeamSchedule(team.id);
+
+    await updateResponse({
+      text: `✅ Team "${escapeSlackText(
+        team.name
+      )}" has been disabled. Standup reminders and posts are paused.\nRe-enable it any time with \`/dd-team-enable ${escapeSlackText(
+        team.name
+      )}\`.`,
+    });
+  } catch (error) {
+    await updateResponse({
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
+    });
+  }
+}
+
+async function enableTeam({ command, ack, respond, client }) {
+  const updateResponse = await ackWithProcessing(
+    ack,
+    respond,
+    "Enabling team...",
+    command
+  );
+
+  try {
+    const team = await resolveManageableTeam({
+      command,
+      updateResponse,
+      cmdName: "/dd-team-enable",
+    });
+    if (!team) return;
+
+    await teamService.setTeamActive(command.user_id, team.id, true, client);
+
+    // Reschedule the team's cron jobs. Only ACTIVE teams are schedulable, so a
+    // still-PENDING team is left unscheduled until it's approved.
+    if (team.status === "ACTIVE") {
+      await schedulerService.refreshTeamSchedule(team.id);
+    }
+
+    await updateResponse({
+      text: `✅ Team "${escapeSlackText(
+        team.name
+      )}" has been re-enabled. Standup reminders and posts have resumed.`,
+    });
+  } catch (error) {
+    await updateResponse({
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
+    });
+  }
+}
+
+async function deleteTeam({ command, ack, respond }) {
+  const updateResponse = await ackWithProcessing(
+    ack,
+    respond,
+    "Loading team...",
+    command
+  );
+
+  try {
+    const team = await resolveManageableTeam({
+      command,
+      updateResponse,
+      cmdName: "/dd-team-delete",
+    });
+    if (!team) return;
+
+    // Pre-check permission so a non-admin doesn't get a delete button they can't
+    // use. The confirm handler re-checks via teamService.deleteTeam.
+    const user = await permissionHelper.getUserBySlackId(command.user_id);
+    const permission = user
+      ? await permissionHelper.canManageTeam(user.id, team.id, {
+          requireActive: false,
+        })
+      : { canManage: false };
+    if (!permission.canManage) {
+      await updateResponse({
+        blocks: createCommandErrorBlocks(
+          "You need admin permissions to delete this team"
+        ),
+      });
+      return;
+    }
+
+    // Delete is irreversible, so require an explicit confirmation click.
+    await updateResponse({
+      text: `Delete team "${team.name}"?`,
+      blocks: createTeamDeleteConfirmBlocks({
+        teamId: team.id,
+        teamName: team.name,
+        channelId: team.slackChannelId,
+      }),
+    });
+  } catch (error) {
+    await updateResponse({
+      blocks: createCommandErrorBlocks(sanitizeError(error)),
+    });
+  }
+}
+
+// Admin clicks "Delete" on the /dd-team-delete confirmation. Permanently deletes
+// the team, tears down its schedule, and replaces the confirmation buttons.
+async function confirmDeleteTeam({ body, ack, client, respond }) {
+  await ack();
+
+  const teamId = body.actions[0].value;
+
+  let team;
+  try {
+    team = await teamService.deleteTeam(body.user.id, teamId, client);
+  } catch (error) {
+    logger.error("Error deleting team:", error);
+    await respond({
+      response_type: "ephemeral",
+      replace_original: true,
+      text: `⚠️ ${sanitizeError(error)}`,
+    });
+    return;
+  }
+
+  // Team is gone; tear down its cron jobs so nothing keeps firing for it.
+  schedulerService.stopTeamSchedule(teamId);
+
+  await respond({
+    response_type: "ephemeral",
+    replace_original: true,
+    text: `Deleted team "${team.name}"`,
+    blocks: createTeamDeleteResultBlocks({
+      teamName: team.name,
+      channelId: team.slackChannelId,
+      decidedBySlackUserId: body.user.id,
+      deleted: true,
+    }),
+  });
+}
+
+// Admin clicks "Cancel" on the /dd-team-delete confirmation. Leaves the team
+// untouched and replaces the confirmation buttons.
+async function cancelDeleteTeam({ body, ack, respond }) {
+  await ack();
+
+  const teamId = body.actions[0].value;
+  const team = await teamService.getTeamById(teamId);
+
+  await respond({
+    response_type: "ephemeral",
+    replace_original: true,
+    text: "Team deletion cancelled",
+    blocks: createTeamDeleteResultBlocks({
+      teamName: team ? team.name : "team",
+      channelId: team ? team.slackChannelId : body.channel?.id,
+      decidedBySlackUserId: body.user.id,
+      deleted: false,
+    }),
+  });
+}
+
 async function suspendTeamMember({ command, ack, respond, client }) {
   return handleTeamSuspension({ command, ack, respond, client, suspend: true });
 }
@@ -939,6 +1167,11 @@ module.exports = {
   listTeams,
   listMembers,
   updateTeam,
+  disableTeam,
+  enableTeam,
+  deleteTeam,
+  confirmDeleteTeam,
+  cancelDeleteTeam,
   suspendTeamMember,
   unsuspendTeamMember,
   suspendOrgMember,

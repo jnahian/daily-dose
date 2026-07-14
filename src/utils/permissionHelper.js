@@ -78,13 +78,20 @@ async function isTeamAdmin(userId, teamId) {
  * Check if a user can manage a team (either as owner or admin)
  * @param {number} userId - The user ID to check
  * @param {number} teamId - The team ID to check against
+ * @param {object} [options] - Options
+ * @param {boolean} [options.requireActive=true] - Require the team to be active.
+ *   Set false when acting on an already-disabled team (e.g. re-enabling it).
  * @returns {Promise<{canManage: boolean, role: string|null, reason: string|null}>} Permission result with role information
  */
-async function canManageTeam(userId, teamId) {
+async function canManageTeam(userId, teamId, { requireActive = true } = {}) {
   try {
     // Get team with organization info
     const team = await prisma.team.findFirst({
-      where: { id: teamId, isActive: true },
+      where: {
+        id: teamId,
+        deletedAt: null,
+        ...(requireActive ? { isActive: true } : {}),
+      },
       select: { organizationId: true },
     });
 
