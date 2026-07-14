@@ -74,7 +74,7 @@
       {
         "command": "/dd-team-delete",
         "url": "{{APP_URL}}/slack/events",
-        "description": "Permanently delete a team and its standup history (admin only)",
+        "description": "Delete a team and its standup history (admin only)",
         "usage_hint": "[TeamName]",
         "should_escape": false
       },

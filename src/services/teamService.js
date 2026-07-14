@@ -729,9 +729,11 @@ class TeamService {
   }
 
   /**
-   * Permanently delete a team. Cascade deletes remove its members, standup
-   * responses, and standup posts, and free the Slack channel for a fresh team.
-   * This is irreversible — callers should confirm with the user first.
+   * Soft-delete a team: mark it deleted (deletedAt) and inactive. The row and its
+   * members/standup history are retained so an operator can restore it, but it
+   * disappears from every Slack-facing lookup and can't be re-enabled from Slack
+   * (unlike a disabled team). This is not reversible from Slack — callers should
+   * confirm with the user first.
    * @param {string} slackUserId - Slack user ID of the acting admin
    * @param {string} teamId - Team ID to delete
    * @param {Object|null} slackClient - Slack web client for fetching user info
@@ -762,9 +764,13 @@ class TeamService {
       throw new Error("You need admin permissions to delete this team");
     }
 
-    // Hard delete so the channel is freed for a new team. Cascade deletes remove
-    // TeamMember, StandupResponse, and StandupPost rows (see schema relations).
-    await prisma.team.delete({ where: { id: teamId } });
+    // Soft delete (mirrors the admin panel): retain the row/history but hide the
+    // team everywhere. deletedAt excludes it from findManageable* lookups, so it
+    // can't be re-enabled from Slack.
+    await prisma.team.update({
+      where: { id: teamId },
+      data: { deletedAt: new Date(), isActive: false },
+    });
 
     return team;
   }

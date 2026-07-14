@@ -2,7 +2,6 @@ jest.mock("../../src/config/prisma", () => ({
   team: {
     findFirst: jest.fn(),
     update: jest.fn(),
-    delete: jest.fn(),
   },
 }));
 
@@ -96,13 +95,23 @@ describe("teamService.setTeamActive", () => {
 });
 
 describe("teamService.deleteTeam", () => {
-  it("hard-deletes a team and returns its snapshot", async () => {
+  it("soft-deletes a team (deletedAt + inactive) and returns its snapshot", async () => {
     prisma.team.findFirst.mockResolvedValue(activeTeam);
-    prisma.team.delete.mockResolvedValue(activeTeam);
+    prisma.team.update.mockResolvedValue({
+      ...activeTeam,
+      isActive: false,
+      deletedAt: new Date(),
+    });
 
     const result = await teamService.deleteTeam("U_ADMIN", "t1");
 
-    expect(prisma.team.delete).toHaveBeenCalledWith({ where: { id: "t1" } });
+    expect(prisma.team.update).toHaveBeenCalledWith({
+      where: { id: "t1" },
+      data: expect.objectContaining({
+        isActive: false,
+        deletedAt: expect.any(Date),
+      }),
+    });
     expect(result.name).toBe("Eng");
   });
 
@@ -112,7 +121,7 @@ describe("teamService.deleteTeam", () => {
     await expect(teamService.deleteTeam("U_ADMIN", "t1")).rejects.toThrow(
       /Team not found/
     );
-    expect(prisma.team.delete).not.toHaveBeenCalled();
+    expect(prisma.team.update).not.toHaveBeenCalled();
   });
 
   it("blocks a user without manage permission", async () => {
@@ -122,6 +131,6 @@ describe("teamService.deleteTeam", () => {
     await expect(teamService.deleteTeam("U_RANDOM", "t1")).rejects.toThrow(
       /admin permissions/
     );
-    expect(prisma.team.delete).not.toHaveBeenCalled();
+    expect(prisma.team.update).not.toHaveBeenCalled();
   });
 });

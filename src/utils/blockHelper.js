@@ -415,7 +415,7 @@ function createTeamDeleteConfirmBlocks({ teamId, teamName, channelId }) {
       `⚠️ *Delete team ${escapeSlackText(teamName)}?* (<#${channelId}>)`
     ),
     createContextBlock(
-      "This permanently removes the team, its members, and all standup history. This cannot be undone."
+      "This removes the team, its members, and standup history from Daily Dose and can't be undone from Slack. Use `/dd-team-disable` instead if you only want to pause standups."
     ),
     createActionsBlock([
       createButton(

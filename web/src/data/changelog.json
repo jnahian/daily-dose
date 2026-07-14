@@ -11,7 +11,7 @@
           "items": [
             "/dd-team-disable pauses a team — standup reminders and posts stop and the team drops off your team list, but its members and standup history are kept so you can bring it back any time.",
             "/dd-team-enable turns a paused team back on and resumes its standups right away.",
-            "/dd-team-delete permanently removes a team and its standup history after a quick confirmation, and frees the channel for a fresh team. Use disable instead if you only want to pause standups.",
+            "/dd-team-delete removes a team and its standup history after a quick confirmation. Use disable instead if you only want to pause standups.",
             "All three work on the team in the current channel, or on a team you name, and are available to team admins and organization owners/admins."
           ]
         }

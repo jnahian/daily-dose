@@ -400,7 +400,7 @@
             {
               "type": "command",
               "command": "/dd-team-delete [team-name]",
-              "description": "Permanently delete a team (team admin or org owner/admin). Shows a confirmation prompt first; on confirm, the team, its members, and all standup history are removed and the channel is freed for a new team. This cannot be undone — use /dd-team-disable instead if you only want to pause standups.",
+              "description": "Delete a team (team admin or org owner/admin). Shows a confirmation prompt first; on confirm, the team disappears from Daily Dose along with its members and standup history. This can't be undone from Slack — use /dd-team-disable instead if you only want to pause standups.",
               "examples": [
                 "# Delete the team in the current channel\n/dd-team-delete",
                 "# Delete a specific team\n/dd-team-delete Engineering"
