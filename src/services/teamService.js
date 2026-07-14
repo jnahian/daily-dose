@@ -76,26 +76,55 @@ class TeamService {
     const isPrivileged = await userService.canCreateTeam(user.id, org.id);
     const status = isPrivileged ? "ACTIVE" : "PENDING";
 
-    // Check if channel already has a team
+    // Check if channel already has a team. The slackChannelId column is unique,
+    // so a soft-deleted team still occupies the channel — detect that case and
+    // revive it in place instead of dead-ending on "channel already has a team".
     const existingTeam = await prisma.team.findUnique({
       where: { slackChannelId: channelId },
     });
 
-    if (existingTeam) {
+    if (existingTeam && !existingTeam.deletedAt) {
       throw new Error("This channel already has a team");
     }
 
-    // Create team with transaction
+    const teamFields = {
+      name: teamData.name,
+      standupTime: validateTimeString(teamData.standupTime),
+      postingTime: validateTimeString(teamData.postingTime),
+      timezone: validateTimezone(teamData.timezone || org.defaultTimezone),
+      status,
+    };
+
+    const revived = !!existingTeam;
+
+    // Revive a soft-deleted team, or create a fresh one, in a transaction. A
+    // revive keeps the team's retained members and standup history (that's the
+    // point of the soft delete) and re-applies the caller's new schedule.
     const team = await prisma.$transaction(async (tx) => {
+      if (existingTeam) {
+        const restored = await tx.team.update({
+          where: { id: existingTeam.id },
+          data: { ...teamFields, isActive: true, deletedAt: null },
+        });
+
+        // Ensure the person recreating the team is an active team admin,
+        // whether or not they were a member of the deleted team.
+        await tx.teamMember.upsert({
+          where: {
+            teamId_userId: { teamId: restored.id, userId: user.id },
+          },
+          update: { role: "ADMIN", isActive: true, deletedAt: null },
+          create: { teamId: restored.id, userId: user.id, role: "ADMIN" },
+        });
+
+        return restored;
+      }
+
       const created = await tx.team.create({
         data: {
           organizationId: org.id,
-          name: teamData.name,
           slackChannelId: channelId,
-          standupTime: validateTimeString(teamData.standupTime),
-          postingTime: validateTimeString(teamData.postingTime),
-          timezone: validateTimezone(teamData.timezone || org.defaultTimezone),
-          status,
+          ...teamFields,
         },
       });
 
@@ -118,7 +147,13 @@ class TeamService {
       slackUserId
     );
 
-    return { team, status, organization: org, creatorSlackUserId: slackUserId };
+    return {
+      team,
+      status,
+      organization: org,
+      creatorSlackUserId: slackUserId,
+      revived,
+    };
   }
 
   /**

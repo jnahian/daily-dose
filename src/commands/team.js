@@ -119,17 +119,24 @@ async function createTeam({ command, ack, respond, client }) {
       return;
     }
 
-    const { team, status, organization } = await teamService.createTeam(
-      command.user_id,
-      command.channel_id,
-      {
-        name,
-        standupTime: parsedStandup.normalized,
-        postingTime: parsedPosting.normalized,
-      },
-      command.team_id,
-      client
-    );
+    const { team, status, organization, revived } =
+      await teamService.createTeam(
+        command.user_id,
+        command.channel_id,
+        {
+          name,
+          standupTime: parsedStandup.normalized,
+          postingTime: parsedPosting.normalized,
+        },
+        command.team_id,
+        client
+      );
+
+    // A revive brings back the previously deleted team's members and standup
+    // history, so call that out in the confirmation.
+    const revivedNote = revived
+      ? "\n_This channel had a deleted team — it was restored with your new schedule, and its previous members and standup history were kept._"
+      : "";
 
     if (status === "PENDING") {
       // Non-admin proposal: leave it unscheduled and ask org admins to approve.
@@ -145,7 +152,7 @@ async function createTeam({ command, ack, respond, client }) {
           parsedStandup.normalized
         )}\n- Posting time: ${formatTime12Hour(parsedPosting.normalized)}\n- Timezone: ${
           team.timezone
-        }\nAn organization admin will review it shortly — standups start once it's approved.`,
+        }\nAn organization admin will review it shortly — standups start once it's approved.${revivedNote}`,
       });
       return;
     }
@@ -154,11 +161,13 @@ async function createTeam({ command, ack, respond, client }) {
     await schedulerService.refreshTeamSchedule(team.id);
 
     await updateResponse({
-      text: `✅ Team "${escapeSlackText(name)}" created successfully!\n- Standup reminder: ${formatTime12Hour(
+      text: `✅ Team "${escapeSlackText(name)}" ${
+        revived ? "restored" : "created"
+      } successfully!\n- Standup reminder: ${formatTime12Hour(
         parsedStandup.normalized
       )}\n- Posting time: ${formatTime12Hour(parsedPosting.normalized)}\n- Timezone: ${
         team.timezone
-      }\n- Cron jobs scheduled ✓`,
+      }\n- Cron jobs scheduled ✓${revivedNote}`,
     });
   } catch (error) {
     await updateResponse({

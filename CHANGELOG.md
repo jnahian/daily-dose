@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `permissionHelper.canManageTeam` gained a `{ requireActive = true }` option so disabled teams stay manageable by their admins.
   - Registered the three slash commands in `slack-app-manifest.json` and documented them in `web/src/data/docs.json`.
 
+### Changed
+
+- `teamService.createTeam` now revives a soft-deleted team in a channel instead of throwing "This channel already has a team". The `slackChannelId` column is unique, so a soft-deleted team keeps occupying the channel; `createTeam` detects the `deletedAt` row and reuses it — clearing `deletedAt`, reactivating, applying the caller's new name/times/timezone, and re-asserting the creator as an active team ADMIN via `teamMember.upsert` — so `/dd-team-create` in the channel restores the team (retained members and standup history come back) rather than dead-ending. Returns a `revived` flag so `/dd-team-create` reports "restored" and notes the kept data. An active/disabled team in the channel still blocks creation as before. (`src/services/teamService.js`, `src/commands/team.js`)
+
 ## [1.16.2] - 2026-07-09
 
 ### Added

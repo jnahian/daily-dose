@@ -361,7 +361,7 @@
             {
               "type": "command",
               "command": "/dd-team-create [name] <standup-time> <posting-time>",
-              "description": "Create a new team (admin only). Team name is optional - uses channel name if not provided. Times in 24-hour format (HH:MM). Creates team in current channel.",
+              "description": "Create a new team (admin only). Team name is optional - uses channel name if not provided. Times in 24-hour format (HH:MM). Creates team in current channel. If the channel's team was previously deleted, it is restored with the new schedule and its earlier members and standup history are kept.",
               "examples": [
                 "# Create team with channel name\n/dd-team-create 09:30 10:00",
                 "# Create team with custom name\n/dd-team-create Engineering 09:30 10:00"
@@ -400,7 +400,7 @@
             {
               "type": "command",
               "command": "/dd-team-delete [team-name]",
-              "description": "Delete a team (team admin or org owner/admin). Shows a confirmation prompt first; on confirm, the team disappears from Daily Dose along with its members and standup history. This can't be undone from Slack — use /dd-team-disable instead if you only want to pause standups.",
+              "description": "Delete a team (team admin or org owner/admin). Shows a confirmation prompt first; on confirm, the team disappears from Daily Dose along with its members and standup history. Use /dd-team-disable instead if you only want to pause standups. Running /dd-team-create in the same channel later restores the deleted team with your new schedule, keeping its earlier members and history.",
               "examples": [
                 "# Delete the team in the current channel\n/dd-team-delete",
                 "# Delete a specific team\n/dd-team-delete Engineering"
