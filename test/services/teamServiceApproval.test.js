@@ -7,7 +7,7 @@ jest.mock("../../src/config/prisma", () => ({
     delete: jest.fn(),
     deleteMany: jest.fn(),
   },
-  teamMember: { create: jest.fn() },
+  teamMember: { create: jest.fn(), upsert: jest.fn() },
   $transaction: jest.fn(),
 }));
 
@@ -44,6 +44,11 @@ beforeEach(() => {
     ...data,
   }));
   prisma.teamMember.create.mockResolvedValue({});
+  prisma.teamMember.upsert.mockResolvedValue({});
+  prisma.team.update.mockImplementation(async ({ where, data }) => ({
+    id: where.id,
+    ...data,
+  }));
 });
 
 describe("teamService.createTeam approval gating", () => {
@@ -88,7 +93,7 @@ describe("teamService.createTeam approval gating", () => {
     ).rejects.toThrow(/isn't set up with Daily Dose/);
   });
 
-  it("rejects creation when the channel already has a team", async () => {
+  it("rejects creation when the channel already has an active team", async () => {
     userService.getUserOrganization.mockResolvedValue(org);
     userService.canCreateTeam.mockResolvedValue(true);
     prisma.team.findUnique.mockResolvedValue({ id: "existing" });
@@ -96,6 +101,40 @@ describe("teamService.createTeam approval gating", () => {
     await expect(
       teamService.createTeam("U_ADMIN", "C123", teamData)
     ).rejects.toThrow(/already has a team/);
+  });
+
+  it("revives a soft-deleted team in the channel instead of creating a new row", async () => {
+    userService.getUserOrganization.mockResolvedValue(org);
+    userService.canCreateTeam.mockResolvedValue(true);
+    prisma.team.findUnique.mockResolvedValue({
+      id: "deleted-1",
+      slackChannelId: "C123",
+      deletedAt: new Date("2026-01-01"),
+    });
+
+    const result = await teamService.createTeam("U_ADMIN", "C123", teamData);
+
+    // Reuses the existing row (clears deletedAt, reactivates) rather than
+    // creating a second team for the same channel.
+    expect(prisma.team.create).not.toHaveBeenCalled();
+    expect(prisma.team.update).toHaveBeenCalledWith({
+      where: { id: "deleted-1" },
+      data: expect.objectContaining({
+        isActive: true,
+        deletedAt: null,
+        status: "ACTIVE",
+        name: "Eng",
+      }),
+    });
+    // Recreator is (re)asserted as an active team admin.
+    expect(prisma.teamMember.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        update: { role: "ADMIN", isActive: true, deletedAt: null },
+        create: { teamId: "deleted-1", userId: "u1", role: "ADMIN" },
+      })
+    );
+    expect(result.revived).toBe(true);
+    expect(result.status).toBe("ACTIVE");
   });
 });
 

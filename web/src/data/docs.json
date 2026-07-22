@@ -361,7 +361,7 @@
             {
               "type": "command",
               "command": "/dd-team-create [name] <standup-time> <posting-time>",
-              "description": "Create a new team (admin only). Team name is optional - uses channel name if not provided. Times in 24-hour format (HH:MM). Creates team in current channel.",
+              "description": "Create a new team (admin only). Team name is optional - uses channel name if not provided. Times in 24-hour format (HH:MM). Creates team in current channel. If the channel's team was previously deleted, it is restored with the new schedule and its earlier members and standup history are kept.",
               "examples": [
                 "# Create team with channel name\n/dd-team-create 09:30 10:00",
                 "# Create team with custom name\n/dd-team-create Engineering 09:30 10:00"
@@ -377,6 +377,33 @@
                 "# Multiple parameters\n/dd-team-update standup=09:00 posting=10:30",
                 "# Change team name\n/dd-team-update Engineering name=\"Engineering Team\"",
                 "# Disable admin notifications\n/dd-team-update Engineering notifications=false"
+              ]
+            },
+            {
+              "type": "command",
+              "command": "/dd-team-disable [team-name]",
+              "description": "Disable a team (team admin or org owner/admin). The team stops sending standup reminders and posts and disappears from team listings, but its members and standup history are kept so it can be re-enabled later. Runs on the current channel's team when no name is given.",
+              "examples": [
+                "# Disable the team in the current channel\n/dd-team-disable",
+                "# Disable a specific team\n/dd-team-disable Engineering"
+              ]
+            },
+            {
+              "type": "command",
+              "command": "/dd-team-enable [team-name]",
+              "description": "Re-enable a previously disabled team (team admin or org owner/admin). Standup reminders and posts resume immediately. Runs on the current channel's team when no name is given.",
+              "examples": [
+                "# Re-enable the team in the current channel\n/dd-team-enable",
+                "# Re-enable a specific team\n/dd-team-enable Engineering"
+              ]
+            },
+            {
+              "type": "command",
+              "command": "/dd-team-delete [team-name]",
+              "description": "Delete a team (team admin or org owner/admin). Shows a confirmation prompt first; on confirm, the team disappears from Daily Dose along with its members and standup history. Use /dd-team-disable instead if you only want to pause standups. Running /dd-team-create in the same channel later restores the deleted team with your new schedule, keeping its earlier members and history.",
+              "examples": [
+                "# Delete the team in the current channel\n/dd-team-delete",
+                "# Delete a specific team\n/dd-team-delete Engineering"
               ]
             },
             {
