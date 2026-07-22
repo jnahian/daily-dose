@@ -3,6 +3,9 @@ const {
   extractRichTextValue,
   escapeSlackText,
   unescapeSlackText,
+  getTimeGreeting,
+  getRandomStandupMessage,
+  getRandomFollowupMessage,
 } = require("../../src/utils/messageHelper");
 
 /**
@@ -33,6 +36,57 @@ function assertValidRichText(node, path = "elements") {
     );
   }
 }
+
+describe("getTimeGreeting", () => {
+  // 2026-01-15T14:00:00Z is the anchor. Evaluated in each timezone it lands in
+  // a different bucket, so we can exercise every branch with one fixed instant.
+  beforeAll(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date("2026-01-15T14:00:00Z"));
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
+  it("returns 'Good morning' in the morning (09:00 in New York)", () => {
+    expect(getTimeGreeting("America/New_York")).toBe("Good morning");
+  });
+
+  it("returns 'Good afternoon' in the afternoon (14:00 in UTC)", () => {
+    expect(getTimeGreeting("UTC")).toBe("Good afternoon");
+  });
+
+  it("returns 'Good evening' in the evening (18:00 in Dubai)", () => {
+    expect(getTimeGreeting("Asia/Dubai")).toBe("Good evening");
+  });
+
+  it("returns neutral 'Hello' late at night (23:00 in Tokyo)", () => {
+    expect(getTimeGreeting("Asia/Tokyo")).toBe("Hello");
+  });
+
+  it("falls back to server-local time for an invalid timezone", () => {
+    // Must not throw; returns one of the valid greetings.
+    expect([
+      "Good morning",
+      "Good afternoon",
+      "Good evening",
+      "Hello",
+    ]).toContain(getTimeGreeting("Not/ARealZone"));
+  });
+
+  it("renders a message with the greeting and mention filled, no leftover tokens", () => {
+    const standup = getRandomStandupMessage("U123", "America/New_York");
+    expect(standup).toContain("Good morning <@U123>!");
+    expect(standup).not.toContain("{greeting}");
+    expect(standup).not.toContain("USER_ID");
+
+    const followup = getRandomFollowupMessage("U456", "Asia/Tokyo");
+    expect(followup).toContain("Hello <@U456>!");
+    expect(followup).not.toContain("{greeting}");
+    expect(followup).not.toContain("USER_ID");
+  });
+});
 
 describe("convertTextToRichText", () => {
   it("produces a flat single list for non-indented bullets", () => {
