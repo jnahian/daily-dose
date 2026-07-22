@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Standup reminder and follow-up DMs now open with a time-of-day greeting ("Good morning", "Good afternoon", "Good evening", or a neutral "Hello" late at night / overnight) instead of a random salutation. The greeting is chosen from the current hour in the **recipient's own** timezone (`User.timezone`), so members on distributed teams each get a correct greeting. Implemented via a new `getTimeGreeting(tz)` helper and a `{greeting}` token in the reminder templates; `getRandomStandupMessage`/`getRandomFollowupMessage` now take an optional `timezone` argument (server-local fallback when omitted or invalid), and `schedulerService` passes `member.user.timezone` at both call sites. (`src/utils/messageHelper.js`, `src/services/schedulerService.js`, `test/utils/messageHelper.test.js`)
+
 ## [1.16.2] - 2026-07-09
 
 ### Added

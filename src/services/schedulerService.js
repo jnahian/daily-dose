@@ -188,7 +188,10 @@ class SchedulerService {
 
     for (const member of members) {
       try {
-        const randomMessage = getRandomStandupMessage(member.user.slackUserId);
+        const randomMessage = getRandomStandupMessage(
+          member.user.slackUserId,
+          member.user.timezone
+        );
 
         await this.app.client.chat.postMessage({
           channel: member.user.slackUserId,
@@ -242,7 +245,8 @@ class SchedulerService {
     for (const member of pendingMembers) {
       try {
         const randomFollowupMessage = getRandomFollowupMessage(
-          member.user.slackUserId
+          member.user.slackUserId,
+          member.user.timezone
         );
 
         await this.app.client.chat.postMessage({
