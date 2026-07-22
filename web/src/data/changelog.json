@@ -2,7 +2,7 @@
   "versions": [
     {
       "version": "1.17.0",
-      "date": "2026-07-14",
+      "date": "2026-07-22",
       "isLatest": true,
       "changes": [
         {
@@ -14,6 +14,13 @@
             "/dd-team-delete removes a team and its standup history after a quick confirmation. Use disable instead if you only want to pause standups.",
             "Changed your mind after deleting? Running /dd-team-create in the same channel restores the team with your new schedule and brings back its earlier members and standup history.",
             "All three work on the team in the current channel, or on a team you name, and are available to team admins and organization owners/admins."
+          ]
+        },
+        {
+          "type": "changed",
+          "title": "Friendlier standup reminders",
+          "items": [
+            "Standup reminder and follow-up DMs now open with a greeting that matches the time of day in your own timezone — \"Good morning\", \"Good afternoon\", or \"Good evening\"."
           ]
         }
       ]

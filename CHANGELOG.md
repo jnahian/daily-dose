@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-07-22
+
 ### Added
 
 - Team disable/enable/delete slash commands (team admin or org owner/admin):
@@ -697,7 +699,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.16.2...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.17.0...HEAD
+[1.17.0]: https://github.com/jnahian/daily-dose/compare/v1.16.2...v1.17.0
 [1.16.2]: https://github.com/jnahian/daily-dose/compare/v1.16.1...v1.16.2
 [1.16.1]: https://github.com/jnahian/daily-dose/compare/v1.15.2...v1.16.1
 [1.16.0]: https://github.com/jnahian/daily-dose/compare/v1.15.2...v1.16.0
