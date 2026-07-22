@@ -76,26 +76,55 @@ class TeamService {
     const isPrivileged = await userService.canCreateTeam(user.id, org.id);
     const status = isPrivileged ? "ACTIVE" : "PENDING";
 
-    // Check if channel already has a team
+    // Check if channel already has a team. The slackChannelId column is unique,
+    // so a soft-deleted team still occupies the channel — detect that case and
+    // revive it in place instead of dead-ending on "channel already has a team".
     const existingTeam = await prisma.team.findUnique({
       where: { slackChannelId: channelId },
     });
 
-    if (existingTeam) {
+    if (existingTeam && !existingTeam.deletedAt) {
       throw new Error("This channel already has a team");
     }
 
-    // Create team with transaction
+    const teamFields = {
+      name: teamData.name,
+      standupTime: validateTimeString(teamData.standupTime),
+      postingTime: validateTimeString(teamData.postingTime),
+      timezone: validateTimezone(teamData.timezone || org.defaultTimezone),
+      status,
+    };
+
+    const revived = !!existingTeam;
+
+    // Revive a soft-deleted team, or create a fresh one, in a transaction. A
+    // revive keeps the team's retained members and standup history (that's the
+    // point of the soft delete) and re-applies the caller's new schedule.
     const team = await prisma.$transaction(async (tx) => {
+      if (existingTeam) {
+        const restored = await tx.team.update({
+          where: { id: existingTeam.id },
+          data: { ...teamFields, isActive: true, deletedAt: null },
+        });
+
+        // Ensure the person recreating the team is an active team admin,
+        // whether or not they were a member of the deleted team.
+        await tx.teamMember.upsert({
+          where: {
+            teamId_userId: { teamId: restored.id, userId: user.id },
+          },
+          update: { role: "ADMIN", isActive: true, deletedAt: null },
+          create: { teamId: restored.id, userId: user.id, role: "ADMIN" },
+        });
+
+        return restored;
+      }
+
       const created = await tx.team.create({
         data: {
           organizationId: org.id,
-          name: teamData.name,
           slackChannelId: channelId,
-          standupTime: validateTimeString(teamData.standupTime),
-          postingTime: validateTimeString(teamData.postingTime),
-          timezone: validateTimezone(teamData.timezone || org.defaultTimezone),
-          status,
+          ...teamFields,
         },
       });
 
@@ -118,7 +147,13 @@ class TeamService {
       slackUserId
     );
 
-    return { team, status, organization: org, creatorSlackUserId: slackUserId };
+    return {
+      team,
+      status,
+      organization: org,
+      creatorSlackUserId: slackUserId,
+      revived,
+    };
   }
 
   /**
@@ -643,6 +678,136 @@ class TeamService {
         organization: true,
       },
     });
+  }
+
+  // Resolve a team for management (disable/enable/delete) by channel, including
+  // disabled teams (isActive: false) so a disabled team can be re-enabled or
+  // deleted. Soft-deleted teams (deletedAt set) are excluded.
+  async findManageableTeamByChannel(channelId) {
+    return await prisma.team.findFirst({
+      where: {
+        slackChannelId: channelId,
+        deletedAt: null,
+      },
+      include: {
+        organization: true,
+      },
+    });
+  }
+
+  // Resolve a team for management (disable/enable/delete) by name, including
+  // disabled teams. Scope to an organization when provided so a name can't
+  // resolve to another tenant's team.
+  async findManageableTeamByName(teamName, organizationId = null) {
+    return await prisma.team.findFirst({
+      where: {
+        name: {
+          equals: teamName,
+          mode: "insensitive",
+        },
+        deletedAt: null,
+        ...(organizationId ? { organizationId } : {}),
+      },
+      include: {
+        organization: true,
+      },
+    });
+  }
+
+  /**
+   * Disable or re-enable a team. Disabling sets isActive=false so the team stops
+   * appearing in listings and stops being scheduled; re-enabling restores it.
+   * Team data (members, standup history) is preserved either way.
+   * @param {string} slackUserId - Slack user ID of the acting admin
+   * @param {string} teamId - Team ID to toggle
+   * @param {boolean} isActive - Target active state
+   * @param {Object|null} slackClient - Slack web client for fetching user info
+   * @returns {Promise<Object>} The updated team
+   */
+  async setTeamActive(slackUserId, teamId, isActive, slackClient = null) {
+    const userData = await userService.fetchSlackUserData(
+      slackUserId,
+      slackClient
+    );
+    const user = await userService.findOrCreateUser(slackUserId, userData);
+
+    const team = await prisma.team.findFirst({
+      where: { id: teamId, deletedAt: null },
+      include: { organization: true },
+    });
+
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    // Permission: team admin or organization owner/admin. Don't require the team
+    // to be active, so a disabled team can still be re-enabled by its admins.
+    const permission = await permissionHelper.canManageTeam(user.id, teamId, {
+      requireActive: false,
+    });
+    if (!permission.canManage) {
+      throw new Error("You need admin permissions to manage this team");
+    }
+
+    if (team.isActive === isActive) {
+      throw new Error(
+        isActive
+          ? "This team is already active"
+          : "This team is already disabled"
+      );
+    }
+
+    return await prisma.team.update({
+      where: { id: teamId },
+      data: { isActive },
+    });
+  }
+
+  /**
+   * Soft-delete a team: mark it deleted (deletedAt) and inactive. The row and its
+   * members/standup history are retained so an operator can restore it, but it
+   * disappears from every Slack-facing lookup and can't be re-enabled from Slack
+   * (unlike a disabled team). This is not reversible from Slack — callers should
+   * confirm with the user first.
+   * @param {string} slackUserId - Slack user ID of the acting admin
+   * @param {string} teamId - Team ID to delete
+   * @param {Object|null} slackClient - Slack web client for fetching user info
+   * @returns {Promise<Object>} A snapshot of the deleted team
+   */
+  async deleteTeam(slackUserId, teamId, slackClient = null) {
+    const userData = await userService.fetchSlackUserData(
+      slackUserId,
+      slackClient
+    );
+    const user = await userService.findOrCreateUser(slackUserId, userData);
+
+    const team = await prisma.team.findFirst({
+      where: { id: teamId, deletedAt: null },
+      include: { organization: true },
+    });
+
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    // Permission: team admin or organization owner/admin. Don't require the team
+    // to be active, so a disabled team can still be deleted.
+    const permission = await permissionHelper.canManageTeam(user.id, teamId, {
+      requireActive: false,
+    });
+    if (!permission.canManage) {
+      throw new Error("You need admin permissions to delete this team");
+    }
+
+    // Soft delete (mirrors the admin panel): retain the row/history but hide the
+    // team everywhere. deletedAt excludes it from findManageable* lookups, so it
+    // can't be re-enabled from Slack.
+    await prisma.team.update({
+      where: { id: teamId },
+      data: { deletedAt: new Date(), isActive: false },
+    });
+
+    return team;
   }
 
   async updateTeam(slackUserId, teamId, updateData, slackClient = null) {

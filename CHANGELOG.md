@@ -7,8 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Team disable/enable/delete slash commands (team admin or org owner/admin):
+  - `/dd-team-disable [team-name]` pauses a team by setting `isActive: false` and tearing down its cron jobs via the new `schedulerService.stopTeamSchedule(teamId)`; the team's members and standup history are preserved. (`src/commands/team.js`, `src/services/teamService.js` `setTeamActive`, `src/services/schedulerService.js`)
+  - `/dd-team-enable [team-name]` restores a disabled team (`isActive: true`) and reschedules it via `refreshTeamSchedule` when its status is `ACTIVE` (a still-`PENDING` team is left unscheduled).
+  - `/dd-team-delete [team-name]` shows a Block Kit confirmation prompt (`createTeamDeleteConfirmBlocks`) and, on confirm, soft-deletes the team via `teamService.deleteTeam` (`deletedAt` + `isActive: false`, mirroring the admin panel) then stops its schedule. The row and its members/standup history are retained for operator restore, but `deletedAt` hides the team from every Slack lookup so it can't be re-enabled from Slack (unlike a disabled team). Confirm/cancel handled by the `confirm_delete_team_*` / `cancel_delete_team_*` actions with `createTeamDeleteResultBlocks`. (`src/commands/index.js`, `src/utils/blockHelper.js`)
+  - All three resolve the target team by explicit name (scoped to the caller's org) or the current channel via new `teamService.findManageableTeamByName` / `findManageableTeamByChannel`, which include disabled but exclude soft-deleted (`deletedAt`) teams, so a disabled team can still be re-enabled or deleted while a deleted one cannot.
+  - `permissionHelper.canManageTeam` gained a `{ requireActive = true }` option so disabled teams stay manageable by their admins.
+  - Registered the three slash commands in `slack-app-manifest.json` and documented them in `web/src/data/docs.json`.
+
 ### Changed
 
+- `teamService.createTeam` now revives a soft-deleted team in a channel instead of throwing "This channel already has a team". The `slackChannelId` column is unique, so a soft-deleted team keeps occupying the channel; `createTeam` detects the `deletedAt` row and reuses it — clearing `deletedAt`, reactivating, applying the caller's new name/times/timezone, and re-asserting the creator as an active team ADMIN via `teamMember.upsert` — so `/dd-team-create` in the channel restores the team (retained members and standup history come back) rather than dead-ending. Returns a `revived` flag so `/dd-team-create` reports "restored" and notes the kept data. An active/disabled team in the channel still blocks creation as before. (`src/services/teamService.js`, `src/commands/team.js`)
 - Standup reminder and follow-up DMs now open with a time-of-day greeting ("Good morning", "Good afternoon", "Good evening", or a neutral "Hello" late at night / overnight) instead of a random salutation. The greeting is chosen from the current hour in the **recipient's own** timezone (`User.timezone`), so members on distributed teams each get a correct greeting. Implemented via a new `getTimeGreeting(tz)` helper and a `{greeting}` token in the reminder templates; `getRandomStandupMessage`/`getRandomFollowupMessage` now take an optional `timezone` argument (server-local fallback when omitted or invalid), and `schedulerService` passes `member.user.timezone` at both call sites. (`src/utils/messageHelper.js`, `src/services/schedulerService.js`, `test/utils/messageHelper.test.js`)
 
 ## [1.16.2] - 2026-07-09

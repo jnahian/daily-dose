@@ -357,6 +357,22 @@ class SchedulerService {
   }
 
   /**
+   * Stop and remove all cron jobs for a team (used when a team is disabled or
+   * deleted). The hourly safety-net refresh only (re)schedules active teams, so
+   * a disabled/deleted team's jobs must be torn down explicitly here.
+   * @param {string} teamId - Team ID whose jobs should be stopped
+   */
+  stopTeamSchedule(teamId) {
+    for (const jobId of [
+      `standup-${teamId}`,
+      `followup-${teamId}`,
+      `posting-${teamId}`,
+    ]) {
+      this.stopJob(jobId);
+    }
+  }
+
+  /**
    * Refresh all team schedules (useful for batch updates or after major changes)
    */
   async refreshAllSchedules() {

@@ -1,9 +1,27 @@
 {
   "versions": [
     {
+      "version": "1.17.0",
+      "date": "2026-07-14",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "added",
+          "title": "Disable, re-enable, or delete a team from Slack",
+          "items": [
+            "/dd-team-disable pauses a team — standup reminders and posts stop and the team drops off your team list, but its members and standup history are kept so you can bring it back any time.",
+            "/dd-team-enable turns a paused team back on and resumes its standups right away.",
+            "/dd-team-delete removes a team and its standup history after a quick confirmation. Use disable instead if you only want to pause standups.",
+            "Changed your mind after deleting? Running /dd-team-create in the same channel restores the team with your new schedule and brings back its earlier members and standup history.",
+            "All three work on the team in the current channel, or on a team you name, and are available to team admins and organization owners/admins."
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.16.1",
       "date": "2026-06-23",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "fixed",

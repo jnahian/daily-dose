@@ -42,6 +42,9 @@ function setupCommands(app) {
   app.command("/dd-team-members", stripFormatting(), teamCommands.listMembers);
   app.command("/dd-team-create", stripFormatting(), teamCommands.createTeam);
   app.command("/dd-team-update", stripFormatting(), teamCommands.updateTeam);
+  app.command("/dd-team-disable", stripFormatting(), teamCommands.disableTeam);
+  app.command("/dd-team-enable", stripFormatting(), teamCommands.enableTeam);
+  app.command("/dd-team-delete", stripFormatting(), teamCommands.deleteTeam);
   // Suspension commands accept @mentions; skip stripFormatting so the raw
   // <@U...|name> wrapper survives for parseUserMention.
   app.command("/dd-team-suspend", teamCommands.suspendTeamMember);
@@ -109,6 +112,8 @@ function setupCommands(app) {
   app.action(/open_standup_.*/, standupCommands.openStandupModal);
   app.action(/approve_team_.*/, teamCommands.approveTeam);
   app.action(/reject_team_.*/, teamCommands.rejectTeam);
+  app.action(/confirm_delete_team_.*/, teamCommands.confirmDeleteTeam);
+  app.action(/cancel_delete_team_.*/, teamCommands.cancelDeleteTeam);
   app.view("standup_modal", standupCommands.handleStandupSubmission);
   app.view(
     "standup_update_modal",
