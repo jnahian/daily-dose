@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `scripts/migrateTeamMembers.js` (`npm run team:migrate-members <source-team> <target-team> [options]`): moves all active `TeamMember` records from one team to another, resolving teams by exact name (case-insensitive) or UUID. Reactivates/creates the target `TeamMember` preserving `role`, `receiveNotifications`, and `hideFromNotResponded`, then soft-deletes (`isActive: false`, `deletedAt`) the source membership; skips duplicating members already active on the target team. Historical `StandupResponse`/`StandupPost` rows are left tied to the original team. Flags: `--dry-run` (preview only), `--keep-source` (copy instead of move), `--reset-role` (force `MEMBER` on the target), `--allow-cross-org` (permit migrating between teams in different organizations, creating/reactivating the target `OrganizationMember` as needed — required by default since teams normally stay within one org), `--yes`/`-y` (skip the confirmation prompt). Prompts for confirmation before writing unless `--dry-run` or `--yes` is passed, following the same `confirmAction` pattern as `triggerStandup.js`/`sendManualStandup.js`.
+
 ## [1.17.0] - 2026-07-22
 
 ### Added
