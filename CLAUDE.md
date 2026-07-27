@@ -52,6 +52,12 @@ High-leverage footguns specific to this repo. Read before editing:
 - `npm run slack:info` - View Slack team information
 - `npm run team:members [team-name] [date]` - Check active team members and reminder eligibility
 - `npm run team:promote` - Promote team member to admin
+- `npm run team:migrate-members <source-team> <target-team> [options]` - Move all active members from one team to another
+  - Supports `--dry-run` to preview without making changes
+  - Supports `--keep-source` to copy members instead of moving them (source membership stays active)
+  - Supports `--reset-role` to add migrated members as `MEMBER` regardless of their source role
+  - Supports `--allow-cross-org` to migrate between teams in different organizations (creates target org membership if missing)
+  - Supports `--yes` / `-y` to skip the confirmation prompt
 - `npm run debug:scheduler` - Debug scheduler jobs
 
 ### Slack Manifest Management
