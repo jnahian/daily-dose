@@ -1,11 +1,14 @@
+import { useCallback, useEffect, useState } from 'react';
 import { NavLink } from 'react-router';
-import { LayoutDashboard, Building2, Users, MessageSquare, CalendarDays, Clock, Activity, Key, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Building2, Users, MessageSquare, CalendarDays, Clock, Activity, Key, BarChart3, ClipboardCheck } from 'lucide-react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { PENDING_TEAMS_CHANGED_EVENT } from '../../utils/adminEvents';
 
 const navItems = [
   { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/admin/organizations', icon: Building2, label: 'Organizations', superAdminOnly: true },
   { to: '/admin/teams', icon: Users, label: 'Teams' },
+  { to: '/admin/approvals', icon: ClipboardCheck, label: 'Approvals', badge: 'pendingTeams' },
   { to: '/admin/members', icon: Users, label: 'Members' },
   { to: '/admin/standups', icon: MessageSquare, label: 'Standups' },
   { to: '/admin/holidays', icon: CalendarDays, label: 'Holidays' },
@@ -16,7 +19,25 @@ const navItems = [
 ];
 
 export function AdminSidebar() {
-  const { isSuperAdmin } = useAdminAuth();
+  const { isSuperAdmin, activeOrgId } = useAdminAuth();
+  const [pendingCount, setPendingCount] = useState(0);
+
+  const loadPendingCount = useCallback(async () => {
+    if (!activeOrgId) { setPendingCount(0); return; }
+    try {
+      const res = await fetch(`/api/admin/teams/pending?orgId=${activeOrgId}`, { credentials: 'include' });
+      setPendingCount(res.ok ? (await res.json()).length : 0);
+    } catch {
+      setPendingCount(0);
+    }
+  }, [activeOrgId]);
+
+  useEffect(() => {
+    loadPendingCount();
+    // The Approvals page fires this after a decision so the badge stays honest.
+    window.addEventListener(PENDING_TEAMS_CHANGED_EVENT, loadPendingCount);
+    return () => window.removeEventListener(PENDING_TEAMS_CHANGED_EVENT, loadPendingCount);
+  }, [loadPendingCount]);
 
   return (
     <aside className="w-56 bg-[#0d1117] border-r border-white/10 flex flex-col h-screen sticky top-0">
@@ -30,7 +51,7 @@ export function AdminSidebar() {
       <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
         {navItems
           .filter(item => !item.superAdminOnly || isSuperAdmin)
-          .map(({ to, icon: Icon, label }) => (
+          .map(({ to, icon: Icon, label, badge }) => (
             <NavLink
               key={to}
               to={to}
@@ -43,7 +64,15 @@ export function AdminSidebar() {
               }
             >
               <Icon size={16} />
-              {label}
+              <span className="flex-1">{label}</span>
+              {badge === 'pendingTeams' && pendingCount > 0 && (
+                <span
+                  className="min-w-[18px] px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 text-[11px] font-semibold text-center"
+                  aria-label={`${pendingCount} pending team approval${pendingCount === 1 ? '' : 's'}`}
+                >
+                  {pendingCount}
+                </span>
+              )}
             </NavLink>
           ))}
       </nav>

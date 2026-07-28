@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { UploadCloud, AlertTriangle } from 'lucide-react';
 import { AdminModal } from './AdminModal';
 
@@ -30,13 +30,23 @@ interface ImportHolidaysModalProps {
 
 export function ImportHolidaysModal({ isOpen, onClose, orgId, onImported }: ImportHolidaysModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const selectAllRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState<'select' | 'review' | 'done'>('select');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [items, setItems] = useState<PreviewItem[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [summary, setSummary] = useState<{ created: number; updated: number } | null>(null);
+  const [summary, setSummary] = useState<{ created: number; updated: number; skipped: number } | null>(null);
+
+  const allSelected = items.length > 0 && selected.size === items.length;
+
+  // "Unchanged" rows start deselected, so the header box is usually partial.
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate = selected.size > 0 && !allSelected;
+    }
+  }, [selected, allSelected]);
 
   const reset = () => {
     setStep('select');
@@ -100,7 +110,7 @@ export function ImportHolidaysModal({ isOpen, onClose, orgId, onImported }: Impo
   };
 
   const toggleAll = () => {
-    if (selected.size === items.length) setSelected(new Set());
+    if (allSelected) setSelected(new Set());
     else setSelected(new Set(items.map((i) => i.date)));
   };
 
@@ -121,7 +131,7 @@ export function ImportHolidaysModal({ isOpen, onClose, orgId, onImported }: Impo
         setError(data.error || 'Failed to import holidays');
         return;
       }
-      setSummary({ created: data.created, updated: data.updated });
+      setSummary({ created: data.created, updated: data.updated, skipped: data.skipped ?? 0 });
       setStep('done');
       onImported();
     } catch {
@@ -176,7 +186,7 @@ export function ImportHolidaysModal({ isOpen, onClose, orgId, onImported }: Impo
 
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2 text-xs text-white/60">
-              <input type="checkbox" checked={selected.size === items.length} onChange={toggleAll} />
+              <input ref={selectAllRef} type="checkbox" checked={allSelected} onChange={toggleAll} />
               Select all
             </label>
             <span className="text-xs text-white/40">{selected.size} of {items.length} selected</span>
@@ -184,11 +194,24 @@ export function ImportHolidaysModal({ isOpen, onClose, orgId, onImported }: Impo
 
           <div className="border border-white/10 rounded-lg max-h-72 overflow-y-auto">
             <table className="w-full text-sm">
+              <thead className="sr-only">
+                <tr>
+                  <th scope="col">Include</th>
+                  <th scope="col">Date</th>
+                  <th scope="col">Holiday</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
               <tbody>
                 {items.map((item) => (
                   <tr key={item.date} className="border-b border-white/5 last:border-0">
                     <td className="px-3 py-2 w-8">
-                      <input type="checkbox" checked={selected.has(item.date)} onChange={() => toggle(item.date)} />
+                      <input
+                        type="checkbox"
+                        aria-label={`Import ${item.name} on ${item.date}`}
+                        checked={selected.has(item.date)}
+                        onChange={() => toggle(item.date)}
+                      />
                     </td>
                     <td className="px-3 py-2 text-white/70 whitespace-nowrap">{item.date}</td>
                     <td className="px-3 py-2 text-white">
@@ -229,7 +252,8 @@ export function ImportHolidaysModal({ isOpen, onClose, orgId, onImported }: Impo
         <div className="space-y-4">
           <p className="text-sm text-white/70">
             Imported successfully — <span className="text-emerald-400 font-medium">{summary.created} created</span>
-            {summary.updated > 0 && <>, <span className="text-amber-400 font-medium">{summary.updated} updated</span></>}.
+            {summary.updated > 0 && <>, <span className="text-amber-400 font-medium">{summary.updated} updated</span></>}
+            {summary.skipped > 0 && <>, <span className="text-white/50">{summary.skipped} skipped</span></>}.
           </p>
           <div className="flex justify-end">
             <button onClick={handleClose} className="px-4 py-2 text-sm bg-[#00CFFF] text-black font-medium rounded-lg hover:bg-[#00CFFF]/90 transition-colors">

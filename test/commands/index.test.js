@@ -19,7 +19,12 @@ describe("command registration: mention commands skip stripFormatting", () => {
     setupCommands(app);
   });
 
-  it.each(["/dd-standup-post", "/dd-standup-preview"])(
+  it.each([
+    "/dd-standup-post",
+    "/dd-standup-preview",
+    "/dd-zoho-map-member",
+    "/dd-zoho-unmap-member",
+  ])(
     "%s is registered with only a handler (no stripFormatting middleware)",
     (cmd) => {
       expect(registrations[cmd]).toBeDefined();

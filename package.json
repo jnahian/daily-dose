@@ -1,6 +1,6 @@
 {
   "name": "daily-dose",
-  "version": "1.17.1",
+  "version": "1.18.0",
   "main": "index.js",
   "directories": {
     "doc": "docs"
@@ -25,6 +25,8 @@
     "team:migrate-members": "node scripts/migrateTeamMembers.js",
     "channels:backfill": "node scripts/backfillOrgChannels.js",
     "debug:scheduler": "node scripts/debugScheduler.js",
+    "zoho:auth-setup": "node scripts/zohoAuthSetup.js",
+    "zoho:sync": "node scripts/zohoSyncNow.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "jest",
@@ -60,6 +62,7 @@
     "cookie-parser": "^1.4.7",
     "dayjs": "^1.11.18",
     "dotenv": "^17.2.2",
+    "json-bigint": "^1.0.0",
     "multer": "^2.2.0",
     "node-cron": "^4.2.1",
     "xlsx": "^0.18.5",

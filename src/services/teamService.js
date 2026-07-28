@@ -217,6 +217,68 @@ class TeamService {
   }
 
   /**
+   * List an organization's PENDING teams along with the proposer (the team's
+   * first ADMIN member, i.e. whoever ran /dd-team-create). Used by the admin
+   * panel so approvals are discoverable without the Slack DM.
+   * @param {string} organizationId - Organization ID to scope the lookup to
+   * @returns {Promise<Array<Object>>} Pending teams, oldest proposal first
+   */
+  async getPendingTeamsForOrg(organizationId) {
+    return await prisma.team.findMany({
+      where: { organizationId, status: "PENDING", deletedAt: null },
+      include: {
+        members: {
+          where: { role: "ADMIN" },
+          include: { user: true },
+          orderBy: { joinedAt: "asc" },
+          take: 1,
+        },
+      },
+      orderBy: { createdAt: "asc" },
+    });
+  }
+
+  /**
+   * Core state transition for approving a team: flip PENDING → ACTIVE. Callers
+   * are responsible for authorizing the actor first — the Slack button handler
+   * goes through getPendingTeamForDecision(), the admin panel through its own
+   * verifyOrgAccess().
+   * @param {string} teamId - Team ID to approve
+   * @returns {Promise<Object>} The updated team
+   */
+  async approvePendingTeam(teamId) {
+    // Guard against a concurrent decision (two admins clicking at once): only
+    // flip a team that is still PENDING, so a stale click can't re-process it.
+    const { count } = await prisma.team.updateMany({
+      where: { id: teamId, status: "PENDING" },
+      data: { status: "ACTIVE" },
+    });
+    if (count === 0) {
+      throw new Error("This team has already been processed");
+    }
+
+    return await prisma.team.findUnique({ where: { id: teamId } });
+  }
+
+  /**
+   * Core state transition for rejecting a team: delete it so the channel is
+   * freed for a fresh proposal. Cascade deletes remove the creator's TeamMember
+   * record. Callers authorize the actor first (see approvePendingTeam).
+   * @param {string} teamId - Team ID to reject
+   * @returns {Promise<void>}
+   */
+  async rejectPendingTeam(teamId) {
+    // Scope the delete to PENDING so a concurrent decision can't remove a
+    // just-approved team.
+    const { count } = await prisma.team.deleteMany({
+      where: { id: teamId, status: "PENDING" },
+    });
+    if (count === 0) {
+      throw new Error("This team has already been processed");
+    }
+  }
+
+  /**
    * Approve a PENDING team: transition it to ACTIVE so it can be scheduled.
    * @param {string} adminSlackUserId - Slack user ID of the approving admin
    * @param {string} teamId - Team ID to approve
@@ -230,17 +292,7 @@ class TeamService {
       slackClient
     );
 
-    // Guard against a concurrent decision (two admins clicking at once): only
-    // flip a team that is still PENDING, so a stale click can't re-process it.
-    const { count } = await prisma.team.updateMany({
-      where: { id: teamId, status: "PENDING" },
-      data: { status: "ACTIVE" },
-    });
-    if (count === 0) {
-      throw new Error("This team has already been processed");
-    }
-
-    const updated = await prisma.team.findUnique({ where: { id: teamId } });
+    const updated = await this.approvePendingTeam(teamId);
 
     return { team: updated, creatorSlackUserId };
   }
@@ -260,15 +312,7 @@ class TeamService {
       slackClient
     );
 
-    // Delete the rejected team so the channel is freed for a fresh proposal.
-    // Cascade deletes remove the creator's TeamMember record. Scope the delete
-    // to PENDING so a concurrent decision can't remove a just-approved team.
-    const { count } = await prisma.team.deleteMany({
-      where: { id: teamId, status: "PENDING" },
-    });
-    if (count === 0) {
-      throw new Error("This team has already been processed");
-    }
+    await this.rejectPendingTeam(teamId);
 
     return { team, creatorSlackUserId };
   }

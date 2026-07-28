@@ -24,6 +24,9 @@ const DATE_FORMATS = [
 // Guardrails against malformed rows producing runaway date ranges.
 const MAX_DAYS_PER_ROW = 60;
 const MAX_TOTAL_RECORDS = 1000;
+// Matches Holiday.name's `@db.VarChar(255)` — longer names are truncated
+// rather than blowing up the import mid-transaction.
+const MAX_NAME_LENGTH = 255;
 
 function normalizeHeaderCell(cell) {
   return String(cell || "")
@@ -34,7 +37,11 @@ function normalizeHeaderCell(cell) {
 function findHeaderRow(rows) {
   for (let i = 0; i < Math.min(rows.length, 10); i++) {
     const cells = rows[i].map(normalizeHeaderCell);
-    if (cells.includes("name") && cells.includes("from") && cells.includes("to")) {
+    if (
+      cells.includes("name") &&
+      cells.includes("from") &&
+      cells.includes("to")
+    ) {
       return i;
     }
   }
@@ -157,7 +164,8 @@ function parseHolidayFile(buffer, filename) {
 
   for (let i = headerIndex + 1; i < rawRows.length; i++) {
     const line = rawRows[i];
-    if (!line || line.every((cell) => String(cell || "").trim() === "")) continue;
+    if (!line || line.every((cell) => String(cell || "").trim() === ""))
+      continue;
 
     const rowNumber = i + 1;
     const name = String(line[columnMap.name] || "").trim();
@@ -175,18 +183,24 @@ function parseHolidayFile(buffer, filename) {
 
     const startDate = parseDate(fromRaw);
     if (!startDate) {
-      warnings.push(`Row ${rowNumber}: skipped, unrecognized "From" date "${fromRaw}"`);
+      warnings.push(
+        `Row ${rowNumber}: skipped, unrecognized "From" date "${fromRaw}"`
+      );
       continue;
     }
 
     const endDate = toRaw ? parseDate(toRaw) : startDate;
     if (!endDate) {
-      warnings.push(`Row ${rowNumber}: skipped, unrecognized "To" date "${toRaw}"`);
+      warnings.push(
+        `Row ${rowNumber}: skipped, unrecognized "To" date "${toRaw}"`
+      );
       continue;
     }
 
     if (endDate.isBefore(startDate)) {
-      warnings.push(`Row ${rowNumber}: skipped, "To" date is before "From" date`);
+      warnings.push(
+        `Row ${rowNumber}: skipped, "To" date is before "From" date`
+      );
       continue;
     }
 
@@ -206,28 +220,108 @@ function parseHolidayFile(buffer, filename) {
 /**
  * Expands parsed rows into one entry per calendar day, deduping same-day
  * entries (last one wins) so multi-row ranges don't collide.
+ * Returns { records, truncated } — `truncated` is how many days were dropped
+ * by the MAX_TOTAL_RECORDS cap, so callers can warn only when it really bit.
  */
 function expandToDailyRecords(rows) {
   const byDate = new Map();
 
   for (const row of rows) {
     let current = row.startDate;
-    while (current.isBefore(row.endDate) || current.isSame(row.endDate, "day")) {
+    while (
+      current.isBefore(row.endDate) ||
+      current.isSame(row.endDate, "day")
+    ) {
       const date = current.format("YYYY-MM-DD");
       byDate.set(date, { date, name: row.name, description: row.description });
       current = current.add(1, "day");
     }
   }
 
-  const records = Array.from(byDate.values()).sort((a, b) =>
+  const all = Array.from(byDate.values()).sort((a, b) =>
     a.date.localeCompare(b.date)
   );
 
-  return records.slice(0, MAX_TOTAL_RECORDS);
+  return {
+    records: all.slice(0, MAX_TOTAL_RECORDS),
+    truncated: Math.max(0, all.length - MAX_TOTAL_RECORDS),
+  };
+}
+
+// Holiday.date is `@db.Date`, and Prisma persists the *UTC* calendar day of
+// whatever Date it's handed. Everything here therefore pins to UTC midnight:
+// a local-midnight Date would be written as the previous/next day on any host
+// where TZ !== UTC, and the upsert key is (organization_id, date) — so the
+// import would silently overwrite a neighbouring day's holiday.
+function toUtcDate(dateKey) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateKey ?? ""))) return null;
+  const date = new Date(`${dateKey}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return null;
+  // Date rolls overflow days forward instead of rejecting them
+  // ("2026-02-30" → Mar 2), so reject anything that doesn't round-trip.
+  return toDateKey(date) === dateKey ? date : null;
+}
+
+// Inverse of toUtcDate: the UTC calendar day of a stored Holiday.date.
+function toDateKey(date) {
+  return new Date(date).toISOString().slice(0, 10);
+}
+
+/**
+ * Tags each expanded record against the org's existing holidays as
+ * `new` / `update` / `unchanged`. Both sides are keyed by UTC calendar day.
+ */
+function diffAgainstExisting(records, existingHolidays) {
+  const existingByDate = new Map(
+    existingHolidays.map((h) => [toDateKey(h.date), h])
+  );
+
+  return records.map((record) => {
+    const match = existingByDate.get(record.date);
+    if (!match) return { ...record, status: "new" };
+    const unchanged =
+      match.name === record.name &&
+      (match.description || null) === (record.description || null);
+    return { ...record, status: unchanged ? "unchanged" : "update" };
+  });
+}
+
+/**
+ * Normalizes confirmed import items into DB-ready rows, dropping anything
+ * unusable (bad date, blank name, duplicate day) before the write starts so a
+ * malformed item can't fail the transaction partway through.
+ * Returns { valid, skipped }.
+ */
+function normalizeImportItems(items) {
+  const valid = [];
+  const seen = new Set();
+  let skipped = 0;
+
+  for (const item of items) {
+    const date = toUtcDate(item?.date);
+    const name = String(item?.name ?? "")
+      .trim()
+      .slice(0, MAX_NAME_LENGTH);
+    const description = String(item?.description ?? "").trim() || null;
+
+    if (!date || !name || seen.has(item.date)) {
+      skipped++;
+      continue;
+    }
+    seen.add(item.date);
+    valid.push({ date, name, description });
+  }
+
+  return { valid, skipped };
 }
 
 module.exports = {
   parseHolidayFile,
   expandToDailyRecords,
+  diffAgainstExisting,
+  normalizeImportItems,
+  toUtcDate,
+  toDateKey,
   MAX_TOTAL_RECORDS,
+  MAX_NAME_LENGTH,
 };

@@ -1,6 +1,7 @@
 jest.mock("../../src/config/prisma", () => ({
   team: {
     findUnique: jest.fn(),
+    findMany: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     updateMany: jest.fn(),
@@ -228,6 +229,70 @@ describe("teamService.approveTeam / rejectTeam", () => {
 
     await expect(teamService.approveTeam("U_OWNER", "t1")).rejects.toThrow(
       /already been active/
+    );
+  });
+});
+
+describe("teamService admin-panel approval helpers", () => {
+  it("lists an org's pending teams with the proposer attached", async () => {
+    prisma.team.findMany.mockResolvedValue([
+      { id: "t1", name: "Eng", members: [{ user: { slackUserId: "U_A" } }] },
+    ]);
+
+    const result = await teamService.getPendingTeamsForOrg("o1");
+
+    const args = prisma.team.findMany.mock.calls[0][0];
+    // Scoped to the org's live PENDING teams only — an approved or soft-deleted
+    // team must never show up as awaiting a decision.
+    expect(args.where).toEqual({
+      organizationId: "o1",
+      status: "PENDING",
+      deletedAt: null,
+    });
+    // Proposer is the team's first ADMIN member (whoever ran /dd-team-create).
+    expect(args.include.members.where).toEqual({ role: "ADMIN" });
+    expect(args.include.members.orderBy).toEqual({ joinedAt: "asc" });
+    expect(result[0].members[0].user.slackUserId).toBe("U_A");
+  });
+
+  it("approvePendingTeam flips PENDING to ACTIVE and returns the team", async () => {
+    prisma.team.updateMany.mockResolvedValue({ count: 1 });
+    prisma.team.findUnique.mockResolvedValue({ id: "t1", status: "ACTIVE" });
+
+    const team = await teamService.approvePendingTeam("t1");
+
+    expect(prisma.team.updateMany).toHaveBeenCalledWith({
+      where: { id: "t1", status: "PENDING" },
+      data: { status: "ACTIVE" },
+    });
+    expect(team.status).toBe("ACTIVE");
+  });
+
+  it("approvePendingTeam throws when another admin already decided", async () => {
+    prisma.team.updateMany.mockResolvedValue({ count: 0 });
+
+    await expect(teamService.approvePendingTeam("t1")).rejects.toThrow(
+      /already been processed/
+    );
+    // No re-read, and nothing was mutated.
+    expect(prisma.team.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("rejectPendingTeam deletes only while still PENDING", async () => {
+    prisma.team.deleteMany.mockResolvedValue({ count: 1 });
+
+    await teamService.rejectPendingTeam("t1");
+
+    expect(prisma.team.deleteMany).toHaveBeenCalledWith({
+      where: { id: "t1", status: "PENDING" },
+    });
+  });
+
+  it("rejectPendingTeam throws when another admin already decided", async () => {
+    prisma.team.deleteMany.mockResolvedValue({ count: 0 });
+
+    await expect(teamService.rejectPendingTeam("t1")).rejects.toThrow(
+      /already been processed/
     );
   });
 });

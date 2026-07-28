@@ -131,6 +131,7 @@ active org.
 | Dashboard     | `/admin/dashboard`     | LayoutDashboard | Org or global        |
 | Organizations | `/admin/organizations` | Building2       | **Super admin only** |
 | Teams         | `/admin/teams`         | Users           | Org                  |
+| Approvals     | `/admin/approvals`     | ClipboardCheck  | Org                  |
 | Members       | `/admin/members`       | Users           | Org                  |
 | Standups      | `/admin/standups`      | MessageSquare   | Org                  |
 | Holidays      | `/admin/holidays`      | CalendarDays    | Org                  |
@@ -160,8 +161,10 @@ Read-only stat cards from `GET /api/admin/stats`.
 
 - **Super admin, no org selected:** Organizations, Teams, Users, Standups Today
   (global counts).
-- **Org-scoped:** Teams, Members, and **Today's Completion** rate
-  (`todayResponses / activeTeamMembers`, as a percentage).
+- **Org-scoped:** Teams, Members, **Pending Approvals**
+  (`pendingTeamCount` — teams awaiting a decision, see Approvals below), and
+  **Today's Completion** rate (`todayResponses / activeTeamMembers`, as a
+  percentage).
 
 ### Organizations (`/admin/organizations`) — super admin only
 
@@ -192,11 +195,26 @@ Actions:
 CRUD over the active org's teams. Deletes are **soft** (`deletedAt`); soft-
 deleted teams are hidden everywhere in the panel.
 
-| Column                      | Field                                 |
-| --------------------------- | ------------------------------------- |
-| Name / Channel ID           | `name`, `slackChannelId`              |
-| Standup / Posting           | `standupTime`, `postingTime` (HH:MM)  |
-| Timezone / Members / Status | `timezone`, `memberCount`, `isActive` |
+| Column                      | Field                                          |
+| --------------------------- | ---------------------------------------------- |
+| Name / Channel ID           | `name`, `slackChannelId`                       |
+| Standup / Posting           | `standupTime`, `postingTime` (HH:MM)           |
+| Timezone / Members / Status | `timezone`, `memberCount`, `status`/`isActive` |
+
+The Status column reads `status` first: a `PENDING` team shows a **Pending**
+badge regardless of `isActive` (pending teams are created with `isActive: true`
+but are deliberately left unscheduled until approved — see Approvals below).
+Everything else falls back to the Active/Inactive `isActive` badge.
+
+A `PENDING` team's **Migrate Members** and **Delete** actions are disabled, and
+both routes reject it server-side with a `409` — the UI guard alone isn't the
+enforcement. Migrating out of a pending team would move the first `ADMIN`
+`TeamMember` that Approvals reads as the proposer, and soft-deleting one would
+hide it from Approvals without notifying the proposer while permanently holding
+its `slackChannelId` (the unique constraint is not scoped to `deletedAt`).
+Rejecting from Approvals is the correct exit — it hard-deletes and frees the
+channel. Pending teams are likewise excluded as a **Migrate Members** target,
+in the dropdown and in the route.
 
 Actions:
 
@@ -232,6 +250,56 @@ Actions:
 > directly, so the change takes effect on the running process without a
 > restart — no need to wait for the hourly safety-net refresh. Confirm cron
 > behavior with `npm run debug:scheduler` after edits.
+
+### Approvals (`/admin/approvals`)
+
+Lists the active org's teams awaiting approval and lets an org admin approve or
+reject them from the panel.
+
+When a workspace member who is **not** an org `OWNER`/`ADMIN` runs
+`/dd-team-create`, `teamService.createTeam` stores the team with
+`status: PENDING` and leaves it unscheduled. Until it is approved, no standup
+reminder or posting job runs for it. The Slack flow DMs every org admin an
+approve/reject Block Kit message, but that DM is a single delivery attempt — if
+it fails, is deleted, or the org has no reachable admin, the request used to
+become invisible. This page is the durable path to those requests.
+
+| Column                 | Field                                                |
+| ---------------------- | ---------------------------------------------------- |
+| Team / Channel ID      | `name`, `slackChannelId`                             |
+| Proposed By            | first `ADMIN` `TeamMember` (whoever ran the command) |
+| Standup / Posting / TZ | `standupTime`, `postingTime`, `timezone`             |
+| Requested              | `createdAt`                                          |
+
+Actions (both open a confirmation modal):
+
+- **Approve** → `POST /teams/:id/approve`. Flips `PENDING → ACTIVE` via
+  `teamService.approvePendingTeam`, calls
+  `schedulerService.refreshTeamSchedule` so standups start immediately, and DMs
+  the proposer.
+- **Reject** → `POST /teams/:id/reject`. Deletes the proposed team via
+  `teamService.rejectPendingTeam` (freeing the channel for a fresh request;
+  cascade deletes remove the creator's `TeamMember` row) and DMs the proposer.
+
+Both transitions are scoped to `status: PENDING` in the write itself, so two
+admins deciding at once — or an admin clicking here after someone already used
+the Slack button — get a `409` instead of double-processing. The page reloads
+the list on a `409` so the stale row disappears. The proposer DM is
+best-effort: the decision is already committed, so a Slack failure is logged
+and the request still succeeds.
+
+When no admin DM lands (every send failed, or the org has no active
+`OWNER`/`ADMIN`), the Slack flow falls back to posting the same approve/reject
+message in the org's `daily-dose-bot` channel. `ensureOrgChannel` may have just
+created that channel with only the bot in it, so the fallback first invites the
+org admins into it — otherwise the post lands where nobody is watching. Both
+steps are best-effort. The buttons in that channel post are safe for a public
+channel: `teamService.getPendingTeamForDecision` re-authorizes whoever clicks.
+
+The sidebar shows a live count badge next to **Approvals**. It is fetched from
+`GET /teams/pending` on mount and refreshed when the page dispatches the
+`dailydose:pending-teams-changed` window event
+(`web/src/utils/adminEvents.ts`) after a decision.
 
 ### Members (`/admin/members`)
 
@@ -286,25 +354,44 @@ CRUD over the active org's holidays (org-scoped `Holiday` table).
 - **Add Holiday** → `POST /holidays` (`{ name, date, description, orgId }`).
 - **Edit** → `PUT /holidays/:id` (`{ name, date, description }`).
 - **Delete** → `DELETE /holidays/:id` (**hard delete**).
-- **Import** → upload a Zoho People holiday export (`.xls`/`.xlsx`/`.csv`). Two-step
+- **Import** (**super admin only**) → upload a Zoho People holiday export
+  (`.xls`/`.xlsx`/`.csv`). The button is hidden for org `OWNER`/`ADMIN`. Two-step
   flow backed by `src/services/holidayImportService.js`:
   1. `POST /holidays/import/preview` (multipart: `file`, `orgId`) parses the file,
      expands multi-day rows (`From`/`To` columns) into one entry per calendar day,
      and diffs each date against existing holidays. Returns `{ items, warnings }`
      where each item is tagged `new` / `update` / `unchanged`, and `warnings` lists
      any skipped rows (missing name, unparsable date, reversed range, range over 60
-     days).
+     days) plus how many days the 1000-record cap dropped.
   2. The admin reviews/deselects rows in the modal, then
      `POST /holidays/import` (`{ orgId, items }`) upserts the confirmed rows by
-     `(organization_id, date)`, returning `{ created, updated }`.
+     `(organization_id, date)` in a single `$transaction`, returning
+     `{ created, updated, skipped, total }`. Items are normalized first (bad date,
+     blank name, duplicate day, over-long name), so a malformed row is counted in
+     `skipped` rather than failing the write partway through.
   - `.xls`/`.xlsx` are parsed with the `xlsx` (SheetJS) package. `.csv` is parsed by
     hand — SheetJS's own CSV reader auto-detects and silently mangles Zoho's
     `DD-MMM-YYYY` date strings, so plain-text files bypass it entirely.
+  - **Dates are keyed in UTC**, not local time. `Holiday.date` is `@db.Date` and
+    Prisma persists the UTC calendar day of whatever `Date` it's given, so
+    `holidayImportService.toUtcDate()` / `toDateKey()` are used on both the read
+    and write side. A local-midnight `Date` would shift the stored day on any host
+    where `TZ !== UTC` and — because the upsert key is `(organization_id, date)` —
+    silently overwrite the neighbouring day's holiday. No `TZ` is pinned in
+    deployment config, so don't assume the host clock is UTC.
+  - Imported rows are tagged `source: MANUAL` and have any `externalId` cleared,
+    even though the file came out of Zoho: the upload is a manual action. The
+    nightly Zoho sync (`zohoSyncService`) remains authoritative and will re-tag a
+    date `ZOHO` if its API still returns it. Use the import when an org has no
+    Zoho API credentials configured, or to backfill ahead of the first sync.
   - Known tradeoff: the npm-published `xlsx@0.18.5` has open high-severity
-    advisories (prototype pollution / ReDoS) with no newer npm release available.
-    Exposure is limited since the import routes require an authenticated org
-    admin/owner or super admin session (`requireAuth` + `verifyOrgAccess`) — the
-    same trust level already needed to write holiday data directly.
+    advisories (prototype pollution / ReDoS) with no newer npm release available,
+    and it is effectively the only Node option for legacy binary `.xls`. Because
+    it parses caller-chosen bytes **inside this shared multi-tenant process**, the
+    blast radius is every org on the box — wider than the org-scoped holiday CRUD
+    routes. Both import routes are therefore gated on `requireAuth` +
+    `requireSuperAdmin` (in addition to `verifyOrgAccess`) and capped at a 5 MB
+    upload. Dropping `.xls` support would remove the dependency entirely.
 
 These are the same holidays the scheduler checks before sending reminders.
 
@@ -382,11 +469,14 @@ super admin, or `OWNER`/`ADMIN` of the target org.
 | PUT    | `/organizations/:id`                   | **super admin** | Update org                                     |
 | PATCH  | `/organizations/:id/toggle`            | **super admin** | Flip `isActive`                                |
 | DELETE | `/organizations/:id`                   | **super admin** | **Hard delete** (cascades)                     |
-| GET    | `/teams?orgId=`                        | org             | Active (non-deleted) teams                     |
+| GET    | `/teams?orgId=`                        | org             | Non-deleted teams (includes `status`)          |
+| GET    | `/teams/pending?orgId=`                | org             | `PENDING` teams + proposer, oldest first       |
 | POST   | `/teams`                               | org             | Create team (resolves `channelName`)           |
 | PUT    | `/teams/:id`                           | org             | Update name/times/timezone/active              |
-| POST   | `/teams/:id/migrate-members`           | org             | Move/copy active members to another team       |
-| DELETE | `/teams/:id`                           | org             | Soft delete                                    |
+| POST   | `/teams/:id/approve`                   | org             | `PENDING` → `ACTIVE`, schedules, DMs proposer  |
+| POST   | `/teams/:id/reject`                    | org             | Delete the pending team, DMs proposer          |
+| POST   | `/teams/:id/migrate-members`           | org             | Move/copy active members (not to/from PENDING) |
+| DELETE | `/teams/:id`                           | org             | Soft delete (409 on a PENDING team)            |
 | GET    | `/members?orgId=&role=`                | org             | Active org members + teams + last standup      |
 | POST   | `/members`                             | org             | Add/reactivate org member                      |
 | PUT    | `/members/:id`                         | org             | Change role                                    |
@@ -397,8 +487,8 @@ super admin, or `OWNER`/`ADMIN` of the target org.
 | POST   | `/holidays`                            | org             | Create holiday                                 |
 | PUT    | `/holidays/:id`                        | org             | Update holiday                                 |
 | DELETE | `/holidays/:id`                        | org             | Hard delete holiday                            |
-| POST   | `/holidays/import/preview`             | org             | Parse an uploaded holiday file, return preview |
-| POST   | `/holidays/import`                     | org             | Bulk create/update from a confirmed preview    |
+| POST   | `/holidays/import/preview`             | super admin     | Parse an uploaded holiday file, return preview |
+| POST   | `/holidays/import`                     | super admin     | Bulk create/update from a confirmed preview    |
 | GET    | `/standups?orgId=&startDate=&endDate=` | org             | Summaries (default last 7 days)                |
 | GET    | `/standups/:teamId/:date`              | org             | Individual responses                           |
 | GET    | `/scheduler?orgId=`                    | org             | Per-team cron job status                       |
@@ -411,7 +501,8 @@ super admin, or `OWNER`/`ADMIN` of the target org.
 
 Common error responses: `400` (missing/invalid input, e.g. no `orgId`),
 `401` (no/expired session), `403` (not authorized for org / not super admin),
-`404` (not found), `409` (duplicate — Prisma `P2002`), `500` (unhandled).
+`404` (not found), `409` (duplicate — Prisma `P2002`; also a team already
+decided on the approve/reject routes), `500` (unhandled).
 
 ---
 

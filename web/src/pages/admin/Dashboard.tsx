@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Building2, Users, MessageSquare, TrendingUp } from 'lucide-react';
+import { Building2, Users, MessageSquare, TrendingUp, ClipboardCheck } from 'lucide-react';
 import { StatCard } from '../../components/admin/StatCard';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 
@@ -51,9 +51,10 @@ export default function AdminDashboard() {
           <StatCard label="Standups Today" value={stats.todayStandups ?? 0} icon={<MessageSquare size={18} />} />
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Teams" value={stats.teamCount ?? 0} icon={<Users size={18} />} />
           <StatCard label="Members" value={stats.memberCount ?? 0} icon={<Users size={18} />} />
+          <StatCard label="Pending Approvals" value={stats.pendingTeamCount ?? 0} icon={<ClipboardCheck size={18} />} />
           <StatCard label="Today's Completion" value={`${stats.todayCompletionRate ?? 0}%`} icon={<TrendingUp size={18} />} />
         </div>
       )}

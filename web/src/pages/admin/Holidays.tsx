@@ -15,7 +15,7 @@ interface Holiday {
 const emptyForm = { name: '', date: '', description: '' };
 
 export default function AdminHolidays() {
-  const { activeOrgId } = useAdminAuth();
+  const { activeOrgId, isSuperAdmin } = useAdminAuth();
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [modal, setModal] = useState<'add' | 'edit' | 'delete' | null>(null);
   const [selected, setSelected] = useState<Holiday | null>(null);
@@ -93,9 +93,12 @@ export default function AdminHolidays() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold text-white">Holidays</h1>
         <div className="flex items-center gap-3">
-          <button onClick={() => setImportOpen(true)} className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 text-white text-sm font-medium rounded-lg hover:bg-white/10 transition-colors">
-            <Upload size={15} /> Import
-          </button>
+          {/* Import is super-admin only — see the xlsx note in docs/admin-panel.md */}
+          {isSuperAdmin && (
+            <button onClick={() => setImportOpen(true)} className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 text-white text-sm font-medium rounded-lg hover:bg-white/10 transition-colors">
+              <Upload size={15} /> Import
+            </button>
+          )}
           <button onClick={openAdd} className="flex items-center gap-2 px-3 py-2 bg-[#00CFFF] text-black text-sm font-medium rounded-lg hover:bg-[#00CFFF]/90 transition-colors">
             <Plus size={15} /> Add Holiday
           </button>
