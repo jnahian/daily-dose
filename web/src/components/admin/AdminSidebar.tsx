@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { NavLink } from 'react-router';
-import { LayoutDashboard, Building2, Users, MessageSquare, CalendarDays, Clock, Activity, Key, BarChart3, ClipboardCheck } from 'lucide-react';
+import { LayoutDashboard, Building2, Users, MessageSquare, CalendarDays, Clock, Activity, Key, BarChart3, ClipboardCheck, RefreshCw } from 'lucide-react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { PENDING_TEAMS_CHANGED_EVENT } from '../../utils/adminEvents';
 
@@ -13,6 +13,7 @@ const navItems = [
   { to: '/admin/standups', icon: MessageSquare, label: 'Standups' },
   { to: '/admin/holidays', icon: CalendarDays, label: 'Holidays' },
   { to: '/admin/scheduler', icon: Clock, label: 'Scheduler' },
+  { to: '/admin/zoho', icon: RefreshCw, label: 'Zoho Sync' },
   { to: '/admin/activity', icon: Activity, label: 'Activity' },
   { to: '/admin/mcp-usage', icon: BarChart3, label: 'MCP Usage' },
   { to: '/admin/tokens', icon: Key, label: 'My Tokens' },
