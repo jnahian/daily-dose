@@ -35,11 +35,28 @@ async function requestToken(dataCenter, params) {
     clearTimeout(timeout);
   }
 
-  const body = await response.json().catch(() => null);
+  // Read as text first: a wrong ZOHO_DATA_CENTER (or a proxy in front of
+  // accounts.zoho.*) answers with HTML, and json() would throw that away and
+  // leave only a bare status code to debug from.
+  const raw = await response.text();
+  let body = null;
+  try {
+    body = JSON.parse(raw);
+  } catch {
+    /* non-JSON response — reported via `raw` below */
+  }
 
   if (!response.ok || !body || body.error) {
+    // Surface what Zoho actually said. `error` alone is often just a slug
+    // ("invalid_code"), and the response never echoes the client secret, so
+    // including error_description / the raw body is safe and is usually the
+    // difference between a diagnosable failure and a bare 400.
+    const detail =
+      [body?.error, body?.error_description].filter(Boolean).join(": ") ||
+      raw.slice(0, 300).trim() ||
+      `HTTP ${response.status}`;
     throw new ZohoAuthError(
-      `Zoho token request failed: ${body?.error || response.status}`
+      `Zoho token request failed (HTTP ${response.status}) at ${url}: ${detail}`
     );
   }
 
