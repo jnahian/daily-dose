@@ -205,6 +205,20 @@ Actions:
   → 409; live duplicate channel → 409.
 - **Edit** → `PUT /teams/:id`. Editable: name, standup time, posting time,
   timezone, active. **Channel is not editable** after creation.
+- **Migrate Members** → `POST /teams/:id/migrate-members`
+  (`{ targetTeamId, keepSource?, resetRole? }`). Moves every active
+  `TeamMember` from this team to another team **in the same organization**
+  (disabled when the org has fewer than 2 teams). By default this is a move:
+  each member is created/reactivated on the target team (preserving role,
+  `receiveNotifications`, `hideFromNotResponded`) and the source membership is
+  soft-deleted. `keepSource` copies instead of moving (source membership stays
+  active); `resetRole` adds everyone to the target as `MEMBER` regardless of
+  their source role. Members already active on the target team are skipped,
+  not duplicated. Standup history (`StandupResponse`/`StandupPost`) stays
+  attached to the original team — only membership moves. Cross-organization
+  migration isn't available from the admin panel; use
+  `npm run team:migrate-members -- "<source-team>" "<target-team>" --allow-cross-org`
+  for that.
 - **Delete** → `DELETE /teams/:id` (soft delete).
 
 > Creating/updating a team's times here changes scheduling via the same
@@ -344,6 +358,7 @@ super admin, or `OWNER`/`ADMIN` of the target org.
 | GET    | `/teams?orgId=`                        | org             | Active (non-deleted) teams                     |
 | POST   | `/teams`                               | org             | Create team (resolves `channelName`)           |
 | PUT    | `/teams/:id`                           | org             | Update name/times/timezone/active              |
+| POST   | `/teams/:id/migrate-members`           | org             | Move/copy active members to another team       |
 | DELETE | `/teams/:id`                           | org             | Soft delete                                    |
 | GET    | `/members?orgId=&role=`                | org             | Active org members + teams + last standup      |
 | POST   | `/members`                             | org             | Add/reactivate org member                      |

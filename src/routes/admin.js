@@ -685,6 +685,99 @@ router.delete("/teams/:id", requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/admin/teams/:id/migrate-members — move (or copy) active members to another team in the same org
+router.post("/teams/:id/migrate-members", requireAuth, async (req, res) => {
+  try {
+    const { targetTeamId, keepSource, resetRole } = req.body;
+    if (!targetTeamId)
+      return res.status(400).json({ error: "targetTeamId is required." });
+    if (targetTeamId === req.params.id)
+      return res
+        .status(400)
+        .json({ error: "Source and target team must be different." });
+
+    const sourceTeam = await prisma.team.findUnique({
+      where: { id: req.params.id },
+      select: { id: true, name: true, organizationId: true, deletedAt: true },
+    });
+    if (!sourceTeam || sourceTeam.deletedAt)
+      return res.status(404).json({ error: "Source team not found." });
+    const allowed = await verifyOrgAccess(req, res, sourceTeam.organizationId);
+    if (!allowed) return;
+
+    const targetTeam = await prisma.team.findUnique({
+      where: { id: targetTeamId },
+      select: { id: true, name: true, organizationId: true, deletedAt: true },
+    });
+    if (!targetTeam || targetTeam.deletedAt)
+      return res.status(404).json({ error: "Target team not found." });
+    if (targetTeam.organizationId !== sourceTeam.organizationId)
+      return res.status(400).json({
+        error: "Source and target team must belong to the same organization.",
+      });
+
+    const members = await prisma.teamMember.findMany({
+      where: { teamId: sourceTeam.id, isActive: true },
+    });
+    if (members.length === 0)
+      return res.json({ migratedCount: 0, skippedCount: 0 });
+
+    const existingTargetMembers = await prisma.teamMember.findMany({
+      where: {
+        teamId: targetTeam.id,
+        isActive: true,
+        userId: { in: members.map((m) => m.userId) },
+      },
+      select: { userId: true },
+    });
+    const alreadyOnTargetIds = new Set(
+      existingTargetMembers.map((m) => m.userId)
+    );
+
+    await prisma.$transaction(async (tx) => {
+      for (const member of members) {
+        if (!alreadyOnTargetIds.has(member.userId)) {
+          const existing = await tx.teamMember.findUnique({
+            where: {
+              teamId_userId: { teamId: targetTeam.id, userId: member.userId },
+            },
+          });
+          const data = {
+            role: resetRole ? "MEMBER" : member.role,
+            receiveNotifications: member.receiveNotifications,
+            hideFromNotResponded: member.hideFromNotResponded,
+          };
+          if (existing) {
+            await tx.teamMember.update({
+              where: { id: existing.id },
+              data: { ...data, isActive: true, deletedAt: null },
+            });
+          } else {
+            await tx.teamMember.create({
+              data: { ...data, teamId: targetTeam.id, userId: member.userId },
+            });
+          }
+        }
+
+        if (!keepSource) {
+          await tx.teamMember.update({
+            where: { id: member.id },
+            data: { isActive: false, deletedAt: new Date() },
+          });
+        }
+      }
+    });
+
+    res.json({
+      migratedCount: members.length - alreadyOnTargetIds.size,
+      skippedCount: alreadyOnTargetIds.size,
+    });
+  } catch (err) {
+    console.error("POST /teams/:id/migrate-members error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // GET /api/admin/members?orgId=
 router.get("/members", requireAuth, async (req, res) => {
   try {
