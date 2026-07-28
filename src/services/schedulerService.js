@@ -67,6 +67,25 @@ class SchedulerService {
     for (const team of teams) {
       await this.scheduleTeam(team);
     }
+
+    this.pruneStaleJobs(teams.map((team) => team.id));
+  }
+
+  /**
+   * Stop and remove jobs for teams no longer returned by
+   * getActiveTeamsForScheduling() (e.g. deactivated/deleted outside a path
+   * that calls refreshTeamSchedule/stopTeamSchedule directly). Defense in
+   * depth for the hourly refresh — see #37.
+   * @param {string[]} activeTeamIds - IDs of teams that should stay scheduled
+   */
+  pruneStaleJobs(activeTeamIds) {
+    const activeIds = new Set(activeTeamIds);
+    for (const jobId of this.scheduledJobs.keys()) {
+      const match = jobId.match(/^(?:standup|followup|posting)-(.+)$/);
+      if (match && !activeIds.has(match[1])) {
+        this.stopJob(jobId);
+      }
+    }
   }
 
   async scheduleTeam(team) {

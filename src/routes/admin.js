@@ -435,10 +435,15 @@ router.delete(
       if (!org || org.deletedAt)
         return res.status(404).json({ error: "Not found" });
 
+      const orgTeams = await prisma.team.findMany({
+        where: { organizationId: req.params.id, deletedAt: null },
+        select: { id: true },
+      });
+
       // Soft-delete the org and cascade deactivation to its teams, team
       // memberships, and org memberships. The bot filters on isActive (not
       // org.deletedAt), so deactivating the children is what actually stops
-      // reminders/posts. Live cron jobs still require a restart — see #37.
+      // reminders/posts.
       const now = new Date();
       await prisma.$transaction([
         prisma.teamMember.updateMany({
@@ -458,6 +463,13 @@ router.delete(
           data: { isActive: false, deletedAt: now },
         }),
       ]);
+
+      // Stop the live cron jobs for every team that was just deactivated —
+      // the hourly refresh is add-only and won't prune them on its own.
+      for (const orgTeam of orgTeams) {
+        schedulerService.stopTeamSchedule(orgTeam.id);
+      }
+
       res.status(204).end();
     } catch (err) {
       console.error("DELETE /organizations/:id error:", err.message);
@@ -575,6 +587,15 @@ router.put("/teams/:id", requireAuth, async (req, res) => {
       },
       include: { _count: { select: { members: true } } },
     });
+
+    // Resync the live cron jobs so edits (times/timezone/active) take effect
+    // immediately instead of waiting for the hourly refresh or a restart.
+    if (updated.isActive && updated.status === "ACTIVE") {
+      await schedulerService.refreshTeamSchedule(updated.id);
+    } else {
+      schedulerService.stopTeamSchedule(updated.id);
+    }
+
     res.json({
       id: updated.id,
       name: updated.name,
@@ -678,6 +699,11 @@ router.delete("/teams/:id", requireAuth, async (req, res) => {
       where: { id: req.params.id },
       data: { deletedAt: new Date(), isActive: false },
     });
+
+    // Stop the team's live cron jobs — the hourly refresh is add-only and
+    // won't prune a deleted team's jobs on its own.
+    schedulerService.stopTeamSchedule(req.params.id);
+
     res.json({ success: true });
   } catch (err) {
     console.error("DELETE /teams/:id error:", err.message);

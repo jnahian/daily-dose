@@ -182,8 +182,10 @@ Actions:
 - **Add Member** → `POST /members` (`{ slackUserId, orgId, role }`). The user
   must have signed in to the bot at least once.
 - **Toggle active** → `PATCH /organizations/:id/toggle` (flips `isActive`).
-- **Delete** → `DELETE /organizations/:id`. **Hard delete** — cascades to all
-  teams, members, holidays, and standup data for the org.
+- **Delete** → `DELETE /organizations/:id`. **Soft delete** — deactivates the
+  org (`isActive: false`, `deletedAt`) and cascades deactivation to its teams
+  and team/org memberships (same soft-delete fields), stopping their live
+  cron jobs. Holidays and standup data are left untouched.
 
 ### Teams (`/admin/teams`)
 
@@ -204,7 +206,9 @@ Actions:
   Timezone. Channel not found → 400; a soft-deleted team already on that channel
   → 409; live duplicate channel → 409.
 - **Edit** → `PUT /teams/:id`. Editable: name, standup time, posting time,
-  timezone, active. **Channel is not editable** after creation.
+  timezone, active. **Channel is not editable** after creation. Resyncs the
+  team's live cron jobs immediately (reschedules with the new times/timezone,
+  or stops them if `isActive` is turned off) — see the note below.
 - **Migrate Members** → `POST /teams/:id/migrate-members`
   (`{ targetTeamId, keepSource?, resetRole? }`). Moves every active
   `TeamMember` from this team to another team **in the same organization**
@@ -219,11 +223,15 @@ Actions:
   migration isn't available from the admin panel; use
   `npm run team:migrate-members -- "<source-team>" "<target-team>" --allow-cross-org`
   for that.
-- **Delete** → `DELETE /teams/:id` (soft delete).
+- **Delete** → `DELETE /teams/:id` (soft delete). Also stops the team's live
+  cron jobs immediately.
 
 > Creating/updating a team's times here changes scheduling via the same
-> `Team` records the scheduler reads. Confirm cron behavior with
-> `npm run debug:scheduler` after edits.
+> `Team` records the scheduler reads. Edits, deletes, and the org soft-delete
+> above call `schedulerService.refreshTeamSchedule` / `stopTeamSchedule`
+> directly, so the change takes effect on the running process without a
+> restart — no need to wait for the hourly safety-net refresh. Confirm cron
+> behavior with `npm run debug:scheduler` after edits.
 
 ### Members (`/admin/members`)
 
