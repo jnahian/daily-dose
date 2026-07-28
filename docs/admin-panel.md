@@ -204,8 +204,17 @@ deleted teams are hidden everywhere in the panel.
 The Status column reads `status` first: a `PENDING` team shows a **Pending**
 badge regardless of `isActive` (pending teams are created with `isActive: true`
 but are deliberately left unscheduled until approved — see Approvals below).
-Everything else falls back to the Active/Inactive `isActive` badge. Pending
-teams are also excluded from the **Migrate Members** target dropdown.
+Everything else falls back to the Active/Inactive `isActive` badge.
+
+A `PENDING` team's **Migrate Members** and **Delete** actions are disabled, and
+both routes reject it server-side with a `409` — the UI guard alone isn't the
+enforcement. Migrating out of a pending team would move the first `ADMIN`
+`TeamMember` that Approvals reads as the proposer, and soft-deleting one would
+hide it from Approvals without notifying the proposer while permanently holding
+its `slackChannelId` (the unique constraint is not scoped to `deletedAt`).
+Rejecting from Approvals is the correct exit — it hard-deletes and frees the
+channel. Pending teams are likewise excluded as a **Migrate Members** target,
+in the dropdown and in the route.
 
 Actions:
 
@@ -278,6 +287,14 @@ the Slack button — get a `409` instead of double-processing. The page reloads
 the list on a `409` so the stale row disappears. The proposer DM is
 best-effort: the decision is already committed, so a Slack failure is logged
 and the request still succeeds.
+
+When no admin DM lands (every send failed, or the org has no active
+`OWNER`/`ADMIN`), the Slack flow falls back to posting the same approve/reject
+message in the org's `daily-dose-bot` channel. `ensureOrgChannel` may have just
+created that channel with only the bot in it, so the fallback first invites the
+org admins into it — otherwise the post lands where nobody is watching. Both
+steps are best-effort. The buttons in that channel post are safe for a public
+channel: `teamService.getPendingTeamForDecision` re-authorizes whoever clicks.
 
 The sidebar shows a live count badge next to **Approvals**. It is fetched from
 `GET /teams/pending` on mount and refreshed when the page dispatches the
@@ -420,8 +437,8 @@ super admin, or `OWNER`/`ADMIN` of the target org.
 | PUT    | `/teams/:id`                           | org             | Update name/times/timezone/active              |
 | POST   | `/teams/:id/approve`                   | org             | `PENDING` → `ACTIVE`, schedules, DMs proposer  |
 | POST   | `/teams/:id/reject`                    | org             | Delete the pending team, DMs proposer          |
-| POST   | `/teams/:id/migrate-members`           | org             | Move/copy active members to another team       |
-| DELETE | `/teams/:id`                           | org             | Soft delete                                    |
+| POST   | `/teams/:id/migrate-members`           | org             | Move/copy active members (not to/from PENDING) |
+| DELETE | `/teams/:id`                           | org             | Soft delete (409 on a PENDING team)            |
 | GET    | `/members?orgId=&role=`                | org             | Active org members + teams + last standup      |
 | POST   | `/members`                             | org             | Add/reactivate org member                      |
 | PUT    | `/members/:id`                         | org             | Change role                                    |

@@ -193,6 +193,7 @@ class NotificationService {
         );
         await this.postPendingTeamToOrgChannel({
           organization,
+          admins,
           text,
           blocks,
           client,
@@ -210,11 +211,18 @@ class NotificationService {
    * team already exists and the admin panel lists it regardless.
    * @param {Object} params
    * @param {Object} params.organization - The owning organization
+   * @param {Array<object>} params.admins - Org admins to pull into the channel
    * @param {string} params.text - Notification fallback text
    * @param {Array<object>} params.blocks - Approval request blocks
    * @param {Object} params.client - Slack client
    */
-  async postPendingTeamToOrgChannel({ organization, text, blocks, client }) {
+  async postPendingTeamToOrgChannel({
+    organization,
+    admins = [],
+    text,
+    blocks,
+    client,
+  }) {
     try {
       const channelId = await channelService.ensureOrgChannel(
         client,
@@ -225,6 +233,19 @@ class NotificationService {
           `No daily-dose-bot channel available for org ${organization.id}; pending-team request not broadcast`
         );
         return;
+      }
+
+      // ensureOrgChannel may have just created the channel with only the bot in
+      // it, and the admins we're falling back for aren't necessarily members.
+      // Pull them in first, sequentially (Slack rate-limits per channel), so
+      // the post lands somewhere a human will actually see it. Best-effort:
+      // inviteUserToOrgChannel never throws.
+      for (const admin of admins) {
+        await channelService.inviteUserToOrgChannel(
+          client,
+          organization.id,
+          admin.user.slackUserId
+        );
       }
 
       await client.chat.postMessage({ channel: channelId, text, blocks });

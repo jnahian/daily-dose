@@ -49,7 +49,13 @@ export default function AdminApprovals() {
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
-    if (!activeOrgId) return;
+    // Super admins land here with no org selected; don't leave the table
+    // stuck on "Loading…" with the Refresh button disabled.
+    if (!activeOrgId) {
+      setTeams([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError('');
     try {

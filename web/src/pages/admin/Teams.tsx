@@ -127,7 +127,11 @@ export default function AdminTeams() {
     setSaving(true);
     const res = await fetch(`/api/admin/teams/${modal.team.id}`, { method: 'DELETE', credentials: 'include' });
     setSaving(false);
-    if (!res.ok) { setError('Failed to delete.'); return; }
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || 'Failed to delete.');
+      return;
+    }
     setTeams(prev => prev.filter(t => t.id !== modal.team.id));
     setModal(null);
   };
@@ -217,16 +221,19 @@ export default function AdminTeams() {
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); openMigrate(t); }}
-                  disabled={teams.length < 2}
+                  disabled={teams.length < 2 || t.status === 'PENDING'}
                   className="text-white/40 hover:text-[#00CFFF] transition-colors disabled:opacity-30 disabled:hover:text-white/40"
-                  title="Migrate Members"
+                  title={t.status === 'PENDING' ? 'Awaiting approval' : 'Migrate Members'}
                 >
                   <ArrowRightLeft size={14} />
                 </button>
+                {/* Soft-deleting a pending team hides it from Approvals and
+                    permanently blocks its channel — reject it instead. */}
                 <button
                   onClick={(e) => { e.stopPropagation(); openDelete(t); }}
-                  className="text-white/40 hover:text-red-400 transition-colors"
-                  title="Delete"
+                  disabled={t.status === 'PENDING'}
+                  className="text-white/40 hover:text-red-400 transition-colors disabled:opacity-30 disabled:hover:text-white/40"
+                  title={t.status === 'PENDING' ? 'Reject from Approvals instead' : 'Delete'}
                 >
                   <Trash2 size={14} />
                 </button>

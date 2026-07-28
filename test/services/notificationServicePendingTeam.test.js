@@ -4,6 +4,7 @@ jest.mock("../../src/services/userService", () => ({
 
 jest.mock("../../src/services/channelService", () => ({
   ensureOrgChannel: jest.fn(),
+  inviteUserToOrgChannel: jest.fn(),
 }));
 
 // teamService is required by notificationService but unused on this path.
@@ -38,6 +39,7 @@ function makeClient() {
 beforeEach(() => {
   jest.clearAllMocks();
   channelService.ensureOrgChannel.mockResolvedValue("C_BOT");
+  channelService.inviteUserToOrgChannel.mockResolvedValue(true);
 });
 
 describe("notificationService.notifyOrgAdminsOfPendingTeam", () => {
@@ -89,6 +91,33 @@ describe("notificationService.notifyOrgAdminsOfPendingTeam", () => {
     const last = client.chat.postMessage.mock.calls.at(-1)[0];
     expect(last.channel).toBe("C_BOT");
     expect(last.text).toContain("Eng");
+  });
+
+  it("pulls the admins into the org channel before posting the fallback", async () => {
+    userService.getOrganizationAdmins.mockResolvedValue([
+      { user: { slackUserId: "U_ADMIN1" } },
+      { user: { slackUserId: "U_ADMIN2" } },
+    ]);
+    const client = makeClient();
+    client.chat.postMessage
+      .mockRejectedValueOnce(new Error("channel_not_found"))
+      .mockRejectedValueOnce(new Error("channel_not_found"))
+      .mockResolvedValueOnce({});
+
+    await notificationService.notifyOrgAdminsOfPendingTeam({
+      team,
+      organization,
+      creatorSlackUserId: "U_CREATOR",
+      client,
+    });
+
+    // ensureOrgChannel can return a channel that only the bot is in, so the
+    // post would otherwise land where no admin is watching.
+    expect(channelService.inviteUserToOrgChannel.mock.calls).toEqual([
+      [client, "o1", "U_ADMIN1"],
+      [client, "o1", "U_ADMIN2"],
+    ]);
+    expect(client.chat.postMessage.mock.calls.at(-1)[0].channel).toBe("C_BOT");
   });
 
   it("falls back to the org channel when the org has no admins to notify", async () => {

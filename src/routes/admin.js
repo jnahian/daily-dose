@@ -11,6 +11,7 @@ const mcpTokenService = require("../services/mcpTokenService");
 const channelService = require("../services/channelService");
 const changelogBroadcastService = require("../services/changelogBroadcastService");
 const oauthTokenService = require("../mcp/auth/oauthTokenService");
+const { escapeSlackText } = require("../utils/messageHelper");
 
 // In-memory OAuth state store (state → expiry timestamp)
 const oauthStates = new Map();
@@ -670,7 +671,7 @@ router.post("/teams/:id/approve", requireAuth, async (req, res) => {
 
     await notifyProposerOfDecision(
       team,
-      `✅ Your team "${approved.name}" was approved and standups are now scheduled.`
+      `✅ Your team "${escapeSlackText(approved.name)}" was approved and standups are now scheduled.`
     );
 
     res.json({
@@ -704,7 +705,7 @@ router.post("/teams/:id/reject", requireAuth, async (req, res) => {
 
     await notifyProposerOfDecision(
       team,
-      `❌ Your team "${team.name}" request was declined. Reach out to an organization admin if you have questions.`
+      `❌ Your team "${escapeSlackText(team.name)}" request was declined. Reach out to an organization admin if you have questions.`
     );
 
     res.json({ success: true });
@@ -844,12 +845,23 @@ router.delete("/teams/:id", requireAuth, async (req, res) => {
   try {
     const team = await prisma.team.findUnique({
       where: { id: req.params.id },
-      select: { organizationId: true, deletedAt: true },
+      select: { organizationId: true, deletedAt: true, status: true },
     });
     if (!team || team.deletedAt)
       return res.status(404).json({ error: "Not found" });
     const allowed = await verifyOrgAccess(req, res, team.organizationId);
     if (!allowed) return;
+
+    // Soft-deleting a PENDING team would hide it from Approvals without ever
+    // telling the proposer, and slackChannelId is globally unique (not scoped
+    // to deletedAt), so the channel would be blocked against a fresh proposal.
+    // Rejecting is the correct exit for a pending team — it hard-deletes.
+    if (team.status === "PENDING") {
+      return res.status(409).json({
+        error:
+          "This team is awaiting approval. Reject it from Approvals instead of deleting it.",
+      });
+    }
 
     await prisma.team.update({
       where: { id: req.params.id },
@@ -880,12 +892,25 @@ router.post("/teams/:id/migrate-members", requireAuth, async (req, res) => {
 
     const sourceTeam = await prisma.team.findUnique({
       where: { id: req.params.id },
-      select: { id: true, name: true, organizationId: true, deletedAt: true },
+      select: {
+        id: true,
+        name: true,
+        organizationId: true,
+        deletedAt: true,
+        status: true,
+      },
     });
     if (!sourceTeam || sourceTeam.deletedAt)
       return res.status(404).json({ error: "Source team not found." });
     const allowed = await verifyOrgAccess(req, res, sourceTeam.organizationId);
     if (!allowed) return;
+    // Migrating out of a pending team would move the first ADMIN TeamMember
+    // that Approvals reads as the proposer, leaving the request unattributable
+    // and the decision DM undeliverable.
+    if (sourceTeam.status === "PENDING")
+      return res.status(409).json({
+        error: "A team awaiting approval can't be used as a migration source.",
+      });
 
     const targetTeam = await prisma.team.findUnique({
       where: { id: targetTeamId },
@@ -895,9 +920,17 @@ router.post("/teams/:id/migrate-members", requireAuth, async (req, res) => {
         organizationId: true,
         deletedAt: true,
         isActive: true,
+        status: true,
       },
     });
-    if (!targetTeam || targetTeam.deletedAt || !targetTeam.isActive)
+    // A PENDING team is unscheduled, so members moved into it would silently
+    // stop getting standups. The UI hides it; enforce it here too.
+    if (
+      !targetTeam ||
+      targetTeam.deletedAt ||
+      !targetTeam.isActive ||
+      targetTeam.status === "PENDING"
+    )
       return res.status(404).json({ error: "Target team not found." });
     if (targetTeam.organizationId !== sourceTeam.organizationId)
       return res.status(400).json({
