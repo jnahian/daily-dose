@@ -13,6 +13,7 @@ interface Team {
   postingTime: string;
   timezone: string;
   isActive: boolean;
+  status: 'PENDING' | 'ACTIVE' | 'REJECTED';
   memberCount: number;
 }
 
@@ -197,7 +198,11 @@ export default function AdminTeams() {
           { key: 'memberCount', label: 'Members' },
           {
             key: 'isActive', label: 'Status',
-            render: (t) => <StatusBadge variant={t.isActive ? 'active' : 'inactive'} label={t.isActive ? 'Active' : 'Inactive'} />
+            // A PENDING team carries isActive=true but is deliberately unscheduled,
+            // so status wins over isActive here.
+            render: (t) => t.status === 'PENDING'
+              ? <StatusBadge variant="late" label="Pending" />
+              : <StatusBadge variant={t.isActive ? 'active' : 'inactive'} label={t.isActive ? 'Active' : 'Inactive'} />
           },
           {
             key: 'actions', label: '',
@@ -357,7 +362,7 @@ export default function AdminTeams() {
                 onChange={e => setMigrateForm(f => ({ ...f, targetTeamId: e.target.value }))}
               >
                 <option value="">Select a team…</option>
-                {teams.filter(t => t.id !== modal.team.id && t.isActive).map(t => (
+                {teams.filter(t => t.id !== modal.team.id && t.isActive && t.status === 'ACTIVE').map(t => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>

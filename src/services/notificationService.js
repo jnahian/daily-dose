@@ -1,5 +1,6 @@
 const teamService = require("./teamService");
 const userService = require("./userService");
+const channelService = require("./channelService");
 const logger = require("../utils/logger");
 const { escapeSlackText } = require("../utils/messageHelper");
 const {
@@ -158,6 +159,8 @@ class NotificationService {
         creatorSlackUserId,
       });
 
+      let delivered = 0;
+
       for (const admin of admins) {
         if (admin.user.slackUserId === creatorSlackUserId) {
           continue;
@@ -171,6 +174,7 @@ class NotificationService {
             text,
             blocks,
           });
+          delivered++;
         } catch (postError) {
           logger.error(
             `Failed pending-team DM to org admin ${admin.user.slackUserId}:`,
@@ -178,9 +182,57 @@ class NotificationService {
           );
         }
       }
+
+      // Nobody got the DM — either every send failed or the org has no active
+      // admin to send to. Without a fallback the request is invisible until
+      // someone happens to open the admin panel, so post it to the org's
+      // daily-dose-bot channel where it's at least discoverable.
+      if (delivered === 0) {
+        logger.warn(
+          `No org admin received the pending-team DM for team ${team.id}; falling back to the org channel`
+        );
+        await this.postPendingTeamToOrgChannel({
+          organization,
+          text,
+          blocks,
+          client,
+        });
+      }
     } catch (error) {
       logger.error("Error notifying org admins of pending team:", error);
       // Don't throw - team creation succeeded; notification failure shouldn't break the flow
+    }
+  }
+
+  /**
+   * Fallback for notifyOrgAdminsOfPendingTeam: post the approval request into
+   * the org's daily-dose-bot channel when no admin DM landed. Best-effort — the
+   * team already exists and the admin panel lists it regardless.
+   * @param {Object} params
+   * @param {Object} params.organization - The owning organization
+   * @param {string} params.text - Notification fallback text
+   * @param {Array<object>} params.blocks - Approval request blocks
+   * @param {Object} params.client - Slack client
+   */
+  async postPendingTeamToOrgChannel({ organization, text, blocks, client }) {
+    try {
+      const channelId = await channelService.ensureOrgChannel(
+        client,
+        organization
+      );
+      if (!channelId) {
+        logger.warn(
+          `No daily-dose-bot channel available for org ${organization.id}; pending-team request not broadcast`
+        );
+        return;
+      }
+
+      await client.chat.postMessage({ channel: channelId, text, blocks });
+    } catch (error) {
+      logger.error(
+        "Failed to post pending-team request to org channel:",
+        error
+      );
     }
   }
 }

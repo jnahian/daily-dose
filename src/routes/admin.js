@@ -6,6 +6,7 @@ const { WebClient } = require("@slack/web-api");
 const slackClient = new WebClient(process.env.BOT_TOKEN);
 const crypto = require("crypto");
 const schedulerService = require("../services/schedulerService");
+const teamService = require("../services/teamService");
 const mcpTokenService = require("../services/mcpTokenService");
 const channelService = require("../services/channelService");
 const changelogBroadcastService = require("../services/changelogBroadcastService");
@@ -502,27 +503,40 @@ router.get("/stats", requireAuth, async (req, res) => {
     const allowed = await verifyOrgAccess(req, res, orgId);
     if (!allowed) return;
     const targetOrgId = orgId;
-    const [teamCount, memberCount, todayResponses, totalMembers] =
-      await Promise.all([
-        prisma.team.count({
-          where: { organizationId: targetOrgId, deletedAt: null },
-        }),
-        prisma.organizationMember.count({
-          where: { organizationId: targetOrgId, isActive: true },
-        }),
-        prisma.standupResponse.count({
-          where: {
-            standupDate: new Date(new Date().setHours(0, 0, 0, 0)),
-            team: { organizationId: targetOrgId },
-          },
-        }),
-        prisma.teamMember.count({
-          where: { team: { organizationId: targetOrgId }, isActive: true },
-        }),
-      ]);
+    const [
+      teamCount,
+      memberCount,
+      todayResponses,
+      totalMembers,
+      pendingTeamCount,
+    ] = await Promise.all([
+      prisma.team.count({
+        where: { organizationId: targetOrgId, deletedAt: null },
+      }),
+      prisma.organizationMember.count({
+        where: { organizationId: targetOrgId, isActive: true },
+      }),
+      prisma.standupResponse.count({
+        where: {
+          standupDate: new Date(new Date().setHours(0, 0, 0, 0)),
+          team: { organizationId: targetOrgId },
+        },
+      }),
+      prisma.teamMember.count({
+        where: { team: { organizationId: targetOrgId }, isActive: true },
+      }),
+      prisma.team.count({
+        where: {
+          organizationId: targetOrgId,
+          status: "PENDING",
+          deletedAt: null,
+        },
+      }),
+    ]);
     res.json({
       teamCount,
       memberCount,
+      pendingTeamCount,
       todayCompletionRate:
         totalMembers > 0
           ? Math.round((todayResponses / totalMembers) * 100)
@@ -554,11 +568,151 @@ router.get("/teams", requireAuth, async (req, res) => {
         postingTime: t.postingTime,
         timezone: t.timezone,
         isActive: t.isActive,
+        // A PENDING team has isActive=true but is deliberately unscheduled, so
+        // the UI needs status to avoid badging it as a healthy active team.
+        status: t.status,
         memberCount: t._count.members,
       }))
     );
   } catch (err) {
     console.error("GET /teams error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/admin/teams/pending?orgId= — teams proposed by non-admins awaiting approval
+router.get("/teams/pending", requireAuth, async (req, res) => {
+  try {
+    const { orgId } = req.query;
+    const allowed = await verifyOrgAccess(req, res, orgId);
+    if (!allowed) return;
+
+    const teams = await teamService.getPendingTeamsForOrg(orgId);
+    res.json(
+      teams.map((t) => ({
+        id: t.id,
+        name: t.name,
+        slackChannelId: t.slackChannelId,
+        standupTime: t.standupTime,
+        postingTime: t.postingTime,
+        timezone: t.timezone,
+        createdAt: t.createdAt,
+        proposedBy: t.members[0]?.user
+          ? {
+              name: t.members[0].user.name,
+              username: t.members[0].user.username,
+              slackUserId: t.members[0].user.slackUserId,
+            }
+          : null,
+      }))
+    );
+  } catch (err) {
+    console.error("GET /teams/pending error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Shared guard for the approve/reject routes: load the team, confirm it is
+// still PENDING, and confirm the caller administers its organization.
+async function loadPendingTeamForDecision(req, res) {
+  const team = await prisma.team.findUnique({
+    where: { id: req.params.id },
+    include: {
+      // First ADMIN member is the proposer — needed to DM them the decision.
+      members: {
+        where: { role: "ADMIN" },
+        include: { user: true },
+        orderBy: { joinedAt: "asc" },
+        take: 1,
+      },
+    },
+  });
+  if (!team || team.deletedAt) {
+    res.status(404).json({ error: "Not found" });
+    return null;
+  }
+  const allowed = await verifyOrgAccess(req, res, team.organizationId);
+  if (!allowed) return null;
+  if (team.status !== "PENDING") {
+    res.status(409).json({
+      error: `This team has already been ${team.status.toLowerCase()}.`,
+    });
+    return null;
+  }
+  return team;
+}
+
+// Best-effort DM to the member who proposed the team. The decision is already
+// committed, so a Slack failure must not fail the request.
+async function notifyProposerOfDecision(team, text) {
+  const proposerSlackUserId = team.members[0]?.user?.slackUserId;
+  if (!proposerSlackUserId) return;
+  try {
+    await slackClient.chat.postMessage({
+      channel: proposerSlackUserId,
+      text,
+    });
+  } catch (err) {
+    console.error("Failed to notify team proposer:", err.message);
+  }
+}
+
+// POST /api/admin/teams/:id/approve
+router.post("/teams/:id/approve", requireAuth, async (req, res) => {
+  try {
+    const team = await loadPendingTeamForDecision(req, res);
+    if (!team) return;
+
+    const approved = await teamService.approvePendingTeam(team.id);
+
+    // Start the team's cron jobs now rather than waiting for the hourly refresh.
+    await schedulerService.refreshTeamSchedule(approved.id);
+
+    await notifyProposerOfDecision(
+      team,
+      `✅ Your team "${approved.name}" was approved and standups are now scheduled.`
+    );
+
+    res.json({
+      id: approved.id,
+      name: approved.name,
+      slackChannelId: approved.slackChannelId,
+      standupTime: approved.standupTime,
+      postingTime: approved.postingTime,
+      timezone: approved.timezone,
+      isActive: approved.isActive,
+      status: approved.status,
+    });
+  } catch (err) {
+    // approvePendingTeam throws when a concurrent decision already moved it.
+    if (err.message === "This team has already been processed") {
+      return res.status(409).json({ error: err.message });
+    }
+    console.error("POST /teams/:id/approve error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/admin/teams/:id/reject
+router.post("/teams/:id/reject", requireAuth, async (req, res) => {
+  try {
+    const team = await loadPendingTeamForDecision(req, res);
+    if (!team) return;
+
+    // Rejection deletes the team, so capture what we need for the DM first.
+    await teamService.rejectPendingTeam(team.id);
+
+    await notifyProposerOfDecision(
+      team,
+      `❌ Your team "${team.name}" request was declined. Reach out to an organization admin if you have questions.`
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    if (err.message === "This team has already been processed") {
+      return res.status(409).json({ error: err.message });
+    }
+    console.error("POST /teams/:id/reject error:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -604,6 +758,7 @@ router.put("/teams/:id", requireAuth, async (req, res) => {
       postingTime: updated.postingTime,
       timezone: updated.timezone,
       isActive: updated.isActive,
+      status: updated.status,
       memberCount: updated._count.members,
     });
   } catch (err) {
@@ -670,6 +825,7 @@ router.post("/teams", requireAuth, async (req, res) => {
       postingTime: team.postingTime,
       timezone: team.timezone,
       isActive: team.isActive,
+      status: team.status,
       memberCount: team._count.members,
     });
   } catch (err) {

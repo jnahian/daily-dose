@@ -131,6 +131,7 @@ active org.
 | Dashboard     | `/admin/dashboard`     | LayoutDashboard | Org or global        |
 | Organizations | `/admin/organizations` | Building2       | **Super admin only** |
 | Teams         | `/admin/teams`         | Users           | Org                  |
+| Approvals     | `/admin/approvals`     | ClipboardCheck  | Org                  |
 | Members       | `/admin/members`       | Users           | Org                  |
 | Standups      | `/admin/standups`      | MessageSquare   | Org                  |
 | Holidays      | `/admin/holidays`      | CalendarDays    | Org                  |
@@ -160,8 +161,10 @@ Read-only stat cards from `GET /api/admin/stats`.
 
 - **Super admin, no org selected:** Organizations, Teams, Users, Standups Today
   (global counts).
-- **Org-scoped:** Teams, Members, and **Today's Completion** rate
-  (`todayResponses / activeTeamMembers`, as a percentage).
+- **Org-scoped:** Teams, Members, **Pending Approvals**
+  (`pendingTeamCount` — teams awaiting a decision, see Approvals below), and
+  **Today's Completion** rate (`todayResponses / activeTeamMembers`, as a
+  percentage).
 
 ### Organizations (`/admin/organizations`) — super admin only
 
@@ -192,11 +195,17 @@ Actions:
 CRUD over the active org's teams. Deletes are **soft** (`deletedAt`); soft-
 deleted teams are hidden everywhere in the panel.
 
-| Column                      | Field                                 |
-| --------------------------- | ------------------------------------- |
-| Name / Channel ID           | `name`, `slackChannelId`              |
-| Standup / Posting           | `standupTime`, `postingTime` (HH:MM)  |
-| Timezone / Members / Status | `timezone`, `memberCount`, `isActive` |
+| Column                      | Field                                          |
+| --------------------------- | ---------------------------------------------- |
+| Name / Channel ID           | `name`, `slackChannelId`                       |
+| Standup / Posting           | `standupTime`, `postingTime` (HH:MM)           |
+| Timezone / Members / Status | `timezone`, `memberCount`, `status`/`isActive` |
+
+The Status column reads `status` first: a `PENDING` team shows a **Pending**
+badge regardless of `isActive` (pending teams are created with `isActive: true`
+but are deliberately left unscheduled until approved — see Approvals below).
+Everything else falls back to the Active/Inactive `isActive` badge. Pending
+teams are also excluded from the **Migrate Members** target dropdown.
 
 Actions:
 
@@ -232,6 +241,48 @@ Actions:
 > directly, so the change takes effect on the running process without a
 > restart — no need to wait for the hourly safety-net refresh. Confirm cron
 > behavior with `npm run debug:scheduler` after edits.
+
+### Approvals (`/admin/approvals`)
+
+Lists the active org's teams awaiting approval and lets an org admin approve or
+reject them from the panel.
+
+When a workspace member who is **not** an org `OWNER`/`ADMIN` runs
+`/dd-team-create`, `teamService.createTeam` stores the team with
+`status: PENDING` and leaves it unscheduled. Until it is approved, no standup
+reminder or posting job runs for it. The Slack flow DMs every org admin an
+approve/reject Block Kit message, but that DM is a single delivery attempt — if
+it fails, is deleted, or the org has no reachable admin, the request used to
+become invisible. This page is the durable path to those requests.
+
+| Column                 | Field                                                |
+| ---------------------- | ---------------------------------------------------- |
+| Team / Channel ID      | `name`, `slackChannelId`                             |
+| Proposed By            | first `ADMIN` `TeamMember` (whoever ran the command) |
+| Standup / Posting / TZ | `standupTime`, `postingTime`, `timezone`             |
+| Requested              | `createdAt`                                          |
+
+Actions (both open a confirmation modal):
+
+- **Approve** → `POST /teams/:id/approve`. Flips `PENDING → ACTIVE` via
+  `teamService.approvePendingTeam`, calls
+  `schedulerService.refreshTeamSchedule` so standups start immediately, and DMs
+  the proposer.
+- **Reject** → `POST /teams/:id/reject`. Deletes the proposed team via
+  `teamService.rejectPendingTeam` (freeing the channel for a fresh request;
+  cascade deletes remove the creator's `TeamMember` row) and DMs the proposer.
+
+Both transitions are scoped to `status: PENDING` in the write itself, so two
+admins deciding at once — or an admin clicking here after someone already used
+the Slack button — get a `409` instead of double-processing. The page reloads
+the list on a `409` so the stale row disappears. The proposer DM is
+best-effort: the decision is already committed, so a Slack failure is logged
+and the request still succeeds.
+
+The sidebar shows a live count badge next to **Approvals**. It is fetched from
+`GET /teams/pending` on mount and refreshed when the page dispatches the
+`dailydose:pending-teams-changed` window event
+(`web/src/utils/adminEvents.ts`) after a decision.
 
 ### Members (`/admin/members`)
 
@@ -363,9 +414,12 @@ super admin, or `OWNER`/`ADMIN` of the target org.
 | PUT    | `/organizations/:id`                   | **super admin** | Update org                                     |
 | PATCH  | `/organizations/:id/toggle`            | **super admin** | Flip `isActive`                                |
 | DELETE | `/organizations/:id`                   | **super admin** | **Hard delete** (cascades)                     |
-| GET    | `/teams?orgId=`                        | org             | Active (non-deleted) teams                     |
+| GET    | `/teams?orgId=`                        | org             | Non-deleted teams (includes `status`)          |
+| GET    | `/teams/pending?orgId=`                | org             | `PENDING` teams + proposer, oldest first       |
 | POST   | `/teams`                               | org             | Create team (resolves `channelName`)           |
 | PUT    | `/teams/:id`                           | org             | Update name/times/timezone/active              |
+| POST   | `/teams/:id/approve`                   | org             | `PENDING` → `ACTIVE`, schedules, DMs proposer  |
+| POST   | `/teams/:id/reject`                    | org             | Delete the pending team, DMs proposer          |
 | POST   | `/teams/:id/migrate-members`           | org             | Move/copy active members to another team       |
 | DELETE | `/teams/:id`                           | org             | Soft delete                                    |
 | GET    | `/members?orgId=&role=`                | org             | Active org members + teams + last standup      |
@@ -390,7 +444,8 @@ super admin, or `OWNER`/`ADMIN` of the target org.
 
 Common error responses: `400` (missing/invalid input, e.g. no `orgId`),
 `401` (no/expired session), `403` (not authorized for org / not super admin),
-`404` (not found), `409` (duplicate — Prisma `P2002`), `500` (unhandled).
+`404` (not found), `409` (duplicate — Prisma `P2002`; also a team already
+decided on the approve/reject routes), `500` (unhandled).
 
 ---
 
