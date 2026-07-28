@@ -7,9 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `scripts/migrateTeamMembers.js` hardening (post-merge review fixes for #59):
+  - Name-based team lookup now fails with the list of candidate teams when the same active team name exists in multiple organizations, instead of `findFirst` silently picking an arbitrary org; re-run with the team UUID to disambiguate.
+  - Failure paths (team not found, identical/cross-org teams, per-member migration errors, top-level catch) now set `process.exitCode = 1` so automation using `--yes` can detect failures.
+  - Short flags (`-y`, `-h`) are excluded from positional team-name parsing, and unknown flags (e.g. a typo like `--dry-runn`) abort with an error instead of being silently ignored and running a real migration.
+
 ### Added
 
-- `scripts/migrateTeamMembers.js` (`npm run team:migrate-members <source-team> <target-team> [options]`): moves all active `TeamMember` records from one team to another, resolving teams by exact name (case-insensitive) or UUID. Reactivates/creates the target `TeamMember` preserving `role`, `receiveNotifications`, and `hideFromNotResponded`, then soft-deletes (`isActive: false`, `deletedAt`) the source membership; skips duplicating members already active on the target team. Historical `StandupResponse`/`StandupPost` rows are left tied to the original team. Flags: `--dry-run` (preview only), `--keep-source` (copy instead of move), `--reset-role` (force `MEMBER` on the target), `--allow-cross-org` (permit migrating between teams in different organizations, creating/reactivating the target `OrganizationMember` as needed — required by default since teams normally stay within one org), `--yes`/`-y` (skip the confirmation prompt). Prompts for confirmation before writing unless `--dry-run` or `--yes` is passed, following the same `confirmAction` pattern as `triggerStandup.js`/`sendManualStandup.js`.
+- `scripts/migrateTeamMembers.js` (`npm run team:migrate-members -- <source-team> <target-team> [options]`): moves all active `TeamMember` records from one team to another, resolving teams by exact name (case-insensitive) or UUID. Reactivates/creates the target `TeamMember` preserving `role`, `receiveNotifications`, and `hideFromNotResponded`, then soft-deletes (`isActive: false`, `deletedAt`) the source membership; skips duplicating members already active on the target team. Historical `StandupResponse`/`StandupPost` rows are left tied to the original team. Flags: `--dry-run` (preview only), `--keep-source` (copy instead of move), `--reset-role` (force `MEMBER` on the target), `--allow-cross-org` (permit migrating between teams in different organizations, creating/reactivating the target `OrganizationMember` as needed — required by default since teams normally stay within one org), `--yes`/`-y` (skip the confirmation prompt). Prompts for confirmation before writing unless `--dry-run` or `--yes` is passed, following the same `confirmAction` pattern as `triggerStandup.js`/`sendManualStandup.js`.
 
 ## [1.17.0] - 2026-07-22
 

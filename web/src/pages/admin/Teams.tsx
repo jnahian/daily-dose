@@ -138,35 +138,40 @@ export default function AdminTeams() {
     setSaving(true);
     setError('');
 
-    const res = await fetch(`/api/admin/teams/${modal.team.id}/migrate-members`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        targetTeamId: migrateForm.targetTeamId,
-        keepSource: migrateForm.keepSource,
-        resetRole: migrateForm.resetRole,
-      }),
-    });
-    setSaving(false);
+    try {
+      const res = await fetch(`/api/admin/teams/${modal.team.id}/migrate-members`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          targetTeamId: migrateForm.targetTeamId,
+          keepSource: migrateForm.keepSource,
+          resetRole: migrateForm.resetRole,
+        }),
+      });
 
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error || 'Failed to migrate members.');
-      return;
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || 'Failed to migrate members.');
+        return;
+      }
+
+      const { migratedCount, skippedCount } = await res.json();
+      setTeams(prev => prev.map(t => {
+        if (t.id === modal.team.id && !migrateForm.keepSource) {
+          return { ...t, memberCount: Math.max(0, t.memberCount - migratedCount - skippedCount) };
+        }
+        if (t.id === migrateForm.targetTeamId) {
+          return { ...t, memberCount: t.memberCount + migratedCount };
+        }
+        return t;
+      }));
+      setModal(null);
+    } catch {
+      setError('Failed to migrate members.');
+    } finally {
+      setSaving(false);
     }
-
-    const { migratedCount } = await res.json();
-    setTeams(prev => prev.map(t => {
-      if (t.id === modal.team.id && !migrateForm.keepSource) {
-        return { ...t, memberCount: Math.max(0, t.memberCount - migratedCount) };
-      }
-      if (t.id === migrateForm.targetTeamId) {
-        return { ...t, memberCount: t.memberCount + migratedCount };
-      }
-      return t;
-    }));
-    setModal(null);
   };
 
   return (
@@ -352,7 +357,7 @@ export default function AdminTeams() {
                 onChange={e => setMigrateForm(f => ({ ...f, targetTeamId: e.target.value }))}
               >
                 <option value="">Select a team…</option>
-                {teams.filter(t => t.id !== modal.team.id).map(t => (
+                {teams.filter(t => t.id !== modal.team.id && t.isActive).map(t => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>
