@@ -116,9 +116,20 @@ describe("syncHolidaysForOrganization", () => {
           syncType: "HOLIDAY",
           status: "SUCCESS",
           recordsSynced: 1,
+          // The second fixture row has no date and is dropped by the mapper.
+          skippedInvalid: 1,
         }),
       })
     );
+  });
+
+  it("still surfaces the Zoho error when the audit write itself fails", async () => {
+    fetchHolidays.mockRejectedValue(new Error("boom"));
+    prisma.zohoSyncRun.create.mockRejectedValue(new Error("db down"));
+
+    await expect(
+      zohoSyncService.syncHolidaysForOrganization("org-1")
+    ).rejects.toThrow("boom");
   });
 
   it("records a FAILED run when the Zoho API call throws", async () => {
@@ -194,9 +205,81 @@ describe("syncLeavesForOrganization", () => {
           syncType: "LEAVE",
           status: "SUCCESS",
           recordsSynced: 1,
+          skippedUnmapped: 1,
+          skippedNotApproved: 1,
+          skippedInvalid: 0,
         }),
       })
     );
+  });
+
+  // Guards the silent-failure case: if the employee IDs an admin mapped don't
+  // match what Zoho returns, the run must not look like a clean empty night.
+  it("persists skippedUnmapped so a 0-record run is distinguishable from an idle one", async () => {
+    fetchLeaveRecords.mockResolvedValue([
+      {
+        recordId: "r1",
+        employeeId: "12345000000012345",
+        approvalStatus: "Approved",
+        fromDate: "05-Jul-2026",
+        toDate: "06-Jul-2026",
+      },
+    ]);
+    // Admin mapped the Zoho UI employee code, not the internal numeric ID.
+    getUserIdsByEmployeeId.mockResolvedValue(
+      new Map([["ZP-0012345", "user-1"]])
+    );
+    prisma.leave.deleteMany.mockResolvedValue({ count: 0 });
+    prisma.zohoSyncRun.create.mockResolvedValue({});
+
+    const result = await zohoSyncService.syncLeavesForOrganization("org-1");
+
+    expect(result).toEqual(
+      expect.objectContaining({ recordsSynced: 0, skippedUnmapped: 1 })
+    );
+    expect(prisma.zohoSyncRun.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          status: "SUCCESS",
+          recordsSynced: 0,
+          skippedUnmapped: 1,
+        }),
+      })
+    );
+  });
+
+  it("counts records the mapper couldn't read as skippedInvalid", async () => {
+    // Field names the mappers don't recognize — the "Zoho renamed its fields"
+    // failure mode, which would otherwise vanish silently.
+    fetchLeaveRecords.mockResolvedValue([{ SomeOtherField: "x" }]);
+    getUserIdsByEmployeeId.mockResolvedValue(new Map());
+    prisma.zohoSyncRun.create.mockResolvedValue({});
+
+    const result = await zohoSyncService.syncLeavesForOrganization("org-1");
+
+    expect(result).toEqual(
+      expect.objectContaining({ recordsSynced: 0, skippedInvalid: 1 })
+    );
+  });
+
+  // The PR flags MM-DD-YYYY as the first thing to check on an empty sync, so
+  // pin it — a change to the format or the window is then visible in the diff.
+  it("requests a 7-day-back / 30-day-forward window in MM-DD-YYYY", async () => {
+    fetchLeaveRecords.mockResolvedValue([]);
+    getUserIdsByEmployeeId.mockResolvedValue(new Map());
+    prisma.zohoSyncRun.create.mockResolvedValue({});
+
+    await zohoSyncService.syncLeavesForOrganization("org-1");
+
+    const [, fromDate, toDate] = fetchLeaveRecords.mock.calls[0];
+    expect(fromDate).toMatch(/^\d{2}-\d{2}-\d{4}$/);
+    expect(toDate).toMatch(/^\d{2}-\d{2}-\d{4}$/);
+
+    const toMs = (s) => {
+      const [m, d, y] = s.split("-").map(Number);
+      return Date.UTC(y, m - 1, d);
+    };
+    expect(Math.round((toMs(toDate) - toMs(fromDate)) / 86400000)).toBe(37);
   });
 
   it("deletes a previously-synced Zoho leave once the record is no longer approved", async () => {

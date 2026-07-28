@@ -22,31 +22,44 @@ function formatZohoRequestDate(date) {
   return dayjs(date).format("MM-DD-YYYY");
 }
 
+// The audit write must never replace the real Zoho error with its own —
+// a failure here is logged and swallowed so the caller still sees what broke.
+async function writeSyncRun(data) {
+  try {
+    await prisma.zohoSyncRun.create({ data });
+  } catch (error) {
+    logger.error("zoho:sync failed to record ZohoSyncRun audit row:", error);
+  }
+}
+
+// `fn` returns { recordsSynced, skippedUnmapped?, skippedNotApproved?,
+// skippedInvalid? }. The skip counters are persisted so a run that syncs
+// nothing because the integration is misconfigured is distinguishable from
+// one that had nothing to sync — see the ZohoSyncRun model comment.
 async function recordSyncRun(organizationId, syncType, fn) {
   const startedAt = new Date();
   try {
-    const recordsSynced = await fn();
-    await prisma.zohoSyncRun.create({
-      data: {
-        organizationId,
-        syncType,
-        status: "SUCCESS",
-        recordsSynced,
-        startedAt,
-        completedAt: new Date(),
-      },
+    const counts = await fn();
+    await writeSyncRun({
+      organizationId,
+      syncType,
+      status: "SUCCESS",
+      recordsSynced: counts.recordsSynced,
+      skippedUnmapped: counts.skippedUnmapped || 0,
+      skippedNotApproved: counts.skippedNotApproved || 0,
+      skippedInvalid: counts.skippedInvalid || 0,
+      startedAt,
+      completedAt: new Date(),
     });
-    return { recordsSynced };
+    return counts;
   } catch (error) {
-    await prisma.zohoSyncRun.create({
-      data: {
-        organizationId,
-        syncType,
-        status: "FAILED",
-        error: String(error.message || error).slice(0, 1000),
-        startedAt,
-        completedAt: new Date(),
-      },
+    await writeSyncRun({
+      organizationId,
+      syncType,
+      status: "FAILED",
+      error: String(error.message || error).slice(0, 1000),
+      startedAt,
+      completedAt: new Date(),
     });
     throw error;
   }
@@ -117,10 +130,16 @@ async function syncHolidaysForOrganization(organizationId) {
   return recordSyncRun(organizationId, "HOLIDAY", async () => {
     const rawHolidays = await fetchHolidays(organizationId);
     let synced = 0;
+    let skippedInvalid = 0;
 
     for (const raw of rawHolidays) {
       const holiday = mapZohoHoliday(raw);
-      if (!holiday) continue;
+      if (!holiday) {
+        // Rows the mapper couldn't read — usually the org's Zoho response
+        // uses different field names than mapZohoHoliday expects.
+        skippedInvalid += 1;
+        continue;
+      }
 
       // Same upsert key /dd-holiday-set already uses — a nightly Zoho sync
       // is authoritative for any date it returns, overwriting a same-date
@@ -151,9 +170,10 @@ async function syncHolidaysForOrganization(organizationId) {
     }
 
     logger.info(
-      `zoho:sync holidays organization=${organizationId} synced=${synced}`
+      `zoho:sync holidays organization=${organizationId} synced=${synced} ` +
+        `skippedInvalid=${skippedInvalid}`
     );
-    return synced;
+    return { recordsSynced: synced, skippedInvalid };
   });
 }
 
@@ -172,10 +192,16 @@ async function syncLeavesForOrganization(organizationId) {
     let synced = 0;
     let skippedUnmapped = 0;
     let skippedNotApproved = 0;
+    let skippedInvalid = 0;
 
     for (const raw of rawRecords) {
       const leave = mapZohoLeaveRecord(raw);
-      if (!leave) continue;
+      if (!leave) {
+        // Rows the mapper couldn't read — usually the org's Zoho response
+        // uses different field names than mapZohoLeaveRecord expects.
+        skippedInvalid += 1;
+        continue;
+      }
 
       if (!leave.isApproved) {
         skippedNotApproved += 1;
@@ -230,9 +256,15 @@ async function syncLeavesForOrganization(organizationId) {
 
     logger.info(
       `zoho:sync leaves organization=${organizationId} synced=${synced} ` +
-        `skippedUnmapped=${skippedUnmapped} skippedNotApproved=${skippedNotApproved}`
+        `skippedUnmapped=${skippedUnmapped} skippedNotApproved=${skippedNotApproved} ` +
+        `skippedInvalid=${skippedInvalid}`
     );
-    return synced;
+    return {
+      recordsSynced: synced,
+      skippedUnmapped,
+      skippedNotApproved,
+      skippedInvalid,
+    };
   });
 }
 

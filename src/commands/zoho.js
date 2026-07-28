@@ -179,25 +179,54 @@ async function syncStatus({ command, ack, respond, client }) {
       return;
     }
 
-    const lastRuns = await prisma.zohoSyncRun.findMany({
-      where: { organizationId: org.id },
-      orderBy: { startedAt: "desc" },
-      take: 10,
-    });
+    // One query per type rather than one capped list — a burst of runs of
+    // one type would otherwise push the other type out of the window and
+    // make it read as "never synced".
+    const types = ["HOLIDAY", "LEAVE"];
+    const latestRuns = await Promise.all(
+      types.map((syncType) =>
+        prisma.zohoSyncRun.findFirst({
+          where: { organizationId: org.id, syncType },
+          orderBy: { startedAt: "desc" },
+        })
+      )
+    );
 
-    const latestByType = {};
-    for (const run of lastRuns) {
-      if (!latestByType[run.syncType]) latestByType[run.syncType] = run;
-    }
-
-    const lines = ["HOLIDAY", "LEAVE"].map((type) => {
-      const run = latestByType[type];
+    const lines = types.map((type, i) => {
+      const run = latestRuns[i];
       if (!run) return `• ${type}: never synced`;
       const status = run.status === "SUCCESS" ? "✅" : "❌";
       const when = dayjs(run.startedAt).format("MMM DD, YYYY h:mm A");
-      return `• ${type}: ${status} ${run.recordsSynced} record(s) at ${when}${
-        run.error ? ` — ${run.error}` : ""
-      }`;
+      let line = `• ${type}: ${status} ${run.recordsSynced} record(s) at ${when}`;
+
+      if (run.error) {
+        // run.error is a raw thrown message (possibly from Prisma) — don't
+        // render it verbatim, per errorHelper's policy. The full error is in
+        // the logs; admins get the count and a pointer.
+        line += " — failed, check the server logs";
+        return line;
+      }
+
+      // A run that synced nothing but skipped records is a misconfiguration,
+      // not an idle night. Say so instead of reporting a clean "0 record(s)".
+      const skips = [
+        run.skippedUnmapped && `${run.skippedUnmapped} unmapped employee(s)`,
+        run.skippedNotApproved && `${run.skippedNotApproved} not approved`,
+        run.skippedInvalid && `${run.skippedInvalid} unreadable`,
+      ].filter(Boolean);
+
+      if (skips.length > 0) line += `\n    ↳ skipped: ${skips.join(", ")}`;
+      if (run.recordsSynced === 0 && run.skippedUnmapped > 0) {
+        line +=
+          "\n    ⚠️ Nothing synced — every record belonged to an unmapped " +
+          "employee. Check `/dd-zoho-map-list` against the employee IDs Zoho returns.";
+      }
+      if (run.recordsSynced === 0 && run.skippedInvalid > 0) {
+        line +=
+          "\n    ⚠️ Nothing synced — no record could be read. The Zoho " +
+          "response field names likely differ for this org.";
+      }
+      return line;
     });
 
     await updateResponse({

@@ -1,6 +1,6 @@
 jest.mock("../../src/config/prisma", () => ({
   zohoCredential: { findUnique: jest.fn() },
-  zohoSyncRun: { findMany: jest.fn() },
+  zohoSyncRun: { findFirst: jest.fn() },
 }));
 jest.mock("../../src/services/userService", () => ({
   fetchSlackUserData: jest.fn().mockResolvedValue({}),
@@ -147,15 +147,22 @@ describe("zoho commands", () => {
         enabled: true,
         dataCenter: "com",
       });
-      prisma.zohoSyncRun.findMany.mockResolvedValue([
-        {
-          syncType: "HOLIDAY",
-          status: "SUCCESS",
-          recordsSynced: 3,
-          startedAt: new Date(),
-          error: null,
-        },
-      ]);
+      prisma.zohoSyncRun.findFirst.mockImplementation(({ where }) =>
+        Promise.resolve(
+          where.syncType === "HOLIDAY"
+            ? {
+                syncType: "HOLIDAY",
+                status: "SUCCESS",
+                recordsSynced: 3,
+                skippedUnmapped: 0,
+                skippedNotApproved: 0,
+                skippedInvalid: 0,
+                startedAt: new Date(),
+                error: null,
+              }
+            : null
+        )
+      );
 
       await zohoCommands.syncStatus({
         command: makeCommand(""),
@@ -167,6 +174,80 @@ describe("zoho commands", () => {
       const text = respond.mock.calls[0][0].blocks[0].text.text;
       expect(text).toContain("HOLIDAY");
       expect(text).toContain("LEAVE: never synced");
+    });
+
+    // The silent-failure case this whole counter exists for: an employee-ID
+    // format mismatch syncs nothing, but the run itself succeeded.
+    it("warns when a SUCCESS run synced nothing because every employee was unmapped", async () => {
+      userService.canCreateTeam.mockResolvedValue(true);
+      prisma.zohoCredential.findUnique.mockResolvedValue({
+        enabled: true,
+        dataCenter: "com",
+      });
+      prisma.zohoSyncRun.findFirst.mockImplementation(({ where }) =>
+        Promise.resolve(
+          where.syncType === "LEAVE"
+            ? {
+                syncType: "LEAVE",
+                status: "SUCCESS",
+                recordsSynced: 0,
+                skippedUnmapped: 12,
+                skippedNotApproved: 0,
+                skippedInvalid: 0,
+                startedAt: new Date(),
+                error: null,
+              }
+            : null
+        )
+      );
+
+      await zohoCommands.syncStatus({
+        command: makeCommand(""),
+        ack,
+        respond,
+        client: {},
+      });
+
+      const text = respond.mock.calls[0][0].blocks[0].text.text;
+      expect(text).toContain("12 unmapped employee(s)");
+      expect(text).toMatch(/Nothing synced/);
+      expect(text).toContain("/dd-zoho-map-list");
+    });
+
+    it("does not render a raw failure message verbatim", async () => {
+      userService.canCreateTeam.mockResolvedValue(true);
+      prisma.zohoCredential.findUnique.mockResolvedValue({
+        enabled: true,
+        dataCenter: "com",
+      });
+      prisma.zohoSyncRun.findFirst.mockImplementation(({ where }) =>
+        Promise.resolve(
+          where.syncType === "LEAVE"
+            ? {
+                syncType: "LEAVE",
+                status: "FAILED",
+                recordsSynced: 0,
+                skippedUnmapped: 0,
+                skippedNotApproved: 0,
+                skippedInvalid: 0,
+                startedAt: new Date(),
+                error:
+                  "Invalid `prisma.leave.upsert()` invocation in /app/src/...",
+              }
+            : null
+        )
+      );
+
+      await zohoCommands.syncStatus({
+        command: makeCommand(""),
+        ack,
+        respond,
+        client: {},
+      });
+
+      const text = respond.mock.calls[0][0].blocks[0].text.text;
+      expect(text).not.toContain("prisma.leave.upsert");
+      expect(text).toContain("check the server logs");
     });
   });
 });

@@ -231,6 +231,13 @@ model ZohoSyncRun {
   syncType       ZohoSyncType   @map("sync_type")
   status         ZohoSyncStatus
   recordsSynced  Int            @default(0) @map("records_synced")
+  // Skip counters. Without these a misconfigured integration (wrong employee
+  // IDs, renamed Zoho response fields) records status=SUCCESS with
+  // recordsSynced=0 — indistinguishable from "nothing to sync". Surfaced by
+  // /dd-zoho-sync-status.
+  skippedUnmapped    Int        @default(0) @map("skipped_unmapped")
+  skippedNotApproved Int        @default(0) @map("skipped_not_approved")
+  skippedInvalid     Int        @default(0) @map("skipped_invalid")
   error          String?
   startedAt      DateTime       @default(now()) @map("started_at")
   completedAt    DateTime?      @map("completed_at")
