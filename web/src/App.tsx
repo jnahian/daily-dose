@@ -25,6 +25,7 @@ const AdminLogin = lazy(() => import('./pages/admin/Login'));
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
 const AdminOrganizations = lazy(() => import('./pages/admin/Organizations'));
 const AdminTeams = lazy(() => import('./pages/admin/Teams'));
+const AdminApprovals = lazy(() => import('./pages/admin/Approvals'));
 const AdminMembers = lazy(() => import('./pages/admin/Members'));
 const AdminStandups = lazy(() => import('./pages/admin/Standups'));
 const AdminHolidays = lazy(() => import('./pages/admin/Holidays'));
@@ -47,6 +48,7 @@ function App() {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="organizations" element={<AdminOrganizations />} />
             <Route path="teams" element={<AdminTeams />} />
+            <Route path="approvals" element={<AdminApprovals />} />
             <Route path="members" element={<AdminMembers />} />
             <Route path="standups" element={<AdminStandups />} />
             <Route path="holidays" element={<AdminHolidays />} />

@@ -23,6 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - The `ZohoSyncRun` audit write no longer masks the underlying Zoho error if the audit insert itself fails.
   - **Known limitations to verify against a real Zoho org before enabling in production**: the Zoho People leave-records/holiday-calendar response field names used in `zohoSyncService.js`'s mappers are a best-effort mapping (documented inline) and may need adjusting per org; leave sync treats any day in an approved leave's date range as a full day off (no half-day granularity, since the `Leave` table has none); a nightly holiday sync is authoritative for any date it returns and will overwrite a manually-entered holiday on the same org/date (an intentional tradeoff, not a bug — Zoho is treated as the source of truth); and the integration account's Zoho profile needs API access enabled plus reporting-manager-level leave visibility for the team, per the feature's original risk notes. Zoho OAuth tokens are stored in plaintext in `zoho_credentials`, consistent with how this app already stores other server-held secrets (e.g. `oauth_clients.client_secret`).
 
+### Changed
+
+- Extracted the pending-team state transitions out of `teamService.approveTeam`/`rejectTeam` into `approvePendingTeam(teamId)` / `rejectPendingTeam(teamId)`, plus a new `getPendingTeamsForOrg(organizationId)` lookup. The Slack button handlers keep their `getPendingTeamForDecision` authorization and now delegate the write, so the `status: PENDING`-scoped `updateMany`/`deleteMany` race guard has a single implementation shared with other callers. Behavior via Slack is unchanged. (#63, `src/services/teamService.js`, `test/services/teamServiceApproval.test.js`)
+
+### Fixed
+
+- `notificationService.notifyOrgAdminsOfPendingTeam` now counts successful admin DMs and, when **none** land, falls back to posting the same approval request into the org's `daily-dose-bot` channel (new `postPendingTeamToOrgChannel`, via `channelService.ensureOrgChannel`). Previously every `chat.postMessage` failure was caught and logged per-recipient with no aggregate check, so a workspace where all DMs failed — or an org with no active `OWNER`/`ADMIN` to DM at all — left the pending team invisible while the proposer was told "an organization admin will review it shortly". Before posting, the fallback invites the org admins into that channel via `channelService.inviteUserToOrgChannel` — `ensureOrgChannel` may have just created it with only the bot in it, in which case the post would land where nobody is watching and the request would still be invisible. The fallback is best-effort and never throws; team creation is unaffected either way. (#63, `src/services/notificationService.js`, `test/services/notificationServicePendingTeam.test.js`)
+
 ## [1.17.1] - 2026-07-28
 
 ### Fixed
