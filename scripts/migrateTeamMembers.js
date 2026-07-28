@@ -30,10 +30,21 @@ async function findTeam(nameOrId) {
     });
   }
 
-  return prisma.team.findFirst({
+  const matches = await prisma.team.findMany({
     where: { name: { equals: nameOrId, mode: "insensitive" }, isActive: true },
     include: { organization: true },
   });
+
+  if (matches.length > 1) {
+    const list = matches
+      .map((team) => `   - ${team.id} (${team.organization.name})`)
+      .join("\n");
+    throw new Error(
+      `Multiple active teams named "${nameOrId}":\n${list}\n   Re-run with the team UUID.`
+    );
+  }
+
+  return matches[0] || null;
 }
 
 async function migrateTeamMembers(sourceNameOrId, targetNameOrId, options) {
@@ -42,6 +53,7 @@ async function migrateTeamMembers(sourceNameOrId, targetNameOrId, options) {
     const sourceTeam = await findTeam(sourceNameOrId);
     if (!sourceTeam) {
       console.log(`❌ No active team found matching: ${sourceNameOrId}`);
+      process.exitCode = 1;
       return;
     }
     console.log(
@@ -52,6 +64,7 @@ async function migrateTeamMembers(sourceNameOrId, targetNameOrId, options) {
     const targetTeam = await findTeam(targetNameOrId);
     if (!targetTeam) {
       console.log(`❌ No active team found matching: ${targetNameOrId}`);
+      process.exitCode = 1;
       return;
     }
     console.log(
@@ -60,6 +73,7 @@ async function migrateTeamMembers(sourceNameOrId, targetNameOrId, options) {
 
     if (sourceTeam.id === targetTeam.id) {
       console.log("❌ Source and target team are the same team.");
+      process.exitCode = 1;
       return;
     }
 
@@ -69,6 +83,7 @@ async function migrateTeamMembers(sourceNameOrId, targetNameOrId, options) {
         `❌ Source team "${sourceTeam.name}" and target team "${targetTeam.name}" belong to different organizations.\n` +
           `   Re-run with --allow-cross-org to migrate anyway (missing target org membership will be created).`
       );
+      process.exitCode = 1;
       return;
     }
 
@@ -251,8 +266,10 @@ async function migrateTeamMembers(sourceNameOrId, targetNameOrId, options) {
     console.log(
       `\n🎉 Migration complete: ${migrated} added to "${targetTeam.name}", ${removed} removed from "${sourceTeam.name}", ${errors} error(s).`
     );
+    if (errors > 0) process.exitCode = 1;
   } catch (error) {
-    console.error("❌ Error migrating team members:", error);
+    console.error("❌ Error migrating team members:", error.message);
+    process.exitCode = 1;
   } finally {
     await prisma.$disconnect();
   }
@@ -260,7 +277,24 @@ async function migrateTeamMembers(sourceNameOrId, targetNameOrId, options) {
 
 // Parse command line arguments
 const args = process.argv.slice(2);
-const positional = args.filter((arg) => !arg.startsWith("--"));
+const KNOWN_FLAGS = new Set([
+  "--dry-run",
+  "--keep-source",
+  "--reset-role",
+  "--allow-cross-org",
+  "--yes",
+  "-y",
+  "--help",
+  "-h",
+]);
+const unknownFlags = args.filter(
+  (arg) => arg.startsWith("-") && !KNOWN_FLAGS.has(arg)
+);
+if (unknownFlags.length > 0) {
+  console.error(`❌ Unknown option(s): ${unknownFlags.join(", ")}`);
+  process.exit(1);
+}
+const positional = args.filter((arg) => !arg.startsWith("-"));
 const sourceNameOrId = positional[0];
 const targetNameOrId = positional[1];
 

@@ -707,71 +707,102 @@ router.post("/teams/:id/migrate-members", requireAuth, async (req, res) => {
 
     const targetTeam = await prisma.team.findUnique({
       where: { id: targetTeamId },
-      select: { id: true, name: true, organizationId: true, deletedAt: true },
+      select: {
+        id: true,
+        name: true,
+        organizationId: true,
+        deletedAt: true,
+        isActive: true,
+      },
     });
-    if (!targetTeam || targetTeam.deletedAt)
+    if (!targetTeam || targetTeam.deletedAt || !targetTeam.isActive)
       return res.status(404).json({ error: "Target team not found." });
     if (targetTeam.organizationId !== sourceTeam.organizationId)
       return res.status(400).json({
         error: "Source and target team must belong to the same organization.",
       });
 
-    const members = await prisma.teamMember.findMany({
-      where: { teamId: sourceTeam.id, isActive: true },
-    });
-    if (members.length === 0)
-      return res.json({ migratedCount: 0, skippedCount: 0 });
+    const runMigration = () =>
+      prisma.$transaction(
+        async (tx) => {
+          const members = await tx.teamMember.findMany({
+            where: { teamId: sourceTeam.id, isActive: true },
+          });
+          if (members.length === 0)
+            return { migratedCount: 0, skippedCount: 0 };
 
-    const existingTargetMembers = await prisma.teamMember.findMany({
-      where: {
-        teamId: targetTeam.id,
-        isActive: true,
-        userId: { in: members.map((m) => m.userId) },
-      },
-      select: { userId: true },
-    });
-    const alreadyOnTargetIds = new Set(
-      existingTargetMembers.map((m) => m.userId)
-    );
-
-    await prisma.$transaction(async (tx) => {
-      for (const member of members) {
-        if (!alreadyOnTargetIds.has(member.userId)) {
-          const existing = await tx.teamMember.findUnique({
+          const existingTargetMembers = await tx.teamMember.findMany({
             where: {
-              teamId_userId: { teamId: targetTeam.id, userId: member.userId },
+              teamId: targetTeam.id,
+              isActive: true,
+              userId: { in: members.map((m) => m.userId) },
             },
+            select: { userId: true },
           });
-          const data = {
-            role: resetRole ? "MEMBER" : member.role,
-            receiveNotifications: member.receiveNotifications,
-            hideFromNotResponded: member.hideFromNotResponded,
-          };
-          if (existing) {
-            await tx.teamMember.update({
-              where: { id: existing.id },
-              data: { ...data, isActive: true, deletedAt: null },
-            });
-          } else {
-            await tx.teamMember.create({
-              data: { ...data, teamId: targetTeam.id, userId: member.userId },
-            });
+          const alreadyOnTargetIds = new Set(
+            existingTargetMembers.map((m) => m.userId)
+          );
+
+          for (const member of members) {
+            if (!alreadyOnTargetIds.has(member.userId)) {
+              const existing = await tx.teamMember.findUnique({
+                where: {
+                  teamId_userId: {
+                    teamId: targetTeam.id,
+                    userId: member.userId,
+                  },
+                },
+              });
+              const data = {
+                role: resetRole ? "MEMBER" : member.role,
+                receiveNotifications: member.receiveNotifications,
+                hideFromNotResponded: member.hideFromNotResponded,
+              };
+              if (existing) {
+                await tx.teamMember.update({
+                  where: { id: existing.id },
+                  data: { ...data, isActive: true, deletedAt: null },
+                });
+              } else {
+                await tx.teamMember.create({
+                  data: {
+                    ...data,
+                    teamId: targetTeam.id,
+                    userId: member.userId,
+                  },
+                });
+              }
+            }
+
+            if (!keepSource) {
+              await tx.teamMember.update({
+                where: { id: member.id },
+                data: { isActive: false, deletedAt: new Date() },
+              });
+            }
           }
-        }
 
-        if (!keepSource) {
-          await tx.teamMember.update({
-            where: { id: member.id },
-            data: { isActive: false, deletedAt: new Date() },
-          });
-        }
+          return {
+            migratedCount: members.length - alreadyOnTargetIds.size,
+            skippedCount: alreadyOnTargetIds.size,
+          };
+        },
+        { isolationLevel: "Serializable" }
+      );
+
+    let result;
+    for (let attempt = 0; ; attempt++) {
+      try {
+        result = await runMigration();
+        break;
+      } catch (err) {
+        // P2034: transaction write conflict / deadlock — retry a couple times
+        if (err.code === "P2034" && attempt < 2) continue;
+        throw err;
       }
-    });
+    }
 
-    res.json({
-      migratedCount: members.length - alreadyOnTargetIds.size,
-      skippedCount: alreadyOnTargetIds.size,
-    });
+    res.json(result);
   } catch (err) {
     console.error("POST /teams/:id/migrate-members error:", err.message);
     res.status(500).json({ error: "Internal server error" });
