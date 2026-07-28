@@ -1,9 +1,23 @@
 {
   "versions": [
     {
+      "version": "1.17.1",
+      "date": "2026-07-28",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "fixed",
+          "title": "Deactivated teams no longer send standup reminders",
+          "items": [
+            "Fixed a rare issue where a team that was disabled or deleted could keep sending standup reminders and posting summaries for a while afterwards. Schedules now stop immediately."
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.17.0",
       "date": "2026-07-22",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "added",

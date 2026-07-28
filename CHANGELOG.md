@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.17.1] - 2026-07-28
+
 ### Fixed
 
+- `schedulerService.scheduleAllTeams` now calls a new `pruneStaleJobs()` after scheduling, stopping any in-memory standup/followup/posting cron job whose team is no longer returned by `getActiveTeamsForScheduling()`. Previously the hourly refresh was add-only, so jobs for teams that became inactive/deleted outside the Slack commands kept firing until a process restart. (#37, `src/services/schedulerService.js`, `test/services/schedulerService.test.js`)
 - `scripts/migrateTeamMembers.js` hardening (post-merge review fixes for #59):
   - Name-based team lookup now fails with the list of candidate teams when the same active team name exists in multiple organizations, instead of `findFirst` silently picking an arbitrary org; re-run with the team UUID to disambiguate.
   - Failure paths (team not found, identical/cross-org teams, per-member migration errors, top-level catch) now set `process.exitCode = 1` so automation using `--yes` can detect failures.
@@ -710,7 +713,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.17.0...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.17.1...HEAD
+[1.17.1]: https://github.com/jnahian/daily-dose/compare/v1.17.0...v1.17.1
 [1.17.0]: https://github.com/jnahian/daily-dose/compare/v1.16.2...v1.17.0
 [1.16.2]: https://github.com/jnahian/daily-dose/compare/v1.16.1...v1.16.2
 [1.16.1]: https://github.com/jnahian/daily-dose/compare/v1.15.2...v1.16.1
