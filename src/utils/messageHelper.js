@@ -2,49 +2,107 @@
  * Utility functions for handling standup reminder messages
  */
 
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+// Message bodies use a {greeting} token so the salutation can be chosen by
+// time of day (see getTimeGreeting), while the emoji/body stays random. Keep
+// the token at the start of every template.
 const STANDUP_REMINDER_MESSAGES = [
-  "Hey <@USER_ID>!\n 👋 Time to post your daily standup updates. Please share:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
-  "Hello <@USER_ID>!\n 👋 Time to share your daily standup updates. Please update:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
-  "Hi <@USER_ID>!\n ⏰ Just a reminder to post your standup updates. Your checklist:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
-  "Hey <@USER_ID>!\n 🔔 Standup time! Make sure to share:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
-  "What’s up <@USER_ID>? 🚀 Time to get today rolling with your standup:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
-  "Heads up <@USER_ID>!\n 📣 Your standup update is due. Remember to include:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
+  "{greeting} <@USER_ID>!\n 👋 Time to post your daily standup updates. Please share:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
+  "{greeting} <@USER_ID>!\n 👋 Time to share your daily standup updates. Please update:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
+  "{greeting} <@USER_ID>!\n ⏰ Just a reminder to post your standup updates. Your checklist:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
+  "{greeting} <@USER_ID>!\n 🔔 Standup time! Make sure to share:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
+  "{greeting} <@USER_ID>!\n 🚀 Time to get today rolling with your standup:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
+  "{greeting} <@USER_ID>!\n 📣 Your standup update is due. Remember to include:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
 ];
 
 const FOLLOWUP_REMINDER_MESSAGES = [
-  "Reminder <@USER_ID>!\n 👋 Your standup is still pending. Please update:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
-  "Hey <@USER_ID>!\n 🚀 Still waiting for your standup update. Please share:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
-  "Hi <@USER_ID>!\n 🙌 Quick follow-up — your standup isn’t in yet. Share:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
-  "Heads up <@USER_ID>!\n 📣 We’re missing your standup update. Please post:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
-  "Hey <@USER_ID>!\n 👀 Don’t forget your standup today! Please update:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
-  "Hi <@USER_ID>!\n ⚡ Just a reminder, your standup is still due. Please include:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
-  "Hello <@USER_ID>!\n 📝 Following up — can you share your standup update?\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
+  "{greeting} <@USER_ID>!\n 👋 Your standup is still pending. Please update:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
+  "{greeting} <@USER_ID>!\n 🚀 Still waiting for your standup update. Please share:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
+  "{greeting} <@USER_ID>!\n 🙌 Quick follow-up — your standup isn’t in yet. Share:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
+  "{greeting} <@USER_ID>!\n 📣 We’re missing your standup update. Please post:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
+  "{greeting} <@USER_ID>!\n 👀 Don’t forget your standup today! Please update:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
+  "{greeting} <@USER_ID>!\n ⚡ Just a reminder, your standup is still due. Please include:\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
+  "{greeting} <@USER_ID>!\n 📝 Following up — can you share your standup update?\n• Last working day's tasks\n• Today's tasks\n• Any blockers",
 ];
+
+/**
+ * Pick a greeting based on the local time of day.
+ * @param {string} [tz] - IANA timezone (e.g. "America/New_York") to evaluate
+ *   the current hour in. Falls back to the server's local time when omitted or
+ *   invalid.
+ * @returns {string} A time-appropriate greeting (no punctuation/mention).
+ */
+function getTimeGreeting(tz) {
+  let now = dayjs();
+  if (tz) {
+    try {
+      now = now.tz(tz);
+    } catch {
+      // Unknown timezone string — fall back to server-local time.
+    }
+  }
+
+  const hour = now.hour();
+  if (hour >= 5 && hour < 12) return "Good morning";
+  if (hour >= 12 && hour < 17) return "Good afternoon";
+  if (hour >= 17 && hour < 21) return "Good evening";
+  // Late night / early hours — "Good evening" reads oddly, keep it neutral.
+  return "Hello";
+}
+
+/**
+ * Fill greeting + mention placeholders in a message template.
+ * @param {string} template - Template containing {greeting} and <@USER_ID>
+ * @param {string} userId - The Slack user ID to mention
+ * @param {string} [tz] - Recipient's timezone for the time-of-day greeting
+ * @returns {string} The rendered message
+ */
+function renderReminderMessage(template, userId, tz) {
+  return template
+    .replace("{greeting}", getTimeGreeting(tz))
+    .replace("<@USER_ID>", `<@${userId}>`);
+}
 
 /**
  * Get a random standup reminder message
  * @param {string} userId - The Slack user ID to mention
- * @returns {string} A random reminder message with the user ID inserted
+ * @param {string} [tz] - Recipient's IANA timezone, used to pick a
+ *   time-of-day greeting. Falls back to server-local time when omitted.
+ * @returns {string} A random reminder message with greeting and mention filled
  */
-function getRandomStandupMessage(userId) {
+function getRandomStandupMessage(userId, tz) {
   const randomIndex = Math.floor(
     Math.random() * STANDUP_REMINDER_MESSAGES.length
   );
-  const message = STANDUP_REMINDER_MESSAGES[randomIndex];
-  return message.replace("<@USER_ID>", `<@${userId}>`);
+  return renderReminderMessage(
+    STANDUP_REMINDER_MESSAGES[randomIndex],
+    userId,
+    tz
+  );
 }
 
 /**
  * Get a random followup reminder message
  * @param {string} userId - The Slack user ID to mention
- * @returns {string} A random followup message with the user ID inserted
+ * @param {string} [tz] - Recipient's IANA timezone, used to pick a
+ *   time-of-day greeting. Falls back to server-local time when omitted.
+ * @returns {string} A random followup message with greeting and mention filled
  */
-function getRandomFollowupMessage(userId) {
+function getRandomFollowupMessage(userId, tz) {
   const randomIndex = Math.floor(
     Math.random() * FOLLOWUP_REMINDER_MESSAGES.length
   );
-  const message = FOLLOWUP_REMINDER_MESSAGES[randomIndex];
-  return message.replace("<@USER_ID>", `<@${userId}>`);
+  return renderReminderMessage(
+    FOLLOWUP_REMINDER_MESSAGES[randomIndex],
+    userId,
+    tz
+  );
 }
 
 /**
@@ -554,6 +612,7 @@ function parseInlineFormatting(text) {
 module.exports = {
   getRandomStandupMessage,
   getRandomFollowupMessage,
+  getTimeGreeting,
   STANDUP_REMINDER_MESSAGES,
   FOLLOWUP_REMINDER_MESSAGES,
   formatTasks,

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, ArrowRightLeft } from 'lucide-react';
 import { DataTable } from '../../components/admin/DataTable';
 import { StatusBadge } from '../../components/admin/StatusBadge';
 import { AdminModal } from '../../components/admin/AdminModal';
@@ -20,6 +20,7 @@ type ModalState =
   | { type: 'create'; orgId: string | null }
   | { type: 'edit'; team: Team }
   | { type: 'delete'; team: Team }
+  | { type: 'migrate'; team: Team }
   | null;
 
 const emptyForm = {
@@ -31,11 +32,18 @@ const emptyForm = {
   isActive: true,
 };
 
+const emptyMigrateForm = {
+  targetTeamId: '',
+  keepSource: false,
+  resetRole: false,
+};
+
 export default function AdminTeams() {
   const { activeOrgId } = useAdminAuth();
   const [teams, setTeams] = useState<Team[]>([]);
   const [modal, setModal] = useState<ModalState>(null);
   const [form, setForm] = useState(emptyForm);
+  const [migrateForm, setMigrateForm] = useState(emptyMigrateForm);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -68,6 +76,12 @@ export default function AdminTeams() {
   const openDelete = (team: Team) => {
     setError('');
     setModal({ type: 'delete', team });
+  };
+
+  const openMigrate = (team: Team) => {
+    setMigrateForm(emptyMigrateForm);
+    setError('');
+    setModal({ type: 'migrate', team });
   };
 
   const handleSave = async () => {
@@ -117,6 +131,49 @@ export default function AdminTeams() {
     setModal(null);
   };
 
+  const handleMigrate = async () => {
+    if (modal?.type !== 'migrate') return;
+    if (!migrateForm.targetTeamId) { setError('Select a target team.'); return; }
+
+    setSaving(true);
+    setError('');
+
+    try {
+      const res = await fetch(`/api/admin/teams/${modal.team.id}/migrate-members`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          targetTeamId: migrateForm.targetTeamId,
+          keepSource: migrateForm.keepSource,
+          resetRole: migrateForm.resetRole,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || 'Failed to migrate members.');
+        return;
+      }
+
+      const { migratedCount, skippedCount } = await res.json();
+      setTeams(prev => prev.map(t => {
+        if (t.id === modal.team.id && !migrateForm.keepSource) {
+          return { ...t, memberCount: Math.max(0, t.memberCount - migratedCount - skippedCount) };
+        }
+        if (t.id === migrateForm.targetTeamId) {
+          return { ...t, memberCount: t.memberCount + migratedCount };
+        }
+        return t;
+      }));
+      setModal(null);
+    } catch {
+      setError('Failed to migrate members.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -152,6 +209,14 @@ export default function AdminTeams() {
                   title="Edit"
                 >
                   <Pencil size={14} />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); openMigrate(t); }}
+                  disabled={teams.length < 2}
+                  className="text-white/40 hover:text-[#00CFFF] transition-colors disabled:opacity-30 disabled:hover:text-white/40"
+                  title="Migrate Members"
+                >
+                  <ArrowRightLeft size={14} />
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); openDelete(t); }}
@@ -270,6 +335,67 @@ export default function AdminTeams() {
             </button>
           </div>
         </div>
+      </AdminModal>
+
+      {/* Migrate Members Modal */}
+      <AdminModal
+        isOpen={modal?.type === 'migrate'}
+        onClose={() => setModal(null)}
+        title={modal?.type === 'migrate' ? `Migrate Members — ${modal.team.name}` : 'Migrate Members'}
+      >
+        {modal?.type === 'migrate' && (
+          <div className="space-y-4">
+            <p className="text-sm text-white/70">
+              Move {modal.team.memberCount} active member{modal.team.memberCount === 1 ? '' : 's'} from{' '}
+              <span className="text-white font-medium">{modal.team.name}</span> to another team.
+            </p>
+            <div>
+              <label className="block text-xs text-white/50 mb-1">Target Team <span className="text-red-400">*</span></label>
+              <select
+                className="w-full bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00CFFF]/50"
+                value={migrateForm.targetTeamId}
+                onChange={e => setMigrateForm(f => ({ ...f, targetTeamId: e.target.value }))}
+              >
+                <option value="">Select a team…</option>
+                {teams.filter(t => t.id !== modal.team.id && t.isActive).map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            </div>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={migrateForm.keepSource}
+                onChange={e => setMigrateForm(f => ({ ...f, keepSource: e.target.checked }))}
+                className="w-4 h-4 accent-[#00CFFF]"
+              />
+              <span className="text-sm text-white/70">Keep members on the source team (copy instead of move)</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={migrateForm.resetRole}
+                onChange={e => setMigrateForm(f => ({ ...f, resetRole: e.target.checked }))}
+                className="w-4 h-4 accent-[#00CFFF]"
+              />
+              <span className="text-sm text-white/70">Add everyone to the target team as a regular member (ignore admin role)</span>
+            </label>
+            <p className="text-xs text-white/30">
+              Members already active on the target team are skipped, not duplicated. Standup history stays with the original team.
+            </p>
+            {error && <p className="text-red-400 text-xs">{error}</p>}
+            <div className="flex justify-end gap-2 pt-1">
+              <button onClick={() => setModal(null)} className="px-4 py-2 text-sm text-white/50 hover:text-white transition-colors">Cancel</button>
+              <button
+                onClick={handleMigrate}
+                disabled={saving}
+                className="px-4 py-2 bg-[#00CFFF] hover:bg-[#00CFFF]/90 text-black text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+              >
+                {saving ? 'Migrating…' : 'Migrate'}
+              </button>
+            </div>
+          </div>
+        )}
       </AdminModal>
     </div>
   );

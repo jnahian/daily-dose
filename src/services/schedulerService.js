@@ -90,6 +90,25 @@ class SchedulerService {
     for (const team of teams) {
       await this.scheduleTeam(team);
     }
+
+    this.pruneStaleJobs(teams.map((team) => team.id));
+  }
+
+  /**
+   * Stop and remove jobs for teams no longer returned by
+   * getActiveTeamsForScheduling() (e.g. deactivated/deleted outside a path
+   * that calls refreshTeamSchedule/stopTeamSchedule directly). Defense in
+   * depth for the hourly refresh — see #37.
+   * @param {string[]} activeTeamIds - IDs of teams that should stay scheduled
+   */
+  pruneStaleJobs(activeTeamIds) {
+    const activeIds = new Set(activeTeamIds);
+    for (const jobId of this.scheduledJobs.keys()) {
+      const match = jobId.match(/^(?:standup|followup|posting)-(.+)$/);
+      if (match && !activeIds.has(match[1])) {
+        this.stopJob(jobId);
+      }
+    }
   }
 
   async scheduleTeam(team) {
@@ -211,7 +230,10 @@ class SchedulerService {
 
     for (const member of members) {
       try {
-        const randomMessage = getRandomStandupMessage(member.user.slackUserId);
+        const randomMessage = getRandomStandupMessage(
+          member.user.slackUserId,
+          member.user.timezone
+        );
 
         await this.app.client.chat.postMessage({
           channel: member.user.slackUserId,
@@ -265,7 +287,8 @@ class SchedulerService {
     for (const member of pendingMembers) {
       try {
         const randomFollowupMessage = getRandomFollowupMessage(
-          member.user.slackUserId
+          member.user.slackUserId,
+          member.user.timezone
         );
 
         await this.app.client.chat.postMessage({
@@ -372,6 +395,22 @@ class SchedulerService {
       await this.scheduleTeam(team);
     } catch (error) {
       logger.error(`Failed to refresh schedule for team ${teamId}:`, error);
+    }
+  }
+
+  /**
+   * Stop and remove all cron jobs for a team (used when a team is disabled or
+   * deleted). The hourly safety-net refresh only (re)schedules active teams, so
+   * a disabled/deleted team's jobs must be torn down explicitly here.
+   * @param {string} teamId - Team ID whose jobs should be stopped
+   */
+  stopTeamSchedule(teamId) {
+    for (const jobId of [
+      `standup-${teamId}`,
+      `followup-${teamId}`,
+      `posting-${teamId}`,
+    ]) {
+      this.stopJob(jobId);
     }
   }
 

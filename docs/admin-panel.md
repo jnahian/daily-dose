@@ -136,6 +136,7 @@ active org.
 | Holidays      | `/admin/holidays`      | CalendarDays    | Org                  |
 | Scheduler     | `/admin/scheduler`     | Clock           | Org                  |
 | Activity      | `/admin/activity`      | Activity        | Org                  |
+| MCP Usage     | `/admin/mcp-usage`     | BarChart3       | Org                  |
 | My Tokens     | `/admin/tokens`        | Key             | Self (current user)  |
 
 `AdminLayout` guards every admin route: it shows a loading state while the auth
@@ -181,8 +182,10 @@ Actions:
 - **Add Member** → `POST /members` (`{ slackUserId, orgId, role }`). The user
   must have signed in to the bot at least once.
 - **Toggle active** → `PATCH /organizations/:id/toggle` (flips `isActive`).
-- **Delete** → `DELETE /organizations/:id`. **Hard delete** — cascades to all
-  teams, members, holidays, and standup data for the org.
+- **Delete** → `DELETE /organizations/:id`. **Soft delete** — deactivates the
+  org (`isActive: false`, `deletedAt`) and cascades deactivation to its teams
+  and team/org memberships (same soft-delete fields), stopping their live
+  cron jobs. Holidays and standup data are left untouched.
 
 ### Teams (`/admin/teams`)
 
@@ -203,12 +206,32 @@ Actions:
   Timezone. Channel not found → 400; a soft-deleted team already on that channel
   → 409; live duplicate channel → 409.
 - **Edit** → `PUT /teams/:id`. Editable: name, standup time, posting time,
-  timezone, active. **Channel is not editable** after creation.
-- **Delete** → `DELETE /teams/:id` (soft delete).
+  timezone, active. **Channel is not editable** after creation. Resyncs the
+  team's live cron jobs immediately (reschedules with the new times/timezone,
+  or stops them if `isActive` is turned off) — see the note below.
+- **Migrate Members** → `POST /teams/:id/migrate-members`
+  (`{ targetTeamId, keepSource?, resetRole? }`). Moves every active
+  `TeamMember` from this team to another team **in the same organization**
+  (disabled when the org has fewer than 2 teams). By default this is a move:
+  each member is created/reactivated on the target team (preserving role,
+  `receiveNotifications`, `hideFromNotResponded`) and the source membership is
+  soft-deleted. `keepSource` copies instead of moving (source membership stays
+  active); `resetRole` adds everyone to the target as `MEMBER` regardless of
+  their source role. Members already active on the target team are skipped,
+  not duplicated. Standup history (`StandupResponse`/`StandupPost`) stays
+  attached to the original team — only membership moves. Cross-organization
+  migration isn't available from the admin panel; use
+  `npm run team:migrate-members -- "<source-team>" "<target-team>" --allow-cross-org`
+  for that.
+- **Delete** → `DELETE /teams/:id` (soft delete). Also stops the team's live
+  cron jobs immediately.
 
 > Creating/updating a team's times here changes scheduling via the same
-> `Team` records the scheduler reads. Confirm cron behavior with
-> `npm run debug:scheduler` after edits.
+> `Team` records the scheduler reads. Edits, deletes, and the org soft-delete
+> above call `schedulerService.refreshTeamSchedule` / `stopTeamSchedule`
+> directly, so the change takes effect on the running process without a
+> restart — no need to wait for the hourly safety-net refresh. Confirm cron
+> behavior with `npm run debug:scheduler` after edits.
 
 ### Members (`/admin/members`)
 
@@ -287,6 +310,25 @@ Read-only feed of the most recent standup submissions for the active org
 plus a localized timestamp. Currently the only activity type is
 `standup_submitted`.
 
+### MCP Usage (`/admin/mcp-usage`)
+
+Per-user MCP tool-call counts over time for the active org, as a multi-series
+line chart (`GET /mcp-usage?orgId=&days=`, window clamped to 1–365 days).
+
+Every `tools/call` on the `POST /mcp` endpoint writes one `mcp_tool_calls` row
+(`user_id`, `tool_name`, `created_at`) from the handler in `src/mcp/server.js`.
+The insert is fire-and-forget so a tracking failure can never fail a tool call.
+Two consequences worth knowing:
+
+- The row is written **before** the tool runs, so these are call _attempts_, not
+  successes.
+- No org is recorded at write time (a user may belong to several), so membership
+  is joined at read time — a multi-org user's calls appear under each of their orgs.
+
+The chart plots the six busiest users, folding the remainder into an "Other"
+series; hues are keyed to user identity, so changing the day range never
+repaints a surviving series.
+
 ### My Tokens (`/admin/tokens`)
 
 Self-service management of the **logged-in user's own** personal access tokens
@@ -324,6 +366,7 @@ super admin, or `OWNER`/`ADMIN` of the target org.
 | GET    | `/teams?orgId=`                        | org             | Active (non-deleted) teams                     |
 | POST   | `/teams`                               | org             | Create team (resolves `channelName`)           |
 | PUT    | `/teams/:id`                           | org             | Update name/times/timezone/active              |
+| POST   | `/teams/:id/migrate-members`           | org             | Move/copy active members to another team       |
 | DELETE | `/teams/:id`                           | org             | Soft delete                                    |
 | GET    | `/members?orgId=&role=`                | org             | Active org members + teams + last standup      |
 | POST   | `/members`                             | org             | Add/reactivate org member                      |

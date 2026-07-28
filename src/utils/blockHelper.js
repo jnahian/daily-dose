@@ -400,6 +400,63 @@ function createTeamApprovalResultBlocks({
 }
 
 /**
+ * Build the confirmation prompt shown before permanently deleting a team.
+ * Delete is irreversible (data is removed and the channel freed), so the user
+ * must click "Delete" to proceed or "Cancel" to abort.
+ * @param {object} params
+ * @param {string} params.teamId - Team ID (used as the button value)
+ * @param {string} params.teamName - Team name
+ * @param {string} params.channelId - Slack channel ID of the team
+ * @returns {Array<object>} Block Kit blocks with delete/cancel buttons
+ */
+function createTeamDeleteConfirmBlocks({ teamId, teamName, channelId }) {
+  return [
+    createSectionBlock(
+      `⚠️ *Delete team ${escapeSlackText(teamName)}?* (<#${channelId}>)`
+    ),
+    createContextBlock(
+      "This removes the team, its members, and standup history from Daily Dose and can't be undone from Slack. Use `/dd-team-disable` instead if you only want to pause standups."
+    ),
+    createActionsBlock([
+      createButton(
+        "🗑️ Delete",
+        `confirm_delete_team_${teamId}`,
+        teamId,
+        "danger"
+      ),
+      createButton("Cancel", `cancel_delete_team_${teamId}`, teamId),
+    ]),
+  ];
+}
+
+/**
+ * Replacement blocks shown after a team delete is confirmed or cancelled, so the
+ * original confirmation message no longer offers stale buttons.
+ * @param {object} params
+ * @param {string} params.teamName - Team name
+ * @param {string} params.channelId - Slack channel ID of the team
+ * @param {string} params.decidedBySlackUserId - Slack user ID of the actor
+ * @param {boolean} params.deleted - Whether the team was deleted (vs cancelled)
+ * @returns {Array<object>} Block Kit blocks describing the outcome
+ */
+function createTeamDeleteResultBlocks({
+  teamName,
+  channelId,
+  decidedBySlackUserId,
+  deleted,
+}) {
+  const status = deleted
+    ? `🗑️ *Deleted* — team *${escapeSlackText(teamName)}* (<#${channelId}>)`
+    : `✋ *Cancelled* — team *${escapeSlackText(
+        teamName
+      )}* was not deleted (<#${channelId}>)`;
+  return [
+    createSectionBlock(status),
+    createContextBlock(`Action by <@${decidedBySlackUserId}>`),
+  ];
+}
+
+/**
  * Create standup summary header blocks
  * @param {string} teamName - Team name
  * @param {string} date - Date string
@@ -1048,6 +1105,8 @@ module.exports = {
   createStandupReminderBlocks,
   createTeamApprovalRequestBlocks,
   createTeamApprovalResultBlocks,
+  createTeamDeleteConfirmBlocks,
+  createTeamDeleteResultBlocks,
   createStandupSummaryHeader,
   createUserResponseBlocks,
   createLateResponseBlocks,

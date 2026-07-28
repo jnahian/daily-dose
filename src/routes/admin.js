@@ -435,10 +435,15 @@ router.delete(
       if (!org || org.deletedAt)
         return res.status(404).json({ error: "Not found" });
 
+      const orgTeams = await prisma.team.findMany({
+        where: { organizationId: req.params.id, deletedAt: null },
+        select: { id: true },
+      });
+
       // Soft-delete the org and cascade deactivation to its teams, team
       // memberships, and org memberships. The bot filters on isActive (not
       // org.deletedAt), so deactivating the children is what actually stops
-      // reminders/posts. Live cron jobs still require a restart — see #37.
+      // reminders/posts.
       const now = new Date();
       await prisma.$transaction([
         prisma.teamMember.updateMany({
@@ -458,6 +463,13 @@ router.delete(
           data: { isActive: false, deletedAt: now },
         }),
       ]);
+
+      // Stop the live cron jobs for every team that was just deactivated —
+      // the hourly refresh is add-only and won't prune them on its own.
+      for (const orgTeam of orgTeams) {
+        schedulerService.stopTeamSchedule(orgTeam.id);
+      }
+
       res.status(204).end();
     } catch (err) {
       console.error("DELETE /organizations/:id error:", err.message);
@@ -575,6 +587,15 @@ router.put("/teams/:id", requireAuth, async (req, res) => {
       },
       include: { _count: { select: { members: true } } },
     });
+
+    // Resync the live cron jobs so edits (times/timezone/active) take effect
+    // immediately instead of waiting for the hourly refresh or a restart.
+    if (updated.isActive && updated.status === "ACTIVE") {
+      await schedulerService.refreshTeamSchedule(updated.id);
+    } else {
+      schedulerService.stopTeamSchedule(updated.id);
+    }
+
     res.json({
       id: updated.id,
       name: updated.name,
@@ -678,9 +699,138 @@ router.delete("/teams/:id", requireAuth, async (req, res) => {
       where: { id: req.params.id },
       data: { deletedAt: new Date(), isActive: false },
     });
+
+    // Stop the team's live cron jobs — the hourly refresh is add-only and
+    // won't prune a deleted team's jobs on its own.
+    schedulerService.stopTeamSchedule(req.params.id);
+
     res.json({ success: true });
   } catch (err) {
     console.error("DELETE /teams/:id error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/admin/teams/:id/migrate-members — move (or copy) active members to another team in the same org
+router.post("/teams/:id/migrate-members", requireAuth, async (req, res) => {
+  try {
+    const { targetTeamId, keepSource, resetRole } = req.body;
+    if (!targetTeamId)
+      return res.status(400).json({ error: "targetTeamId is required." });
+    if (targetTeamId === req.params.id)
+      return res
+        .status(400)
+        .json({ error: "Source and target team must be different." });
+
+    const sourceTeam = await prisma.team.findUnique({
+      where: { id: req.params.id },
+      select: { id: true, name: true, organizationId: true, deletedAt: true },
+    });
+    if (!sourceTeam || sourceTeam.deletedAt)
+      return res.status(404).json({ error: "Source team not found." });
+    const allowed = await verifyOrgAccess(req, res, sourceTeam.organizationId);
+    if (!allowed) return;
+
+    const targetTeam = await prisma.team.findUnique({
+      where: { id: targetTeamId },
+      select: {
+        id: true,
+        name: true,
+        organizationId: true,
+        deletedAt: true,
+        isActive: true,
+      },
+    });
+    if (!targetTeam || targetTeam.deletedAt || !targetTeam.isActive)
+      return res.status(404).json({ error: "Target team not found." });
+    if (targetTeam.organizationId !== sourceTeam.organizationId)
+      return res.status(400).json({
+        error: "Source and target team must belong to the same organization.",
+      });
+
+    const runMigration = () =>
+      prisma.$transaction(
+        async (tx) => {
+          const members = await tx.teamMember.findMany({
+            where: { teamId: sourceTeam.id, isActive: true },
+          });
+          if (members.length === 0)
+            return { migratedCount: 0, skippedCount: 0 };
+
+          const existingTargetMembers = await tx.teamMember.findMany({
+            where: {
+              teamId: targetTeam.id,
+              isActive: true,
+              userId: { in: members.map((m) => m.userId) },
+            },
+            select: { userId: true },
+          });
+          const alreadyOnTargetIds = new Set(
+            existingTargetMembers.map((m) => m.userId)
+          );
+
+          for (const member of members) {
+            if (!alreadyOnTargetIds.has(member.userId)) {
+              const existing = await tx.teamMember.findUnique({
+                where: {
+                  teamId_userId: {
+                    teamId: targetTeam.id,
+                    userId: member.userId,
+                  },
+                },
+              });
+              const data = {
+                role: resetRole ? "MEMBER" : member.role,
+                receiveNotifications: member.receiveNotifications,
+                hideFromNotResponded: member.hideFromNotResponded,
+              };
+              if (existing) {
+                await tx.teamMember.update({
+                  where: { id: existing.id },
+                  data: { ...data, isActive: true, deletedAt: null },
+                });
+              } else {
+                await tx.teamMember.create({
+                  data: {
+                    ...data,
+                    teamId: targetTeam.id,
+                    userId: member.userId,
+                  },
+                });
+              }
+            }
+
+            if (!keepSource) {
+              await tx.teamMember.update({
+                where: { id: member.id },
+                data: { isActive: false, deletedAt: new Date() },
+              });
+            }
+          }
+
+          return {
+            migratedCount: members.length - alreadyOnTargetIds.size,
+            skippedCount: alreadyOnTargetIds.size,
+          };
+        },
+        { isolationLevel: "Serializable" }
+      );
+
+    let result;
+    for (let attempt = 0; ; attempt++) {
+      try {
+        result = await runMigration();
+        break;
+      } catch (err) {
+        // P2034: transaction write conflict / deadlock — retry a couple times
+        if (err.code === "P2034" && attempt < 2) continue;
+        throw err;
+      }
+    }
+
+    res.json(result);
+  } catch (err) {
+    console.error("POST /teams/:id/migrate-members error:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -1187,6 +1337,45 @@ router.get("/activity", requireAuth, async (req, res) => {
     );
   } catch (err) {
     console.error("GET /activity error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/admin/mcp-usage — per-user MCP tool-call counts per day.
+// A user in several orgs has their calls counted under each: the write path
+// records no org, so membership is joined at read time.
+router.get("/mcp-usage", requireAuth, async (req, res) => {
+  try {
+    const { orgId, days = "30" } = req.query;
+    const allowed = await verifyOrgAccess(req, res, orgId);
+    if (!allowed) return;
+
+    const window = Math.min(Math.max(parseInt(days, 10) || 30, 1), 365);
+    const since = new Date(Date.now() - window * 24 * 60 * 60 * 1000);
+
+    const rows = await prisma.$queryRaw`
+      SELECT COALESCE(u.username, u.slack_user_id) AS user,
+             DATE_TRUNC('day', c.created_at)::date AS day,
+             COUNT(*)::int AS count
+      FROM mcp_tool_calls c
+      JOIN users u ON u.id = c.user_id
+      JOIN organization_members m ON m.user_id = c.user_id
+      WHERE m.organization_id = ${orgId}
+        AND m.is_active = true
+        AND c.created_at >= ${since}
+      GROUP BY 1, 2
+      ORDER BY 2 ASC
+    `;
+
+    res.json(
+      rows.map((r) => ({
+        user: r.user,
+        day: r.day.toISOString().slice(0, 10),
+        count: r.count,
+      }))
+    );
+  } catch (err) {
+    console.error("GET /mcp-usage error:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 });

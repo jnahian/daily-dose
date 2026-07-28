@@ -20,6 +20,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - A previously-synced Zoho leave is deleted once the source record is no longer approved (was previously left stale until it aged out of the sync window).
   - **Known limitations to verify against a real Zoho org before enabling in production**: the Zoho People leave-records/holiday-calendar response field names used in `zohoSyncService.js`'s mappers are a best-effort mapping (documented inline) and may need adjusting per org; leave sync treats any day in an approved leave's date range as a full day off (no half-day granularity, since the `Leave` table has none); a nightly holiday sync is authoritative for any date it returns and will overwrite a manually-entered holiday on the same org/date (an intentional tradeoff, not a bug — Zoho is treated as the source of truth); and the integration account's Zoho profile needs API access enabled plus reporting-manager-level leave visibility for the team, per the feature's original risk notes. Zoho OAuth tokens are stored in plaintext in `zoho_credentials`, consistent with how this app already stores other server-held secrets (e.g. `oauth_clients.client_secret`).
 
+## [1.17.1] - 2026-07-28
+
+### Fixed
+
+- `schedulerService.scheduleAllTeams` now calls a new `pruneStaleJobs()` after scheduling, stopping any in-memory standup/followup/posting cron job whose team is no longer returned by `getActiveTeamsForScheduling()`. Previously the hourly refresh was add-only, so jobs for teams that became inactive/deleted outside the Slack commands kept firing until a process restart. (#37, `src/services/schedulerService.js`, `test/services/schedulerService.test.js`)
+- `scripts/migrateTeamMembers.js` hardening (post-merge review fixes for #59):
+  - Name-based team lookup now fails with the list of candidate teams when the same active team name exists in multiple organizations, instead of `findFirst` silently picking an arbitrary org; re-run with the team UUID to disambiguate.
+  - Failure paths (team not found, identical/cross-org teams, per-member migration errors, top-level catch) now set `process.exitCode = 1` so automation using `--yes` can detect failures.
+  - Short flags (`-y`, `-h`) are excluded from positional team-name parsing, and unknown flags (e.g. a typo like `--dry-runn`) abort with an error instead of being silently ignored and running a real migration.
+
+### Added
+
+- `scripts/migrateTeamMembers.js` (`npm run team:migrate-members -- <source-team> <target-team> [options]`): moves all active `TeamMember` records from one team to another, resolving teams by exact name (case-insensitive) or UUID. Reactivates/creates the target `TeamMember` preserving `role`, `receiveNotifications`, and `hideFromNotResponded`, then soft-deletes (`isActive: false`, `deletedAt`) the source membership; skips duplicating members already active on the target team. Historical `StandupResponse`/`StandupPost` rows are left tied to the original team. Flags: `--dry-run` (preview only), `--keep-source` (copy instead of move), `--reset-role` (force `MEMBER` on the target), `--allow-cross-org` (permit migrating between teams in different organizations, creating/reactivating the target `OrganizationMember` as needed — required by default since teams normally stay within one org), `--yes`/`-y` (skip the confirmation prompt). Prompts for confirmation before writing unless `--dry-run` or `--yes` is passed, following the same `confirmAction` pattern as `triggerStandup.js`/`sendManualStandup.js`.
+
+## [1.17.0] - 2026-07-22
+
+### Added
+
+- Team disable/enable/delete slash commands (team admin or org owner/admin):
+  - `/dd-team-disable [team-name]` pauses a team by setting `isActive: false` and tearing down its cron jobs via the new `schedulerService.stopTeamSchedule(teamId)`; the team's members and standup history are preserved. (`src/commands/team.js`, `src/services/teamService.js` `setTeamActive`, `src/services/schedulerService.js`)
+  - `/dd-team-enable [team-name]` restores a disabled team (`isActive: true`) and reschedules it via `refreshTeamSchedule` when its status is `ACTIVE` (a still-`PENDING` team is left unscheduled).
+  - `/dd-team-delete [team-name]` shows a Block Kit confirmation prompt (`createTeamDeleteConfirmBlocks`) and, on confirm, soft-deletes the team via `teamService.deleteTeam` (`deletedAt` + `isActive: false`, mirroring the admin panel) then stops its schedule. The row and its members/standup history are retained for operator restore, but `deletedAt` hides the team from every Slack lookup so it can't be re-enabled from Slack (unlike a disabled team). Confirm/cancel handled by the `confirm_delete_team_*` / `cancel_delete_team_*` actions with `createTeamDeleteResultBlocks`. (`src/commands/index.js`, `src/utils/blockHelper.js`)
+  - All three resolve the target team by explicit name (scoped to the caller's org) or the current channel via new `teamService.findManageableTeamByName` / `findManageableTeamByChannel`, which include disabled but exclude soft-deleted (`deletedAt`) teams, so a disabled team can still be re-enabled or deleted while a deleted one cannot.
+  - `permissionHelper.canManageTeam` gained a `{ requireActive = true }` option so disabled teams stay manageable by their admins.
+  - Registered the three slash commands in `slack-app-manifest.json` and documented them in `web/src/data/docs.json`.
+
+### Changed
+
+- `teamService.createTeam` now revives a soft-deleted team in a channel instead of throwing "This channel already has a team". The `slackChannelId` column is unique, so a soft-deleted team keeps occupying the channel; `createTeam` detects the `deletedAt` row and reuses it — clearing `deletedAt`, reactivating, applying the caller's new name/times/timezone, and re-asserting the creator as an active team ADMIN via `teamMember.upsert` — so `/dd-team-create` in the channel restores the team (retained members and standup history come back) rather than dead-ending. Returns a `revived` flag so `/dd-team-create` reports "restored" and notes the kept data. An active/disabled team in the channel still blocks creation as before. (`src/services/teamService.js`, `src/commands/team.js`)
+- Standup reminder and follow-up DMs now open with a time-of-day greeting ("Good morning", "Good afternoon", "Good evening", or a neutral "Hello" late at night / overnight) instead of a random salutation. The greeting is chosen from the current hour in the **recipient's own** timezone (`User.timezone`), so members on distributed teams each get a correct greeting. Implemented via a new `getTimeGreeting(tz)` helper and a `{greeting}` token in the reminder templates; `getRandomStandupMessage`/`getRandomFollowupMessage` now take an optional `timezone` argument (server-local fallback when omitted or invalid), and `schedulerService` passes `member.user.timezone` at both call sites. (`src/utils/messageHelper.js`, `src/services/schedulerService.js`, `test/utils/messageHelper.test.js`)
+
+## [1.16.2] - 2026-07-09
+
+### Added
+
+- MCP tool-call tracking: every `tools/call` on the `POST /mcp` endpoint now writes an `mcp_tool_calls` row (`user_id`, `tool_name`, `created_at`) from the `handleMcp` choke point. The insert is fire-and-forget with a `.catch()` into `logger.error`, so a tracking failure can never fail a tool call. Rows are written before the tool executes, so counts are call attempts, not successes. (`prisma/schema.prisma`, `prisma/migrations/20260709063754_add_mcp_tool_calls/`, `src/mcp/server.js`)
+- `GET /api/admin/mcp-usage?orgId=&days=` returns per-user, per-day MCP tool-call counts for an org, gated by `verifyOrgAccess` with the day window clamped to 1–365. No org is recorded at write time (a user may belong to several), so `organization_members` is joined at read time — a multi-org user's calls appear under each of their orgs. (`src/routes/admin.js`)
+- MCP Usage admin page (`/admin/mcp-usage`): a recharts multi-series line chart of per-user tool-call counts over a 7/30/90-day window. Plots the six busiest users and folds the remainder into an "Other" series; hues are keyed to user identity via a persistent slot map, so changing the day range never repaints a surviving series. Adds `recharts` to `web/` (lazy-loaded chunk, ~372 kB). (`web/src/pages/admin/McpUsage.tsx`, `web/src/App.tsx`, `web/src/components/admin/AdminSidebar.tsx`)
+
+### Changed
+
+- Documented the MCP Usage page and `GET /api/admin/mcp-usage` endpoint, including the attempts-not-successes and multi-org read-time-join caveats. (`docs/admin-panel.md`)
+
 ## [1.16.1] - 2026-06-23
 
 ### Added
@@ -683,7 +726,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.16.1...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.17.1...HEAD
+[1.17.1]: https://github.com/jnahian/daily-dose/compare/v1.17.0...v1.17.1
+[1.17.0]: https://github.com/jnahian/daily-dose/compare/v1.16.2...v1.17.0
+[1.16.2]: https://github.com/jnahian/daily-dose/compare/v1.16.1...v1.16.2
 [1.16.1]: https://github.com/jnahian/daily-dose/compare/v1.15.2...v1.16.1
 [1.16.0]: https://github.com/jnahian/daily-dose/compare/v1.15.2...v1.16.0
 [1.15.2]: https://github.com/jnahian/daily-dose/compare/v1.15.1...v1.15.2
