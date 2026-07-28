@@ -739,7 +739,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.18.0...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.18.1...HEAD
 [1.18.0]: https://github.com/jnahian/daily-dose/compare/v1.17.1...v1.18.0
 [1.17.1]: https://github.com/jnahian/daily-dose/compare/v1.17.0...v1.17.1
 [1.17.0]: https://github.com/jnahian/daily-dose/compare/v1.16.2...v1.17.0
