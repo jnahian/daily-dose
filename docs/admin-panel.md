@@ -354,6 +354,44 @@ CRUD over the active org's holidays (org-scoped `Holiday` table).
 - **Add Holiday** → `POST /holidays` (`{ name, date, description, orgId }`).
 - **Edit** → `PUT /holidays/:id` (`{ name, date, description }`).
 - **Delete** → `DELETE /holidays/:id` (**hard delete**).
+- **Import** (**super admin only**) → upload a Zoho People holiday export
+  (`.xls`/`.xlsx`/`.csv`). The button is hidden for org `OWNER`/`ADMIN`. Two-step
+  flow backed by `src/services/holidayImportService.js`:
+  1. `POST /holidays/import/preview` (multipart: `file`, `orgId`) parses the file,
+     expands multi-day rows (`From`/`To` columns) into one entry per calendar day,
+     and diffs each date against existing holidays. Returns `{ items, warnings }`
+     where each item is tagged `new` / `update` / `unchanged`, and `warnings` lists
+     any skipped rows (missing name, unparsable date, reversed range, range over 60
+     days) plus how many days the 1000-record cap dropped.
+  2. The admin reviews/deselects rows in the modal, then
+     `POST /holidays/import` (`{ orgId, items }`) upserts the confirmed rows by
+     `(organization_id, date)` in a single `$transaction`, returning
+     `{ created, updated, skipped, total }`. Items are normalized first (bad date,
+     blank name, duplicate day, over-long name), so a malformed row is counted in
+     `skipped` rather than failing the write partway through.
+  - `.xls`/`.xlsx` are parsed with the `xlsx` (SheetJS) package. `.csv` is parsed by
+    hand — SheetJS's own CSV reader auto-detects and silently mangles Zoho's
+    `DD-MMM-YYYY` date strings, so plain-text files bypass it entirely.
+  - **Dates are keyed in UTC**, not local time. `Holiday.date` is `@db.Date` and
+    Prisma persists the UTC calendar day of whatever `Date` it's given, so
+    `holidayImportService.toUtcDate()` / `toDateKey()` are used on both the read
+    and write side. A local-midnight `Date` would shift the stored day on any host
+    where `TZ !== UTC` and — because the upsert key is `(organization_id, date)` —
+    silently overwrite the neighbouring day's holiday. No `TZ` is pinned in
+    deployment config, so don't assume the host clock is UTC.
+  - Imported rows are tagged `source: MANUAL` and have any `externalId` cleared,
+    even though the file came out of Zoho: the upload is a manual action. The
+    nightly Zoho sync (`zohoSyncService`) remains authoritative and will re-tag a
+    date `ZOHO` if its API still returns it. Use the import when an org has no
+    Zoho API credentials configured, or to backfill ahead of the first sync.
+  - Known tradeoff: the npm-published `xlsx@0.18.5` has open high-severity
+    advisories (prototype pollution / ReDoS) with no newer npm release available,
+    and it is effectively the only Node option for legacy binary `.xls`. Because
+    it parses caller-chosen bytes **inside this shared multi-tenant process**, the
+    blast radius is every org on the box — wider than the org-scoped holiday CRUD
+    routes. Both import routes are therefore gated on `requireAuth` +
+    `requireSuperAdmin` (in addition to `verifyOrgAccess`) and capped at a 5 MB
+    upload. Dropping `.xls` support would remove the dependency entirely.
 
 These are the same holidays the scheduler checks before sending reminders.
 
@@ -449,6 +487,8 @@ super admin, or `OWNER`/`ADMIN` of the target org.
 | POST   | `/holidays`                            | org             | Create holiday                                 |
 | PUT    | `/holidays/:id`                        | org             | Update holiday                                 |
 | DELETE | `/holidays/:id`                        | org             | Hard delete holiday                            |
+| POST   | `/holidays/import/preview`             | super admin     | Parse an uploaded holiday file, return preview |
+| POST   | `/holidays/import`                     | super admin     | Bulk create/update from a confirmed preview    |
 | GET    | `/standups?orgId=&startDate=&endDate=` | org             | Summaries (default last 7 days)                |
 | GET    | `/standups/:teamId/:date`              | org             | Individual responses                           |
 | GET    | `/scheduler?orgId=`                    | org             | Per-team cron job status                       |

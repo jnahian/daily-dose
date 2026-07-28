@@ -12,6 +12,21 @@ const channelService = require("../services/channelService");
 const changelogBroadcastService = require("../services/changelogBroadcastService");
 const oauthTokenService = require("../mcp/auth/oauthTokenService");
 const { escapeSlackText } = require("../utils/messageHelper");
+const multer = require("multer");
+const holidayImportService = require("../services/holidayImportService");
+
+const holidayImportUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowedExt = /\.(xls|xlsx|csv)$/i;
+    if (!allowedExt.test(file.originalname)) {
+      cb(new Error("Only .xls, .xlsx, or .csv files are supported"));
+      return;
+    }
+    cb(null, true);
+  },
+});
 
 // In-memory OAuth state store (state → expiry timestamp)
 const oauthStates = new Map();
@@ -1366,6 +1381,164 @@ router.delete("/holidays/:id", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+// POST /api/admin/holidays/import/preview (multipart: file, orgId)
+// Super-admin only: `xlsx` (SheetJS) has open prototype-pollution/ReDoS
+// advisories with no fixed npm release, and it parses attacker-chosen bytes
+// inside this shared multi-tenant process — a wider blast radius than the
+// org-scoped holiday CRUD routes. See docs/admin-panel.md.
+router.post(
+  "/holidays/import/preview",
+  requireAuth,
+  requireSuperAdmin,
+  (req, res, next) => {
+    holidayImportUpload.single("file")(req, res, (err) => {
+      if (err) return res.status(400).json({ error: err.message });
+      next();
+    });
+  },
+  async (req, res) => {
+    try {
+      const { orgId } = req.body;
+      const allowed = await verifyOrgAccess(req, res, orgId);
+      if (!allowed) return;
+
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      let parsed;
+      try {
+        parsed = holidayImportService.parseHolidayFile(
+          req.file.buffer,
+          req.file.originalname
+        );
+      } catch (parseErr) {
+        return res.status(400).json({ error: parseErr.message });
+      }
+
+      const { records, truncated } = holidayImportService.expandToDailyRecords(
+        parsed.rows
+      );
+      const warnings = [...parsed.warnings];
+      if (truncated > 0) {
+        warnings.push(
+          `Only the first ${holidayImportService.MAX_TOTAL_RECORDS} holiday days were kept; ${truncated} more were dropped`
+        );
+      }
+
+      if (records.length === 0) {
+        return res.json({ items: [], warnings });
+      }
+
+      // records are sorted by date, so the ends are the range bounds.
+      const existing = await prisma.holiday.findMany({
+        where: {
+          organization_id: orgId,
+          date: {
+            gte: holidayImportService.toUtcDate(records[0].date),
+            lte: holidayImportService.toUtcDate(
+              records[records.length - 1].date
+            ),
+          },
+        },
+      });
+      const items = holidayImportService.diffAgainstExisting(records, existing);
+
+      res.json({ items, warnings });
+    } catch (err) {
+      console.error("POST /holidays/import/preview error:", err.message);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+);
+
+// POST /api/admin/holidays/import ({ orgId, items: [{ date, name, description }] })
+// Super-admin only, for the same reason as the preview route above.
+router.post(
+  "/holidays/import",
+  requireAuth,
+  requireSuperAdmin,
+  async (req, res) => {
+    try {
+      const { orgId, items } = req.body;
+      const allowed = await verifyOrgAccess(req, res, orgId);
+      if (!allowed) return;
+
+      if (!Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ error: "No holidays to import" });
+      }
+      if (items.length > holidayImportService.MAX_TOTAL_RECORDS) {
+        return res
+          .status(400)
+          .json({ error: "Too many holidays in one import" });
+      }
+
+      const { valid, skipped } =
+        holidayImportService.normalizeImportItems(items);
+
+      if (valid.length === 0) {
+        return res.status(400).json({ error: "No valid holidays to import" });
+      }
+
+      const existing = await prisma.holiday.findMany({
+        where: {
+          organization_id: orgId,
+          date: { in: valid.map((v) => v.date) },
+        },
+        select: { date: true },
+      });
+      const existingDates = new Set(
+        existing.map((h) => holidayImportService.toDateKey(h.date))
+      );
+
+      // An imported row is a manual upload even when the file came out of
+      // Zoho, so it's tagged MANUAL and any Zoho externalId is cleared — the
+      // nightly sync stays authoritative and will re-tag ZOHO if it still
+      // returns that date.
+      await prisma.$transaction(
+        valid.map((v) =>
+          prisma.holiday.upsert({
+            where: {
+              organization_id_date: {
+                organization_id: orgId,
+                date: v.date,
+              },
+            },
+            update: {
+              name: v.name,
+              description: v.description,
+              source: "MANUAL",
+              externalId: null,
+            },
+            create: {
+              id: crypto.randomUUID(),
+              organization_id: orgId,
+              date: v.date,
+              name: v.name,
+              description: v.description,
+              source: "MANUAL",
+            },
+          })
+        )
+      );
+
+      const updated = valid.filter((v) =>
+        existingDates.has(holidayImportService.toDateKey(v.date))
+      ).length;
+
+      res.json({
+        created: valid.length - updated,
+        updated,
+        skipped,
+        total: valid.length,
+      });
+    } catch (err) {
+      console.error("POST /holidays/import error:", err.message);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+);
 
 // GET /api/admin/standups?orgId=&startDate=&endDate=
 router.get("/standups", requireAuth, async (req, res) => {
