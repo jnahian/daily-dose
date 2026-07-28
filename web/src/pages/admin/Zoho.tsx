@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { RefreshCw, Plus, Trash2, AlertTriangle } from 'lucide-react';
 import { AdminModal } from '../../components/admin/AdminModal';
 import { StatusBadge } from '../../components/admin/StatusBadge';
@@ -29,11 +29,21 @@ interface ZohoState {
   mappings: Mapping[];
 }
 
+interface OrgMember {
+  userId: string;
+  slackUserId: string;
+  name: string;
+}
+
 const SYNC_TYPES = ['HOLIDAY', 'LEAVE'] as const;
 
 function formatWhen(iso: string) {
-  return new Date(iso).toLocaleString(undefined, {
+  const date = new Date(iso);
+  // Include the year once a run is old enough that "Jul 28" would be ambiguous.
+  const showYear = date.getFullYear() !== new Date().getFullYear();
+  return date.toLocaleString(undefined, {
     month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+    ...(showYear ? { year: 'numeric' } : {}),
   });
 }
 
@@ -90,19 +100,52 @@ export default function AdminZoho() {
   const [notice, setNotice] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
   const [form, setForm] = useState({ slackUserId: '', zohoEmployeeId: '' });
+  const [members, setMembers] = useState<OrgMember[]>([]);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Mapping | null>(null);
+
+  // Guards against a slow response for org A landing after the operator has
+  // switched to org B and overwriting B's state. That matters here beyond
+  // cosmetics: the delete buttons are keyed on mapping IDs, and the backend
+  // authorizes each delete against the mapping's *own* org — so acting on a
+  // stale row would successfully remove a mapping from the org no longer on
+  // screen. Every response is stamped with the request it belongs to and
+  // dropped if it isn't the latest. One counter per endpoint — a shared one
+  // would let the members fetch invalidate an in-flight Zoho response.
+  const zohoRequestId = useRef(0);
+  const membersRequestId = useRef(0);
 
   const load = useCallback(() => {
     if (!activeOrgId) return;
+    const id = ++zohoRequestId.current;
     fetch(`/api/admin/zoho?orgId=${activeOrgId}`, { credentials: 'include' })
       .then(r => (r.ok ? r.json() : null))
-      .then(setData)
-      .catch(() => setData(null));
+      .then(payload => { if (id === zohoRequestId.current) setData(payload); })
+      .catch(() => { if (id === zohoRequestId.current) setData(null); });
   }, [activeOrgId]);
 
-  useEffect(load, [load]);
+  // Clear immediately on an org switch so the previous org's mappings are
+  // never on screen — and never clickable — while the new ones load.
+  useEffect(() => {
+    setData(null);
+    setError(null);
+    setNotice(null);
+    setConfirmDelete(null);
+    load();
+  }, [load]);
+
+  // Org members back the mapping picker. Choosing from this list instead of
+  // typing a Slack ID is what keeps a typo from reaching the server at all.
+  useEffect(() => {
+    if (!activeOrgId) { setMembers([]); return; }
+    const id = ++membersRequestId.current;
+    fetch(`/api/admin/members?orgId=${activeOrgId}`, { credentials: 'include' })
+      .then(r => (r.ok ? r.json() : []))
+      .then(list => { if (id === membersRequestId.current) setMembers(list); })
+      .catch(() => { if (id === membersRequestId.current) setMembers([]); });
+  }, [activeOrgId]);
 
   const runSync = async () => {
     if (!activeOrgId || syncing) return;
@@ -121,8 +164,14 @@ export default function AdminZoho() {
         setError(body.error || 'Sync failed');
         return;
       }
+      // A partial run comes back 200 with both what synced and what failed —
+      // report each, rather than letting one failure hide the other's counts.
       const total = SYNC_TYPES.reduce((n, t) => n + (body[t]?.recordsSynced ?? 0), 0);
+      const failures = Object.entries(body.errors ?? {});
       setNotice(`Synced ${total} record${total === 1 ? '' : 's'}.`);
+      if (failures.length > 0) {
+        setError(failures.map(([type, message]) => `${type}: ${message}`).join(' · '));
+      }
     } catch {
       setError('Sync request failed');
     } finally {
@@ -160,13 +209,23 @@ export default function AdminZoho() {
   const deleteMapping = async () => {
     if (!confirmDelete || saving) return;
     setSaving(true);
+    setDeleteError(null);
     try {
-      await fetch(`/api/admin/zoho/mappings/${confirmDelete.id}`, {
+      const res = await fetch(`/api/admin/zoho/mappings/${confirmDelete.id}`, {
         method: 'DELETE',
         credentials: 'include',
       });
+      if (!res.ok) {
+        // Keep the dialog open — closing it on a 403/404/500 would imply the
+        // mapping was removed while the row is still there after the refetch.
+        const body = await res.json().catch(() => ({}));
+        setDeleteError(body.error || 'Failed to remove mapping');
+        return;
+      }
       setConfirmDelete(null);
       load();
+    } catch {
+      setDeleteError('Failed to remove mapping');
     } finally {
       setSaving(false);
     }
@@ -183,7 +242,10 @@ export default function AdminZoho() {
         {data?.credential && (
           <button
             onClick={runSync}
-            disabled={syncing}
+            // A disabled credential makes the sync fail with "integration is
+            // disabled" — don't offer a round trip to learn that.
+            disabled={syncing || !data.credential.enabled}
+            title={data.credential.enabled ? undefined : 'Zoho integration is disabled for this organization'}
             className="flex items-center gap-2 px-3 py-2 bg-[#00CFFF] text-black text-sm font-medium rounded-lg hover:bg-[#00CFFF]/90 transition-colors disabled:opacity-50"
           >
             <RefreshCw size={15} className={syncing ? 'animate-spin' : ''} />
@@ -278,14 +340,23 @@ export default function AdminZoho() {
       <AdminModal isOpen={mapOpen} onClose={() => setMapOpen(false)} title="Map Member to Zoho">
         <div className="space-y-4">
           <div>
-            <label htmlFor="zoho-slack-id" className="block text-xs text-white/40 mb-1">Slack user ID</label>
-            <input
+            <label htmlFor="zoho-slack-id" className="block text-xs text-white/40 mb-1">Organization member</label>
+            <select
               id="zoho-slack-id"
               value={form.slackUserId}
               onChange={e => setForm({ ...form, slackUserId: e.target.value })}
-              placeholder="U01234ABCDE"
-              className="w-full bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/20"
-            />
+              className="w-full bg-[#0d1117] border border-white/10 rounded-lg px-3 py-2 text-sm text-white"
+            >
+              <option value="">Select a member…</option>
+              {members.map(m => (
+                <option key={m.userId} value={m.slackUserId}>
+                  {m.name} ({m.slackUserId})
+                </option>
+              ))}
+            </select>
+            {members.length === 0 && (
+              <p className="text-xs text-white/30 mt-1">No members loaded for this organization.</p>
+            )}
           </div>
           <div>
             <label htmlFor="zoho-employee-id" className="block text-xs text-white/40 mb-1">Zoho employee ID</label>
@@ -315,13 +386,18 @@ export default function AdminZoho() {
         </div>
       </AdminModal>
 
-      <AdminModal isOpen={!!confirmDelete} onClose={() => setConfirmDelete(null)} title="Remove Mapping">
+      <AdminModal isOpen={!!confirmDelete} onClose={() => { setConfirmDelete(null); setDeleteError(null); }} title="Remove Mapping">
         <p className="text-sm text-white/70 mb-5">
           Remove the Zoho mapping for <span className="text-white">{confirmDelete?.name}</span>? Their
           leave will stop syncing until they are mapped again.
         </p>
+        {deleteError && (
+          <p className="flex items-start gap-2 text-sm text-red-400 mb-4">
+            <AlertTriangle size={14} className="mt-0.5 shrink-0" /> {deleteError}
+          </p>
+        )}
         <div className="flex justify-end gap-3">
-          <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 text-sm text-white/50 hover:text-white transition-colors">Cancel</button>
+          <button onClick={() => { setConfirmDelete(null); setDeleteError(null); }} className="px-4 py-2 text-sm text-white/50 hover:text-white transition-colors">Cancel</button>
           <button
             onClick={deleteMapping}
             disabled={saving}

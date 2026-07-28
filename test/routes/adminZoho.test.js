@@ -12,10 +12,11 @@ jest.mock("@slack/web-api", () => ({
 jest.mock("../../src/config/prisma", () => ({
   sessions: { findUnique: jest.fn() },
   super_admins: { findUnique: jest.fn() },
-  organizationMember: { findFirst: jest.fn() },
+  organizationMember: { findFirst: jest.fn(), findUnique: jest.fn() },
+  user: { findUnique: jest.fn() },
   zohoCredential: { findUnique: jest.fn() },
   zohoSyncRun: { findFirst: jest.fn() },
-  zohoUserMapping: { findUnique: jest.fn() },
+  zohoUserMapping: { findUnique: jest.fn(), delete: jest.fn() },
 }));
 
 jest.mock("../../src/services/zoho/zohoMappingService", () => ({
@@ -103,6 +104,12 @@ beforeEach(() => {
   });
   prisma.zohoSyncRun.findFirst.mockResolvedValue(makeRun());
   zohoMappingService.listMappings.mockResolvedValue([]);
+  // Default: the mapping target is a known, active member of the org.
+  prisma.user.findUnique.mockResolvedValue({ id: "user-9", slackUserId: "U9" });
+  prisma.organizationMember.findUnique.mockResolvedValue({
+    id: "om-1",
+    isActive: true,
+  });
 });
 
 describe("GET /zoho", () => {
@@ -119,11 +126,7 @@ describe("GET /zoho", () => {
     const select = prisma.zohoCredential.findUnique.mock.calls[0][0].select;
     expect(select.refreshToken).toBeUndefined();
     expect(select.accessToken).toBeUndefined();
-    expect(select).toEqual({
-      enabled: true,
-      dataCenter: true,
-      updatedAt: true,
-    });
+    expect(select).toEqual({ enabled: true, dataCenter: true });
   });
 
   it("queries the latest run per sync type separately", async () => {
@@ -251,6 +254,53 @@ describe("POST /zoho/mappings", () => {
     expect(status).toBe(400);
     expect(zohoMappingService.mapMember).not.toHaveBeenCalled();
   });
+
+  // mapMember() → userService.findOrCreateUser() *creates* a User for an
+  // unknown Slack ID, and a failed users.info lookup is swallowed — so without
+  // this guard a typo in the form would silently mint an empty orphan User.
+  it("refuses an unknown Slack user instead of creating one", async () => {
+    prisma.user.findUnique.mockResolvedValue(null);
+
+    const { status, body } = await callRoute("POST", "/zoho/mappings", {
+      orgId: ORG_ID,
+      slackUserId: "U-typo",
+      zohoEmployeeId: "ZP-1",
+    });
+
+    expect(status).toBe(404);
+    expect(body.error).toMatch(/must sign in to the bot first/);
+    expect(zohoMappingService.mapMember).not.toHaveBeenCalled();
+  });
+
+  it("refuses a user who is not a member of the target org", async () => {
+    prisma.organizationMember.findUnique.mockResolvedValue(null);
+
+    const { status, body } = await callRoute("POST", "/zoho/mappings", {
+      orgId: ORG_ID,
+      slackUserId: "U9",
+      zohoEmployeeId: "ZP-1",
+    });
+
+    expect(status).toBe(400);
+    expect(body.error).toMatch(/not an active member/);
+    expect(zohoMappingService.mapMember).not.toHaveBeenCalled();
+  });
+
+  it("refuses a member whose org membership is inactive", async () => {
+    prisma.organizationMember.findUnique.mockResolvedValue({
+      id: "om-1",
+      isActive: false,
+    });
+
+    const { status } = await callRoute("POST", "/zoho/mappings", {
+      orgId: ORG_ID,
+      slackUserId: "U9",
+      zohoEmployeeId: "ZP-1",
+    });
+
+    expect(status).toBe(400);
+    expect(zohoMappingService.mapMember).not.toHaveBeenCalled();
+  });
 });
 
 describe("DELETE /zoho/mappings/:id", () => {
@@ -258,28 +308,29 @@ describe("DELETE /zoho/mappings/:id", () => {
     prisma.zohoUserMapping.findUnique.mockResolvedValue({
       id: "map-1",
       organizationId: "org-owned-by-someone-else",
-      user: { slackUserId: "U9" },
     });
     prisma.organizationMember.findFirst.mockResolvedValue(null);
 
     const { status } = await callRoute("DELETE", "/zoho/mappings/map-1");
 
     expect(status).toBe(403);
-    expect(zohoMappingService.unmapMember).not.toHaveBeenCalled();
+    expect(prisma.zohoUserMapping.delete).not.toHaveBeenCalled();
   });
 
-  it("removes a mapping the caller administers", async () => {
+  it("removes a mapping the caller administers, by primary key", async () => {
     prisma.zohoUserMapping.findUnique.mockResolvedValue({
       id: "map-1",
       organizationId: ORG_ID,
-      user: { slackUserId: "U9" },
     });
-    zohoMappingService.unmapMember.mockResolvedValue({ count: 1 });
 
     const { status } = await callRoute("DELETE", "/zoho/mappings/map-1");
 
     expect(status).toBe(200);
-    expect(zohoMappingService.unmapMember).toHaveBeenCalledWith(ORG_ID, "U9");
+    expect(prisma.zohoUserMapping.delete).toHaveBeenCalledWith({
+      where: { id: "map-1" },
+    });
+    // The row is already fetched and authorized — no service round trip.
+    expect(zohoMappingService.unmapMember).not.toHaveBeenCalled();
   });
 
   it("404s on an unknown mapping", async () => {
@@ -332,10 +383,37 @@ describe("POST /zoho/sync", () => {
     expect(zohoSyncService.syncHolidaysForOrganization).not.toHaveBeenCalled();
   });
 
-  it("passes a Zoho auth failure through as actionable 400 detail", async () => {
+  // The whole point of catching per type: a holiday failure must not erase a
+  // leave sync that already landed, the way syncAllOrganizations handles it.
+  it("keeps a successful sync's counts when the other type fails", async () => {
+    const err = new Error("Zoho rejected the request as unauthorized");
+    err.name = "ZohoApiError";
+    zohoSyncService.syncLeavesForOrganization.mockRejectedValue(err);
+
+    const { status, body } = await callRoute("POST", "/zoho/sync", {
+      orgId: ORG_ID,
+      type: "ALL",
+    });
+
+    expect(status).toBe(200);
+    expect(body.HOLIDAY.recordsSynced).toBe(14);
+    expect(body.LEAVE).toBeUndefined();
+    expect(body.errors).toEqual({
+      LEAVE: expect.stringMatching(/unauthorized/),
+    });
+  });
+
+  it("reports no errors on a fully successful run", async () => {
+    const { body } = await callRoute("POST", "/zoho/sync", { orgId: ORG_ID });
+
+    expect(body.errors).toEqual({});
+  });
+
+  it("passes a Zoho auth failure through as actionable 400 when nothing synced", async () => {
     const err = new Error("Zoho integration is disabled for organization x");
     err.name = "ZohoAuthError";
     zohoSyncService.syncHolidaysForOrganization.mockRejectedValue(err);
+    zohoSyncService.syncLeavesForOrganization.mockRejectedValue(err);
 
     const { status, body } = await callRoute("POST", "/zoho/sync", {
       orgId: ORG_ID,
@@ -343,12 +421,13 @@ describe("POST /zoho/sync", () => {
 
     expect(status).toBe(400);
     expect(body.error).toMatch(/disabled for organization/);
+    expect(Object.keys(body.errors)).toEqual(["HOLIDAY", "LEAVE"]);
   });
 
-  it("hides an unexpected failure behind a 500", async () => {
-    zohoSyncService.syncHolidaysForOrganization.mockRejectedValue(
-      new Error("connect ECONNREFUSED 10.0.0.5:5432")
-    );
+  it("hides an unexpected failure behind a 500 when nothing synced", async () => {
+    const boom = new Error("connect ECONNREFUSED 10.0.0.5:5432");
+    zohoSyncService.syncHolidaysForOrganization.mockRejectedValue(boom);
+    zohoSyncService.syncLeavesForOrganization.mockRejectedValue(boom);
 
     const { status, body } = await callRoute("POST", "/zoho/sync", {
       orgId: ORG_ID,

@@ -1722,7 +1722,7 @@ router.get("/zoho", requireAuth, async (req, res) => {
     const credential = await prisma.zohoCredential.findUnique({
       where: { organizationId: orgId },
       // Never send refreshToken/accessToken to the browser.
-      select: { enabled: true, dataCenter: true, updatedAt: true },
+      select: { enabled: true, dataCenter: true },
     });
 
     // One query per type rather than one capped list — a burst of runs of one
@@ -1771,6 +1771,34 @@ router.post("/zoho/mappings", requireAuth, async (req, res) => {
       return res.status(400).json({ error: "A Slack user is required" });
     }
 
+    // zohoMappingService.mapMember() goes through userService.findOrCreateUser(),
+    // which *creates* a User for an unknown Slack ID — and fetchSlackUserData()
+    // swallows a failed users.info lookup, so a typo would silently mint an
+    // empty orphan User. In Slack that can't happen (the ID comes from a
+    // resolved mention); through a web form it can. Same guard POST /members
+    // uses, plus a membership check: mapping annotates an existing org member,
+    // it is not a way to add one.
+    const user = await prisma.user.findUnique({
+      where: { slackUserId: slackUserId.trim() },
+    });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ error: "User not found. They must sign in to the bot first." });
+    }
+    const membership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: { organizationId: orgId, userId: user.id },
+      },
+    });
+    if (!membership || !membership.isActive) {
+      return res
+        .status(400)
+        .json({
+          error: "That user is not an active member of this organization",
+        });
+    }
+
     const mapping = await zohoMappingService.mapMember(
       orgId,
       slackUserId.trim(),
@@ -1790,16 +1818,18 @@ router.delete("/zoho/mappings/:id", requireAuth, async (req, res) => {
   try {
     const mapping = await prisma.zohoUserMapping.findUnique({
       where: { id: req.params.id },
-      include: { user: { select: { slackUserId: true } } },
+      select: { id: true, organizationId: true },
     });
     if (!mapping) return res.status(404).json({ error: "Not found" });
+    // Authorize against the mapping's own org, never a caller-supplied one.
     const allowed = await verifyOrgAccess(req, res, mapping.organizationId);
     if (!allowed) return;
 
-    await zohoMappingService.unmapMember(
-      mapping.organizationId,
-      mapping.user.slackUserId
-    );
+    // Deleted by primary key rather than via zohoMappingService.unmapMember():
+    // the row is already fetched and authorized here, so the service's
+    // slackUserId re-lookup and (org, user) deleteMany would add two queries
+    // and re-validate what we just proved.
+    await prisma.zohoUserMapping.delete({ where: { id: mapping.id } });
     res.json({ ok: true });
   } catch (err) {
     if (err.userFacing) return res.status(400).json({ error: err.message });
@@ -1822,22 +1852,46 @@ router.post("/zoho/sync", requireAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid sync type" });
     }
 
+    const runners = {
+      HOLIDAY: zohoSyncService.syncHolidaysForOrganization,
+      LEAVE: zohoSyncService.syncLeavesForOrganization,
+    };
+    const types = type === "ALL" ? ["HOLIDAY", "LEAVE"] : [type];
+
+    // Caught per type, the way syncAllOrganizations does it: a holiday failure
+    // must not erase a leave sync that already landed. ZohoAuthError /
+    // ZohoApiError carry actionable setup detail (missing credential, revoked
+    // token, insufficient Zoho permissions) and are passed through; anything
+    // else is logged and generalized. Either way the sync already recorded a
+    // FAILED ZohoSyncRun before rethrowing.
     const results = {};
-    if (type === "HOLIDAY" || type === "ALL") {
-      results.HOLIDAY =
-        await zohoSyncService.syncHolidaysForOrganization(orgId);
+    const errors = {};
+    let anyUnexpected = false;
+
+    for (const syncType of types) {
+      try {
+        results[syncType] = await runners[syncType](orgId);
+      } catch (err) {
+        if (err.name === "ZohoAuthError" || err.name === "ZohoApiError") {
+          errors[syncType] = err.message;
+        } else {
+          console.error(`POST /zoho/sync ${syncType} error:`, err.message);
+          errors[syncType] = "Sync failed — check the server logs";
+          anyUnexpected = true;
+        }
+      }
     }
-    if (type === "LEAVE" || type === "ALL") {
-      results.LEAVE = await zohoSyncService.syncLeavesForOrganization(orgId);
+
+    // Only a total failure is an error response — a partial run still reports
+    // what actually synced.
+    if (Object.keys(results).length === 0) {
+      return res
+        .status(anyUnexpected ? 500 : 400)
+        .json({ error: Object.values(errors)[0], errors });
     }
-    res.json(results);
+
+    res.json({ ...results, errors });
   } catch (err) {
-    // ZohoAuthError/ZohoApiError carry actionable setup detail (missing
-    // credential, revoked token, insufficient Zoho permissions) — the sync
-    // already recorded a FAILED ZohoSyncRun before rethrowing.
-    if (err.name === "ZohoAuthError" || err.name === "ZohoApiError") {
-      return res.status(400).json({ error: err.message });
-    }
     console.error("POST /zoho/sync error:", err.message);
     res.status(500).json({ error: "Sync failed — check the server logs" });
   }

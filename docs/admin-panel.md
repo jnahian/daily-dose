@@ -419,7 +419,7 @@ one `GET /zoho?orgId=` call and the page refetches after every mutation.
 Three sections:
 
 1. **Integration** — `enabled` state and data center from `ZohoCredential`.
-   The route selects only `{ enabled, dataCenter, updatedAt }`; the refresh and
+   The route selects only `{ enabled, dataCenter }`; the refresh and
    access tokens are never sent to the browser. When no credential row exists
    the page says so and points at `npm run zoho:auth-setup` — **credential
    setup is deliberately not exposed in the panel**, since the Zoho grant token
@@ -436,20 +436,43 @@ Three sections:
      `skippedUnmapped > 0` (employee IDs aren't mapped) and synced 0 with
      `skippedInvalid > 0` (the org's Zoho response uses different field names).
 3. **Employee mappings** — `ZohoUserMapping` rows with add/remove via modal.
-   Both go through `zohoMappingService`, so the panel inherits its validation
-   (an employee ID already mapped to someone else is rejected, including the
-   `P2002` race path). `zohoEmployeeId` is handled as a string end to end —
-   Zoho IDs overflow JS's safe integer range. `UserFacingError` maps to `400`
-   with its message; anything else is a `500` with a generic body.
+   The picker is a **dropdown of the org's members** (`GET /members?orgId=`),
+   not a free-text Slack ID field, and `POST /zoho/mappings` enforces the same
+   thing server-side: the user must already exist (404, same wording as
+   `POST /members`) and be an active `OrganizationMember` (400).
+   - That guard is load-bearing, not defensive padding. `mapMember()` goes
+     through `userService.findOrCreateUser()`, which **creates** a `User` for an
+     unknown Slack ID, and `fetchSlackUserData()` swallows a failed
+     `users.info` lookup — so without it a typo would silently mint an empty
+     orphan `User` and return 200. The Slack command can't hit this because its
+     ID comes from a resolved mention.
+   - Creation still goes through `zohoMappingService`, so the panel inherits
+     its validation (an employee ID already mapped to someone else is rejected,
+     including the `P2002` race path). `zohoEmployeeId` is a string end to end —
+     Zoho IDs overflow JS's safe integer range. `UserFacingError` maps to `400`
+     with its message; anything else is a `500` with a generic body.
+   - Deletion is a `delete` by primary key after the org check, **not**
+     `unmapMember()` — the row is already fetched and authorized, so the
+     service's `slackUserId` re-lookup and `(org, user)` `deleteMany` would add
+     two queries to re-prove it.
 
 **Sync now** posts to `POST /zoho/sync` with `type: 'ALL'` and runs the same
 functions the nightly cron calls. It is **synchronous** — it calls Zoho and
 upserts before responding, so the operator sees real counts instead of a
-fire-and-forget "started". Expect seconds, not milliseconds. `ZohoAuthError` /
-`ZohoApiError` are passed through as `400` because they carry actionable setup
-detail (missing credential, revoked refresh token, insufficient Zoho
-permissions); the sync has already recorded a `FAILED` `ZohoSyncRun` before
-rethrowing. Note the cron's `noOverlap` guard does not cover manual runs.
+fire-and-forget "started". Expect seconds, not milliseconds.
+
+Each type is caught **separately**, the way `syncAllOrganizations` does it, so a
+holiday failure can't erase a leave sync that already landed:
+
+- At least one type succeeded → `200` with `{ HOLIDAY?, LEAVE?, errors }`,
+  where `errors` maps the failed type to its message (`{}` when all succeeded).
+  The page reports the counts and the failure together.
+- Every requested type failed → `400` if all failures were `ZohoAuthError` /
+  `ZohoApiError` (actionable setup detail: missing credential, revoked refresh
+  token, insufficient Zoho permissions), `500` otherwise. Either way the sync
+  has already recorded a `FAILED` `ZohoSyncRun` before rethrowing.
+
+Note the cron's `noOverlap` guard does not cover manual runs.
 
 > **Known ceiling:** the request is long-lived by design — two sequential Zoho
 > calls at a 15s timeout each, plus one upsert per record — and neither the
