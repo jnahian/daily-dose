@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.0] - 2026-07-28
+
 ### Added
 
 - Zoho People leave & holiday integration: a nightly cron job (`schedulerService`, default `30 1 * * *`, override with `ZOHO_SYNC_CRON`) syncs approved leave and org holidays from Zoho People into the existing `Leave`/`Holiday` tables, tagged with a new `source`/`externalId` pair (`MANUAL` vs `ZOHO`) so synced rows dedupe cleanly on re-sync without disturbing manually-entered leaves/holidays. Since gating (`standupService.getActiveMembers`, `postTeamStandup`'s "On Leave" block) already reads from those same tables, no changes were needed there — Zoho-sourced leave automatically skips reminders and shows up in the "out today" summary line, and a synced holiday skips the whole standup run, same as a manually-entered one.
@@ -737,7 +739,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.17.1...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.18.0...HEAD
+[1.18.0]: https://github.com/jnahian/daily-dose/compare/v1.17.1...v1.18.0
 [1.17.1]: https://github.com/jnahian/daily-dose/compare/v1.17.0...v1.17.1
 [1.17.0]: https://github.com/jnahian/daily-dose/compare/v1.16.2...v1.17.0
 [1.16.2]: https://github.com/jnahian/daily-dose/compare/v1.16.1...v1.16.2
