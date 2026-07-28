@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Upload } from 'lucide-react';
 import { DataTable } from '../../components/admin/DataTable';
 import { AdminModal } from '../../components/admin/AdminModal';
+import { ImportHolidaysModal } from '../../components/admin/ImportHolidaysModal';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 
 interface Holiday {
@@ -20,13 +21,16 @@ export default function AdminHolidays() {
   const [selected, setSelected] = useState<Holiday | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
-  useEffect(() => {
+  const loadHolidays = () => {
     if (!activeOrgId) return;
     fetch(`/api/admin/holidays?orgId=${activeOrgId}`, { credentials: 'include' })
       .then(r => r.ok ? r.json() : [])
       .then(setHolidays);
-  }, [activeOrgId]);
+  };
+
+  useEffect(loadHolidays, [activeOrgId]);
 
   const openAdd = () => { setForm(emptyForm); setSelected(null); setModal('add'); };
   const openEdit = (h: Holiday) => {
@@ -88,9 +92,14 @@ export default function AdminHolidays() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold text-white">Holidays</h1>
-        <button onClick={openAdd} className="flex items-center gap-2 px-3 py-2 bg-[#00CFFF] text-black text-sm font-medium rounded-lg hover:bg-[#00CFFF]/90 transition-colors">
-          <Plus size={15} /> Add Holiday
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={() => setImportOpen(true)} className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 text-white text-sm font-medium rounded-lg hover:bg-white/10 transition-colors">
+            <Upload size={15} /> Import
+          </button>
+          <button onClick={openAdd} className="flex items-center gap-2 px-3 py-2 bg-[#00CFFF] text-black text-sm font-medium rounded-lg hover:bg-[#00CFFF]/90 transition-colors">
+            <Plus size={15} /> Add Holiday
+          </button>
+        </div>
       </div>
 
       <DataTable
@@ -167,6 +176,14 @@ export default function AdminHolidays() {
           <button onClick={confirmDelete} disabled={saving} className="px-4 py-2 text-sm bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50">{saving ? 'Deleting…' : 'Delete'}</button>
         </div>
       </AdminModal>
+      {activeOrgId && (
+        <ImportHolidaysModal
+          isOpen={importOpen}
+          onClose={() => setImportOpen(false)}
+          orgId={activeOrgId}
+          onImported={loadHolidays}
+        />
+      )}
     </div>
   );
 }

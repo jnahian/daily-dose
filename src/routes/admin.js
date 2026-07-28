@@ -10,6 +10,25 @@ const mcpTokenService = require("../services/mcpTokenService");
 const channelService = require("../services/channelService");
 const changelogBroadcastService = require("../services/changelogBroadcastService");
 const oauthTokenService = require("../mcp/auth/oauthTokenService");
+const multer = require("multer");
+const dayjs = require("dayjs");
+const customParseFormat = require("dayjs/plugin/customParseFormat");
+const holidayImportService = require("../services/holidayImportService");
+
+dayjs.extend(customParseFormat);
+
+const holidayImportUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowedExt = /\.(xls|xlsx|csv)$/i;
+    if (!allowedExt.test(file.originalname)) {
+      cb(new Error("Only .xls, .xlsx, or .csv files are supported"));
+      return;
+    }
+    cb(null, true);
+  },
+});
 
 // In-memory OAuth state store (state → expiry timestamp)
 const oauthStates = new Map();
@@ -1174,6 +1193,135 @@ router.delete("/holidays/:id", requireAuth, async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     console.error("DELETE /holidays/:id error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/admin/holidays/import/preview (multipart: file, orgId)
+router.post(
+  "/holidays/import/preview",
+  requireAuth,
+  (req, res, next) => {
+    holidayImportUpload.single("file")(req, res, (err) => {
+      if (err) return res.status(400).json({ error: err.message });
+      next();
+    });
+  },
+  async (req, res) => {
+    try {
+      const { orgId } = req.body;
+      const allowed = await verifyOrgAccess(req, res, orgId);
+      if (!allowed) return;
+
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      let parsed;
+      try {
+        parsed = holidayImportService.parseHolidayFile(
+          req.file.buffer,
+          req.file.originalname
+        );
+      } catch (parseErr) {
+        return res.status(400).json({ error: parseErr.message });
+      }
+
+      const records = holidayImportService.expandToDailyRecords(parsed.rows);
+      const warnings = [...parsed.warnings];
+      if (records.length >= holidayImportService.MAX_TOTAL_RECORDS) {
+        warnings.push(
+          `Only the first ${holidayImportService.MAX_TOTAL_RECORDS} holiday days were kept; the rest were dropped`
+        );
+      }
+
+      if (records.length === 0) {
+        return res.json({ items: [], warnings });
+      }
+
+      const dates = records.map((r) => new Date(r.date));
+      const existing = await prisma.holiday.findMany({
+        where: {
+          organization_id: orgId,
+          date: {
+            gte: new Date(Math.min(...dates)),
+            lte: new Date(Math.max(...dates)),
+          },
+        },
+      });
+      const existingByDate = new Map(
+        existing.map((h) => [dayjs(h.date).format("YYYY-MM-DD"), h])
+      );
+
+      const items = records.map((record) => {
+        const match = existingByDate.get(record.date);
+        let status = "new";
+        if (match) {
+          const unchanged =
+            match.name === record.name &&
+            (match.description || null) === (record.description || null);
+          status = unchanged ? "unchanged" : "update";
+        }
+        return { ...record, status };
+      });
+
+      res.json({ items, warnings });
+    } catch (err) {
+      console.error("POST /holidays/import/preview error:", err.message);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+);
+
+// POST /api/admin/holidays/import ({ orgId, items: [{ date, name, description }] })
+router.post("/holidays/import", requireAuth, async (req, res) => {
+  try {
+    const { orgId, items } = req.body;
+    const allowed = await verifyOrgAccess(req, res, orgId);
+    if (!allowed) return;
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: "No holidays to import" });
+    }
+    if (items.length > holidayImportService.MAX_TOTAL_RECORDS) {
+      return res.status(400).json({ error: "Too many holidays in one import" });
+    }
+
+    let created = 0;
+    let updated = 0;
+
+    for (const item of items) {
+      const date = dayjs(item.date, "YYYY-MM-DD", true);
+      const name = String(item.name || "").trim();
+      if (!date.isValid() || !name) continue;
+
+      const existing = await prisma.holiday.findUnique({
+        where: {
+          organization_id_date: { organization_id: orgId, date: date.toDate() },
+        },
+      });
+
+      await prisma.holiday.upsert({
+        where: {
+          organization_id_date: { organization_id: orgId, date: date.toDate() },
+        },
+        update: { name, description: item.description || null },
+        create: {
+          id: crypto.randomUUID(),
+          organization_id: orgId,
+          date: date.toDate(),
+          name,
+          description: item.description || null,
+        },
+      });
+
+      if (existing) updated++;
+      else created++;
+    }
+
+    res.json({ created, updated, total: created + updated });
+  } catch (err) {
+    console.error("POST /holidays/import error:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
 });

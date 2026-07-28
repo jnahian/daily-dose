@@ -286,6 +286,25 @@ CRUD over the active org's holidays (org-scoped `Holiday` table).
 - **Add Holiday** → `POST /holidays` (`{ name, date, description, orgId }`).
 - **Edit** → `PUT /holidays/:id` (`{ name, date, description }`).
 - **Delete** → `DELETE /holidays/:id` (**hard delete**).
+- **Import** → upload a Zoho People holiday export (`.xls`/`.xlsx`/`.csv`). Two-step
+  flow backed by `src/services/holidayImportService.js`:
+  1. `POST /holidays/import/preview` (multipart: `file`, `orgId`) parses the file,
+     expands multi-day rows (`From`/`To` columns) into one entry per calendar day,
+     and diffs each date against existing holidays. Returns `{ items, warnings }`
+     where each item is tagged `new` / `update` / `unchanged`, and `warnings` lists
+     any skipped rows (missing name, unparsable date, reversed range, range over 60
+     days).
+  2. The admin reviews/deselects rows in the modal, then
+     `POST /holidays/import` (`{ orgId, items }`) upserts the confirmed rows by
+     `(organization_id, date)`, returning `{ created, updated }`.
+  - `.xls`/`.xlsx` are parsed with the `xlsx` (SheetJS) package. `.csv` is parsed by
+    hand — SheetJS's own CSV reader auto-detects and silently mangles Zoho's
+    `DD-MMM-YYYY` date strings, so plain-text files bypass it entirely.
+  - Known tradeoff: the npm-published `xlsx@0.18.5` has open high-severity
+    advisories (prototype pollution / ReDoS) with no newer npm release available.
+    Exposure is limited since the import routes require an authenticated org
+    admin/owner or super admin session (`requireAuth` + `verifyOrgAccess`) — the
+    same trust level already needed to write holiday data directly.
 
 These are the same holidays the scheduler checks before sending reminders.
 
@@ -378,6 +397,8 @@ super admin, or `OWNER`/`ADMIN` of the target org.
 | POST   | `/holidays`                            | org             | Create holiday                                 |
 | PUT    | `/holidays/:id`                        | org             | Update holiday                                 |
 | DELETE | `/holidays/:id`                        | org             | Hard delete holiday                            |
+| POST   | `/holidays/import/preview`             | org             | Parse an uploaded holiday file, return preview |
+| POST   | `/holidays/import`                     | org             | Bulk create/update from a confirmed preview    |
 | GET    | `/standups?orgId=&startDate=&endDate=` | org             | Summaries (default last 7 days)                |
 | GET    | `/standups/:teamId/:date`              | org             | Individual responses                           |
 | GET    | `/scheduler?orgId=`                    | org             | Per-team cron job status                       |
