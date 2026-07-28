@@ -14,6 +14,8 @@ const oauthTokenService = require("../mcp/auth/oauthTokenService");
 const { escapeSlackText } = require("../utils/messageHelper");
 const multer = require("multer");
 const holidayImportService = require("../services/holidayImportService");
+const zohoMappingService = require("../services/zoho/zohoMappingService");
+const zohoSyncService = require("../services/zoho/zohoSyncService");
 
 const holidayImportUpload = multer({
   storage: multer.memoryStorage(),
@@ -69,6 +71,41 @@ async function requireSuperAdmin(req, res, next) {
     console.error("requireSuperAdmin error:", err.message);
     res.status(500).json({ error: "Internal server error" });
   }
+}
+
+// Helper: shape a ZohoSyncRun for the admin UI. `run.error` is a raw thrown
+// message (possibly from Prisma) — per errorHelper's policy it is never sent
+// to the client, only the fact that the run failed. The `warning` field
+// mirrors /dd-zoho-sync-status: a run that synced nothing *and* skipped
+// records is a misconfiguration, not an idle night, and saying so is the
+// difference between a useful page and a row of zeroes.
+function serializeSyncRun(run) {
+  if (!run) return null;
+
+  let warning = null;
+  if (run.status === "SUCCESS" && run.recordsSynced === 0) {
+    if (run.skippedUnmapped > 0) {
+      warning =
+        "Nothing synced — every record belonged to an unmapped employee. " +
+        "Check the mappings below against the employee IDs Zoho returns.";
+    } else if (run.skippedInvalid > 0) {
+      warning =
+        "Nothing synced — no record could be read. The Zoho response field " +
+        "names likely differ for this organization.";
+    }
+  }
+
+  return {
+    status: run.status,
+    recordsSynced: run.recordsSynced,
+    skippedUnmapped: run.skippedUnmapped,
+    skippedNotApproved: run.skippedNotApproved,
+    skippedInvalid: run.skippedInvalid,
+    failed: run.status === "FAILED",
+    startedAt: run.startedAt,
+    completedAt: run.completedAt,
+    warning,
+  };
 }
 
 // Helper: verify caller has access to the given orgId (super admin or org OWNER/ADMIN)
@@ -1669,6 +1706,140 @@ router.get("/scheduler", requireAuth, async (req, res) => {
   } catch (err) {
     console.error("GET /scheduler error:", err.message);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ─── Zoho People integration ─────────────────────────────────────────────────
+// Org-scoped, same tier as the /dd-zoho-* slash commands (org OWNER/ADMIN).
+
+// GET /api/admin/zoho?orgId= — credential state, latest run per type, mappings
+router.get("/zoho", requireAuth, async (req, res) => {
+  try {
+    const { orgId } = req.query;
+    const allowed = await verifyOrgAccess(req, res, orgId);
+    if (!allowed) return;
+
+    const credential = await prisma.zohoCredential.findUnique({
+      where: { organizationId: orgId },
+      // Never send refreshToken/accessToken to the browser.
+      select: { enabled: true, dataCenter: true, updatedAt: true },
+    });
+
+    // One query per type rather than one capped list — a burst of runs of one
+    // type would otherwise push the other out of the window and read as
+    // "never synced". Mirrors /dd-zoho-sync-status.
+    const [holidayRun, leaveRun] = await Promise.all(
+      ["HOLIDAY", "LEAVE"].map((syncType) =>
+        prisma.zohoSyncRun.findFirst({
+          where: { organizationId: orgId, syncType },
+          orderBy: { startedAt: "desc" },
+        })
+      )
+    );
+
+    const mappings = await zohoMappingService.listMappings(orgId);
+
+    res.json({
+      credential,
+      runs: {
+        HOLIDAY: serializeSyncRun(holidayRun),
+        LEAVE: serializeSyncRun(leaveRun),
+      },
+      mappings: mappings.map((m) => ({
+        id: m.id,
+        userId: m.userId,
+        slackUserId: m.user.slackUserId,
+        name: m.user.name || m.user.username || m.user.slackUserId,
+        zohoEmployeeId: m.zohoEmployeeId,
+        createdAt: m.createdAt,
+      })),
+    });
+  } catch (err) {
+    console.error("GET /zoho error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/admin/zoho/mappings ({ orgId, slackUserId, zohoEmployeeId })
+router.post("/zoho/mappings", requireAuth, async (req, res) => {
+  try {
+    const { orgId, slackUserId, zohoEmployeeId } = req.body;
+    const allowed = await verifyOrgAccess(req, res, orgId);
+    if (!allowed) return;
+
+    if (!slackUserId || typeof slackUserId !== "string") {
+      return res.status(400).json({ error: "A Slack user is required" });
+    }
+
+    const mapping = await zohoMappingService.mapMember(
+      orgId,
+      slackUserId.trim(),
+      typeof zohoEmployeeId === "string" ? zohoEmployeeId.trim() : "",
+      slackClient
+    );
+    res.json({ id: mapping.id, zohoEmployeeId: mapping.zohoEmployeeId });
+  } catch (err) {
+    if (err.userFacing) return res.status(400).json({ error: err.message });
+    console.error("POST /zoho/mappings error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// DELETE /api/admin/zoho/mappings/:id
+router.delete("/zoho/mappings/:id", requireAuth, async (req, res) => {
+  try {
+    const mapping = await prisma.zohoUserMapping.findUnique({
+      where: { id: req.params.id },
+      include: { user: { select: { slackUserId: true } } },
+    });
+    if (!mapping) return res.status(404).json({ error: "Not found" });
+    const allowed = await verifyOrgAccess(req, res, mapping.organizationId);
+    if (!allowed) return;
+
+    await zohoMappingService.unmapMember(
+      mapping.organizationId,
+      mapping.user.slackUserId
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    if (err.userFacing) return res.status(400).json({ error: err.message });
+    console.error("DELETE /zoho/mappings/:id error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/admin/zoho/sync ({ orgId, type: 'HOLIDAY' | 'LEAVE' | 'ALL' })
+// Runs the same sync the nightly cron does, on demand. Synchronous: it calls
+// Zoho and upserts before responding, so the operator sees real counts rather
+// than a fire-and-forget "started". Expect it to take seconds, not ms.
+router.post("/zoho/sync", requireAuth, async (req, res) => {
+  try {
+    const { orgId, type = "ALL" } = req.body;
+    const allowed = await verifyOrgAccess(req, res, orgId);
+    if (!allowed) return;
+
+    if (!["HOLIDAY", "LEAVE", "ALL"].includes(type)) {
+      return res.status(400).json({ error: "Invalid sync type" });
+    }
+
+    const results = {};
+    if (type === "HOLIDAY" || type === "ALL") {
+      results.HOLIDAY =
+        await zohoSyncService.syncHolidaysForOrganization(orgId);
+    }
+    if (type === "LEAVE" || type === "ALL") {
+      results.LEAVE = await zohoSyncService.syncLeavesForOrganization(orgId);
+    }
+    res.json(results);
+  } catch (err) {
+    // ZohoAuthError/ZohoApiError carry actionable setup detail (missing
+    // credential, revoked token, insufficient Zoho permissions) — the sync
+    // already recorded a FAILED ZohoSyncRun before rethrowing.
+    if (err.name === "ZohoAuthError" || err.name === "ZohoApiError") {
+      return res.status(400).json({ error: err.message });
+    }
+    console.error("POST /zoho/sync error:", err.message);
+    res.status(500).json({ error: "Sync failed — check the server logs" });
   }
 });
 

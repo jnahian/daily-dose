@@ -136,6 +136,7 @@ active org.
 | Standups      | `/admin/standups`      | MessageSquare   | Org                  |
 | Holidays      | `/admin/holidays`      | CalendarDays    | Org                  |
 | Scheduler     | `/admin/scheduler`     | Clock           | Org                  |
+| Zoho Sync     | `/admin/zoho`          | RefreshCw       | Org                  |
 | Activity      | `/admin/activity`      | Activity        | Org                  |
 | MCP Usage     | `/admin/mcp-usage`     | BarChart3       | Org                  |
 | My Tokens     | `/admin/tokens`        | Key             | Self (current user)  |
@@ -408,6 +409,48 @@ key is `posting-<teamId>`. An "inactive" badge means no live job is registered
 for that team (e.g. after a restart before re-scheduling, or invalid stored
 times).
 
+### Zoho Sync (`/admin/zoho`)
+
+Operator view of the org's Zoho People integration — the same surface the
+`/dd-zoho-*` slash commands expose, and gated at the same tier
+(`verifyOrgAccess`: org `OWNER`/`ADMIN`, or super admin). All data is loaded in
+one `GET /zoho?orgId=` call and the page refetches after every mutation.
+
+Three sections:
+
+1. **Integration** — `enabled` state and data center from `ZohoCredential`.
+   The route selects only `{ enabled, dataCenter, updatedAt }`; the refresh and
+   access tokens are never sent to the browser. When no credential row exists
+   the page says so and points at `npm run zoho:auth-setup` — **credential
+   setup is deliberately not exposed in the panel**, since the Zoho grant token
+   is a one-time secret and the CLI flow already handles it.
+2. **Last run** — the most recent `ZohoSyncRun` per type. Queried as one
+   `findFirst` per type rather than one capped list, so a burst of runs of one
+   type can't push the other out of the window and make it read as "never
+   synced" (same reasoning as `/dd-zoho-sync-status`).
+   - `run.error` is a raw thrown message and is **never** returned to the
+     client, per `errorHelper`'s policy — a failed run renders as "check the
+     server logs" and the API sends only `failed: true`.
+   - `serializeSyncRun` computes a `warning` for the two misconfiguration
+     shapes that otherwise look like an idle night: synced 0 with
+     `skippedUnmapped > 0` (employee IDs aren't mapped) and synced 0 with
+     `skippedInvalid > 0` (the org's Zoho response uses different field names).
+3. **Employee mappings** — `ZohoUserMapping` rows with add/remove via modal.
+   Both go through `zohoMappingService`, so the panel inherits its validation
+   (an employee ID already mapped to someone else is rejected, including the
+   `P2002` race path). `zohoEmployeeId` is handled as a string end to end —
+   Zoho IDs overflow JS's safe integer range. `UserFacingError` maps to `400`
+   with its message; anything else is a `500` with a generic body.
+
+**Sync now** posts to `POST /zoho/sync` with `type: 'ALL'` and runs the same
+functions the nightly cron calls. It is **synchronous** — it calls Zoho and
+upserts before responding, so the operator sees real counts instead of a
+fire-and-forget "started". Expect seconds, not milliseconds. `ZohoAuthError` /
+`ZohoApiError` are passed through as `400` because they carry actionable setup
+detail (missing credential, revoked refresh token, insufficient Zoho
+permissions); the sync has already recorded a `FAILED` `ZohoSyncRun` before
+rethrowing. Note the cron's `noOverlap` guard does not cover manual runs.
+
 ### Activity (`/admin/activity`)
 
 Read-only feed of the most recent standup submissions for the active org
@@ -457,47 +500,51 @@ All routes are under `/api/admin` and require the `admin_session` cookie
 (`requireAuth`) unless noted. Org-scoped routes call `verifyOrgAccess` —
 super admin, or `OWNER`/`ADMIN` of the target org.
 
-| Method | Path                                   | Access          | Notes                                          |
-| ------ | -------------------------------------- | --------------- | ---------------------------------------------- |
-| GET    | `/me`                                  | auth            | Current user, `isSuperAdmin`, owned/admin orgs |
-| GET    | `/auth/slack`                          | public          | Start Slack OAuth                              |
-| GET    | `/auth/callback`                       | public          | OAuth redirect target; sets session cookie     |
-| POST   | `/auth/logout`                         | auth            | Delete session, clear cookie                   |
-| GET    | `/stats`                               | auth            | Global (super admin, no `orgId`) or org-scoped |
-| GET    | `/organizations`                       | **super admin** | List orgs with team/member counts              |
-| POST   | `/organizations`                       | **super admin** | Create org                                     |
-| PUT    | `/organizations/:id`                   | **super admin** | Update org                                     |
-| PATCH  | `/organizations/:id/toggle`            | **super admin** | Flip `isActive`                                |
-| DELETE | `/organizations/:id`                   | **super admin** | **Hard delete** (cascades)                     |
-| GET    | `/teams?orgId=`                        | org             | Non-deleted teams (includes `status`)          |
-| GET    | `/teams/pending?orgId=`                | org             | `PENDING` teams + proposer, oldest first       |
-| POST   | `/teams`                               | org             | Create team (resolves `channelName`)           |
-| PUT    | `/teams/:id`                           | org             | Update name/times/timezone/active              |
-| POST   | `/teams/:id/approve`                   | org             | `PENDING` → `ACTIVE`, schedules, DMs proposer  |
-| POST   | `/teams/:id/reject`                    | org             | Delete the pending team, DMs proposer          |
-| POST   | `/teams/:id/migrate-members`           | org             | Move/copy active members (not to/from PENDING) |
-| DELETE | `/teams/:id`                           | org             | Soft delete (409 on a PENDING team)            |
-| GET    | `/members?orgId=&role=`                | org             | Active org members + teams + last standup      |
-| POST   | `/members`                             | org             | Add/reactivate org member                      |
-| PUT    | `/members/:id`                         | org             | Change role                                    |
-| DELETE | `/members/:id`                         | org             | Soft delete from org                           |
-| POST   | `/team-members`                        | org             | Add/reactivate team membership                 |
-| DELETE | `/team-members/:id`                    | org             | Soft delete team membership                    |
-| GET    | `/holidays?orgId=`                     | org             | List holidays                                  |
-| POST   | `/holidays`                            | org             | Create holiday                                 |
-| PUT    | `/holidays/:id`                        | org             | Update holiday                                 |
-| DELETE | `/holidays/:id`                        | org             | Hard delete holiday                            |
-| POST   | `/holidays/import/preview`             | super admin     | Parse an uploaded holiday file, return preview |
-| POST   | `/holidays/import`                     | super admin     | Bulk create/update from a confirmed preview    |
-| GET    | `/standups?orgId=&startDate=&endDate=` | org             | Summaries (default last 7 days)                |
-| GET    | `/standups/:teamId/:date`              | org             | Individual responses                           |
-| GET    | `/scheduler?orgId=`                    | org             | Per-team cron job status                       |
-| GET    | `/activity?orgId=&limit=`              | org             | Recent submissions (max 200)                   |
-| GET    | `/tokens`                              | auth            | List caller's own MCP tokens (no secrets)      |
-| POST   | `/tokens`                              | auth            | Mint caller's MCP token (raw value once)       |
-| DELETE | `/tokens/:id`                          | auth            | Revoke one of the caller's tokens              |
-| GET    | `/connections`                         | auth            | List caller's connected OAuth clients          |
-| DELETE | `/connections/:clientId`               | auth            | Disconnect a client (revoke its grants)        |
+| Method | Path                                   | Access          | Notes                                                 |
+| ------ | -------------------------------------- | --------------- | ----------------------------------------------------- |
+| GET    | `/me`                                  | auth            | Current user, `isSuperAdmin`, owned/admin orgs        |
+| GET    | `/auth/slack`                          | public          | Start Slack OAuth                                     |
+| GET    | `/auth/callback`                       | public          | OAuth redirect target; sets session cookie            |
+| POST   | `/auth/logout`                         | auth            | Delete session, clear cookie                          |
+| GET    | `/stats`                               | auth            | Global (super admin, no `orgId`) or org-scoped        |
+| GET    | `/organizations`                       | **super admin** | List orgs with team/member counts                     |
+| POST   | `/organizations`                       | **super admin** | Create org                                            |
+| PUT    | `/organizations/:id`                   | **super admin** | Update org                                            |
+| PATCH  | `/organizations/:id/toggle`            | **super admin** | Flip `isActive`                                       |
+| DELETE | `/organizations/:id`                   | **super admin** | **Hard delete** (cascades)                            |
+| GET    | `/teams?orgId=`                        | org             | Non-deleted teams (includes `status`)                 |
+| GET    | `/teams/pending?orgId=`                | org             | `PENDING` teams + proposer, oldest first              |
+| POST   | `/teams`                               | org             | Create team (resolves `channelName`)                  |
+| PUT    | `/teams/:id`                           | org             | Update name/times/timezone/active                     |
+| POST   | `/teams/:id/approve`                   | org             | `PENDING` → `ACTIVE`, schedules, DMs proposer         |
+| POST   | `/teams/:id/reject`                    | org             | Delete the pending team, DMs proposer                 |
+| POST   | `/teams/:id/migrate-members`           | org             | Move/copy active members (not to/from PENDING)        |
+| DELETE | `/teams/:id`                           | org             | Soft delete (409 on a PENDING team)                   |
+| GET    | `/members?orgId=&role=`                | org             | Active org members + teams + last standup             |
+| POST   | `/members`                             | org             | Add/reactivate org member                             |
+| PUT    | `/members/:id`                         | org             | Change role                                           |
+| DELETE | `/members/:id`                         | org             | Soft delete from org                                  |
+| POST   | `/team-members`                        | org             | Add/reactivate team membership                        |
+| DELETE | `/team-members/:id`                    | org             | Soft delete team membership                           |
+| GET    | `/holidays?orgId=`                     | org             | List holidays                                         |
+| POST   | `/holidays`                            | org             | Create holiday                                        |
+| PUT    | `/holidays/:id`                        | org             | Update holiday                                        |
+| DELETE | `/holidays/:id`                        | org             | Hard delete holiday                                   |
+| POST   | `/holidays/import/preview`             | super admin     | Parse an uploaded holiday file, return preview        |
+| POST   | `/holidays/import`                     | super admin     | Bulk create/update from a confirmed preview           |
+| GET    | `/standups?orgId=&startDate=&endDate=` | org             | Summaries (default last 7 days)                       |
+| GET    | `/standups/:teamId/:date`              | org             | Individual responses                                  |
+| GET    | `/scheduler?orgId=`                    | org             | Per-team cron job status                              |
+| GET    | `/zoho?orgId=`                         | org             | Credential state, latest run per type, mappings       |
+| POST   | `/zoho/mappings`                       | org             | Map a Slack user to a Zoho employee ID                |
+| DELETE | `/zoho/mappings/:id`                   | org             | Remove a mapping                                      |
+| POST   | `/zoho/sync`                           | org             | Run the Zoho sync on demand (`HOLIDAY`/`LEAVE`/`ALL`) |
+| GET    | `/activity?orgId=&limit=`              | org             | Recent submissions (max 200)                          |
+| GET    | `/tokens`                              | auth            | List caller's own MCP tokens (no secrets)             |
+| POST   | `/tokens`                              | auth            | Mint caller's MCP token (raw value once)              |
+| DELETE | `/tokens/:id`                          | auth            | Revoke one of the caller's tokens                     |
+| GET    | `/connections`                         | auth            | List caller's connected OAuth clients                 |
+| DELETE | `/connections/:clientId`               | auth            | Disconnect a client (revoke its grants)               |
 
 Common error responses: `400` (missing/invalid input, e.g. no `orgId`),
 `401` (no/expired session), `403` (not authorized for org / not super admin),

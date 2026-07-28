@@ -30,6 +30,7 @@ const AdminMembers = lazy(() => import('./pages/admin/Members'));
 const AdminStandups = lazy(() => import('./pages/admin/Standups'));
 const AdminHolidays = lazy(() => import('./pages/admin/Holidays'));
 const AdminScheduler = lazy(() => import('./pages/admin/Scheduler'));
+const AdminZoho = lazy(() => import('./pages/admin/Zoho'));
 const AdminActivity = lazy(() => import('./pages/admin/Activity'));
 const AdminTokens = lazy(() => import('./pages/admin/Tokens'));
 const AdminMcpUsage = lazy(() => import('./pages/admin/McpUsage'));
@@ -53,6 +54,7 @@ function App() {
             <Route path="standups" element={<AdminStandups />} />
             <Route path="holidays" element={<AdminHolidays />} />
             <Route path="scheduler" element={<AdminScheduler />} />
+            <Route path="zoho" element={<AdminZoho />} />
             <Route path="activity" element={<AdminActivity />} />
             <Route path="mcp-usage" element={<AdminMcpUsage />} />
             <Route path="tokens" element={<AdminTokens />} />

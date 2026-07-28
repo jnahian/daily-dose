@@ -183,7 +183,7 @@ An operator/super-admin web UI at `/admin/*`, served by the same React SPA but r
 - **Backend**: `src/routes/admin.js`, mounted at `/api/admin` in `src/app.js`.
 - **Auth**: Slack OAuth (`/auth/slack` → `/auth/callback`) with httpOnly cookie sessions stored in the `sessions` Prisma table; `requireAuth` middleware validates the `admin_session` cookie. Auth hook on the frontend is `web/src/hooks/useAdminAuth.ts`.
 - **Access tiers**: `requireSuperAdmin` (backed by the `super_admins` table) gates platform-wide routes (e.g. organizations CRUD); org-scoped routes use `verifyOrgAccess`, which allows super admins or org `OWNER`/`ADMIN` members. Grant super-admin access via `npm run super-admin:add`.
-- **Pages/resources**: Login, Dashboard, Organizations, Teams, Members, Standups, Holidays, Scheduler, Activity (`web/src/pages/admin/`); shared components in `web/src/components/admin/` (`AdminLayout`, `AdminSidebar`, `AdminTopBar`, `DataTable`, `AdminModal`, `StatCard`, `StatusBadge`).
+- **Pages/resources**: Login, Dashboard, Organizations, Teams, Approvals, Members, Standups, Holidays, Scheduler, Zoho Sync, Activity, MCP Usage, Tokens (`web/src/pages/admin/`); shared components in `web/src/components/admin/` (`AdminLayout`, `AdminSidebar`, `AdminTopBar`, `DataTable`, `AdminModal`, `StatCard`, `StatusBadge`, `ImportHolidaysModal`).
 
 ### Environment Configuration
 
