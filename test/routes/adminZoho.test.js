@@ -46,6 +46,9 @@ function callRoute(method, url, body) {
       method,
       url,
       body,
+      // Required, not redundant: req.query is populated by the Express *app*,
+      // not by router.handle(). Drop this and every GET route 500s on
+      // `const { orgId } = req.query`.
       query: Object.fromEntries(
         new URLSearchParams(url.split("?")[1] || "").entries()
       ),

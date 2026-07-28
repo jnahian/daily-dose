@@ -451,6 +451,15 @@ detail (missing credential, revoked refresh token, insufficient Zoho
 permissions); the sync has already recorded a `FAILED` `ZohoSyncRun` before
 rethrowing. Note the cron's `noOverlap` guard does not cover manual runs.
 
+> **Known ceiling:** the request is long-lived by design — two sequential Zoho
+> calls at a 15s timeout each, plus one upsert per record — and neither the
+> route nor the fetch sets an overall deadline. A large org behind a proxy can
+> exceed an Nginx/Cloudflare read timeout, in which case the browser sees a
+> failed request while the sync **keeps running server-side** and still writes
+> its `ZohoSyncRun`. Reload the page to see the real outcome rather than
+> re-running. If this becomes routine, the fix is to make the route
+> fire-and-forget and have the page poll `GET /zoho`.
+
 ### Activity (`/admin/activity`)
 
 Read-only feed of the most recent standup submissions for the active org
