@@ -791,7 +791,8 @@ Admin panel only — no user-facing bot changes, so nothing was added to
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.18.2...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.18.3...HEAD
+[1.18.3]: https://github.com/jnahian/daily-dose/compare/v1.18.2...v1.18.3
 [1.18.2]: https://github.com/jnahian/daily-dose/compare/v1.18.1...v1.18.2
 [1.18.0]: https://github.com/jnahian/daily-dose/compare/v1.17.1...v1.18.0
 [1.17.1]: https://github.com/jnahian/daily-dose/compare/v1.17.0...v1.17.1
