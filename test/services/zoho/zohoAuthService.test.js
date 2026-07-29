@@ -17,7 +17,6 @@ describe("zohoAuthService", () => {
     jest.clearAllMocks();
     process.env.ZOHO_CLIENT_ID = "client-id";
     process.env.ZOHO_CLIENT_SECRET = "client-secret";
-    process.env.ZOHO_REDIRECT_URI = "https://example.com/callback";
     process.env.ZOHO_DATA_CENTER = "com";
   });
 
@@ -186,14 +185,36 @@ describe("zohoAuthService", () => {
     );
   });
 
-  it("exchangeGrantToken throws a clear error when ZOHO_REDIRECT_URI isn't configured", async () => {
-    delete process.env.ZOHO_REDIRECT_URI;
-    global.fetch = jest.fn();
+  // A Self Client app has no redirect URI to register, and Zoho's self-client
+  // token exchange takes only client_id / client_secret / grant_type / code.
+  // Sending redirect_uri makes accounts.zoho.* answer with an HTML error page
+  // instead of JSON — which is exactly how this surfaced in production.
+  it("exchangeGrantToken does not send redirect_uri", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () =>
+        JSON.stringify({
+          access_token: "a",
+          refresh_token: "r",
+          expires_in: 3600,
+        }),
+    });
+    prisma.zohoCredential.upsert.mockResolvedValue({
+      dataCenter: "com",
+      accessTokenExpiresAt: new Date(),
+    });
 
-    await expect(
-      svc.exchangeGrantToken("org-1", "grant-token-abc")
-    ).rejects.toThrow(/ZOHO_REDIRECT_URI/);
-    expect(global.fetch).not.toHaveBeenCalled();
+    await svc.exchangeGrantToken("org-1", "grant-token-abc");
+
+    const sent = new URLSearchParams(global.fetch.mock.calls[0][1].body);
+    expect(sent.has("redirect_uri")).toBe(false);
+    expect([...sent.keys()].sort()).toEqual([
+      "client_id",
+      "client_secret",
+      "code",
+      "grant_type",
+    ]);
   });
 
   // A bare "failed: 400" is undiagnosable — the whole point of these is that

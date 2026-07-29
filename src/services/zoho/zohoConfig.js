@@ -26,10 +26,8 @@ function getConfig() {
   return {
     clientId: process.env.ZOHO_CLIENT_ID,
     clientSecret: process.env.ZOHO_CLIENT_SECRET,
-    // Only used for the one-time grant-token exchange (scripts/zohoAuthSetup.js).
-    // Self-client apps require a redirect_uri that matches the one registered
-    // in the Zoho API console, even though no browser redirect happens.
-    redirectUri: process.env.ZOHO_REDIRECT_URI,
+    // Deliberately no redirectUri: a Self Client app has no redirect URI to
+    // register, and Zoho's self-client token exchange rejects the parameter.
     // Zoho data center suffix — "com" (US), "eu", "in", "com.au", "jp", "com.cn".
     // Must match the data center the target Zoho org's data lives in.
     dataCenter: validateDataCenter(process.env.ZOHO_DATA_CENTER || "com"),

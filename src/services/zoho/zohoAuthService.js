@@ -67,18 +67,21 @@ async function requestToken(dataCenter, params) {
 // Zoho API console's self-client flow — see scripts/zohoAuthSetup.js) for a
 // long-lived refresh token, and persist it for the organization.
 async function exchangeGrantToken(organizationId, grantToken) {
-  const { clientId, clientSecret, redirectUri, dataCenter } = getConfig();
-  if (!clientId || !clientSecret || !redirectUri) {
+  const { clientId, clientSecret, dataCenter } = getConfig();
+  if (!clientId || !clientSecret) {
     throw new ZohoAuthError(
-      "ZOHO_CLIENT_ID / ZOHO_CLIENT_SECRET / ZOHO_REDIRECT_URI are not configured"
+      "ZOHO_CLIENT_ID / ZOHO_CLIENT_SECRET are not configured"
     );
   }
 
+  // No redirect_uri: a Self Client app has none to register, and Zoho's
+  // self-client token exchange takes only these four parameters. Sending one
+  // makes accounts.zoho.* answer with an HTML error page instead of JSON.
+  // https://www.zoho.com/accounts/protocol/oauth/self-client/authorization-code-flow.html
   const body = await requestToken(dataCenter, {
     grant_type: "authorization_code",
     client_id: clientId,
     client_secret: clientSecret,
-    redirect_uri: redirectUri,
     code: grantToken,
   });
 
