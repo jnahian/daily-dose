@@ -143,11 +143,30 @@ describe("POST /holidays/import", () => {
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
-  it("returns 403 for an org admin who is not a super admin", async () => {
+  // Import is org-scoped, matching the rest of the holiday CRUD routes — an
+  // org OWNER/ADMIN can import without being a platform super admin.
+  it("is reachable by an org admin who is not a super admin", async () => {
     prisma.super_admins.findUnique.mockResolvedValue(null);
+    prisma.organizationMember.findFirst.mockResolvedValue({
+      id: "om-1",
+      role: "OWNER",
+    });
+
+    const { status } = await callRoute({
+      orgId: ORG_ID,
+      items: [{ date: "2026-03-19", name: "Eid" }],
+    });
+
+    expect(status).toBe(200);
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+  });
+
+  it("still refuses an org the caller does not administer", async () => {
+    prisma.super_admins.findUnique.mockResolvedValue(null);
+    prisma.organizationMember.findFirst.mockResolvedValue(null);
 
     const { status, body } = await callRoute({
-      orgId: ORG_ID,
+      orgId: "someone-elses-org",
       items: [{ date: "2026-03-19", name: "Eid" }],
     });
 

@@ -355,9 +355,10 @@ CRUD over the active org's holidays (org-scoped `Holiday` table).
 - **Add Holiday** → `POST /holidays` (`{ name, date, description, orgId }`).
 - **Edit** → `PUT /holidays/:id` (`{ name, date, description }`).
 - **Delete** → `DELETE /holidays/:id` (**hard delete**).
-- **Import** (**super admin only**) → upload a Zoho People holiday export
-  (`.xls`/`.xlsx`/`.csv`). The button is hidden for org `OWNER`/`ADMIN`. Two-step
-  flow backed by `src/services/holidayImportService.js`:
+- **Import** → upload a Zoho People holiday export (`.xls`/`.xlsx`/`.csv`).
+  Org-scoped like the rest of holiday CRUD (`verifyOrgAccess`: org
+  `OWNER`/`ADMIN`, or super admin). Two-step flow backed by
+  `src/services/holidayImportService.js`:
   1. `POST /holidays/import/preview` (multipart: `file`, `orgId`) parses the file,
      expands multi-day rows (`From`/`To` columns) into one entry per calendar day,
      and diffs each date against existing holidays. Returns `{ items, warnings }`
@@ -385,14 +386,20 @@ CRUD over the active org's holidays (org-scoped `Holiday` table).
     nightly Zoho sync (`zohoSyncService`) remains authoritative and will re-tag a
     date `ZOHO` if its API still returns it. Use the import when an org has no
     Zoho API credentials configured, or to backfill ahead of the first sync.
-  - Known tradeoff: the npm-published `xlsx@0.18.5` has open high-severity
+  - **Accepted risk:** the npm-published `xlsx@0.18.5` has open high-severity
     advisories (prototype pollution / ReDoS) with no newer npm release available,
     and it is effectively the only Node option for legacy binary `.xls`. Because
     it parses caller-chosen bytes **inside this shared multi-tenant process**, the
-    blast radius is every org on the box — wider than the org-scoped holiday CRUD
-    routes. Both import routes are therefore gated on `requireAuth` +
-    `requireSuperAdmin` (in addition to `verifyOrgAccess`) and capped at a 5 MB
-    upload. Dropping `.xls` support would remove the dependency entirely.
+    blast radius is every org on the box, not just the uploader's own data.
+    The import was originally gated on `requireSuperAdmin` for that reason, and
+    was deliberately relaxed to org `OWNER`/`ADMIN` so org owners could use the
+    feature without platform-wide access. The remaining bounds are an
+    authenticated org admin/owner session and the 5 MB upload cap. **Revisit
+    this if the platform ever hosts orgs whose admins aren't personally
+    trusted** — the exposure scales with the number of such admins, not with
+    usage. Dropping `.xls` support would remove the dependency entirely.
+  - Only `/holidays/import/preview` touches the parser; `/holidays/import` takes
+    JSON from the confirmed preview and never sees the file.
 
 These are the same holidays the scheduler checks before sending reminders.
 
@@ -567,8 +574,8 @@ super admin, or `OWNER`/`ADMIN` of the target org.
 | POST   | `/holidays`                            | org             | Create holiday                                        |
 | PUT    | `/holidays/:id`                        | org             | Update holiday                                        |
 | DELETE | `/holidays/:id`                        | org             | Hard delete holiday                                   |
-| POST   | `/holidays/import/preview`             | super admin     | Parse an uploaded holiday file, return preview        |
-| POST   | `/holidays/import`                     | super admin     | Bulk create/update from a confirmed preview           |
+| POST   | `/holidays/import/preview`             | org             | Parse an uploaded holiday file, return preview        |
+| POST   | `/holidays/import`                     | org             | Bulk create/update from a confirmed preview           |
 | GET    | `/standups?orgId=&startDate=&endDate=` | org             | Summaries (default last 7 days)                       |
 | GET    | `/standups/:teamId/:date`              | org             | Individual responses                                  |
 | GET    | `/scheduler?orgId=`                    | org             | Per-team cron job status                              |
