@@ -3,7 +3,9 @@
 The admin panel is an **operator/super-admin web UI** for managing Daily Dose
 without going through Slack slash commands. It is an internal tool — **not** a
 user-facing bot feature — so its changes are intentionally kept out of
-`CHANGELOG.md` and `web/src/data/changelog.json`.
+`web/src/data/changelog.json`, which drives the public changelog page and the
+on-deploy Slack broadcast. They **are** recorded in `CHANGELOG.md`, the
+technical audit trail.
 
 - **URL:** `/admin/*` (e.g. `https://dd.jnahian.me/admin/dashboard`)
 - **Backend:** `src/routes/admin.js` — Express router mounted at `/api/admin`

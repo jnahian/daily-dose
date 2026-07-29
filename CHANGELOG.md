@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.3] - 2026-07-29
+
+Admin panel only — no user-facing bot changes, so nothing was added to
+`web/src/data/changelog.json`.
+
+### Added
+
+- Dashboard **Activity** section (`web/src/components/admin/DashboardCharts.tsx`) backed by a new `GET /api/admin/stats/charts?orgId=&days=` route: daily submissions, per-team totals, and per-member activity in one call, window clamped to 7–90 days server-side. Renders standup completion (line), submissions by team (stacked bar), on-time vs late (proportion strip), and a member × day grid built as a real `<table>` so it doubles as the table view. The completion rate is labelled approximate in the UI — `activeMembers` is the org's _current_ roster and membership history isn't tracked, so a day before someone joined reads low.
+- Client-side search and pagination in the shared `DataTable`, so all seven consuming pages get them without individual changes. Search box appears above 5 rows, pager above `pageSize` (default 25, `0` disables). Columns supply `value()` for search text and opt out with `searchable: false`. Chosen over server-side paging because these lists are per-org and small.
+- Holidays list gained a derived **Status** column (Upcoming / Today / Passed), sorts newest first, and dims passed rows to `opacity-40` while keeping them listed and editable.
+- `web/src/utils/adminFormat.ts` — single source for admin date rendering, replacing four ad-hoc `toLocaleDateString()` formatters previously scattered across Approvals, Tokens, Standups, Members and Activity.
+- `test/routes/adminStatsCharts.test.js` — covers UTC date serialization, the derived `onTime` field, window clamping at both ends, the exact `since` bound, the empty-activity case, and the 403/400 paths.
+
+### Fixed
+
+- `dateStatus` compared a UTC "today" against a stored calendar date, so a holiday's status flipped by hours depending on the viewer's side of the meridian: "Upcoming" until 06:00 on the day itself at UTC+6, "Today" from 19:00 the evening before at UTC−5. The stored value is a `@db.Date` and reads UTC; "today" is a real instant and reads local.
+- `DataTable`'s search matched the wrong text in six of the seven consuming pages. Object and array fields (`Members.teams`, `Approvals.proposedBy`) stringified to `"[object Object]"`, so no real value matched and typing `object` matched every row; derived columns (`Standups.rate`, `Tokens.status`) had no field to fall back to and matched nothing; booleans (`Teams.isActive`, `Organizations.isActive`) matched only `"true"`; and every date column matched its raw ISO string rather than the rendered text.
+- Heatmap cells carried an `aria-label` on a bare `<div>`, which screen readers ignore without a role — the grid was unreadable without colour, defeating its purpose as the accessible table view. Added `role="img"`.
+- `GET /stats/charts` spanned N+1 calendar days behind a control labelled "Last N days"; the `since` bound is inclusive and today counts.
+- Switching orgs left the previous org's search query applied to the new org's rows. Org-scoped pages now key `DataTable` on `activeOrgId`.
+
+### Changed
+
+- Admin date handling moved to **dayjs**, matching the backend (added to `web/package.json`; the root already had it). `adminFormat.ts` splits its inputs — calendar dates parse with `dayjs.utc`, instants with `dayjs` — and is the only place that extends the `utc` plugin. Note the parser is `dayjs.utc(v)`, not `dayjs(v).utc()`: dayjs reads a bare `YYYY-MM-DD` as _local_ midnight, so converting afterwards walks the day backwards east of UTC, which is live for the chart's day keys.
+- Admin-panel changes are now recorded in `CHANGELOG.md`. They remain excluded from `web/src/data/changelog.json`, which drives the public changelog page and the on-deploy Slack broadcast. Previously both were skipped, which meant an admin-only release left no record of what shipped.
+
+### Documentation
+
+- `CLAUDE.md` — records the dayjs rule and the calendar-date-vs-instant distinction behind the recurring off-by-one, plus the revised changelog policy above.
+- `docs/admin-panel.md` — `DataTable` search/pagination contract (including which columns need `value()`), the `DashboardCharts` views and colour rationale, and the date-parser table.
+
 ## [1.18.2] - 2026-07-29
 
 ### Fixed
