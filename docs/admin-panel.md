@@ -416,6 +416,11 @@ Operator view of the org's Zoho People integration — the same surface the
 (`verifyOrgAccess`: org `OWNER`/`ADMIN`, or super admin). All data is loaded in
 one `GET /zoho?orgId=` call and the page refetches after every mutation.
 
+> Connecting an org in the first place — Zoho-side permissions, the Self Client
+> app, the grant-token exchange — is covered in
+> [`zoho-setup.md`](./zoho-setup.md), including a troubleshooting table for the
+> errors this page surfaces.
+
 Three sections:
 
 1. **Integration** — `enabled` state and data center from `ZohoCredential`.
