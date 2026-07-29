@@ -130,12 +130,17 @@ export default function AdminApprovals() {
 
       {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
 
+      {/* Keyed on the org so switching orgs clears the search box and page. */}
       <DataTable
+        key={activeOrgId}
         columns={[
           { key: 'name', label: 'Team' },
           {
             key: 'proposedBy',
             label: 'Proposed By',
+            // `proposedBy` is an object — searching the raw key would stringify
+            // it to "[object Object]".
+            value: (t) => proposerLabel(t),
             render: (t) => proposerLabel(t),
           },
           { key: 'slackChannelId', label: 'Channel ID' },
@@ -145,11 +150,13 @@ export default function AdminApprovals() {
           {
             key: 'createdAt',
             label: 'Requested',
+            value: (t) => formatDateTime(t.createdAt),
             render: (t) => formatDateTime(t.createdAt),
           },
           {
             key: 'actions',
             label: '',
+            searchable: false,
             render: (t) => (
               <div className="flex items-center gap-2">
                 <button

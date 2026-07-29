@@ -197,7 +197,9 @@ export default function AdminMembers() {
         )}
       </div>
 
+      {/* Keyed on the org so switching orgs clears the search box and page. */}
       <DataTable
+        key={activeOrgId}
         columns={[
           { key: 'name', label: 'Name' },
           { key: 'slackUserId', label: 'Slack ID' },
@@ -207,14 +209,20 @@ export default function AdminMembers() {
           },
           {
             key: 'teams', label: 'Teams',
+            // Without this the search would stringify the array to
+            // "[object Object]": no team name would match, and "object" would
+            // match every row that has one.
+            value: (m) => m.teams.map(t => t.name).join(', '),
             render: (m) => <span className="text-white/50">{m.teams.map(t => t.name).join(', ') || '—'}</span>
           },
           {
             key: 'lastStandupDate', label: 'Last Standup',
+            // Search the rendered text, not the raw ISO string.
+            value: (m) => formatDate(m.lastStandupDate),
             render: (m) => <span className="text-white/50 tabular-nums">{formatDate(m.lastStandupDate)}</span>
           },
           {
-            key: 'actions', label: '',
+            key: 'actions', label: '', searchable: false,
             render: (m) => (
               <div className="flex items-center gap-3">
                 <button

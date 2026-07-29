@@ -1936,7 +1936,10 @@ router.get("/stats/charts", requireAuth, async (req, res) => {
     if (!allowed) return;
 
     const window = Math.min(Math.max(parseInt(days, 10) || 30, 7), 90);
-    const since = new Date(Date.now() - window * 24 * 60 * 60 * 1000);
+    // window - 1: the bound is inclusive and today counts, so subtracting the
+    // full window would return window + 1 calendar days for a control that
+    // says "Last N days".
+    const since = new Date(Date.now() - (window - 1) * 24 * 60 * 60 * 1000);
     since.setUTCHours(0, 0, 0, 0);
 
     const [daily, byTeam, activity, activeMembers] = await Promise.all([

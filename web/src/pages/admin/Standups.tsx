@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { DataTable } from '../../components/admin/DataTable';
 import { AdminModal } from '../../components/admin/AdminModal';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
-import { formatDate } from '../../utils/adminFormat';
+import { formatDate, toDateParam } from '../../utils/adminFormat';
 
 interface StandupRow {
   id: string;
@@ -43,7 +43,9 @@ export default function AdminStandups() {
     setSelected(row);
     setLoadingResponses(true);
     setResponses([]);
-    const date = new Date(row.standupDate).toISOString().split('T')[0];
+    // standupDate is a @db.Date — read it back in UTC or the URL asks the API
+    // for the wrong day.
+    const date = toDateParam(row.standupDate);
     const data = await fetch(`/api/admin/standups/${row.teamId}/${date}`, { credentials: 'include' })
       .then(r => r.ok ? r.json() : []);
     setResponses(data);
@@ -54,14 +56,18 @@ export default function AdminStandups() {
     <div>
       <h1 className="text-xl font-semibold text-white mb-6">Standups</h1>
       <p className="text-white/40 text-sm mb-4">Click a row to view individual responses.</p>
+      {/* Keyed on the org so switching orgs clears the search box and page. */}
       <DataTable
+        key={activeOrgId}
         columns={[
           { key: 'teamName', label: 'Team' },
-          { key: 'standupDate', label: 'Date', render: (r) => <span className="tabular-nums">{formatDate(r.standupDate)}</span> },
+          { key: 'standupDate', label: 'Date', value: (r) => formatDate(r.standupDate), render: (r) => <span className="tabular-nums">{formatDate(r.standupDate)}</span> },
           { key: 'submittedCount', label: 'Submitted' },
           { key: 'totalMembers', label: 'Members' },
           {
             key: 'rate', label: 'Rate',
+            // Derived column — the row has no `rate` field to fall back to.
+            value: (r) => `${r.totalMembers > 0 ? Math.round((r.submittedCount / r.totalMembers) * 100) : 0}%`,
             render: (r) => `${r.totalMembers > 0 ? Math.round((r.submittedCount / r.totalMembers) * 100) : 0}%`
           }
         ]}

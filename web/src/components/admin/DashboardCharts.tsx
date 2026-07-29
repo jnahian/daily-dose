@@ -3,6 +3,7 @@ import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts';
+import { formatDayMonth } from '../../utils/adminFormat';
 
 /**
  * Palette — validated with the dataviz skill's checker against this panel's own
@@ -34,14 +35,6 @@ interface ChartData {
   daily: DailyPoint[];
   byTeam: TeamPoint[];
   activity: ActivityPoint[];
-}
-
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-/** "2026-03-26" → "26 Mar". Sliced, never Date-parsed, so no timezone shift. */
-function shortDay(key: string) {
-  const [, m, d] = key.split('-');
-  return `${d} ${MONTHS[Number(m) - 1]}`;
 }
 
 function Card({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
@@ -100,7 +93,7 @@ export function DashboardCharts({ orgId }: { orgId: string }) {
     if (!data) return [];
     const denom = data.activeMembers || 0;
     return data.daily.map(d => ({
-      day: shortDay(d.day),
+      day: formatDayMonth(d.day),
       rate: denom > 0 ? Math.min(100, Math.round((d.submitted / denom) * 100)) : 0,
       submitted: d.submitted,
     }));
@@ -219,7 +212,7 @@ export function DashboardCharts({ orgId }: { orgId: string }) {
                     <tr>
                       <th scope="col" className="sr-only">Member</th>
                       {heatmap.dayKeys.map(d => (
-                        <th key={d} scope="col" className="sr-only">{shortDay(d)}</th>
+                        <th key={d} scope="col" className="sr-only">{formatDayMonth(d)}</th>
                       ))}
                     </tr>
                   </thead>
@@ -235,9 +228,13 @@ export function DashboardCharts({ orgId }: { orgId: string }) {
                           const state = !submitted ? 'No submission' : late ? 'Late' : 'On time';
                           return (
                             <td key={day} className="p-0">
+                              {/* role="img" is what makes the aria-label announce:
+                                  on a bare <div> with no role it's ignored by most
+                                  screen readers, and the cell has no text of its own. */}
                               <div
-                                title={`${member} · ${shortDay(day)} · ${state}`}
-                                aria-label={`${shortDay(day)}: ${state}`}
+                                role="img"
+                                title={`${member} · ${formatDayMonth(day)} · ${state}`}
+                                aria-label={`${formatDayMonth(day)}: ${state}`}
                                 className="w-3 h-3 rounded-[2px]"
                                 style={{ background: !submitted ? 'rgba(255,255,255,0.05)' : late ? LATE : ON_TIME }}
                               />

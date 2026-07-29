@@ -192,7 +192,10 @@ export default function AdminTeams() {
         </button>
       </div>
 
+      {/* Keyed on the org so switching orgs clears the search box and page,
+          instead of filtering the new org's rows by the old org's query. */}
       <DataTable
+        key={activeOrgId}
         columns={[
           { key: 'name', label: 'Name' },
           { key: 'slackChannelId', label: 'Channel ID' },
@@ -204,12 +207,13 @@ export default function AdminTeams() {
             key: 'isActive', label: 'Status',
             // A PENDING team carries isActive=true but is deliberately unscheduled,
             // so status wins over isActive here.
+            value: (t) => t.status === 'PENDING' ? 'Pending' : t.isActive ? 'Active' : 'Inactive',
             render: (t) => t.status === 'PENDING'
               ? <StatusBadge variant="late" label="Pending" />
               : <StatusBadge variant={t.isActive ? 'active' : 'inactive'} label={t.isActive ? 'Active' : 'Inactive'} />
           },
           {
-            key: 'actions', label: '',
+            key: 'actions', label: '', searchable: false,
             render: (t) => (
               <div className="flex items-center gap-3">
                 <button

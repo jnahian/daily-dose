@@ -389,15 +389,29 @@ CRUD over the active org's holidays (org-scoped `Holiday` table).
 
 Sorted **newest first**: the next holiday and the ones just gone are what an
 operator is usually after. Passed holidays stay listed and editable but are
-dimmed to `opacity-40`, and their status is derived client-side by comparing UTC
-day strings (`dateStatus` in `web/src/utils/adminFormat.ts`) — comparing local
-dates would flip a holiday to "passed" hours early for viewers west of UTC.
+dimmed to `opacity-40`, and their status is derived client-side by `dateStatus`
+in `web/src/utils/adminFormat.ts`, which compares two `YYYY-MM-DD` strings built
+on **different clocks**: the holiday's day from `dayjs.utc()` (it's a `@db.Date`
+serialized as UTC midnight), "today" from `dayjs()` (it's a real instant, and
+the viewer's calendar day is what they mean by today). Using UTC for both flips
+the status by hours in either direction — at UTC+6 a holiday reads "Upcoming"
+until 06:00 on the day itself; at UTC-5 it reads "Today" from 19:00 the evening
+before.
 
-All admin dates go through that module: `formatDate` reads **UTC** for `@db.Date`
-columns (`Holiday.date`, `standupDate`, `lastStandupDate`), `formatDateTime`
-reads **local** for real instants (`createdAt`, `lastUsedAt`, `submittedAt`).
-Mixing them up shifts a calendar day by one — the same class of bug fixed in the
-holiday importer.
+All admin dates go through that module, which is built on **dayjs** (the same
+library the backend uses) and is the only place that calls `dayjs.extend(utc)`.
+It splits its inputs in two, and picking the wrong side shifts a calendar day by
+one — the same class of bug fixed in the holiday importer:
+
+| Input                                                                                      | Parser         | Formatters                                                  |
+| ------------------------------------------------------------------------------------------ | -------------- | ----------------------------------------------------------- |
+| **Calendar dates** — `@db.Date` columns (`Holiday.date`, `standupDate`, `lastStandupDate`) | `dayjs.utc(v)` | `formatDate`, `formatDayMonth`, `toDateParam`, `dateStatus` |
+| **Instants** — `createdAt`, `lastUsedAt`, `submittedAt`                                    | `dayjs(v)`     | `formatDateTime`                                            |
+
+Note `dayjs.utc(v)`, not `dayjs(v).utc()`: dayjs parses a bare `YYYY-MM-DD` as
+_local_ midnight, so converting after the fact walks the day backwards for any
+viewer east of UTC. The chart endpoint returns bare `YYYY-MM-DD` keys, so this
+is a live case, not a hypothetical.
 
 - **Add Holiday** → `POST /holidays` (`{ name, date, description, orgId }`).
 - **Edit** → `PUT /holidays/:id` (`{ name, date, description }`).
@@ -675,10 +689,24 @@ the panel filters these out of its lists.
   optional `onRowClick`, `emptyMessage`, `searchPlaceholder`, `rowClassName`.
   Search and pagination are **client-side and built in**, so all seven consuming
   pages get them without changes: a search box appears above 5 rows, a pager
-  below `pageSize` (default 25, `0` disables). Search matches a column's
-  `value(row)` when given, otherwise the raw `key` — set `searchable: false` to
-  exclude a column (e.g. actions). Chosen over server-side paging because these
-  lists are per-org and small; revisit if any grows past a few thousand rows.
+  below `pageSize` (default 25, `0` disables). Chosen over server-side paging
+  because these lists are per-org and small; revisit if any grows past a few
+  thousand rows.
+
+  Search matches a column's `value(row)` when given, otherwise the raw `key` —
+  set `searchable: false` to exclude a column (e.g. actions). **Any column whose
+  display differs from the raw field needs `value`**, and the fallback fails
+  loudly in both directions if you skip it: a formatted date is searchable only
+  as its ISO string, a derived column (`status`) has no field to fall back to
+  and matches nothing, and an object or array field (`teams`, `proposedBy`)
+  stringifies to `"[object Object]"` — so the real text never matches and typing
+  `object` matches every row. Rule of thumb: if the column has `render`, it
+  probably needs `value`.
+
+  Org-scoped pages pass `key={activeOrgId}`, so switching orgs remounts the
+  table and clears the search box and page rather than filtering the new org's
+  rows by the previous org's query.
+
 - **`DashboardCharts`** — the Dashboard's Activity section (see above).
 - **`AdminModal`** — overlay modal; `isOpen`, `onClose`, `title`, `children`;
   closes on Escape / backdrop / X.

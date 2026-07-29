@@ -123,12 +123,15 @@ export default function AdminHolidays() {
         </div>
       </div>
 
+      {/* Keyed on the org so switching orgs clears the search box and page. */}
       <DataTable
+        key={activeOrgId}
         columns={[
           {
             key: 'date',
             label: 'Date',
-            value: (h) => h.date,
+            // Search the rendered text ("26 Mar, 26"), not the raw ISO string.
+            value: (h) => formatDate(h.date),
             render: (h) => <span className="tabular-nums">{formatDate(h.date)}</span>,
           },
           { key: 'name', label: 'Name' },

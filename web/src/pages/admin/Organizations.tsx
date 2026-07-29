@@ -122,10 +122,13 @@ export default function AdminOrganizations() {
           { key: 'memberCount', label: 'Members' },
           {
             key: 'isActive', label: 'Status',
+            // Without this the search sees the raw boolean: "Active" matches
+            // nothing and "true" matches everything.
+            value: (o) => (o.isActive ? 'Active' : 'Inactive'),
             render: (o) => <StatusBadge variant={o.isActive ? 'active' : 'inactive'} label={o.isActive ? 'Active' : 'Inactive'} />
           },
           {
-            key: 'actions', label: '',
+            key: 'actions', label: '', searchable: false,
             render: (o) => (
               <div className="flex items-center gap-3">
                 <button
