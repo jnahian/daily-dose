@@ -17,6 +17,7 @@ High-leverage footguns specific to this repo. Read before editing:
 - **Don't put admin-panel changes in either changelog** — the admin panel (`/admin/*`, `src/routes/admin.js`) is an internal operator tool, not a user-facing bot feature; keep it out of both `CHANGELOG.md` and `web/src/data/changelog.json`.
 - **Don't read modal rich_text values directly** — use `messageHelper.extractPlainText()` or `convertRichTextToSlack()`.
 - **Don't bypass `permissionHelper`** — always check via `isTeamAdmin()` / `isOrgOwner()`. Admins resolve team from channel; owners must pass team name explicitly.
+- **Don't gate org-scoped features behind `requireSuperAdmin`** — an org `OWNER`/`ADMIN` must be able to do everything to their own org's data. `requireSuperAdmin` is only for platform-wide operations that cross org boundaries (creating/deleting organizations, cross-org stats). Gating an org-scoped feature above org admin makes it unreachable for the people it's built for: the holiday import shipped super-admin-only and no org owner could use it. If a dependency or operation feels too risky for an org admin, that's an argument about the dependency, not the access tier — say so explicitly rather than quietly raising the gate.
 
 ## Development Commands
 
@@ -182,7 +183,7 @@ An operator/super-admin web UI at `/admin/*`, served by the same React SPA but r
 
 - **Backend**: `src/routes/admin.js`, mounted at `/api/admin` in `src/app.js`.
 - **Auth**: Slack OAuth (`/auth/slack` → `/auth/callback`) with httpOnly cookie sessions stored in the `sessions` Prisma table; `requireAuth` middleware validates the `admin_session` cookie. Auth hook on the frontend is `web/src/hooks/useAdminAuth.ts`.
-- **Access tiers**: `requireSuperAdmin` (backed by the `super_admins` table) gates platform-wide routes (e.g. organizations CRUD); org-scoped routes use `verifyOrgAccess`, which allows super admins or org `OWNER`/`ADMIN` members. Grant super-admin access via `npm run super-admin:add`.
+- **Access tiers**: `requireSuperAdmin` (backed by the `super_admins` table) gates **only** platform-wide routes that cross or create org boundaries (organizations CRUD, cross-org stats). Every org-scoped route uses `verifyOrgAccess`, which allows super admins **or** org `OWNER`/`ADMIN` members — org admins are expected to have full control of their own org's data. Grant super-admin access via `npm run super-admin:add`.
 - **Pages/resources**: Login, Dashboard, Organizations, Teams, Approvals, Members, Standups, Holidays, Scheduler, Zoho Sync, Activity, MCP Usage, Tokens (`web/src/pages/admin/`); shared components in `web/src/components/admin/` (`AdminLayout`, `AdminSidebar`, `AdminTopBar`, `DataTable`, `AdminModal`, `StatCard`, `StatusBadge`, `ImportHolidaysModal`).
 
 ### Environment Configuration
@@ -366,6 +367,7 @@ These are non-obvious rules specific to this codebase. Generic engineering pract
 
 - **Notification flag semantics**: `TeamMember.receiveNotifications` controls _all_ notifications for a user (reminder DMs _and_ admin submission notifications). `TeamMember.hideFromNotResponded` hides a user from the "not responded" list in posted summaries. Toggle via `/dd-standup-reminder notify=on/off`. Admins are additionally filtered out of standup reminders by role in `schedulerService`.
 - **Permission checks**: always go through `permissionHelper.isTeamAdmin()` / `isOrgOwner()`. Admins resolve team from current channel; owners must pass team name explicitly.
+- **Two access tiers, one dividing line**: org `OWNER`/`ADMIN` has full control over **their own org's data** — teams, members, standups, holidays (including import), Zoho sync, scheduler. `requireSuperAdmin` is reserved for operations that span or create orgs: the Organizations page, cross-org aggregate stats. In practice: a new org-scoped route uses `verifyOrgAccess` (which lets super admins through anyway), and reaching for `requireSuperAdmin` on org-scoped data is a design smell. Mirrors the Slack side, where `/dd-*` admin commands require org admin, not a platform role.
 - **Block Kit**: every block must live in `src/utils/blockHelper.js` — never inline blocks at call sites. Follow `docs/slack-markdown-guidelines.md` for formatting (mentions, links, rich_text).
 - **Bulk Slack operations**: process teams sequentially, not in parallel — Slack rate-limits at ~1 req/sec/channel.
 - **Date handling**: use dayjs with team timezone; check `dateHelper.isWorkDay()` and the `Holiday` table before sending reminders.
