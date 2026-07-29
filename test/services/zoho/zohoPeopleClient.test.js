@@ -113,4 +113,86 @@ describe("zohoPeopleClient", () => {
 
     await expect(fetchHolidays("org-1")).rejects.toThrow(ZohoApiError);
   });
+
+  // A scope mismatch and a permissions gap both arrive as 401/403 but need
+  // opposite fixes, and only Zoho's own message tells them apart — so the
+  // response body has to reach the operator rather than a canned guess.
+  describe("failures report what Zoho actually said", () => {
+    function reject(status, text) {
+      global.fetch = jest.fn().mockResolvedValue({ ok: false, status, text });
+    }
+
+    it("surfaces error / error_description", async () => {
+      reject(401, async () =>
+        JSON.stringify({
+          error: "invalid_oauth_scope",
+          error_description: "The required scope is missing",
+        })
+      );
+
+      await expect(fetchHolidays("org-1")).rejects.toThrow(
+        /invalid_oauth_scope: The required scope is missing/
+      );
+    });
+
+    it("surfaces Zoho's errorCode / message shape", async () => {
+      reject(403, async () =>
+        JSON.stringify({ errorCode: "NO_PERMISSION", message: "Access denied" })
+      );
+
+      await expect(fetchHolidays("org-1")).rejects.toThrow(
+        /NO_PERMISSION: Access denied/
+      );
+    });
+
+    it("surfaces a nested response.errors shape", async () => {
+      reject(403, async () =>
+        JSON.stringify({
+          response: { errors: { code: 7202, message: "Not authorised" } },
+        })
+      );
+
+      await expect(fetchHolidays("org-1")).rejects.toThrow(/Not authorised/);
+    });
+
+    it("falls back to the raw body when the response isn't JSON", async () => {
+      reject(401, async () => "<html><body>Unauthorised</body></html>");
+
+      await expect(fetchHolidays("org-1")).rejects.toThrow(/Unauthorised/);
+    });
+
+    it("says so rather than going blank on an empty body", async () => {
+      reject(401, async () => "");
+
+      await expect(fetchHolidays("org-1")).rejects.toThrow(
+        /empty response body/
+      );
+    });
+
+    it("points at the token when the message mentions scope", async () => {
+      reject(401, async () =>
+        JSON.stringify({ error: "OAUTH_SCOPE_MISMATCH" })
+      );
+
+      await expect(fetchHolidays("org-1")).rejects.toThrow(
+        /regenerate the grant token/
+      );
+    });
+
+    it("points at account permissions when scope isn't mentioned", async () => {
+      reject(403, async () => JSON.stringify({ errorCode: "NO_PERMISSION" }));
+
+      await expect(fetchHolidays("org-1")).rejects.toThrow(
+        /API access enabled and reporting-manager-level/
+      );
+    });
+
+    it("names the endpoint that was rejected", async () => {
+      reject(403, async () => JSON.stringify({ errorCode: "NO_PERMISSION" }));
+
+      await expect(fetchHolidays("org-1")).rejects.toThrow(
+        /\/api\/leave\/v2\/holidays\/get/
+      );
+    });
+  });
 });
