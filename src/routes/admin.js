@@ -1420,14 +1420,15 @@ router.delete("/holidays/:id", requireAuth, async (req, res) => {
 });
 
 // POST /api/admin/holidays/import/preview (multipart: file, orgId)
-// Super-admin only: `xlsx` (SheetJS) has open prototype-pollution/ReDoS
-// advisories with no fixed npm release, and it parses attacker-chosen bytes
-// inside this shared multi-tenant process — a wider blast radius than the
-// org-scoped holiday CRUD routes. See docs/admin-panel.md.
+// Org-scoped (OWNER/ADMIN), matching the rest of the holiday CRUD routes.
+// Accepted risk: `xlsx` (SheetJS) has open prototype-pollution/ReDoS
+// advisories with no fixed npm release, and it parses caller-chosen bytes
+// inside this shared multi-tenant process — so an org admin can reach a
+// parser whose blast radius is every org on the box. Bounded by the 5 MB cap
+// and an authenticated org admin/owner session. See docs/admin-panel.md.
 router.post(
   "/holidays/import/preview",
   requireAuth,
-  requireSuperAdmin,
   (req, res, next) => {
     holidayImportUpload.single("file")(req, res, (err) => {
       if (err) return res.status(400).json({ error: err.message });
@@ -1491,91 +1492,84 @@ router.post(
 );
 
 // POST /api/admin/holidays/import ({ orgId, items: [{ date, name, description }] })
-// Super-admin only, for the same reason as the preview route above.
-router.post(
-  "/holidays/import",
-  requireAuth,
-  requireSuperAdmin,
-  async (req, res) => {
-    try {
-      const { orgId, items } = req.body;
-      const allowed = await verifyOrgAccess(req, res, orgId);
-      if (!allowed) return;
+// Org-scoped, same tier as the preview route above. This one takes JSON, not a
+// file, so it never reaches the xlsx parser.
+router.post("/holidays/import", requireAuth, async (req, res) => {
+  try {
+    const { orgId, items } = req.body;
+    const allowed = await verifyOrgAccess(req, res, orgId);
+    if (!allowed) return;
 
-      if (!Array.isArray(items) || items.length === 0) {
-        return res.status(400).json({ error: "No holidays to import" });
-      }
-      if (items.length > holidayImportService.MAX_TOTAL_RECORDS) {
-        return res
-          .status(400)
-          .json({ error: "Too many holidays in one import" });
-      }
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: "No holidays to import" });
+    }
+    if (items.length > holidayImportService.MAX_TOTAL_RECORDS) {
+      return res.status(400).json({ error: "Too many holidays in one import" });
+    }
 
-      const { valid, skipped } =
-        holidayImportService.normalizeImportItems(items);
+    const { valid, skipped } = holidayImportService.normalizeImportItems(items);
 
-      if (valid.length === 0) {
-        return res.status(400).json({ error: "No valid holidays to import" });
-      }
+    if (valid.length === 0) {
+      return res.status(400).json({ error: "No valid holidays to import" });
+    }
 
-      const existing = await prisma.holiday.findMany({
-        where: {
-          organization_id: orgId,
-          date: { in: valid.map((v) => v.date) },
-        },
-        select: { date: true },
-      });
-      const existingDates = new Set(
-        existing.map((h) => holidayImportService.toDateKey(h.date))
-      );
+    const existing = await prisma.holiday.findMany({
+      where: {
+        organization_id: orgId,
+        date: { in: valid.map((v) => v.date) },
+      },
+      select: { date: true },
+    });
+    const existingDates = new Set(
+      existing.map((h) => holidayImportService.toDateKey(h.date))
+    );
 
-      // An imported row is a manual upload even when the file came out of
-      // Zoho, so it's tagged MANUAL and any Zoho externalId is cleared — the
-      // nightly sync stays authoritative and will re-tag ZOHO if it still
-      // returns that date.
-      await prisma.$transaction(
-        valid.map((v) =>
-          prisma.holiday.upsert({
-            where: {
-              organization_id_date: {
-                organization_id: orgId,
-                date: v.date,
-              },
-            },
-            update: {
-              name: v.name,
-              description: v.description,
-              source: "MANUAL",
-              externalId: null,
-            },
-            create: {
-              id: crypto.randomUUID(),
+    // An imported row is a manual upload even when the file came out of
+    // Zoho, so it's tagged MANUAL and any Zoho externalId is cleared — the
+    // nightly sync stays authoritative and will re-tag ZOHO if it still
+    // returns that date.
+    await prisma.$transaction(
+      valid.map((v) =>
+        prisma.holiday.upsert({
+          where: {
+            organization_id_date: {
               organization_id: orgId,
               date: v.date,
-              name: v.name,
-              description: v.description,
-              source: "MANUAL",
             },
-          })
-        )
-      );
+          },
+          update: {
+            name: v.name,
+            description: v.description,
+            source: "MANUAL",
+            externalId: null,
+          },
+          create: {
+            id: crypto.randomUUID(),
+            organization_id: orgId,
+            date: v.date,
+            name: v.name,
+            description: v.description,
+            source: "MANUAL",
+          },
+        })
+      )
+    );
 
-      const updated = valid.filter((v) =>
-        existingDates.has(holidayImportService.toDateKey(v.date))
-      ).length;
+    const updated = valid.filter((v) =>
+      existingDates.has(holidayImportService.toDateKey(v.date))
+    ).length;
 
-      res.json({
-        created: valid.length - updated,
-        updated,
-        skipped,
-        total: valid.length,
-      });
-    } catch (err) {
-      console.error("POST /holidays/import error:", err.message);
-      res.status(500).json({ error: "Internal server error" });
-    }
+    res.json({
+      created: valid.length - updated,
+      updated,
+      skipped,
+      total: valid.length,
+    });
+  } catch (err) {
+    console.error("POST /holidays/import error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
   }
-);
+});
 
 // GET /api/admin/standups?orgId=&startDate=&endDate=
 router.get("/standups", requireAuth, async (req, res) => {
@@ -1792,11 +1786,9 @@ router.post("/zoho/mappings", requireAuth, async (req, res) => {
       },
     });
     if (!membership || !membership.isActive) {
-      return res
-        .status(400)
-        .json({
-          error: "That user is not an active member of this organization",
-        });
+      return res.status(400).json({
+        error: "That user is not an active member of this organization",
+      });
     }
 
     const mapping = await zohoMappingService.mapMember(
