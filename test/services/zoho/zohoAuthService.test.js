@@ -17,7 +17,6 @@ describe("zohoAuthService", () => {
     jest.clearAllMocks();
     process.env.ZOHO_CLIENT_ID = "client-id";
     process.env.ZOHO_CLIENT_SECRET = "client-secret";
-    process.env.ZOHO_REDIRECT_URI = "https://example.com/callback";
     process.env.ZOHO_DATA_CENTER = "com";
   });
 
@@ -61,10 +60,11 @@ describe("zohoAuthService", () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({
-        access_token: "new-access-token",
-        expires_in: 3600,
-      }),
+      text: async () =>
+        JSON.stringify({
+          access_token: "new-access-token",
+          expires_in: 3600,
+        }),
     });
 
     const result = await svc.getValidAccessToken("org-1");
@@ -99,7 +99,8 @@ describe("zohoAuthService", () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({ access_token: "refreshed", expires_in: 3600 }),
+      text: async () =>
+        JSON.stringify({ access_token: "refreshed", expires_in: 3600 }),
     });
 
     const result = await svc.getValidAccessToken("org-1");
@@ -134,11 +135,12 @@ describe("zohoAuthService", () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({
-        access_token: "initial-access-token",
-        refresh_token: "initial-refresh-token",
-        expires_in: 3600,
-      }),
+      text: async () =>
+        JSON.stringify({
+          access_token: "initial-access-token",
+          refresh_token: "initial-refresh-token",
+          expires_in: 3600,
+        }),
     });
 
     await svc.exchangeGrantToken("org-1", "grant-token-abc");
@@ -158,7 +160,7 @@ describe("zohoAuthService", () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({ access_token: "x", expires_in: 3600 }),
+      text: async () => JSON.stringify({ access_token: "x", expires_in: 3600 }),
     });
 
     await expect(
@@ -183,13 +185,104 @@ describe("zohoAuthService", () => {
     );
   });
 
-  it("exchangeGrantToken throws a clear error when ZOHO_REDIRECT_URI isn't configured", async () => {
-    delete process.env.ZOHO_REDIRECT_URI;
-    global.fetch = jest.fn();
+  // A Self Client app has no redirect URI to register, and Zoho's self-client
+  // token exchange takes only client_id / client_secret / grant_type / code.
+  // Sending redirect_uri makes accounts.zoho.* answer with an HTML error page
+  // instead of JSON — which is exactly how this surfaced in production.
+  it("exchangeGrantToken does not send redirect_uri", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () =>
+        JSON.stringify({
+          access_token: "a",
+          refresh_token: "r",
+          expires_in: 3600,
+        }),
+    });
+    prisma.zohoCredential.upsert.mockResolvedValue({
+      dataCenter: "com",
+      accessTokenExpiresAt: new Date(),
+    });
 
-    await expect(
-      svc.exchangeGrantToken("org-1", "grant-token-abc")
-    ).rejects.toThrow(/ZOHO_REDIRECT_URI/);
-    expect(global.fetch).not.toHaveBeenCalled();
+    await svc.exchangeGrantToken("org-1", "grant-token-abc");
+
+    const sent = new URLSearchParams(global.fetch.mock.calls[0][1].body);
+    expect(sent.has("redirect_uri")).toBe(false);
+    expect([...sent.keys()].sort()).toEqual([
+      "client_id",
+      "client_secret",
+      "code",
+      "grant_type",
+    ]);
+  });
+
+  // A bare "failed: 400" is undiagnosable — the whole point of these is that
+  // whatever Zoho actually said reaches the operator running the setup script.
+  describe("token request failures surface Zoho's own message", () => {
+    it("includes error and error_description", async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        text: async () =>
+          JSON.stringify({
+            error: "invalid_code",
+            error_description: "The grant token has expired",
+          }),
+      });
+
+      await expect(
+        svc.exchangeGrantToken("org-1", "stale-token")
+      ).rejects.toThrow(/invalid_code: The grant token has expired/);
+    });
+
+    it("includes the error slug when there is no description", async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        text: async () => JSON.stringify({ error: "invalid_client" }),
+      });
+
+      await expect(
+        svc.exchangeGrantToken("org-1", "grant-token-abc")
+      ).rejects.toThrow(/invalid_client/);
+    });
+
+    // Wrong ZOHO_DATA_CENTER answers with HTML, which json() would discard.
+    it("falls back to the raw body when the response isn't JSON", async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        text: async () => "<html><body>Not Found</body></html>",
+      });
+
+      await expect(
+        svc.exchangeGrantToken("org-1", "grant-token-abc")
+      ).rejects.toThrow(/Not Found/);
+    });
+
+    it("names the URL it called so a wrong data center is obvious", async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        text: async () => JSON.stringify({ error: "invalid_code" }),
+      });
+
+      await expect(
+        svc.exchangeGrantToken("org-1", "grant-token-abc")
+      ).rejects.toThrow(/accounts\.zoho\.com\/oauth\/v2\/token/);
+    });
+
+    it("reports a 200 that carries an error payload as a failure", async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ error: "invalid_code" }),
+      });
+
+      await expect(
+        svc.exchangeGrantToken("org-1", "grant-token-abc")
+      ).rejects.toThrow(/invalid_code/);
+    });
   });
 });
