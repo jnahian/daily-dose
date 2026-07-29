@@ -357,7 +357,7 @@ Jest is the test runner. Tests live in `test/`; run them with `npm test` (also `
 
 - **`admin/`** — empty placeholder directory.
 - **`CONTRIBUTING.md`** — contributor workflow and conventions.
-- **`docs/`** — the canonical `slack-markdown-guidelines.md`, `admin-panel.md`, `VERSIONING.md`, `README-manifest.md`, and `notification-service-examples.md`. `docs/plans/` holds the active roadmap; `docs/archive/` holds completed/historical plans, user stories, and the superseded implementation guide.
+- **`docs/`** — the canonical `slack-markdown-guidelines.md`, `admin-panel.md`, `zoho-setup.md`, `VERSIONING.md`, `README-manifest.md`, and `notification-service-examples.md`. `docs/plans/` holds the active roadmap; `docs/archive/` holds completed/historical plans, user stories, and the superseded implementation guide.
 - **`.code-notes/`** and **`.agent/`** — scratchpad directories for tool/agent notes; not part of production code. Treat as ignorable unless the user references them.
 
 ## Project-Specific Conventions
