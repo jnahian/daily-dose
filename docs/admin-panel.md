@@ -167,6 +167,38 @@ Read-only stat cards from `GET /api/admin/stats`.
   **Today's Completion** rate (`todayResponses / activeTeamMembers`, as a
   percentage).
 
+Below the cards, an org-scoped **Activity** section (`DashboardCharts`) renders
+four views from a single `GET /stats/charts?orgId=&days=` call, with a range
+selector (7–90 days, clamped server-side). Hidden when a super admin has no
+active org, since there is nothing org-scoped to chart.
+
+| View                | Form                                 | Source                              |
+| ------------------- | ------------------------------------ | ----------------------------------- |
+| Standup completion  | line, one series                     | `daily[].submitted ÷ activeMembers` |
+| Submissions by team | horizontal bar, stacked on-time/late | `byTeam[]`                          |
+| On time vs late     | proportion strip + headline %        | derived from `daily[]`              |
+| Member activity     | cell grid, one per member per day    | `activity[]`                        |
+
+> **The completion rate is approximate and labelled as such in the UI.**
+> `activeMembers` is the org's _current_ active team-member count; historical
+> membership isn't tracked, so a day before someone joined is measured against
+> today's roster and reads low. The existing "Today's Completion" card has
+> always worked this way — the chart just makes the caveat visible.
+
+Colour follows the `dataviz` skill's procedure and was validated with its
+checker against **this panel's surface (`#161b22`)**, not the skill's reference
+default:
+
+- Series `#3987e5` (categorical slot 1, dark) — passes all six checks.
+- On-time `#0ca30c` / late `#fab219` — the reserved **status** good/warning
+  pair, not categorical slots, so they keep their fixed hues. CVD ΔE 11.3,
+  normal-vision ΔE 27.6, both ≥3:1 on this surface. Per the status rule they
+  never carry meaning by colour alone: every use is paired with a legend and a
+  written label, and the heatmap is a real `<table>` with row/column headers,
+  which doubles as the table view.
+- The brand cyan `#00CFFF` was **rejected** as a series colour — L 0.793 falls
+  outside the dark lightness band (0.48–0.67) and glares against the surface.
+
 ### Organizations (`/admin/organizations`) — super admin only
 
 Full CRUD over organizations. Org admins are redirected to the dashboard.
@@ -348,9 +380,24 @@ Blockers (when present), and the submitted timestamp.
 
 CRUD over the active org's holidays (org-scoped `Holiday` table).
 
-| Column                    | Field                                |
-| ------------------------- | ------------------------------------ |
-| Name / Date / Description | `name`, `date`, `description` (or —) |
+| Column      | Field                                           |
+| ----------- | ----------------------------------------------- |
+| Date        | `date`, formatted `DD MMM, YY`                  |
+| Name        | `name`                                          |
+| Status      | derived — **Upcoming** / **Today** / **Passed** |
+| Description | `description` (or —)                            |
+
+Sorted **newest first**: the next holiday and the ones just gone are what an
+operator is usually after. Passed holidays stay listed and editable but are
+dimmed to `opacity-40`, and their status is derived client-side by comparing UTC
+day strings (`dateStatus` in `web/src/utils/adminFormat.ts`) — comparing local
+dates would flip a holiday to "passed" hours early for viewers west of UTC.
+
+All admin dates go through that module: `formatDate` reads **UTC** for `@db.Date`
+columns (`Holiday.date`, `standupDate`, `lastStandupDate`), `formatDateTime`
+reads **local** for real instants (`createdAt`, `lastUsedAt`, `submittedAt`).
+Mixing them up shifts a calendar day by one — the same class of bug fixed in the
+holiday importer.
 
 - **Add Holiday** → `POST /holidays` (`{ name, date, description, orgId }`).
 - **Edit** → `PUT /holidays/:id` (`{ name, date, description }`).
@@ -579,6 +626,7 @@ super admin, or `OWNER`/`ADMIN` of the target org.
 | GET    | `/standups?orgId=&startDate=&endDate=` | org             | Summaries (default last 7 days)                       |
 | GET    | `/standups/:teamId/:date`              | org             | Individual responses                                  |
 | GET    | `/scheduler?orgId=`                    | org             | Per-team cron job status                              |
+| GET    | `/stats/charts?orgId=&days=`           | org             | Dashboard time series (window clamped 7–90)           |
 | GET    | `/zoho?orgId=`                         | org             | Credential state, latest run per type, mappings       |
 | POST   | `/zoho/mappings`                       | org             | Map a Slack user to a Zoho employee ID                |
 | DELETE | `/zoho/mappings/:id`                   | org             | Remove a mapping                                      |
@@ -622,8 +670,16 @@ the panel filters these out of its lists.
 - **`AdminSidebar`** — role-filtered nav (Organizations only for super admins).
 - **`AdminTopBar`** — org switcher dropdown (with role badges) + username +
   logout.
-- **`DataTable`** — generic table; `columns` (`{ key, label, render? }`),
-  `rows` (each needs `id`), optional `onRowClick`, `emptyMessage`.
+- **`DataTable`** — generic table; `columns`
+  (`{ key, label, render?, value?, searchable? }`), `rows` (each needs `id`),
+  optional `onRowClick`, `emptyMessage`, `searchPlaceholder`, `rowClassName`.
+  Search and pagination are **client-side and built in**, so all seven consuming
+  pages get them without changes: a search box appears above 5 rows, a pager
+  below `pageSize` (default 25, `0` disables). Search matches a column's
+  `value(row)` when given, otherwise the raw `key` — set `searchable: false` to
+  exclude a column (e.g. actions). Chosen over server-side paging because these
+  lists are per-org and small; revisit if any grows past a few thousand rows.
+- **`DashboardCharts`** — the Dashboard's Activity section (see above).
 - **`AdminModal`** — overlay modal; `isOpen`, `onClose`, `title`, `children`;
   closes on Escape / backdrop / X.
 - **`StatCard`** — `label`, `value`, optional `icon` (Dashboard tiles).

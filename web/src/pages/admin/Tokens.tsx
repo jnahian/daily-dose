@@ -3,6 +3,7 @@ import { Plus, Trash2, Copy, Check } from 'lucide-react';
 import { DataTable } from '../../components/admin/DataTable';
 import { AdminModal } from '../../components/admin/AdminModal';
 import { StatusBadge } from '../../components/admin/StatusBadge';
+import { formatDateTime } from '../../utils/adminFormat';
 
 interface McpToken {
   id: string;
@@ -20,9 +21,6 @@ interface Connection {
   lastUsedAt: string | null;
   createdAt: string;
 }
-
-const fmt = (dateStr: string | null) =>
-  dateStr ? new Date(dateStr).toLocaleDateString() : '—';
 
 export default function AdminTokens() {
   const [tokens, setTokens] = useState<McpToken[]>([]);
@@ -153,9 +151,9 @@ export default function AdminTokens() {
               <StatusBadge variant={t.revoked_at ? 'inactive' : 'active'} label={t.revoked_at ? 'Revoked' : 'Active'} />
             ),
           },
-          { key: 'created_at', label: 'Created', render: (t: McpToken) => fmt(t.created_at) },
-          { key: 'last_used_at', label: 'Last used', render: (t: McpToken) => fmt(t.last_used_at) },
-          { key: 'expires_at', label: 'Expires', render: (t: McpToken) => fmt(t.expires_at) },
+          { key: 'created_at', label: 'Created', render: (t: McpToken) => formatDateTime(t.created_at) },
+          { key: 'last_used_at', label: 'Last used', render: (t: McpToken) => formatDateTime(t.last_used_at) },
+          { key: 'expires_at', label: 'Expires', render: (t: McpToken) => formatDateTime(t.expires_at) },
           {
             key: 'actions', label: '',
             render: (t: McpToken) =>
@@ -182,8 +180,8 @@ export default function AdminTokens() {
       <DataTable
         columns={[
           { key: 'clientName', label: 'Client', render: (c: Connection) => c.clientName || <span className="text-white/40">Unknown client</span> },
-          { key: 'createdAt', label: 'Connected', render: (c: Connection) => fmt(c.createdAt) },
-          { key: 'lastUsedAt', label: 'Last used', render: (c: Connection) => fmt(c.lastUsedAt) },
+          { key: 'createdAt', label: 'Connected', render: (c: Connection) => formatDateTime(c.createdAt) },
+          { key: 'lastUsedAt', label: 'Last used', render: (c: Connection) => formatDateTime(c.lastUsedAt) },
           {
             key: 'actions', label: '',
             render: (c: Connection) => (

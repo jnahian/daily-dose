@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { DataTable } from '../../components/admin/DataTable';
 import { AdminModal } from '../../components/admin/AdminModal';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { formatDate } from '../../utils/adminFormat';
 
 interface StandupRow {
   id: string;
@@ -56,7 +57,7 @@ export default function AdminStandups() {
       <DataTable
         columns={[
           { key: 'teamName', label: 'Team' },
-          { key: 'standupDate', label: 'Date', render: (r) => new Date(r.standupDate).toLocaleDateString() },
+          { key: 'standupDate', label: 'Date', render: (r) => <span className="tabular-nums">{formatDate(r.standupDate)}</span> },
           { key: 'submittedCount', label: 'Submitted' },
           { key: 'totalMembers', label: 'Members' },
           {
@@ -72,7 +73,7 @@ export default function AdminStandups() {
       <AdminModal
         isOpen={!!selected}
         onClose={() => { setSelected(null); setResponses([]); }}
-        title={selected ? `${selected.teamName} — ${new Date(selected.standupDate).toLocaleDateString()}` : ''}
+        title={selected ? `${selected.teamName} — ${formatDate(selected.standupDate)}` : ''}
       >
         <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
           {loadingResponses && <p className="text-white/40 text-sm">Loading...</p>}

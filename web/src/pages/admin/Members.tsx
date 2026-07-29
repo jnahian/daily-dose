@@ -5,6 +5,7 @@ import { DataTable } from '../../components/admin/DataTable';
 import { StatusBadge } from '../../components/admin/StatusBadge';
 import { AdminModal } from '../../components/admin/AdminModal';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { formatDate } from '../../utils/adminFormat';
 
 interface Team {
   id: string;
@@ -210,7 +211,7 @@ export default function AdminMembers() {
           },
           {
             key: 'lastStandupDate', label: 'Last Standup',
-            render: (m) => <span className="text-white/50">{m.lastStandupDate ? new Date(m.lastStandupDate).toLocaleDateString() : '—'}</span>
+            render: (m) => <span className="text-white/50 tabular-nums">{formatDate(m.lastStandupDate)}</span>
           },
           {
             key: 'actions', label: '',

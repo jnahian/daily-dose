@@ -1920,6 +1920,99 @@ router.get("/activity", requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/admin/stats/charts?orgId=&days=30 — time series behind the
+// dashboard charts. One endpoint rather than four: the dashboard renders them
+// together, and they share the same window and the same join.
+//
+// NOTE on the completion rate: `activeMembers` is the org's *current* active
+// team-member count. Historical membership isn't tracked, so a day before
+// someone joined is measured against today's roster and reads low. The
+// dashboard's existing "Today's Completion" stat already works this way; the
+// chart labels it as approximate rather than silently implying otherwise.
+router.get("/stats/charts", requireAuth, async (req, res) => {
+  try {
+    const { orgId, days = "30" } = req.query;
+    const allowed = await verifyOrgAccess(req, res, orgId);
+    if (!allowed) return;
+
+    const window = Math.min(Math.max(parseInt(days, 10) || 30, 7), 90);
+    const since = new Date(Date.now() - window * 24 * 60 * 60 * 1000);
+    since.setUTCHours(0, 0, 0, 0);
+
+    const [daily, byTeam, activity, activeMembers] = await Promise.all([
+      prisma.$queryRaw`
+        SELECT r.standup_date::date AS day,
+               COUNT(*)::int AS submitted,
+               COUNT(*) FILTER (WHERE r.is_late)::int AS late
+        FROM standup_responses r
+        JOIN teams t ON t.id = r.team_id
+        WHERE t.organization_id = ${orgId}
+          AND t.deleted_at IS NULL
+          AND r.deleted_at IS NULL
+          AND r.standup_date >= ${since}
+        GROUP BY 1
+        ORDER BY 1 ASC
+      `,
+      prisma.$queryRaw`
+        SELECT t.name AS team,
+               COUNT(*)::int AS submitted,
+               COUNT(*) FILTER (WHERE r.is_late)::int AS late
+        FROM standup_responses r
+        JOIN teams t ON t.id = r.team_id
+        WHERE t.organization_id = ${orgId}
+          AND t.deleted_at IS NULL
+          AND r.deleted_at IS NULL
+          AND r.standup_date >= ${since}
+        GROUP BY 1
+        ORDER BY 2 DESC
+      `,
+      prisma.$queryRaw`
+        SELECT COALESCE(u.name, u.username, u.slack_user_id) AS member,
+               r.standup_date::date AS day,
+               BOOL_OR(r.is_late) AS late
+        FROM standup_responses r
+        JOIN teams t ON t.id = r.team_id
+        JOIN users u ON u.id = r.user_id
+        WHERE t.organization_id = ${orgId}
+          AND t.deleted_at IS NULL
+          AND r.deleted_at IS NULL
+          AND r.standup_date >= ${since}
+        GROUP BY 1, 2
+        ORDER BY 1 ASC, 2 ASC
+      `,
+      prisma.teamMember.count({
+        where: { team: { organizationId: orgId }, isActive: true },
+      }),
+    ]);
+
+    const toDay = (d) => d.toISOString().slice(0, 10);
+
+    res.json({
+      days: window,
+      activeMembers,
+      daily: daily.map((r) => ({
+        day: toDay(r.day),
+        submitted: r.submitted,
+        late: r.late,
+      })),
+      byTeam: byTeam.map((r) => ({
+        team: r.team,
+        submitted: r.submitted,
+        late: r.late,
+        onTime: r.submitted - r.late,
+      })),
+      activity: activity.map((r) => ({
+        member: r.member,
+        day: toDay(r.day),
+        late: r.late,
+      })),
+    });
+  } catch (err) {
+    console.error("GET /stats/charts error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // GET /api/admin/mcp-usage — per-user MCP tool-call counts per day.
 // A user in several orgs has their calls counted under each: the write path
 // records no org, so membership is joined at read time.

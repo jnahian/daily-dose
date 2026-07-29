@@ -4,6 +4,7 @@ import { DataTable } from '../../components/admin/DataTable';
 import { AdminModal } from '../../components/admin/AdminModal';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { PENDING_TEAMS_CHANGED_EVENT } from '../../utils/adminEvents';
+import { formatDateTime } from '../../utils/adminFormat';
 
 interface PendingTeam {
   id: string;
@@ -32,11 +33,6 @@ function proposerLabel(team: PendingTeam) {
     team.proposedBy.username ||
     team.proposedBy.slackUserId
   );
-}
-
-function formatRequested(iso: string) {
-  const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString();
 }
 
 export default function AdminApprovals() {
@@ -149,7 +145,7 @@ export default function AdminApprovals() {
           {
             key: 'createdAt',
             label: 'Requested',
-            render: (t) => formatRequested(t.createdAt),
+            render: (t) => formatDateTime(t.createdAt),
           },
           {
             key: 'actions',
