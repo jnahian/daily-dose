@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.2] - 2026-07-29
+
+### Fixed
+
+- Zoho People setup could never succeed: `zohoAuthService.exchangeGrantToken()` sent a `redirect_uri` in the self-client token exchange, which Zoho rejects — `accounts.zoho.*` answered with an HTML error page instead of JSON. Zoho's self-client authorization-code flow takes only `client_id`, `client_secret`, `grant_type` and `code`; a Self Client app has no redirect URI to register in the first place. `zohoConfig.js` asserted the opposite in a comment while `scripts/zohoAuthSetup.js` documented the self-client flow, so the two were in direct contradiction.
+- Zoho token-request failures reported a bare HTTP status. `requestToken()` fell back to `response.status` whenever the body had no top-level `error` key, and used `response.json()`, which discards a non-JSON body entirely — exactly what a wrong `ZOHO_DATA_CENTER` returns. Now reads the body as text and reports `error: error_description`, the raw body when it isn't JSON, plus the status and the URL called.
+- Zoho API authorization failures (`401`/`403`) reported a fixed guess while the actual response body was attached to the error object and never surfaced. `zohoPeopleClient` now reports Zoho's own message across its several error shapes (`error`/`error_description`, `errorCode`/`message`, nested `response.errors`, raw text for HTML), names the rejected endpoint, and branches its hint on whether the message mentions a scope — an OAuth scope mismatch and a Zoho-side permissions gap both arrive as `401`/`403` but need opposite fixes.
+
+### Changed
+
+- Holiday import (`POST /holidays/import/preview`, `POST /holidays/import`) is gated on `verifyOrgAccess` rather than `requireSuperAdmin`, so an org `OWNER`/`ADMIN` can import holidays for their own org. The `xlsx@0.18.5` prototype-pollution/ReDoS advisory that motivated the original gate is now an accepted risk, bounded by an authenticated org admin/owner session and the 5 MB upload cap; only the preview route reaches the parser.
+
+### Removed
+
+- `ZOHO_REDIRECT_URI` — unused, and rejected by Zoho's self-client token exchange. Introduced in 1.18.0; delete the line from any existing `.env`.
+
+### Documentation
+
+- `docs/zoho-setup.md` — end-to-end Zoho People setup, led by the Zoho-side **Settings → Manage Accounts → User Access Control → Function Based Permissions → API access** requirement that blocks every call until granted, plus a troubleshooting table mapping the error strings hit during real setup to their causes. Flags the leave-visibility requirement and `zohoSyncService`'s response field mappings as unverified against a live org.
+- `CLAUDE.md` — records the rule that org-scoped features must not be gated behind `requireSuperAdmin`; that tier is only for operations crossing or creating org boundaries.
+
 ## [1.18.0] - 2026-07-28
 
 ### Added
@@ -739,7 +760,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.18.1...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.18.2...HEAD
+[1.18.2]: https://github.com/jnahian/daily-dose/compare/v1.18.1...v1.18.2
 [1.18.0]: https://github.com/jnahian/daily-dose/compare/v1.17.1...v1.18.0
 [1.17.1]: https://github.com/jnahian/daily-dose/compare/v1.17.0...v1.17.1
 [1.17.0]: https://github.com/jnahian/daily-dose/compare/v1.16.2...v1.17.0
