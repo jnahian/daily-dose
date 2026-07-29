@@ -4,6 +4,7 @@ import { DataTable } from '../../components/admin/DataTable';
 import { AdminModal } from '../../components/admin/AdminModal';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { PENDING_TEAMS_CHANGED_EVENT } from '../../utils/adminEvents';
+import { formatDateTime } from '../../utils/adminFormat';
 
 interface PendingTeam {
   id: string;
@@ -32,11 +33,6 @@ function proposerLabel(team: PendingTeam) {
     team.proposedBy.username ||
     team.proposedBy.slackUserId
   );
-}
-
-function formatRequested(iso: string) {
-  const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString();
 }
 
 export default function AdminApprovals() {
@@ -134,12 +130,17 @@ export default function AdminApprovals() {
 
       {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
 
+      {/* Keyed on the org so switching orgs clears the search box and page. */}
       <DataTable
+        key={activeOrgId}
         columns={[
           { key: 'name', label: 'Team' },
           {
             key: 'proposedBy',
             label: 'Proposed By',
+            // `proposedBy` is an object — searching the raw key would stringify
+            // it to "[object Object]".
+            value: (t) => proposerLabel(t),
             render: (t) => proposerLabel(t),
           },
           { key: 'slackChannelId', label: 'Channel ID' },
@@ -149,11 +150,13 @@ export default function AdminApprovals() {
           {
             key: 'createdAt',
             label: 'Requested',
-            render: (t) => formatRequested(t.createdAt),
+            value: (t) => formatDateTime(t.createdAt),
+            render: (t) => formatDateTime(t.createdAt),
           },
           {
             key: 'actions',
             label: '',
+            searchable: false,
             render: (t) => (
               <div className="flex items-center gap-2">
                 <button

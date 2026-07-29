@@ -3,6 +3,7 @@ import { Plus, Trash2, Copy, Check } from 'lucide-react';
 import { DataTable } from '../../components/admin/DataTable';
 import { AdminModal } from '../../components/admin/AdminModal';
 import { StatusBadge } from '../../components/admin/StatusBadge';
+import { formatDateTime } from '../../utils/adminFormat';
 
 interface McpToken {
   id: string;
@@ -20,9 +21,6 @@ interface Connection {
   lastUsedAt: string | null;
   createdAt: string;
 }
-
-const fmt = (dateStr: string | null) =>
-  dateStr ? new Date(dateStr).toLocaleDateString() : '—';
 
 export default function AdminTokens() {
   const [tokens, setTokens] = useState<McpToken[]>([]);
@@ -149,15 +147,17 @@ export default function AdminTokens() {
           { key: 'name', label: 'Name', render: (t: McpToken) => t.name || <span className="text-white/40">Unnamed token</span> },
           {
             key: 'status', label: 'Status',
+            // Derived column — the row has no `status` field to fall back to.
+            value: (t: McpToken) => (t.revoked_at ? 'Revoked' : 'Active'),
             render: (t: McpToken) => (
               <StatusBadge variant={t.revoked_at ? 'inactive' : 'active'} label={t.revoked_at ? 'Revoked' : 'Active'} />
             ),
           },
-          { key: 'created_at', label: 'Created', render: (t: McpToken) => fmt(t.created_at) },
-          { key: 'last_used_at', label: 'Last used', render: (t: McpToken) => fmt(t.last_used_at) },
-          { key: 'expires_at', label: 'Expires', render: (t: McpToken) => fmt(t.expires_at) },
+          { key: 'created_at', label: 'Created', value: (t: McpToken) => formatDateTime(t.created_at), render: (t: McpToken) => formatDateTime(t.created_at) },
+          { key: 'last_used_at', label: 'Last used', value: (t: McpToken) => formatDateTime(t.last_used_at), render: (t: McpToken) => formatDateTime(t.last_used_at) },
+          { key: 'expires_at', label: 'Expires', value: (t: McpToken) => formatDateTime(t.expires_at), render: (t: McpToken) => formatDateTime(t.expires_at) },
           {
-            key: 'actions', label: '',
+            key: 'actions', label: '', searchable: false,
             render: (t: McpToken) =>
               t.revoked_at ? null : (
                 <button
@@ -182,10 +182,10 @@ export default function AdminTokens() {
       <DataTable
         columns={[
           { key: 'clientName', label: 'Client', render: (c: Connection) => c.clientName || <span className="text-white/40">Unknown client</span> },
-          { key: 'createdAt', label: 'Connected', render: (c: Connection) => fmt(c.createdAt) },
-          { key: 'lastUsedAt', label: 'Last used', render: (c: Connection) => fmt(c.lastUsedAt) },
+          { key: 'createdAt', label: 'Connected', value: (c: Connection) => formatDateTime(c.createdAt), render: (c: Connection) => formatDateTime(c.createdAt) },
+          { key: 'lastUsedAt', label: 'Last used', value: (c: Connection) => formatDateTime(c.lastUsedAt), render: (c: Connection) => formatDateTime(c.lastUsedAt) },
           {
-            key: 'actions', label: '',
+            key: 'actions', label: '', searchable: false,
             render: (c: Connection) => (
               <button
                 aria-label={`Disconnect ${c.clientName || 'client'}`}

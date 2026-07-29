@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Plus, Pencil, Trash2, Upload } from 'lucide-react';
 import { DataTable } from '../../components/admin/DataTable';
 import { AdminModal } from '../../components/admin/AdminModal';
 import { ImportHolidaysModal } from '../../components/admin/ImportHolidaysModal';
+import { StatusBadge } from '../../components/admin/StatusBadge';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { formatDate, dateStatus, type HolidayStatus } from '../../utils/adminFormat';
 
 interface Holiday {
   id: string;
@@ -13,6 +15,18 @@ interface Holiday {
 }
 
 const emptyForm = { name: '', date: '', description: '' };
+
+const STATUS_LABEL: Record<HolidayStatus, string> = {
+  upcoming: 'Upcoming',
+  today: 'Today',
+  passed: 'Passed',
+};
+
+const STATUS_VARIANT: Record<HolidayStatus, 'active' | 'admin' | 'inactive'> = {
+  upcoming: 'active',
+  today: 'admin',
+  passed: 'inactive',
+};
 
 export default function AdminHolidays() {
   const { activeOrgId } = useAdminAuth();
@@ -31,6 +45,13 @@ export default function AdminHolidays() {
   };
 
   useEffect(loadHolidays, [activeOrgId]);
+
+  // Newest first: the next holiday and the ones just gone are what an operator
+  // is usually looking for, not January of whichever year the list starts in.
+  const sortedHolidays = useMemo(
+    () => [...holidays].sort((a, b) => b.date.localeCompare(a.date)),
+    [holidays]
+  );
 
   const openAdd = () => { setForm(emptyForm); setSelected(null); setModal('add'); };
   const openEdit = (h: Holiday) => {
@@ -52,7 +73,7 @@ export default function AdminHolidays() {
         });
         if (res.ok) {
           const created = await res.json();
-          setHolidays(prev => [...prev, created].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+          setHolidays(prev => [...prev, created]);
           setModal(null);
         } else {
           console.error('Failed to save holiday');
@@ -102,13 +123,31 @@ export default function AdminHolidays() {
         </div>
       </div>
 
+      {/* Keyed on the org so switching orgs clears the search box and page. */}
       <DataTable
+        key={activeOrgId}
         columns={[
+          {
+            key: 'date',
+            label: 'Date',
+            // Search the rendered text ("26 Mar, 26"), not the raw ISO string.
+            value: (h) => formatDate(h.date),
+            render: (h) => <span className="tabular-nums">{formatDate(h.date)}</span>,
+          },
           { key: 'name', label: 'Name' },
-          { key: 'date', label: 'Date', render: (h) => new Date(h.date).toLocaleDateString() },
+          {
+            key: 'status',
+            label: 'Status',
+            value: (h) => dateStatus(h.date) ?? '',
+            render: (h) => {
+              const status = dateStatus(h.date);
+              if (!status) return null;
+              return <StatusBadge variant={STATUS_VARIANT[status]} label={STATUS_LABEL[status]} />;
+            },
+          },
           { key: 'description', label: 'Description', render: (h) => <span className="text-white/50">{h.description || '—'}</span> },
           {
-            key: 'actions', label: '',
+            key: 'actions', label: '', searchable: false,
             render: (h) => (
               <div className="flex items-center gap-3">
                 <button aria-label={`Edit ${h.name}`} onClick={(e) => { e.stopPropagation(); openEdit(h); }} className="text-white/40 hover:text-[#00CFFF] transition-colors"><Pencil size={14} /></button>
@@ -117,7 +156,10 @@ export default function AdminHolidays() {
             )
           }
         ]}
-        rows={holidays}
+        rows={sortedHolidays}
+        // Past holidays stay listed and editable, just visually receded.
+        rowClassName={(h) => (dateStatus(h.date) === 'passed' ? 'opacity-40' : '')}
+        searchPlaceholder="Search holidays…"
         emptyMessage="No holidays found."
       />
 

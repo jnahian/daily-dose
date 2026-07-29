@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Building2, Users, MessageSquare, TrendingUp, ClipboardCheck } from 'lucide-react';
 import { StatCard } from '../../components/admin/StatCard';
+import { DashboardCharts } from '../../components/admin/DashboardCharts';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 
 export default function AdminDashboard() {
@@ -58,6 +59,10 @@ export default function AdminDashboard() {
           <StatCard label="Today's Completion" value={`${stats.todayCompletionRate ?? 0}%`} icon={<TrendingUp size={18} />} />
         </div>
       )}
+
+      {/* Charts are org-scoped; a super admin with no active org sees the
+          cross-org stat cards above and nothing to chart. */}
+      {activeOrgId && <DashboardCharts orgId={activeOrgId} />}
     </div>
   );
 }

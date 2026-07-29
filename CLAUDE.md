@@ -14,7 +14,8 @@ High-leverage footguns specific to this repo. Read before editing:
 - **Don't parallelize Slack calls across teams** — Slack rate-limits at ~1 req/sec/channel. Process teams sequentially.
 - **Don't proxy Slack endpoints through Cloudflare** — must be DNS-only (orange cloud OFF). Edge buffering breaks the 3-second ack window and is the recurring source of `/dd-*` timeouts. See `DEPLOYMENT.md`.
 - **Don't put internal refactors in `web/src/data/changelog.json`** — that file is user-facing. Internal changes go in `CHANGELOG.md` only.
-- **Don't put admin-panel changes in either changelog** — the admin panel (`/admin/*`, `src/routes/admin.js`) is an internal operator tool, not a user-facing bot feature; keep it out of both `CHANGELOG.md` and `web/src/data/changelog.json`.
+- **Don't put admin-panel changes in `web/src/data/changelog.json`** — the admin panel (`/admin/*`, `src/routes/admin.js`) is an internal operator tool, not a user-facing bot feature, and that file feeds the public changelog page and the on-deploy Slack broadcast. It **does** belong in `CHANGELOG.md`, which is the complete technical audit trail: an admin-only release with an empty `CHANGELOG.md` leaves no record of what shipped.
+- **Don't hand-roll date math** — dayjs is a dependency of both the backend (`package.json`) and the web app (`web/package.json`). No `new Date()` arithmetic, no `getUTCDate()`/`toISOString().slice()`, no month-name arrays. On the frontend, go through `web/src/utils/adminFormat.ts`, which is where `dayjs.extend(utc)` is registered.
 - **Don't read modal rich_text values directly** — use `messageHelper.extractPlainText()` or `convertRichTextToSlack()`.
 - **Don't bypass `permissionHelper`** — always check via `isTeamAdmin()` / `isOrgOwner()`. Admins resolve team from channel; owners must pass team name explicitly.
 - **Don't gate org-scoped features behind `requireSuperAdmin`** — an org `OWNER`/`ADMIN` must be able to do everything to their own org's data. `requireSuperAdmin` is only for platform-wide operations that cross org boundaries (creating/deleting organizations, cross-org stats). Gating an org-scoped feature above org admin makes it unreachable for the people it's built for: the holiday import shipped super-admin-only and no org owner could use it. If a dependency or operation feels too risky for an org admin, that's an argument about the dependency, not the access tier — say so explicitly rather than quietly raising the gate.
@@ -108,9 +109,9 @@ High-leverage footguns specific to this repo. Read before editing:
 
 **When to update each:**
 
-- Always update CHANGELOG.md for all changes
+- Always update CHANGELOG.md for all changes, admin panel included
 - Only update changelog.json for user-visible features, major fixes, or improvements
-- Skip technical refactors, dependency updates, internal fixes from changelog.json
+- Skip technical refactors, dependency updates, internal fixes, and all admin-panel work from changelog.json
 - For changelog.json, rewrite technical changes in user-friendly language
 
 ## Architecture Overview
@@ -267,7 +268,7 @@ Uses node-cron for:
 
 **Date Handling:**
 
-- Use dayjs for all date operations with timezone support
+- Use dayjs for all date operations with timezone support — on the frontend too, via `web/src/utils/adminFormat.ts` (see "Calendar dates vs instants" under Project-Specific Conventions)
 - Convert team.timezone for accurate scheduling
 - Use `dateHelper.isWorkDay()` to check user's work days
 - Check holidays with Holiday table before sending reminders
@@ -370,8 +371,9 @@ These are non-obvious rules specific to this codebase. Generic engineering pract
 - **Two access tiers, one dividing line**: org `OWNER`/`ADMIN` has full control over **their own org's data** — teams, members, standups, holidays (including import), Zoho sync, scheduler. `requireSuperAdmin` is reserved for operations that span or create orgs: the Organizations page, cross-org aggregate stats. In practice: a new org-scoped route uses `verifyOrgAccess` (which lets super admins through anyway), and reaching for `requireSuperAdmin` on org-scoped data is a design smell. Mirrors the Slack side, where `/dd-*` admin commands require org admin, not a platform role.
 - **Block Kit**: every block must live in `src/utils/blockHelper.js` — never inline blocks at call sites. Follow `docs/slack-markdown-guidelines.md` for formatting (mentions, links, rich_text).
 - **Bulk Slack operations**: process teams sequentially, not in parallel — Slack rate-limits at ~1 req/sec/channel.
-- **Date handling**: use dayjs with team timezone; check `dateHelper.isWorkDay()` and the `Holiday` table before sending reminders.
+- **Date handling**: dayjs everywhere, backend and frontend — never raw `Date` arithmetic or manual formatting. Backend: use the team timezone; check `dateHelper.isWorkDay()` and the `Holiday` table before sending reminders. Frontend: use `web/src/utils/adminFormat.ts`.
+- **Calendar dates vs instants** — the recurring off-by-one in this repo. Prisma `@db.Date` columns (`Holiday.date`, `standupDate`, `lastStandupDate`) are _calendar dates_ that serialize as UTC midnight and must be read with `dayjs.utc(v)`. Everything else (`createdAt`, `lastUsedAt`, `submittedAt`) is a real _instant_ and reads local with `dayjs(v)`. Two traps: `dayjs(v).utc()` is not `dayjs.utc(v)` — dayjs parses a bare `YYYY-MM-DD` as _local_ midnight, so converting afterwards shifts the day back for viewers east of UTC; and comparing a stored date against "today" needs **both** clocks — UTC for the stored value, local for today, or the status flips hours early or late depending on the viewer's side of the meridian.
 - **Rich text from modals**: use `messageHelper.extractPlainText()` or `convertRichTextToSlack()` — don't read modal values directly.
-- **Two changelogs, two audiences**: `CHANGELOG.md` is the technical audit trail (always updated); `web/src/data/changelog.json` is user-facing (only user-visible changes, plain language).
+- **Two changelogs, two audiences**: `CHANGELOG.md` is the technical audit trail (always updated — including admin-panel work); `web/src/data/changelog.json` is user-facing (only user-visible bot changes, plain language — never admin-panel work, since it drives the public changelog page and the deploy-time Slack broadcast).
 
 - Ask for confirmation before risky operations

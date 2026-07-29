@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { formatDateTime } from '../../utils/adminFormat';
 
 interface ActivityEvent {
   type: string;
@@ -35,7 +36,7 @@ export default function AdminActivity() {
               <span className="text-white">{e.team}</span>
               {e.isLate && <span className="ml-2 text-xs text-amber-400 font-medium">late</span>}
             </div>
-            <span className="text-xs text-white/30 shrink-0 ml-4">{new Date(e.timestamp).toLocaleString()}</span>
+            <span className="text-xs text-white/30 shrink-0 ml-4">{formatDateTime(e.timestamp)}</span>
           </div>
         ))}
       </div>
