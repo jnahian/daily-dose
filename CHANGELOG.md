@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- `slack-app-manifest.json`: `/dd-zoho-map-list` and `/dd-zoho-sync-status` carried `"usage_hint": ""`, which Slack rejects (`must be more than 0 characters`), so `apps.manifest.validate` failed the whole manifest with `invalid_manifest`. Neither handler reads `command.text`, so the key is dropped entirely rather than given a hint — matching `/dd-team-list`, `/dd-leave-list` and `/dd-workdays-show`, the other argument-less commands. Introduced in 1.18.0 with the Zoho commands; it went unnoticed until 1.18.4 added the pre-flight validation that surfaced it, and it blocked the 1.18.4 deploy from registering the new `/mcp/cb` and `/mcp/oauth/cb` redirect URLs.
-
 ## [1.18.4] - 2026-09-02
 
 ### Changed
@@ -30,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `POST /api/mcp/auth/logout` and a **Sign out** button on `/mcp-tokens`, so a 30-day session can be ended from a shared machine without a database delete.
 - `test/routes/mcpAuth.test.js` — the Slack authorize redirect, the legacy `/auth/slack` → `/mcp/login` hop, the 30-day expiry on both the session row and the cookie, state expiry and pruning, the legacy callback stop, and logout.
 - `test/mcp/auth/slackCallbackRoutes.test.js` — the AS callback's success, cancel, failed-exchange and unknown-state paths; `test/mcp/auth/slackAuthBridge.test.js` asserts the exchange uses `mcpAsRedirectUri()` and covers `abortAuthorization()`.
+
+### Fixed
+
+- `slack-app-manifest.json`: `/dd-zoho-map-list` and `/dd-zoho-sync-status` carried `"usage_hint": ""`, which Slack rejects (`must be more than 0 characters`), so `apps.manifest.validate` failed the whole manifest with `invalid_manifest` and the first v1.18.4 deploy could not register the new `/mcp/cb` and `/mcp/oauth/cb` redirect URLs. Neither handler reads `command.text`, so the key is dropped entirely rather than given a hint — matching `/dd-team-list`, `/dd-leave-list` and `/dd-workdays-show`, the other argument-less commands. Present since 1.18.0, when the Zoho commands were added, and surfaced by the pre-flight validation added in this release; whether `apps.manifest.update` had been rejecting it silently before now is unconfirmed, since a failed manifest update did not fail the deploy until this release either.
 
 ### Documentation
 
