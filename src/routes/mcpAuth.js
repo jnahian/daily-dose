@@ -121,8 +121,10 @@ function makeTokenPageCallback(redirectUri) {
 // The canonical token-page callback, mounted at GET /mcp/cb in app.js.
 const handleTokenPageCallback = makeTokenPageCallback(mcpRedirectUri);
 
-// GET /api/mcp/auth/callback — superseded path, still served so a sign-in
-// started before the switch can finish against the URI it began with.
+// GET /api/mcp/auth/callback — superseded path, still served so a callback
+// arriving on it resolves on the token page rather than the SPA fallback. It
+// exchanges with the legacy URI because Slack matches redirect_uri; see
+// makeTokenPageCallback on why that alone does not survive a restart.
 router.get("/auth/callback", makeTokenPageCallback(legacyMcpRedirectUri));
 
 // GET /api/mcp/me — who am I (for the SPA)
