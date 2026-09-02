@@ -285,9 +285,7 @@
     "redirect_urls": [
       "{{APP_URL}}/api/admin/auth/callback",
       "{{APP_URL}}/mcp/oauth/cb",
-      "{{APP_URL}}/mcp/cb",
-      "{{APP_URL}}/api/mcp/oauth/slack/callback",
-      "{{APP_URL}}/api/mcp/auth/callback"
+      "{{APP_URL}}/mcp/cb"
     ],
     "scopes": {
       "user": ["identity.basic", "identity.email"],

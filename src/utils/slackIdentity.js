@@ -34,6 +34,7 @@ function slackAuthorizeUrl({ redirectUri, state }) {
   return `https://slack.com/oauth/v2/authorize?${params}`;
 }
 
+// APP_URL without a trailing slash, so derived URLs never carry "//".
 function appBaseUrl() {
   return (process.env.APP_URL || "http://localhost:3000").replace(/\/+$/, "");
 }
@@ -48,24 +49,10 @@ function mcpAsRedirectUri() {
   return `${appBaseUrl()}/mcp/oauth/cb`;
 }
 
-// The superseded callback paths. Slack requires the `redirect_uri` sent to
-// oauth.v2.access to match the one used at authorize time, so a sign-in that
-// started before the switch must be exchanged with the URI it began with —
-// aliasing the old path to the new handler would fail with redirect_uri_mismatch.
-// Both stay registered and served until no pre-switch flow can still be open.
-function legacyMcpRedirectUri() {
-  return `${appBaseUrl()}/api/mcp/auth/callback`;
-}
-
-function legacyMcpAsRedirectUri() {
-  return `${appBaseUrl()}/api/mcp/oauth/slack/callback`;
-}
-
 module.exports = {
   resolveSlackUserFromCode,
   slackAuthorizeUrl,
+  appBaseUrl,
   mcpRedirectUri,
   mcpAsRedirectUri,
-  legacyMcpRedirectUri,
-  legacyMcpAsRedirectUri,
 };
