@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The superseded callback paths stay registered and served, each with **its own** `redirect_uri`. Slack matches `redirect_uri` at token exchange, so a sign-in begun before the switch must be exchanged with the URI it began with — aliasing the old path to the new handler would fail with `redirect_uri_mismatch` and strand every in-flight sign-in across the deploy. `makeTokenPageCallback` (`src/routes/mcpAuth.js`) and `makeSlackCallbackHandler` (`src/mcp/auth/index.js`) take the URI as a parameter for that reason, and `completeAuthorization` accepts it rather than resolving it internally. Drop the legacy pair — routes, manifest entries, and the `legacy*RedirectUri` helpers — once no pre-switch flow can still be open.
 - `web/vite.config.ts` proxies `/mcp/login`, `/mcp/cb` and `/mcp/oauth/cb` to the bot's Express server in dev — they sit outside `/api`, so each needs its own rule. Listed individually on purpose: a bare `/mcp` prefix would also capture the SPA's own `/mcp-tokens` route.
 
+### Documentation
+
+- The MCP docs page (`web/src/data/mcpDocs.json`) now shows the **Claude Code CLI form** of the manual-token flow — `claude mcp add --transport http … --header "Authorization: Bearer ddm_…"` — as the lead example under "Advanced — connect with a manual token", with the Claude Desktop JSON kept as the file-based alternative. Previously only the JSON config was documented, so CLI users had to translate it themselves. The `--header` flag was checked against `claude mcp add --help`.
+
 ### Added
 
 - `test/routes/mcpAuth.test.js` — covers the Slack authorize redirect, the legacy `/auth/slack` → `/mcp/login` hop, the 30-day expiry on both the session row and the cookie, and that each callback path exchanges with its own `redirect_uri`.

@@ -134,7 +134,15 @@
             },
             {
               "type": "text",
-              "value": "**2. Add the server with your token** in an `Authorization: Bearer` header. For Claude Desktop that looks like:"
+              "value": "**2. Add the server with your token** in an `Authorization: Bearer` header. In **Claude Code**, pass it with `--header`:"
+            },
+            {
+              "type": "code",
+              "value": "claude mcp add --transport http daily-dose https://dd.jnahian.me/mcp \\\n  --header \"Authorization: Bearer ddm_your_token_here\"\n\n# add --scope user to make it available in every project"
+            },
+            {
+              "type": "text",
+              "value": "For clients configured by file, such as **Claude Desktop**, put the same header under `headers` instead:"
             },
             {
               "type": "code",
