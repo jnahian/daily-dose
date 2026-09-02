@@ -269,14 +269,12 @@
         "command": "/dd-zoho-map-list",
         "url": "{{APP_URL}}/slack/events",
         "description": "List Slack-to-Zoho employee ID mappings (admin only)",
-        "usage_hint": "",
         "should_escape": false
       },
       {
         "command": "/dd-zoho-sync-status",
         "url": "{{APP_URL}}/slack/events",
         "description": "Show the last Zoho holiday/leave sync results (admin only)",
-        "usage_hint": "",
         "should_escape": false
       }
     ]

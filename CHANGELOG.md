@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `slack-app-manifest.json`: `/dd-zoho-map-list` and `/dd-zoho-sync-status` carried `"usage_hint": ""`, which Slack rejects (`must be more than 0 characters`), so `apps.manifest.validate` failed the whole manifest with `invalid_manifest`. Neither handler reads `command.text`, so the key is dropped entirely rather than given a hint — matching `/dd-team-list`, `/dd-leave-list` and `/dd-workdays-show`, the other argument-less commands. Introduced in 1.18.0 with the Zoho commands; it went unnoticed until 1.18.4 added the pre-flight validation that surfaced it, and it blocked the 1.18.4 deploy from registering the new `/mcp/cb` and `/mcp/oauth/cb` redirect URLs.
+
 ## [1.18.4] - 2026-09-02
 
 ### Changed
