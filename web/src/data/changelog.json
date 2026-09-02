@@ -1,9 +1,37 @@
 {
   "versions": [
     {
+      "version": "1.18.4",
+      "date": "2026-09-02",
+      "isLatest": true,
+      "changes": [
+        {
+          "type": "changed",
+          "title": "Stay signed in to the MCP token page for 30 days",
+          "items": [
+            "Signing in at /mcp-tokens now keeps you signed in for 30 days instead of 7, so you're not re-authorising with Slack every week to manage your tokens."
+          ]
+        },
+        {
+          "type": "added",
+          "title": "Sign out of the MCP token page",
+          "items": [
+            "A Sign out button on the token page ends your session on the spot — useful on a shared or borrowed machine."
+          ]
+        },
+        {
+          "type": "fixed",
+          "title": "Cancelling MCP sign-in no longer leaves your client hanging",
+          "items": [
+            "If you close or cancel the Slack approval screen while connecting an MCP client, the client is told right away instead of waiting for a timeout."
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.18.0",
       "date": "2026-07-28",
-      "isLatest": true,
+      "isLatest": false,
       "changes": [
         {
           "type": "added",

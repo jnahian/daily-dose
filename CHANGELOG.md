@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.4] - 2026-09-02
+
 ### Changed
 
 - MCP token-page sessions now last **30 days** instead of 7 (`src/routes/mcpAuth.js`). Both the `sessions.expires_at` row and the `mcp_session` cookie `maxAge` read from a single `SESSION_TTL_MS` constant. Only the `/mcp-tokens` sign-in session is affected — OAuth access tokens (1 hour) and refresh tokens (90 days) in `src/mcp/auth/oauthTokenService.js` are unchanged, as is the admin panel's 7-day session. _User-facing: belongs in `web/src/data/changelog.json` at release time._
@@ -813,7 +815,8 @@ Admin panel only — no user-facing bot changes, so nothing was added to
    - Push to remote
    - Trigger automated deployment
 
-[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.18.3...HEAD
+[Unreleased]: https://github.com/jnahian/daily-dose/compare/v1.18.4...HEAD
+[1.18.4]: https://github.com/jnahian/daily-dose/compare/v1.18.3...v1.18.4
 [1.18.3]: https://github.com/jnahian/daily-dose/compare/v1.18.2...v1.18.3
 [1.18.2]: https://github.com/jnahian/daily-dose/compare/v1.18.1...v1.18.2
 [1.18.0]: https://github.com/jnahian/daily-dose/compare/v1.17.1...v1.18.0
