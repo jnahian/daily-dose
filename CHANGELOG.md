@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- MCP token-page sessions now last **30 days** instead of 7 (`src/routes/mcpAuth.js`). Both the `sessions.expires_at` row and the `mcp_session` cookie `maxAge` read from a single `SESSION_TTL_MS` constant, so the two can no longer drift apart. Only the `/mcp-tokens` sign-in session is affected — OAuth access tokens (1 hour) and refresh tokens (90 days) in `src/mcp/auth/oauthTokenService.js` are unchanged.
+- The MCP Slack sign-in link moved from `/api/mcp/auth/slack` to **`/mcp/login`**. The handler was extracted from the router as `startSlackOAuth` and is mounted directly on the Express app in `src/app.js`; the old path stays as a 302 to the new one, so existing bookmarks keep working. The Slack `redirect_uri` is untouched, so `slack-app-manifest.json`'s `redirect_urls` need no change and no Slack app update is required to deploy this.
+- `web/vite.config.ts` proxies `/mcp/login` to the bot's Express server in dev — it sits outside `/api`, so without a rule of its own the SPA router would swallow it.
+
+### Added
+
+- `test/routes/mcpAuth.test.js` — covers the Slack authorize redirect, the legacy `/auth/slack` → `/mcp/login` hop, and the 30-day expiry on both the session row and the cookie.
+
 ## [1.18.3] - 2026-07-29
 
 Admin panel only — no user-facing bot changes, so nothing was added to

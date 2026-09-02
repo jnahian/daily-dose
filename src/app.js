@@ -58,7 +58,7 @@ receiver.app.use(cookieParser());
 receiver.app.use(express.json());
 receiver.app.use("/api/admin", adminRouter);
 
-const { router: mcpAuthRouter } = require("./routes/mcpAuth");
+const { router: mcpAuthRouter, startSlackOAuth } = require("./routes/mcpAuth");
 const { createMcpHandler } = require("./mcp/server");
 const {
   buildAuthRouter,
@@ -70,6 +70,8 @@ const {
 receiver.app.use(buildAuthRouter());
 // The AS's own Slack OAuth callback (delegated login).
 receiver.app.get("/api/mcp/oauth/slack/callback", handleSlackCallback);
+// Short sign-in entry point for the token page (/api/mcp/auth/slack redirects here).
+receiver.app.get("/mcp/login", startSlackOAuth);
 // Token-management web API (manual tokens + OAuth connections).
 receiver.app.use("/api/mcp", mcpAuthRouter);
 // The MCP endpoint: OAuth access token OR legacy ddm_ token.

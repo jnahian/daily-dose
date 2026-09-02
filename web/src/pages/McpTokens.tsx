@@ -204,7 +204,7 @@ export default function McpTokens() {
               Sign in with your Slack account to manage your MCP tokens.
             </p>
             <a
-              href="/api/mcp/auth/slack"
+              href="/mcp/login"
               className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors font-medium"
             >
               Sign in with Slack

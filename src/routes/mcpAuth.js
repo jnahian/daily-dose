@@ -11,6 +11,7 @@ const oauthTokenService = require("../mcp/auth/oauthTokenService");
 const router = express.Router();
 
 const OAUTH_STATE_TTL = 5 * 60 * 1000;
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const oauthStates = new Map();
 
 // Reuse the admin session cookie machinery, but WITHOUT the admin gate:
@@ -34,8 +35,9 @@ async function requireMcpSession(req, res, next) {
   }
 }
 
-// GET /api/mcp/auth/slack — initiate OAuth
-router.get("/auth/slack", (req, res) => {
+// Initiate OAuth. Canonically served at GET /mcp/login (mounted in app.js);
+// the Slack redirect_uri is unchanged, so the app's allowlist stays as-is.
+function startSlackOAuth(req, res) {
   const state = crypto.randomBytes(16).toString("hex");
   oauthStates.set(state, Date.now() + OAUTH_STATE_TTL);
   const params = new URLSearchParams({
@@ -45,7 +47,10 @@ router.get("/auth/slack", (req, res) => {
     state,
   });
   res.redirect(`https://slack.com/oauth/v2/authorize?${params}`);
-});
+}
+
+// GET /api/mcp/auth/slack — legacy sign-in path, kept for old bookmarks.
+router.get("/auth/slack", (req, res) => res.redirect("/mcp/login"));
 
 // GET /api/mcp/auth/callback — handle OAuth callback
 router.get("/auth/callback", async (req, res) => {
@@ -66,7 +71,7 @@ router.get("/auth/callback", async (req, res) => {
     if (!user) return res.redirect(`${appUrl}/mcp-tokens?error=not_registered`);
 
     const sessionToken = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
     await prisma.sessions.create({
       data: {
         id: crypto.randomUUID(),
@@ -80,7 +85,7 @@ router.get("/auth/callback", async (req, res) => {
     res.cookie("mcp_session", sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: SESSION_TTL_MS,
       sameSite: "lax",
     });
     res.redirect(`${appUrl}/mcp-tokens`);
@@ -157,4 +162,4 @@ router.delete("/connections/:clientId", requireMcpSession, async (req, res) => {
   }
 });
 
-module.exports = { router };
+module.exports = { router, startSlackOAuth };

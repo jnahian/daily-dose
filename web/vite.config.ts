@@ -17,6 +17,9 @@ export default defineConfig({
       // during local development so the browser's auth prompt works.
       "/scripts/data.json": "http://localhost:3000",
       "/scripts/auth": "http://localhost:3000",
+      // MCP Slack sign-in entry point (see src/app.js) — not under /api, so it
+      // needs its own proxy rule or the SPA router swallows it in dev.
+      "/mcp/login": "http://localhost:3000",
     },
   },
   build: {
