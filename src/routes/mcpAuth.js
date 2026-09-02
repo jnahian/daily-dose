@@ -64,7 +64,11 @@ router.get("/auth/slack", (req, res) => res.redirect("/mcp/login"));
  * injected rather than hardcoded because Slack requires the value sent to
  * oauth.v2.access to match the one used at authorize time: the canonical
  * `/mcp/cb` and the superseded `/api/mcp/auth/callback` must each exchange
- * with their own URI, so a sign-in begun before the switch still completes.
+ * with their own URI. Note this does not carry a sign-in across a *restart*:
+ * `oauthStates` is in-memory, so a deploy drops it and the callback lands on
+ * `invalid_state` either way. Serving the old path just makes that a clean
+ * error on the token page instead of the SPA fallback. (The OAuth 2.1 server's
+ * own flow does survive a restart — its state is the `oauth_auth_codes` row.)
  * @param {() => string} redirectUri - Resolves the URI this path was reached by.
  * @returns {import("express").RequestHandler}
  */
