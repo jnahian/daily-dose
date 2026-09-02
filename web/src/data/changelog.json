@@ -29,6 +29,21 @@
       ]
     },
     {
+      "version": "1.18.2",
+      "date": "2026-07-29",
+      "isLatest": false,
+      "changes": [
+        {
+          "type": "fixed",
+          "title": "Connecting to Zoho People now works",
+          "items": [
+            "Linking an organization to Zoho People failed at the final authorisation step and could never complete, so the leave and holiday sync introduced in 1.18.0 couldn't be switched on. The connection now goes through.",
+            "When a connection or sync does fail, the message now shows what Zoho actually reported — a wrong data centre, API access not yet enabled, or a permissions gap — instead of a bare error code."
+          ]
+        }
+      ]
+    },
+    {
       "version": "1.18.0",
       "date": "2026-07-28",
       "isLatest": false,

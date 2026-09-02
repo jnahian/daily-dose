@@ -83,6 +83,23 @@ Admin panel only — no user-facing bot changes, so nothing was added to
 - `docs/zoho-setup.md` — end-to-end Zoho People setup, led by the Zoho-side **Settings → Manage Accounts → User Access Control → Function Based Permissions → API access** requirement that blocks every call until granted, plus a troubleshooting table mapping the error strings hit during real setup to their causes. Flags the leave-visibility requirement and `zohoSyncService`'s response field mappings as unverified against a live org.
 - `CLAUDE.md` — records the rule that org-scoped features must not be gated behind `requireSuperAdmin`; that tier is only for operations crossing or creating org boundaries.
 
+## [1.18.1] - 2026-07-28
+
+Admin panel only — no user-facing bot changes, so nothing was added to
+`web/src/data/changelog.json`. Backfilled: this release shipped under the
+earlier policy that excluded admin-panel work from `CHANGELOG.md` as well,
+which 1.18.3 reversed.
+
+### Added
+
+- Zoho People sync management (#65) — new `/admin/zoho` page: credential state, per-type sync-run history with the misconfiguration diagnostics added in 1.18.0 (`skippedUnmapped` / `skippedNotApproved` / `skippedInvalid`), employee mappings, and on-demand sync. Gated at org `OWNER`/`ADMIN` via `verifyOrgAccess`, matching the `/dd-zoho-*` slash commands. Credential setup stays on the CLI (`npm run zoho:auth-setup`).
+- Bulk holiday import (#62) — import Zoho People holiday exports (`.xls`/`.xlsx`/`.csv`) from the admin panel with a preview/diff step before anything is written (`ImportHolidaysModal`). Shipped super-admin gated; lowered to org `OWNER`/`ADMIN` in 1.18.2.
+
+### Notes
+
+- No database schema changes.
+- Zoho request/response field mappings remain unverified against a live Zoho org. A sync returning a high `skippedInvalid` means the org's response field names differ from what `mapZohoHoliday` / `mapZohoLeaveRecord` expect — the sync page reports this explicitly rather than showing a bare zero.
+
 ## [1.18.0] - 2026-07-28
 
 ### Added
@@ -819,6 +836,7 @@ Admin panel only — no user-facing bot changes, so nothing was added to
 [1.18.4]: https://github.com/jnahian/daily-dose/compare/v1.18.3...v1.18.4
 [1.18.3]: https://github.com/jnahian/daily-dose/compare/v1.18.2...v1.18.3
 [1.18.2]: https://github.com/jnahian/daily-dose/compare/v1.18.1...v1.18.2
+[1.18.1]: https://github.com/jnahian/daily-dose/compare/v1.18.0...v1.18.1
 [1.18.0]: https://github.com/jnahian/daily-dose/compare/v1.17.1...v1.18.0
 [1.17.1]: https://github.com/jnahian/daily-dose/compare/v1.17.0...v1.17.1
 [1.17.0]: https://github.com/jnahian/daily-dose/compare/v1.16.2...v1.17.0
