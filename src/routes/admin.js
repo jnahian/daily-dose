@@ -12,6 +12,7 @@ const channelService = require("../services/channelService");
 const changelogBroadcastService = require("../services/changelogBroadcastService");
 const oauthTokenService = require("../mcp/auth/oauthTokenService");
 const { escapeSlackText } = require("../utils/messageHelper");
+const { createSession } = require("../utils/sessionHelper");
 const multer = require("multer");
 const holidayImportService = require("../services/holidayImportService");
 const zohoMappingService = require("../services/zoho/zohoMappingService");
@@ -33,6 +34,7 @@ const holidayImportUpload = multer({
 // In-memory OAuth state store (state → expiry timestamp)
 const oauthStates = new Map();
 const OAUTH_STATE_TTL = 10 * 60 * 1000; // 10 minutes
+const ADMIN_SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 // Middleware: verify session cookie
 async function requireAuth(req, res, next) {
@@ -280,25 +282,9 @@ router.get("/auth/callback", async (req, res) => {
       );
     }
 
-    const token = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
-    await prisma.sessions.create({
-      data: {
-        id: crypto.randomUUID(),
-        user_id: user.id,
-        token,
-        expires_at: expiresAt,
-        ip_address: req.ip,
-        user_agent: req.headers["user-agent"],
-      },
-    });
-
-    res.cookie("admin_session", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: "lax",
+    await createSession(user, req, res, {
+      cookieName: "admin_session",
+      ttlMs: ADMIN_SESSION_TTL_MS,
     });
 
     const appUrl = process.env.APP_URL || "";

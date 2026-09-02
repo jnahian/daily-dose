@@ -50,6 +50,15 @@ export default function McpTokens() {
 
   const urlError = searchParams.get("error");
 
+  const handleSignOut = () => {
+    fetch("/api/mcp/auth/logout", { method: "POST", credentials: "include" })
+      .then((r) => {
+        if (!r.ok) throw new Error(`Request failed (${r.status})`);
+        setUser(null);
+      })
+      .catch((err) => console.error("Sign-out failed", err));
+  };
+
   useEffect(() => {
     fetch("/api/mcp/me", { credentials: "include" })
       .then((r) => {
@@ -217,6 +226,13 @@ export default function McpTokens() {
               <span className="text-white/60 text-sm">
                 Signed in as <span className="text-white">{user.name}</span>
               </span>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="text-sm text-white/60 hover:text-white transition-colors"
+              >
+                Sign out
+              </button>
             </div>
 
             {/* Connected AI clients */}
