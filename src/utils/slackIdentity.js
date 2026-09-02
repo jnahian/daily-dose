@@ -40,11 +40,24 @@ function appBaseUrl() {
 
 // Slack OAuth callback for the manual token web flow (/mcp-tokens sign-in).
 function mcpRedirectUri() {
-  return `${appBaseUrl()}/api/mcp/auth/callback`;
+  return `${appBaseUrl()}/mcp/cb`;
 }
 
 // Slack OAuth callback for the OAuth 2.1 authorization server (automatic client sign-in).
 function mcpAsRedirectUri() {
+  return `${appBaseUrl()}/mcp/oauth/cb`;
+}
+
+// The superseded callback paths. Slack requires the `redirect_uri` sent to
+// oauth.v2.access to match the one used at authorize time, so a sign-in that
+// started before the switch must be exchanged with the URI it began with —
+// aliasing the old path to the new handler would fail with redirect_uri_mismatch.
+// Both stay registered and served until no pre-switch flow can still be open.
+function legacyMcpRedirectUri() {
+  return `${appBaseUrl()}/api/mcp/auth/callback`;
+}
+
+function legacyMcpAsRedirectUri() {
   return `${appBaseUrl()}/api/mcp/oauth/slack/callback`;
 }
 
@@ -53,4 +66,6 @@ module.exports = {
   slackAuthorizeUrl,
   mcpRedirectUri,
   mcpAsRedirectUri,
+  legacyMcpRedirectUri,
+  legacyMcpAsRedirectUri,
 };

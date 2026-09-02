@@ -10,12 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - MCP token-page sessions now last **30 days** instead of 7 (`src/routes/mcpAuth.js`). Both the `sessions.expires_at` row and the `mcp_session` cookie `maxAge` read from a single `SESSION_TTL_MS` constant, so the two can no longer drift apart. Only the `/mcp-tokens` sign-in session is affected — OAuth access tokens (1 hour) and refresh tokens (90 days) in `src/mcp/auth/oauthTokenService.js` are unchanged.
-- The MCP Slack sign-in link moved from `/api/mcp/auth/slack` to **`/mcp/login`**. The handler was extracted from the router as `startSlackOAuth` and is mounted directly on the Express app in `src/app.js`; the old path stays as a 302 to the new one, so existing bookmarks keep working. The Slack `redirect_uri` is untouched, so `slack-app-manifest.json`'s `redirect_urls` need no change and no Slack app update is required to deploy this.
-- `web/vite.config.ts` proxies `/mcp/login` to the bot's Express server in dev — it sits outside `/api`, so without a rule of its own the SPA router would swallow it.
+- The MCP Slack sign-in link moved from `/api/mcp/auth/slack` to **`/mcp/login`**. The handler was extracted from the router as `startSlackOAuth` and is mounted directly on the Express app in `src/app.js`; the old path stays as a 302 to the new one, so existing bookmarks keep working. This link is not a `redirect_uri`, so it needed no Slack app change on its own — but the callback move below does, and the two ship together.
+- Both Slack OAuth **callback** paths shortened: `/api/mcp/oauth/slack/callback` → **`/mcp/oauth/cb`** (the one visible while connecting an MCP client) and `/api/mcp/auth/callback` → **`/mcp/cb`**. Unlike the sign-in link, these are `redirect_uri` values, so this one **does** require the Slack app to be updated: both new paths were added to `slack-app-manifest.json`'s `redirect_urls`, and `npm run manifest:update` must run **before** the code deploys or Slack rejects the redirect_uri.
+- The superseded callback paths stay registered and served, each with **its own** `redirect_uri`. Slack matches `redirect_uri` at token exchange, so a sign-in begun before the switch must be exchanged with the URI it began with — aliasing the old path to the new handler would fail with `redirect_uri_mismatch` and strand every in-flight sign-in across the deploy. `makeTokenPageCallback` (`src/routes/mcpAuth.js`) and `makeSlackCallbackHandler` (`src/mcp/auth/index.js`) take the URI as a parameter for that reason, and `completeAuthorization` accepts it rather than resolving it internally. Drop the legacy pair — routes, manifest entries, and the `legacy*RedirectUri` helpers — once no pre-switch flow can still be open.
+- `web/vite.config.ts` proxies `/mcp/login`, `/mcp/cb` and `/mcp/oauth/cb` to the bot's Express server in dev — they sit outside `/api`, so each needs its own rule. Listed individually on purpose: a bare `/mcp` prefix would also capture the SPA's own `/mcp-tokens` route.
 
 ### Added
 
-- `test/routes/mcpAuth.test.js` — covers the Slack authorize redirect, the legacy `/auth/slack` → `/mcp/login` hop, and the 30-day expiry on both the session row and the cookie.
+- `test/routes/mcpAuth.test.js` — covers the Slack authorize redirect, the legacy `/auth/slack` → `/mcp/login` hop, the 30-day expiry on both the session row and the cookie, and that each callback path exchanges with its own `redirect_uri`.
+- `test/mcp/auth/slackCallbackRoutes.test.js` — the same `redirect_uri` guard on the authorization server's canonical and superseded Slack callbacks, plus the no-code path.
 
 ## [1.18.3] - 2026-07-29
 

@@ -5,6 +5,10 @@ const {
 const { provider } = require("./oauthProvider");
 const { completeAuthorization } = require("./slackAuthBridge");
 const legacyTokenService = require("../../services/mcpTokenService");
+const {
+  mcpAsRedirectUri,
+  legacyMcpAsRedirectUri,
+} = require("../../utils/slackIdentity");
 
 function appUrl() {
   return process.env.APP_URL || "http://localhost:3000";
@@ -60,28 +64,46 @@ async function authenticateMcp(req, res, next) {
   return challenge(res);
 }
 
-// GET handler for the AS's Slack callback (mounted in app.js).
-async function handleSlackCallback(req, res) {
-  const { code, state } = req.query;
-  const appBase = appUrl();
-  if (!code || !state) {
-    return res.redirect(`${appBase}/mcp-tokens?error=invalid_state`);
-  }
-  try {
-    const redirectUrl = await completeAuthorization({
-      slackState: state,
-      slackCode: code,
-    });
-    return res.redirect(redirectUrl);
-  } catch (err) {
-    console.error("MCP OAuth Slack callback error:", err.message);
-    return res.redirect(`${appBase}/mcp-tokens?error=oauth_failed`);
-  }
+/**
+ * Build the GET handler for the AS's Slack callback (mounted in app.js). The
+ * `redirect_uri` is injected because Slack matches it at token exchange: the
+ * canonical `/mcp/oauth/cb` and the superseded `/api/mcp/oauth/slack/callback`
+ * each exchange with their own URI, so a client sign-in begun before the
+ * switch still completes.
+ * @param {() => string} redirectUri - Resolves the URI this path was reached by.
+ * @returns {import("express").RequestHandler}
+ */
+function makeSlackCallbackHandler(redirectUri) {
+  return async function handleSlackCallback(req, res) {
+    const { code, state } = req.query;
+    const appBase = appUrl();
+    if (!code || !state) {
+      return res.redirect(`${appBase}/mcp-tokens?error=invalid_state`);
+    }
+    try {
+      const redirectUrl = await completeAuthorization({
+        slackState: state,
+        slackCode: code,
+        redirectUri: redirectUri(),
+      });
+      return res.redirect(redirectUrl);
+    } catch (err) {
+      console.error("MCP OAuth Slack callback error:", err.message);
+      return res.redirect(`${appBase}/mcp-tokens?error=oauth_failed`);
+    }
+  };
 }
+
+// Canonical (/mcp/oauth/cb) and superseded (/api/mcp/oauth/slack/callback).
+const handleSlackCallback = makeSlackCallbackHandler(mcpAsRedirectUri);
+const handleLegacySlackCallback = makeSlackCallbackHandler(
+  legacyMcpAsRedirectUri
+);
 
 module.exports = {
   buildAuthRouter,
   authenticateMcp,
   handleSlackCallback,
+  handleLegacySlackCallback,
   resourceMetadataUrl,
 };

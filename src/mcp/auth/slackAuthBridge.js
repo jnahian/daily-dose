@@ -40,9 +40,19 @@ async function beginAuthorization({
   });
 }
 
-// Step 2 (Slack callback): resolve identity, mint the authorization code, and
-// return the client redirect URL (success → code+state, failure → error+state).
-async function completeAuthorization({ slackState, slackCode }) {
+/**
+ * Step 2 (Slack callback): resolve identity, mint the authorization code, and
+ * return the client redirect URL (success → code+state, failure → error+state).
+ * `redirectUri` is the Slack callback this request arrived on — it must be the
+ * one the flow began with, since Slack matches it at token exchange.
+ * @param {{slackState: string, slackCode: string, redirectUri?: string}} args
+ * @returns {Promise<string>} The URL to send the browser back to.
+ */
+async function completeAuthorization({
+  slackState,
+  slackCode,
+  redirectUri = mcpAsRedirectUri(),
+}) {
   const row = await prisma.oauth_auth_codes.findUnique({
     where: { slack_state: slackState },
   });
@@ -50,10 +60,7 @@ async function completeAuthorization({ slackState, slackCode }) {
     throw new Error("Unknown or expired authorization request");
   }
 
-  const { user } = await resolveSlackUserFromCode(
-    slackCode,
-    mcpAsRedirectUri()
-  );
+  const { user } = await resolveSlackUserFromCode(slackCode, redirectUri);
 
   const redirect = new URL(row.redirect_uri);
   if (row.client_state) redirect.searchParams.set("state", row.client_state);

@@ -58,18 +58,29 @@ receiver.app.use(cookieParser());
 receiver.app.use(express.json());
 receiver.app.use("/api/admin", adminRouter);
 
-const { router: mcpAuthRouter, startSlackOAuth } = require("./routes/mcpAuth");
+const {
+  router: mcpAuthRouter,
+  startSlackOAuth,
+  handleTokenPageCallback,
+} = require("./routes/mcpAuth");
 const { createMcpHandler } = require("./mcp/server");
 const {
   buildAuthRouter,
   authenticateMcp,
   handleSlackCallback,
+  handleLegacySlackCallback,
 } = require("./mcp/auth");
 
 // OAuth 2.1 authorization server + protected-resource metadata (mounted at root).
 receiver.app.use(buildAuthRouter());
-// The AS's own Slack OAuth callback (delegated login).
-receiver.app.get("/api/mcp/oauth/slack/callback", handleSlackCallback);
+// The AS's own Slack OAuth callback (delegated login), and the token page's.
+// Each superseded path keeps its own handler rather than aliasing the new one:
+// Slack matches redirect_uri at token exchange, so a flow started before the
+// switch must be exchanged with the URI it began with. Drop the legacy pair
+// (here and from the manifest) once no pre-switch flow can still be open.
+receiver.app.get("/mcp/oauth/cb", handleSlackCallback);
+receiver.app.get("/mcp/cb", handleTokenPageCallback);
+receiver.app.get("/api/mcp/oauth/slack/callback", handleLegacySlackCallback);
 // Short sign-in entry point for the token page (/api/mcp/auth/slack redirects here).
 receiver.app.get("/mcp/login", startSlackOAuth);
 // Token-management web API (manual tokens + OAuth connections).

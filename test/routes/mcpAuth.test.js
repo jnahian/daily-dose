@@ -7,12 +7,17 @@ jest.mock("../../src/config/prisma", () => ({
 
 jest.mock("../../src/utils/slackIdentity", () => ({
   resolveSlackUserFromCode: jest.fn(),
-  mcpRedirectUri: () => "https://dd.test/api/mcp/auth/callback",
+  mcpRedirectUri: () => "https://dd.test/mcp/cb",
+  legacyMcpRedirectUri: () => "https://dd.test/api/mcp/auth/callback",
 }));
 
 const prisma = require("../../src/config/prisma");
 const { resolveSlackUserFromCode } = require("../../src/utils/slackIdentity");
-const { router, startSlackOAuth } = require("../../src/routes/mcpAuth");
+const {
+  router,
+  startSlackOAuth,
+  handleTokenPageCallback,
+} = require("../../src/routes/mcpAuth");
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -66,6 +71,21 @@ function callRoute(url) {
   });
 }
 
+/**
+ * Prime a valid one-shot OAuth `state` by walking the sign-in link's own path.
+ * @returns {string} The state Slack would echo back.
+ */
+function primeState() {
+  let captured;
+  startSlackOAuth(
+    { query: {} },
+    makeRes((r) => {
+      captured = new URL(r.redirectedTo).searchParams.get("state");
+    })
+  );
+  return captured;
+}
+
 describe("MCP sign-in entry point", () => {
   it("sends the browser to Slack from startSlackOAuth", () => {
     let res;
@@ -75,7 +95,7 @@ describe("MCP sign-in entry point", () => {
     startSlackOAuth({ query: {} }, makeRes(done));
     expect(res.redirectedTo).toContain("https://slack.com/oauth/v2/authorize");
     expect(res.redirectedTo).toContain(
-      encodeURIComponent("https://dd.test/api/mcp/auth/callback")
+      encodeURIComponent("https://dd.test/mcp/cb")
     );
   });
 
@@ -87,23 +107,23 @@ describe("MCP sign-in entry point", () => {
 
 describe("MCP session lifetime", () => {
   it("issues a 30-day session on a successful callback", async () => {
-    const state = (() => {
-      // Prime a valid state by walking the same path the sign-in link does.
-      let captured;
-      startSlackOAuth(
-        { query: {} },
-        makeRes((r) => {
-          captured = new URL(r.redirectedTo).searchParams.get("state");
-        })
-      );
-      return captured;
-    })();
+    const state = primeState();
 
     resolveSlackUserFromCode.mockResolvedValue({ user: { id: "user-1" } });
     prisma.sessions.create.mockResolvedValue({});
 
     const before = Date.now();
-    const res = await callRoute(`/auth/callback?code=abc&state=${state}`);
+    const res = await new Promise((resolve) => {
+      handleTokenPageCallback(
+        {
+          query: { code: "abc", state },
+          cookies: {},
+          headers: {},
+          ip: "1.2.3.4",
+        },
+        makeRes(resolve)
+      );
+    });
     const after = Date.now();
 
     const { expires_at: expiresAt } =
@@ -111,5 +131,38 @@ describe("MCP session lifetime", () => {
     expect(expiresAt.getTime()).toBeGreaterThanOrEqual(before + 30 * DAY_MS);
     expect(expiresAt.getTime()).toBeLessThanOrEqual(after + 30 * DAY_MS);
     expect(res.cookies.mcp_session.options.maxAge).toBe(30 * DAY_MS);
+  });
+});
+
+describe("callback redirect_uri matching", () => {
+  beforeEach(() => {
+    resolveSlackUserFromCode.mockResolvedValue({ user: { id: "user-1" } });
+    prisma.sessions.create.mockResolvedValue({});
+  });
+
+  it("exchanges the canonical /mcp/cb code with the new URI", async () => {
+    const state = primeState();
+    await new Promise((resolve) => {
+      handleTokenPageCallback(
+        { query: { code: "abc", state }, cookies: {}, headers: {} },
+        makeRes(resolve)
+      );
+    });
+    expect(resolveSlackUserFromCode).toHaveBeenCalledWith(
+      "abc",
+      "https://dd.test/mcp/cb"
+    );
+  });
+
+  // A sign-in begun before the switch carries the old redirect_uri; Slack
+  // matches it at token exchange, so the legacy path must not reuse the new
+  // one. Aliasing it to the canonical handler would fail redirect_uri_mismatch.
+  it("exchanges a legacy-path code with the URI that flow began with", async () => {
+    const state = primeState();
+    await callRoute(`/auth/callback?code=xyz&state=${state}`);
+    expect(resolveSlackUserFromCode).toHaveBeenCalledWith(
+      "xyz",
+      "https://dd.test/api/mcp/auth/callback"
+    );
   });
 });
