@@ -4,13 +4,20 @@ const prisma = require("../config/prisma");
 const tokenService = require("../services/mcpTokenService");
 const {
   resolveSlackUserFromCode,
+  slackAuthorizeUrl,
+  appBaseUrl,
   mcpRedirectUri,
 } = require("../utils/slackIdentity");
 const oauthTokenService = require("../mcp/auth/oauthTokenService");
+const { createSession } = require("../utils/sessionHelper");
 
 const router = express.Router();
 
 const OAUTH_STATE_TTL = 5 * 60 * 1000;
+// Longer than the admin panel's 7 days: this session only manages the
+// caller's own MCP tokens, and re-signing in weekly to check them was the
+// complaint. Revocable any time via POST /api/mcp/auth/logout.
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const oauthStates = new Map();
 
 // Reuse the admin session cookie machinery, but WITHOUT the admin gate:
@@ -34,59 +41,80 @@ async function requireMcpSession(req, res, next) {
   }
 }
 
-// GET /api/mcp/auth/slack — initiate OAuth
-router.get("/auth/slack", (req, res) => {
+/**
+ * Start the Slack OAuth flow for the token page: record a short-lived `state`
+ * and redirect the browser to Slack's authorize endpoint. Canonically served
+ * at `GET /mcp/login` (mounted in app.js), returning to `/mcp/cb`.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {void}
+ */
+function startSlackOAuth(req, res) {
+  // Public, unauthenticated endpoint: drop expired states on every insert so
+  // abandoned sign-ins can't grow the map for the life of the process.
+  const now = Date.now();
+  for (const [key, expiry] of oauthStates) {
+    if (expiry <= now) oauthStates.delete(key);
+  }
   const state = crypto.randomBytes(16).toString("hex");
-  oauthStates.set(state, Date.now() + OAUTH_STATE_TTL);
-  const params = new URLSearchParams({
-    client_id: process.env.SLACK_CLIENT_ID,
-    user_scope: "identity.basic,identity.email",
-    redirect_uri: mcpRedirectUri(),
-    state,
-  });
-  res.redirect(`https://slack.com/oauth/v2/authorize?${params}`);
-});
+  oauthStates.set(state, now + OAUTH_STATE_TTL);
+  res.redirect(slackAuthorizeUrl({ redirectUri: mcpRedirectUri(), state }));
+}
 
-// GET /api/mcp/auth/callback — handle OAuth callback
-router.get("/auth/callback", async (req, res) => {
+// GET /api/mcp/auth/slack — legacy sign-in path, kept for old bookmarks.
+router.get("/auth/slack", (req, res) => res.redirect("/mcp/login"));
+
+/**
+ * The token page's Slack callback, mounted at `GET /mcp/cb` in app.js.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>}
+ */
+async function handleTokenPageCallback(req, res) {
   const { code, state } = req.query;
   const expiry = oauthStates.get(state);
-  const appUrl = process.env.APP_URL || "";
+  const tokenPage = `${appBaseUrl()}/mcp-tokens`;
 
   if (!state || !expiry || Date.now() > expiry) {
     oauthStates.delete(state);
-    return res.redirect(`${appUrl}/mcp-tokens?error=invalid_state`);
+    return res.redirect(`${tokenPage}?error=invalid_state`);
   }
   oauthStates.delete(state);
 
   try {
-    if (!code) return res.redirect(`${appUrl}/mcp-tokens?error=oauth_denied`);
+    if (!code) return res.redirect(`${tokenPage}?error=oauth_denied`);
 
     const { user } = await resolveSlackUserFromCode(code, mcpRedirectUri());
-    if (!user) return res.redirect(`${appUrl}/mcp-tokens?error=not_registered`);
+    if (!user) return res.redirect(`${tokenPage}?error=not_registered`);
 
-    const sessionToken = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-    await prisma.sessions.create({
-      data: {
-        id: crypto.randomUUID(),
-        user_id: user.id,
-        token: sessionToken,
-        expires_at: expiresAt,
-        ip_address: req.ip,
-        user_agent: req.headers["user-agent"],
-      },
+    await createSession(user, req, res, {
+      cookieName: "mcp_session",
+      ttlMs: SESSION_TTL_MS,
     });
-    res.cookie("mcp_session", sessionToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: "lax",
-    });
-    res.redirect(`${appUrl}/mcp-tokens`);
+    res.redirect(tokenPage);
   } catch (err) {
     console.error("MCP OAuth callback error:", err);
-    res.redirect(`${appUrl}/mcp-tokens?error=oauth_failed`);
+    res.redirect(`${tokenPage}?error=oauth_failed`);
+  }
+}
+
+// GET /api/mcp/auth/callback — the pre-1.19 callback path. Its `state` lived
+// in this process's memory, so nothing that reaches it can still complete.
+router.get("/auth/callback", (req, res) =>
+  res.redirect(`${appBaseUrl()}/mcp-tokens?error=invalid_state`)
+);
+
+// POST /api/mcp/auth/logout — end the session (mirrors the admin panel's).
+router.post("/auth/logout", requireMcpSession, async (req, res) => {
+  try {
+    await prisma.sessions.deleteMany({
+      where: { token: req.cookies.mcp_session },
+    });
+    res.clearCookie("mcp_session");
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("MCP logout error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -157,4 +185,4 @@ router.delete("/connections/:clientId", requireMcpSession, async (req, res) => {
   }
 });
 
-module.exports = { router };
+module.exports = { router, startSlackOAuth, handleTokenPageCallback };

@@ -135,7 +135,7 @@ jobs:
               MANIFEST_CHANGED=true
             else
               echo "Comparing changes between $PREV_TAG and ${{ steps.version.outputs.tag }}"
-              CHANGED_FILES=$(git diff --name-only $PREV_TAG ${{ steps.version.outputs.tag }} | grep -E '(src/commands/|scripts/updateSlackManifest\.js|src/app\.js)' || true)
+              CHANGED_FILES=$(git diff --name-only $PREV_TAG ${{ steps.version.outputs.tag }} | grep -E '(src/commands/|scripts/updateSlackManifest\.js|slack-app-manifest\.json|src/utils/slackIdentity\.js|src/app\.js)' || true)
 
               if [ -n "$CHANGED_FILES" ]; then
                 echo "📋 Manifest-related files changed:"
@@ -147,10 +147,13 @@ jobs:
               fi
             fi
 
-            # Update Slack app manifest if needed
+            # Update Slack app manifest if needed. The manifest carries the
+            # OAuth redirect URLs the new code sends, so a failure here means
+            # sign-in is broken: still bring the app up, but fail the job.
+            MANIFEST_OK=true
             if [ "$MANIFEST_CHANGED" = true ]; then
               echo "📋 Updating Slack app manifest..."
-              node scripts/updateSlackManifest.js || echo "⚠️ Manifest update failed, continuing deployment..."
+              node scripts/updateSlackManifest.js || MANIFEST_OK=false
             fi
 
             # Start/restart the application with PM2
@@ -158,6 +161,11 @@ jobs:
 
             # Save PM2 configuration
             pm2 save
+
+            if [ "$MANIFEST_OK" != true ]; then
+              echo "::error::Slack manifest update failed — run 'npm run manifest:update' by hand or Slack rejects the OAuth redirect_uri"
+              exit 1
+            fi
 
             echo "✅ Deployment of version ${{ steps.version.outputs.tag }} completed successfully!"
 

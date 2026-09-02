@@ -9,9 +9,7 @@ jest.mock("../../../src/config/prisma", () => ({
 jest.mock("../../../src/utils/slackIdentity", () => ({
   resolveSlackUserFromCode: jest.fn(),
   slackAuthorizeUrl: jest.fn(() => "https://slack.com/oauth/v2/authorize?x=1"),
-  mcpAsRedirectUri: jest.fn(
-    () => "https://app.example/api/mcp/oauth/slack/callback"
-  ),
+  mcpAsRedirectUri: jest.fn(() => "https://app.example/mcp/oauth/cb"),
 }));
 
 const prisma = require("../../../src/config/prisma");
@@ -62,6 +60,11 @@ describe("slackAuthBridge", () => {
       slackCode: "slack-code",
     });
 
+    // Slack matches redirect_uri at exchange against the one sent at authorize.
+    expect(resolveSlackUserFromCode).toHaveBeenCalledWith(
+      "slack-code",
+      "https://app.example/mcp/oauth/cb"
+    );
     expect(url).toMatch(/^https:\/\/claude\.ai\/cb\?/);
     expect(url).toMatch(/[?&]code=/);
     expect(url).toMatch(/[?&]state=xyz/);
@@ -101,6 +104,35 @@ describe("slackAuthBridge", () => {
     await expect(
       bridge.completeAuthorization({ slackState: "bad", slackCode: "x" })
     ).rejects.toThrow(/authorization/i);
+  });
+
+  it("abortAuthorization sends the client its error with its own state", async () => {
+    prisma.oauth_auth_codes.findUnique.mockResolvedValue({
+      id: "ac1",
+      redirect_uri: "https://claude.ai/cb",
+      client_state: "xyz",
+    });
+    const url = await bridge.abortAuthorization({
+      slackState: "s1",
+      error: "access_denied",
+      description: "cancelled",
+    });
+    const params = new URL(url).searchParams;
+    expect(url).toMatch(/^https:\/\/claude\.ai\/cb\?/);
+    expect(params.get("state")).toBe("xyz");
+    expect(params.get("error")).toBe("access_denied");
+    expect(params.get("error_description")).toBe("cancelled");
+  });
+
+  it("abortAuthorization returns null for an unknown slack_state", async () => {
+    prisma.oauth_auth_codes.findUnique.mockResolvedValue(null);
+    expect(
+      await bridge.abortAuthorization({
+        slackState: "bad",
+        error: "access_denied",
+        description: "x",
+      })
+    ).toBeNull();
   });
 
   it("consumeAuthorizationCode returns the row once then deletes it", async () => {

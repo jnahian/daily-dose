@@ -23,6 +23,9 @@
  * Options:
  *   --create          Create a new app instead of updating existing one
  *   --dry-run         Show what would be done without making changes
+ *   --validate        Validate with Slack (apps.manifest.validate) and stop
+  --export          Print the manifest Slack currently holds for SLACK_APP_ID
+ *   --export          Print the manifest Slack currently holds for SLACK_APP_ID
  *   --help            Show this help message
  */
 
@@ -41,7 +44,8 @@ class SlackManifestManager {
     this.clientId = process.env.SLACK_CLIENT_ID;
     this.clientSecret = process.env.SLACK_CLIENT_SECRET;
     this.appId = process.env.SLACK_APP_ID;
-    this.appUrl = process.env.APP_URL;
+    // Strip a trailing slash so "{{APP_URL}}/path" never registers as "//path".
+    this.appUrl = (process.env.APP_URL || "").replace(/\/+$/, "");
 
     if (!this.token && !this.refreshToken) {
       console.error(
@@ -215,9 +219,11 @@ class SlackManifestManager {
       }
 
       if (!data.ok) {
-        throw new Error(
+        const err = new Error(
           `Slack API error: ${data.error} - ${data.detail || ""}`
         );
+        err.data = data;
+        throw err;
       }
 
       return data;
@@ -316,6 +322,32 @@ class SlackManifestManager {
   }
 
   /**
+   * Validate the manifest against Slack's schema (apps.manifest.validate).
+   * Passing app_id validates it as an update to that app. Throws with every
+   * `pointer: message` Slack reports, so the caller sees all problems at once.
+   */
+  async validateRemote(manifest) {
+    console.log("🔎 Validating manifest with Slack...");
+    try {
+      await this.makeRequest("apps.manifest.validate", "POST", {
+        manifest,
+        ...(this.appId ? { app_id: this.appId } : {}),
+      });
+    } catch (error) {
+      const problems = error.data?.errors || [];
+      for (const { pointer, message } of problems) {
+        console.error(`   ${pointer || "(manifest)"}: ${message}`);
+      }
+      throw new Error(
+        problems.length
+          ? `Manifest rejected by Slack (${problems.length} problem${problems.length === 1 ? "" : "s"})`
+          : error.message
+      );
+    }
+    console.log("✅ Manifest is valid");
+  }
+
+  /**
    * Validate manifest before applying
    */
   validateManifest(manifest) {
@@ -352,8 +384,18 @@ class SlackManifestManager {
    */
   async run(options = {}) {
     try {
+      if (options.export) {
+        const live = await this.getCurrentManifest(this.appId);
+        if (!live) process.exit(1);
+        console.log(JSON.stringify(live, null, 2));
+        return;
+      }
+
       const manifest = this.loadManifest();
       this.validateManifest(manifest);
+      // --dry-run stays offline; every path that talks to Slack validates first.
+      if (!options.dryRun) await this.validateRemote(manifest);
+      if (options.validate) return;
 
       if (options.create) {
         await this.createApp(manifest, options.dryRun);
@@ -390,6 +432,8 @@ Usage:
 Options:
   --create          Create a new app instead of updating existing one
   --dry-run         Show what would be done without making changes
+  --validate        Validate with Slack (apps.manifest.validate) and stop
+  --export          Print the manifest Slack currently holds for SLACK_APP_ID
   --help            Show this help message
 
 Examples:
@@ -430,6 +474,12 @@ function parseArgs() {
         break;
       case "--dry-run":
         options.dryRun = true;
+        break;
+      case "--validate":
+        options.validate = true;
+        break;
+      case "--export":
+        options.export = true;
         break;
       default:
         console.error(`❌ Unknown option: ${args[i]}`);

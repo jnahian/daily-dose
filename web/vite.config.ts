@@ -17,6 +17,10 @@ export default defineConfig({
       // during local development so the browser's auth prompt works.
       "/scripts/data.json": "http://localhost:3000",
       "/scripts/auth": "http://localhost:3000",
+      // MCP Slack sign-in and OAuth callbacks (see src/app.js) sit outside
+      // /api. The "^" makes this a RegExp key: it matches /mcp/* but not the
+      // SPA's own /mcp-tokens route.
+      "^/mcp/": "http://localhost:3000",
     },
   },
   build: {

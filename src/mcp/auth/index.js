@@ -3,22 +3,23 @@ const {
   getOAuthProtectedResourceMetadataUrl,
 } = require("@modelcontextprotocol/sdk/server/auth/router.js");
 const { provider } = require("./oauthProvider");
-const { completeAuthorization } = require("./slackAuthBridge");
+const {
+  completeAuthorization,
+  abortAuthorization,
+} = require("./slackAuthBridge");
 const legacyTokenService = require("../../services/mcpTokenService");
+const { appBaseUrl } = require("../../utils/slackIdentity");
 
-function appUrl() {
-  return process.env.APP_URL || "http://localhost:3000";
-}
 function resourceMetadataUrl() {
-  return getOAuthProtectedResourceMetadataUrl(new URL(`${appUrl()}/mcp`));
+  return getOAuthProtectedResourceMetadataUrl(new URL(`${appBaseUrl()}/mcp`));
 }
 
 // The OAuth 2.1 router (authorize/token/register/revoke + metadata).
 function buildAuthRouter() {
   return mcpAuthRouter({
     provider,
-    issuerUrl: new URL(appUrl()),
-    resourceServerUrl: new URL(`${appUrl()}/mcp`),
+    issuerUrl: new URL(appBaseUrl()),
+    resourceServerUrl: new URL(`${appBaseUrl()}/mcp`),
     scopesSupported: ["mcp"],
     resourceName: "Daily Dose Standup",
   });
@@ -60,22 +61,36 @@ async function authenticateMcp(req, res, next) {
   return challenge(res);
 }
 
-// GET handler for the AS's Slack callback (mounted in app.js).
+// GET /mcp/oauth/cb — the AS's Slack callback (delegated login). The MCP
+// client is waiting on its own redirect_uri, so every outcome that can be
+// tied to an in-flight authorization goes back there; only an unknown state
+// falls through to the token page.
 async function handleSlackCallback(req, res) {
   const { code, state } = req.query;
-  const appBase = appUrl();
-  if (!code || !state) {
-    return res.redirect(`${appBase}/mcp-tokens?error=invalid_state`);
-  }
+  const tokenPage = (error) =>
+    res.redirect(`${appBaseUrl()}/mcp-tokens?error=${error}`);
+  if (!state) return tokenPage("invalid_state");
   try {
-    const redirectUrl = await completeAuthorization({
-      slackState: state,
-      slackCode: code,
-    });
-    return res.redirect(redirectUrl);
+    if (!code) {
+      // Slack sends ?error=access_denied with no code when the user cancels.
+      const url = await abortAuthorization({
+        slackState: state,
+        error: "access_denied",
+        description: "Slack sign-in was cancelled",
+      });
+      return url ? res.redirect(url) : tokenPage("invalid_state");
+    }
+    return res.redirect(
+      await completeAuthorization({ slackState: state, slackCode: code })
+    );
   } catch (err) {
     console.error("MCP OAuth Slack callback error:", err.message);
-    return res.redirect(`${appBase}/mcp-tokens?error=oauth_failed`);
+    const url = await abortAuthorization({
+      slackState: state,
+      error: "server_error",
+      description: "Slack sign-in failed; please try again",
+    }).catch(() => null);
+    return url ? res.redirect(url) : tokenPage("oauth_failed");
   }
 }
 
