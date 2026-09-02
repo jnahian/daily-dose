@@ -17,6 +17,8 @@
     "manifest:create": "node scripts/updateSlackManifest.js --create",
     "manifest:update": "node scripts/updateSlackManifest.js",
     "manifest:dry-run": "node scripts/updateSlackManifest.js --dry-run",
+    "manifest:validate": "node scripts/updateSlackManifest.js --validate",
+    "manifest:export": "node scripts/updateSlackManifest.js --export",
     "standup:trigger": "node scripts/triggerStandup.js",
     "standup:post": "node scripts/sendManualStandup.js",
     "slack:info": "node scripts/viewSlackTeamInfo.js",

@@ -67,6 +67,8 @@ High-leverage footguns specific to this repo. Read before editing:
 - `npm run manifest:create` - Create new Slack app manifest
 - `npm run manifest:update` - Update existing Slack app manifest
 - `npm run manifest:dry-run` - Preview manifest changes
+- `npm run manifest:validate` - Validate the manifest with Slack's `apps.manifest.validate` and stop (the update path runs this first anyway)
+- `npm run manifest:export` - Print the manifest Slack currently holds, to confirm an update landed
 
 ### Web Frontend (React SPA)
 
