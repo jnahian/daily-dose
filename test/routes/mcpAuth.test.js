@@ -20,7 +20,12 @@ beforeAll(() => jest.spyOn(console, "error").mockImplementation(() => {}));
 afterAll(() => console.error.mockRestore());
 beforeEach(() => jest.clearAllMocks());
 
-// Minimal res double: captures redirect target and any cookie set.
+/**
+ * Minimal Express `res` double that captures the redirect target and any
+ * cookie set, then hands itself to `done` once the handler redirects.
+ * @param {(res: object) => void} done - Called with this res on redirect.
+ * @returns {object} The res double.
+ */
 function makeRes(done) {
   return {
     cookies: {},
@@ -36,6 +41,12 @@ function makeRes(done) {
   };
 }
 
+/**
+ * Drive one GET through the real router and resolve with the res double once
+ * the handler redirects.
+ * @param {string} url - Router-relative URL, query string included.
+ * @returns {Promise<object>} Resolves with the res double.
+ */
 function callRoute(url) {
   return new Promise((resolve, reject) => {
     const req = {

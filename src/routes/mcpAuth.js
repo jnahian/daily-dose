@@ -35,8 +35,15 @@ async function requireMcpSession(req, res, next) {
   }
 }
 
-// Initiate OAuth. Canonically served at GET /mcp/login (mounted in app.js);
-// the Slack redirect_uri is unchanged, so the app's allowlist stays as-is.
+/**
+ * Start the Slack OAuth flow for the token page: record a short-lived `state`
+ * and redirect the browser to Slack's authorize endpoint. Canonically served
+ * at `GET /mcp/login` (mounted in app.js); the Slack `redirect_uri` is
+ * unchanged, so the app's redirect allowlist stays as-is.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {void}
+ */
 function startSlackOAuth(req, res) {
   const state = crypto.randomBytes(16).toString("hex");
   oauthStates.set(state, Date.now() + OAUTH_STATE_TTL);
