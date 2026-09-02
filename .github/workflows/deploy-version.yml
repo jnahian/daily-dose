@@ -105,9 +105,12 @@ jobs:
             # Stop the application
             pm2 stop DAILY_DOSE_BOT || echo "App not running"
 
-            # Fetch all tags and checkout the specific version
-            git fetch --all --tags
-            git checkout tags/${{ steps.version.outputs.tag }} -b release-${{ steps.version.outputs.version }} || git checkout release-${{ steps.version.outputs.version }}
+            # Fetch all tags and checkout the specific version.
+            # --force so a moved tag replaces the stale local one instead of
+            # being rejected, and -B so the release branch is reset to the tag
+            # rather than reusing whatever commit it already pointed at.
+            git fetch --all --tags --force
+            git checkout -B release-${{ steps.version.outputs.version }} tags/${{ steps.version.outputs.tag }}
 
             # Install dependencies
             npm ci --production
